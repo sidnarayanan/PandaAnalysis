@@ -98,5 +98,6 @@ else:
         factory.add_process(f('ggFHinv_m125'),'GGF_H125')
         for m in [1000, 110, 125, 150, 200, 300, 500, 600, 800 ]:
             factory.add_process(f('vbfHinv_m%i'%m),'VBF_H%i'%m)
+        factory.add_process(f('vbfHinv_m%i'%125),'VBF_Hinv') # duplicate this to be consistent with HIG standards
 
 factory.run(basedir+'/fitting/fittingForest_%s.root'%out_region)

@@ -35,6 +35,7 @@ if args.cut == 'cnc':
 elif args.cut == 'mjj':
   base_cut = tAND(sel.mjj, sel.cuts['signal'])
   label = 'mjj'
+base_cut = 'pfmet>250   && dphipfmet>0.5 && nLooseMuon==0 && nLooseElectron==0 && nLoosePhoton==0 && fabs(calomet-pfmet)/pfmet<0.5 && nJet>0 && jet1Pt>100 && nTau==0 && jetNMBtags==0'
 weight = sel.weights['signal']%lumi
 
 plot = root.HistogramDrawer()

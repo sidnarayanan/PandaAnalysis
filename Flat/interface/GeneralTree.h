@@ -158,6 +158,7 @@ class GeneralTree : public genericTree {
 
       float scale[6];
 //ENDCUSTOMDEF
+    float genDEta = -1;
     float genJet1Pt = -1;
     float genJet2Pt = -1;
     float genJet1Eta = -1;

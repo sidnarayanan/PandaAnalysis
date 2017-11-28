@@ -118,6 +118,7 @@ else:
     lep = '#mu'
 
 ### CHOOSE DISTRIBUTIONS, LABELS ###
+'''
 if 'signal' in region:
     recoil=VDistribution("pfmet",recoilBins,"PF MET [GeV]","Events/GeV")
     plot.add_distribution(FDistribution('dphipfmet',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
@@ -136,9 +137,12 @@ elif any([x in region for x in ['dielectron','dimuon']]):
 #    plot.add_distribution(FDistribution('dphipfUZ',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
 
 plot.add_distribution(recoil)
+'''
 
-#plot.add_distribution(FDistribution('barrelHT',0,1000,20,'Barrel H_{T} [GeV]','Events/50 GeV'))
+plot.add_distribution(FDistribution('barrelHT',0,1000,20,'Barrel H_{T} [GeV]','Events/50 GeV'))
+plot.add_distribution(FDistribution('barrelHTMiss',0,1000,20,'Barrel H_{T}^{miss} [GeV]','Events/50 GeV'))
 #plot.add_distribution(FDistribution('barrelJet1Pt',0,1000,20,'Barrel jet 1 p_{T} [GeV]','Events/50 GeV'))
+'''
 plot.add_distribution(FDistribution('jot12Mass',0,4000,20,'m_{jj} [GeV]','Events/200 GeV'))
 plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','Events'))
 plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","Events",filename='jot12DPhi'))
@@ -147,6 +151,7 @@ plot.add_distribution(FDistribution("jot2Eta",-5,5,20,"Jet 2 #eta","Events"))
 plot.add_distribution(FDistribution("jot1Pt",80,500,20,"Jet 1 p_{T} [GeV]","Events"))
 plot.add_distribution(FDistribution("jot2Pt",40,500,20,"Jet 2 p_{T} [GeV]","Events"))
 plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
+'''
 
 ### DRAW AND CATALOGUE ###
 region = '%s/%s'%(args.cat,region)

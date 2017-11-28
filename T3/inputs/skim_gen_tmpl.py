@@ -60,7 +60,8 @@ def copy_local(long_name):
 
     # rely on pxrdcp for local and remote copies
     # default behavior: drop PF candidates
-    cmd = "pxrdcp %s %s '!pfCandidates'"%(full_path,input_name)
+    #cmd = "pxrdcp %s %s '!pfCandidates'"%(full_path,input_name)
+    cmd = "xrdcp %s %s"%(full_path,input_name)
     PInfo(sname+'.copy_local',cmd)
 
     system(cmd)
@@ -81,7 +82,7 @@ def fn(input_name,isData,full_path):
     skimmer.isData=isData
     skimmer.SetFlag('fatjet',False)
     skimmer.SetFlag('genOnly',True)
-    skimmer.SetPreselectionBit(root.PandaAnalyzer.kGenBosonPt)
+#    skimmer.SetPreselectionBit(root.PandaAnalyzer.kGenBosonPt)
     processType=root.PandaAnalyzer.kNone
     if not isData:
         if any([x in full_path for x in ['Vector_','Scalar_']]):
