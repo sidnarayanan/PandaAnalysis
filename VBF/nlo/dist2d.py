@@ -25,10 +25,11 @@ from math import sqrt
 Load('CanvasDrawer')
 root.gROOT.SetBatch()
 root.gStyle.SetNumberContours(999);
-root.gStyle.SetPalette(root.kBird)
+root.gStyle.SetPalette(root.kCool)
 
 lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
+SMOOTH = True
 
 plot = root.CanvasDrawer()
 plot.SetTDRStyle()
@@ -54,6 +55,8 @@ infile = basedir + args.proc + '_nlo.root'
 f_nlo = root.TFile.Open(infile); t_nlo = f_nlo.Get('events')
 s_nlo.read_tree(t_nlo, branches = branches, cut = cut)
 
+fout = root.TFile.Open('vbf_kfactors.root', 'UPDATE')
+
 def draw(x, xbins,  xlabel, y, ybins, ylabel):
     plot.Reset()
     plot.AddCMSLabel()
@@ -66,16 +69,21 @@ def draw(x, xbins,  xlabel, y, ybins, ylabel):
     hlo = s.draw([x_, y], weight='normalizedWeight', hbase=h)
     hnlo = s_nlo.draw([x_, y], weight='normalizedWeight', hbase=h)
     hratio = hnlo.Clone(); hratio.Divide(hlo)
+    if SMOOTH:
+        hratio.Smooth()
     root.gStyle.SetPaintTextFormat('.2g') 
     hratio.GetXaxis().SetTitle(xlabel)
     hratio.GetYaxis().SetTitle(ylabel)
     hratio.GetZaxis().SetTitle('NLO/LO')
     hratio.Draw('colz text')
     plot.Draw(args.outdir+'/','%s_%s_ratio_%s'%(x, y, args.proc))
+    fout.WriteTObject(hratio, 'h_' + args.proc, 'OVERWRITE')
     
   
 draw(
-     'genMjj', [0.001*x for x in [0,300,550,800,1200,2000,5000]], 'm_{jj} [TeV]',
-    'trueGenBosonPt', [160,180,200,240,300,400,500,600,800,1000], 'p_{T}^{V} [GeV]',
+     'genMjj', [0.001*x for x in [0,600,1200,2000,5000]], 'm_{jj} [TeV]',
+     'trueGenBosonPt', [160,200,300,400,500,600,800,1000], 'p_{T}^{V} [GeV]',
     )
  
+
+fout.Close()

@@ -2211,21 +2211,47 @@ void PandaAnalyzer::Run() {
     gt->sf_qcdV_VBF2lTight=1;
     if (!isData) {
       // calculate the mjj 
+      unsigned nGenJet = 0;
       TLorentzVector vGenJet;
-      if (event.ak4GenJets.size() > 0) {
-        auto &gj = event.ak4GenJets.at(0);
-        TLorentzVector v;
-        v.SetPtEtaPhiM(gj.pt(), gj.eta(), gj.phi(), gj.m());
-        gt->genJet1Pt = gj.pt(); gt->genJet1Eta = gj.eta();
-        vGenJet += v;
-        if (event.ak4GenJets.size() > 1) {
-          gj = event.ak4GenJets.at(1);
-          v.SetPtEtaPhiM(gj.pt(), gj.eta(), gj.phi(), gj.m());
-          gt->genJet2Pt = gj.pt(); gt->genJet2Eta = gj.eta();
-          vGenJet += v;
-        }
+      std::vector<GenParticle*> genLeptons;
+      for (auto &gp : event.genParticles) {
+        if (!gp.finalState)
+          continue;
+        unsigned id = abs(gp.pdgid);
+        if ((id == 11 || id == 13) &&
+            (gp.pt() > 20 && fabs(gp.eta()) < 4.7))
+          genLeptons.push_back(&gp);
       }
-      gt->genMjj = vGenJet.M();
+      TLorentzVector v;
+      for (auto &gj : event.ak4GenJets) {
+        bool matchesLep = false;
+        for (auto *gl : genLeptons) {
+          if (DeltaR2(gj.eta(), gj.phi(), gl->eta(), gl->phi()) < 0.16) {
+            matchesLep = true;
+            break;
+          }
+        }
+        if (matchesLep)
+          continue;
+
+        v.SetPtEtaPhiM(gj.pt(), gj.eta(), gj.phi(), gj.m());
+        if (nGenJet == 0) { gt->genJet1Pt = gj.pt(); gt->genJet1Eta = gj.eta(); }
+        else if (nGenJet == 1) { gt->genJet2Pt = gj.pt(); gt->genJet2Eta = gj.eta(); }
+
+
+        vGenJet += v;
+        nGenJet++;
+        if (nGenJet == 2)
+          break;
+      }
+      float mjj;
+      if (nGenJet == 2) {
+        gt->genMjj = vGenJet.M();
+        mjj = gt->genMjj; 
+      } else {
+        gt->genMjj = -1;
+        mjj = gt->jot12Mass;
+      }
 
       bool found = processType!=kA 
                    && processType!=kZ 
@@ -2258,8 +2284,8 @@ void PandaAnalyzer::Run() {
             gt->genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
             gt->sf_qcdV = GetCorr(cZNLO,gt->genBosonPt);
             gt->sf_ewkV = GetCorr(cZEWK,gt->genBosonPt);
-            gt->sf_qcdV_VBF = GetCorr(cVBF_ZNLO,gt->genBosonPt,gt->genMjj);
-            gt->sf_qcdV_VBF2l = GetCorr(cVBF_ZllNLO,gt->genBosonPt,gt->genMjj);
+            gt->sf_qcdV_VBF = GetCorr(cVBF_ZNLO,gt->genBosonPt,mjj);
+            gt->sf_qcdV_VBF2l = GetCorr(cVBF_ZllNLO,gt->genBosonPt,mjj);
             gt->sf_qcdV_VBFTight = GetCorr(cVBFTight_ZNLO,gt->genBosonPt);
             gt->sf_qcdV_VBF2lTight = GetCorr(cVBFTight_ZllNLO,gt->genBosonPt);
             found=true;
@@ -2270,7 +2296,7 @@ void PandaAnalyzer::Run() {
             gt->genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
             gt->sf_qcdV = GetCorr(cWNLO,gt->genBosonPt);
             gt->sf_ewkV = GetCorr(cWEWK,gt->genBosonPt);
-            gt->sf_qcdV_VBF = GetCorr(cVBF_WNLO,gt->genBosonPt,gt->genMjj);
+            gt->sf_qcdV_VBF = GetCorr(cVBF_WNLO,gt->genBosonPt,mjj);
             gt->sf_qcdV_VBFTight = GetCorr(cVBFTight_WNLO,gt->genBosonPt);
             found=true;
           } else if (processType==kZEWK) {
@@ -2278,14 +2304,14 @@ void PandaAnalyzer::Run() {
             gt->genBosonMass = gen.m();
             gt->genBosonEta = gen.eta();
             gt->genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
-            gt->sf_qcdV_VBF = GetCorr(cVBF_EWKZ,gt->genBosonPt,gt->jot12Mass);
+            gt->sf_qcdV_VBF = GetCorr(cVBF_EWKZ,gt->genBosonPt,mjj);
             gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
           } else if (processType==kWEWK) {
             gt->trueGenBosonPt = gen.pt();
             gt->genBosonMass = gen.m();
             gt->genBosonEta = gen.eta();
             gt->genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
-            gt->sf_qcdV_VBF = GetCorr(cVBF_EWKW,gt->genBosonPt,gt->jot12Mass);
+            gt->sf_qcdV_VBF = GetCorr(cVBF_EWKW,gt->genBosonPt,mjj);
             gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
           } else if (processType==kA) {
             // take the highest pT
@@ -2303,7 +2329,7 @@ void PandaAnalyzer::Run() {
       } // gen particle loop ends
 
       //now for the cases where we did not find a gen boson
-      if (gt->genBosonPt < 0){
+      if (gt->trueGenBosonPt < 0){
 
         TLorentzVector vpt(0,0,0,0);
 
@@ -2326,7 +2352,8 @@ void PandaAnalyzer::Run() {
           }
         }
         
-        gt->genBosonPt = bound(vpt.Pt(),genBosonPtMin,genBosonPtMax);
+        gt->trueGenBosonPt = vpt.Pt();
+        gt->genBosonPt = bound(gt->trueGenBosonPt,genBosonPtMin,genBosonPtMax);
         gt->trueGenBosonPt = vpt.Pt();
         gt->genBosonMass = vpt.M();
         gt->genBosonEta = vpt.Eta();
@@ -2334,21 +2361,21 @@ void PandaAnalyzer::Run() {
         if (processType==kZ) {
           gt->sf_qcdV = GetCorr(cZNLO,gt->genBosonPt);
           gt->sf_ewkV = GetCorr(cZEWK,gt->genBosonPt);
-          gt->sf_qcdV_VBF = GetCorr(cVBF_ZNLO,gt->genBosonPt) * gt->sf_qcdV;
-          gt->sf_qcdV_VBFTight = GetCorr(cVBFTight_ZNLO,gt->genBosonPt) * gt->sf_qcdV;
+          gt->sf_qcdV_VBF = GetCorr(cVBF_ZNLO,gt->genBosonPt);
+          gt->sf_qcdV_VBFTight = GetCorr(cVBFTight_ZNLO,gt->genBosonPt);
         } 
         else if (processType==kW) {
           gt->sf_qcdV = GetCorr(cWNLO,gt->genBosonPt);
           gt->sf_ewkV = GetCorr(cWEWK,gt->genBosonPt);
-          gt->sf_qcdV_VBF = GetCorr(cVBF_WNLO,gt->genBosonPt) * gt->sf_qcdV;
-          gt->sf_qcdV_VBFTight = GetCorr(cVBFTight_WNLO,gt->genBosonPt) * gt->sf_qcdV;
+          gt->sf_qcdV_VBF = GetCorr(cVBF_WNLO,gt->genBosonPt);
+          gt->sf_qcdV_VBFTight = GetCorr(cVBFTight_WNLO,gt->genBosonPt);
         } 
         else if (processType==kZEWK) {
-          gt->sf_qcdV_VBF = GetCorr(cVBF_EWKZ,gt->genBosonPt,gt->jot12Mass);
+          gt->sf_qcdV_VBF = GetCorr(cVBF_EWKZ,gt->genBosonPt,mjj);
           gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
         } 
         else if (processType==kWEWK) {
-          gt->sf_qcdV_VBF = GetCorr(cVBF_EWKW,gt->genBosonPt,gt->jot12Mass);
+          gt->sf_qcdV_VBF = GetCorr(cVBF_EWKW,gt->genBosonPt,mjj);
           gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency  
         }  
       }

@@ -5,9 +5,14 @@ from glob import glob
 from re import sub
 from sys import argv,exit
 from os import environ,system,path
+from argparse import ArgumentParser
 
 sname = argv[0]
-arguments = [x for x in argv[1:]] # deep copy
+parser = ArgumentParser()
+parser.add_argument('--silent', action='store_true')
+parser.add_argument('arguments', type=str, nargs='+')
+args = parser.parse_args()
+arguments = args.arguments
 argv=[]
 
 import ROOT as root
@@ -24,7 +29,7 @@ for k,v in processes.iteritems():
     else:
         pds[v[0]] = (k,-1)
 
-VERBOSE=True
+VERBOSE = not args.silent
 
 user = environ['USER']
 system('mkdir -p /tmp/%s/split'%user) # tmp dir
