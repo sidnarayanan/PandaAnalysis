@@ -879,7 +879,7 @@ void PandaAnalyzer::Run() {
         // i.e. reg - raw (==reg-pf in absence of gain switch)
         float diffPt = ele.regPt - ele.rawPt;
         TLorentzVector vCorr; vCorr.SetPtEtaPhiM(diffPt,0,ele.phi(),0);
-        vType1EGCorr -= sign(diffPt)*vCorr; // propagate the negative correction to MET
+        vType1EGCorr -= (diffPt>0 ? 1 : -1)*vCorr; // propagate the negative correction to MET
       } 
       if (isData && applyEGCorr) {
         // if data, further apply GS correction
@@ -896,7 +896,7 @@ void PandaAnalyzer::Run() {
           // GS correction is raw (GS fixed but no regression) minus PF
           float diffPt = ele.rawPt - basePt; 
           TLorentzVector vCorr; vCorr.SetPtEtaPhiM(fabs(diffPt),0,ele.phi(),0);
-          vType1EGCorr -= sign(diffPt)*vCorr; // propagate the negative correction to MET
+          vType1EGCorr -= (diffPt>0 ? 1 : -1)*vCorr; // propagate the negative correction to MET
         // }
         /*
         float diffPt = ele.rawPt - ele.pfPt;
@@ -1042,7 +1042,7 @@ void PandaAnalyzer::Run() {
         // i.e. reg - raw (==reg-pf in absence of gain switch)
         float diffPt = pho.regPt - pho.rawPt;
         TLorentzVector vCorr; vCorr.SetPtEtaPhiM(diffPt,pho.eta(),pho.phi(),pho.m());
-        vType1EGCorr -= sign(diffPt)*vCorr; // propagate the negative correction to MET
+        vType1EGCorr -= (diffPt>0 ? 1 : -1)*vCorr; // propagate the negative correction to MET
       } 
       if (isData && applyEGCorr) {
         // if data, further apply GS correction
@@ -1059,7 +1059,7 @@ void PandaAnalyzer::Run() {
           // GS correction is raw (GS fixed but no regression) minus PF
           float diffPt = pho.rawPt - basePt; 
           TLorentzVector vCorr; vCorr.SetPtEtaPhiM(fabs(diffPt),0,pho.phi(),0);
-          vType1EGCorr -= sign(diffPt)*vCorr; // propagate the negative correction to MET
+          vType1EGCorr -= (diffPt>0 ? 1 : -1)*vCorr; // propagate the negative correction to MET
         // }
         /*
         float diffPt = pho.rawPt - pho.pfPt;

@@ -26,9 +26,11 @@ fin = root.TFile(figsdir+'/'+'hists.root')
 
 roc.Logy()
 roc.SetPlotRange(0.005,1)
-roc.InitCanvas(.7,.2,.85,.45, False)
+roc.InitCanvas(.75,.2,.95,.33, False)
 roc.SetFile(fin)
-roc.c.AddPlotLabel(plotlabel,.2,.82,False,42,.04)
+roc.c.AddPlotLabel(plotlabel,.19,.77,False,42,.04)
+roc.xLabel = 'Top quark jet efficiency'
+roc.yLabel = 'q/g jet acceptance'
 
 variables = [
 #  ('top_ecfv14_bdt','ECF+#tau_{32}^{SD}+f_{rec} BDT v2',1,3),

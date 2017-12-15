@@ -41,6 +41,32 @@ if args.bdtcut:
 if args.masscut:
     cut = tAND(cut,'fj1MSD>%f'%args.masscut)
 
+
+### DEFINE PROCESSES ###
+zjets         = Process('Z+jets',root.kZjets)
+wjets         = Process('W+jets',root.kWjets)
+diboson       = Process('Diboson',root.kDiboson)
+ttbar         = Process('t#bar{t}',root.kTTbar)
+ttg           = Process('t#bar{t}#gamma',root.kTTbar)
+singletop     = Process('Single t',root.kST)
+singletopg    = Process('t#gamma',root.kST)
+qcd           = Process("QCD multijet",root.kQCD)
+gjets         = Process('#gamma+jets',root.kGjets)
+data          = Process("Data",root.kData)
+signal        = Process('m_{V}=1.75 TeV, m_{#chi}=1 GeV',root.kSignal)
+#processes = [qcd,diboson,singletop,ttbar,wewk,zewk,wjets,zjets]
+processes = [qcd,diboson,singletop,wjets,ttbar,zjets]
+if 'qcd' in region:
+    processes = [diboson,singletop,wjets,ttbar,zjets,qcd]
+if 'dimuon' in region:
+    processes = [diboson,singletop,ttbar,zjets]
+if any([x in region for x in ['singlemuonw','singleelectronw']]):
+    processes = [qcd,diboson,singletop,zjets,ttbar,wjets,]
+if any([x in region for x in ['singlemuontop','singleelectrontop']]):
+    processes = [qcd,diboson,singletop,zjets,wjets,ttbar]
+
+processes.append(data)
+
 ### LOAD PLOTTING UTILITY ###
 plot = PlotUtility()
 plot.Stack(True)
@@ -49,10 +75,10 @@ plot.FixRatio(0.3)
 if 'qcd' in region:
     plot.FixRatio(1)
 plot.SetTDRStyle()
-plot.InitLegend()
+plot.InitLegend(0.6, 0.88-(0.88-0.47)*len(processes)/7, 0.94, 0.9)
 plot.DrawMCErrors(True)
 #plot.AddCMSLabel(0.15,0.94,'Preliminary')
-plot.AddCMSLabel(0.15,0.94,'')
+plot.AddCMSLabel(0.19,0.84,'')
 plot.cut = cut
 plot.SetEvtNum("eventNumber")
 plot.SetLumi(lumi/1000)
@@ -73,25 +99,6 @@ if args.masscut:
 
 #plot.add_systematic('QCD scale','scaleUp','scaleDown',root.kRed+2)
 #plot.add_systematic('PDF','pdfUp','pdfDown',root.kBlue+2)
-
-### DEFINE PROCESSES ###
-zjets         = Process('Z+jets',root.kZjets)
-wjets         = Process('W+jets',root.kWjets)
-diboson       = Process('Diboson',root.kDiboson)
-ttbar         = Process('t#bar{t}',root.kTTbar)
-ttg           = Process('t#bar{t}#gamma',root.kTTbar)
-singletop     = Process('Single t',root.kST)
-singletopg    = Process('t#gamma',root.kST)
-qcd           = Process("QCD multijet",root.kQCD)
-gjets         = Process('#gamma+jets',root.kGjets)
-data          = Process("Data",root.kData)
-signal        = Process('m_{V}=1.75 TeV, m_{#chi}=1 GeV',root.kSignal)
-#processes = [qcd,diboson,singletop,ttbar,wewk,zewk,wjets,zjets]
-processes = [qcd,diboson,singletop,wjets,ttbar,zjets]
-if 'qcd' in region:
-    processes = [diboson,singletop,wjets,ttbar,zjets,qcd]
-if 'dimuon' in region:
-    processes = [diboson,singletop,ttbar,zjets]
 
 ### ASSIGN FILES TO PROCESSES ###
 if 'signal' in region or 'qcd' in region:
@@ -117,10 +124,6 @@ if 'pho' in region:
 else:
     qcd.add_file(baseDir+'QCD.root')
 
-if any([x in region for x in ['singlemuonw','singleelectronw']]):
-    processes = [qcd,diboson,singletop,zjets,ttbar,wjets,]
-if any([x in region for x in ['singlemuontop','singleelectrontop']]):
-    processes = [qcd,diboson,singletop,zjets,wjets,ttbar]
 if any([x in region for x in ['signal','muon','qcd']]):
     data.additional_cut = sel.triggers['met']
     data.add_file(dataDir+'MET.root')
@@ -136,8 +139,6 @@ elif region=='photon':
     data.additional_cut = sel.triggers['pho']
     data.add_file(dataDir+'SinglePhoton.root')
 
-
-processes.append(data)
 
 for p in processes:
     plot.add_process(p)
@@ -171,13 +172,13 @@ nRecoilBins = len(recoilBins)-1
 # plot.add_distribution(FDistribution('npv',0,45,45,'N_{PV}','Events'))
 # plot.add_distribution(FDistribution('fj1MSD',50,250,10,'fatjet m_{SD} [GeV]','Events'))
 # plot.add_distribution(FDistribution('fj1Pt',200,1000,20,'fatjet p_{T} [GeV]','Events'))
-plot.add_distribution(FDistribution('top_ecf_bdt',-1,1,20,'BDT Output','Events/0.1 Units'))
+plot.add_distribution(FDistribution('top_ecf_bdt',-1,1,20,'BDT output','Events/0.1 Units'))
 # plot.add_distribution(FDistribution('fj1MaxCSV',0,1,20,'fatjet max CSV','Events'))
 # plot.add_distribution(FDistribution('fj1Tau32',0,1,20,'fatjet #tau_{32}','Events'))
 # plot.add_distribution(FDistribution('fj1Tau32SD',0,1,20,'fatjet #tau_{32}^{SD}','Events'))
 # plot.add_distribution(FDistribution('jet1CSV',0,1,20,'jet 1 CSV','Events',filename='jet1CSV'))
 # plot.add_distribution(FDistribution('dphipfmet',0,3.14,20,'min#Delta#phi(jet,E_{T}^{miss})','Events'))
-# plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
+plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###
 if args.bdtcut:
