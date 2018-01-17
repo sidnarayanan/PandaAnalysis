@@ -166,7 +166,6 @@ d = {
     'ZpWW'                : ['ZpWW_med-%i'%m for m in [1000,1200,1400,1600,1800,2000,2500,800]],
     'th'                  : ['thq','thw'],
     'WJets_EWK'           : ['WJets_EWKWPlus', 'WJets_EWKWMinus'],
-    'ggFHinv_m125'        : ['ggFHinv'],
 }
 
 args = {}

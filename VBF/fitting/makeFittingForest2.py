@@ -96,9 +96,10 @@ else:
         factory.add_process(f('MET'),'Data',is_data=True,extra_cut=sel.triggers['met'])
     # signals
     if 'signal' in region:
-        factory.add_process(f('ggFHinv_m125'),'GGF_H125')
         for m in [1000, 110, 125, 150, 200, 300, 500, 600, 800 ]:
             factory.add_process(f('vbfHinv_m%i'%m),'VBF_H%i'%m)
+            factory.add_process(f('ggFHinv_m%i'%m),'GGF_H%i'%m)
         factory.add_process(f('vbfHinv_m%i'%125),'VBF_Hinv') # duplicate this to be consistent with HIG standards
+        factory.add_process(f('ggFHinv_m%i'%125),'GGF_Hinv') # duplicate this to be consistent with HIG standards
 
 factory.run(basedir+'/fitting/fittingForest_%s.root'%out_region)

@@ -5,6 +5,7 @@ from sys import argv,exit
 from os import system,getenv,path
 from time import clock,time
 import json
+from socket import gethostname
 
 which = int(argv[1])
 submit_id = int(argv[2])
@@ -17,6 +18,7 @@ from PandaCore.Tools.Load import *
 import PandaCore.Tools.job_management as cb
 import PandaAnalysis.Tagging.cfg_v8 as tagcfg
 
+PInfo(sname, 'host = '+gethostname())
 Load('PandaAnalyzer')
 data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
@@ -61,7 +63,11 @@ def copy_local(long_name):
 
     # rely on pxrdcp for local and remote copies
     # default behavior: drop PF candidates
-    cmd = "pxrdcp %s %s '!pfCandidates'"%(full_path,input_name)
+    # cmd = "pxrdcp %s %s '!pfCandidates'"%(full_path,input_name)
+    if 'root://' in full_path:
+        cmd = "xrdcp %s %s"%(full_path,input_name)
+    else:
+        cmd = "cp %s %s"%(full_path,input_name)
     PInfo(sname+'.copy_local',cmd)
 
     system(cmd)
@@ -250,7 +256,8 @@ if __name__ == "__main__":
         PError(sname,'Could not find a job for PROCID=%i'%(which))
         exit(3)
 
-    outdir = 'XXXX' # will be replaced when building the job
+#    outdir = 'XXXX' # will be replaced when building the job
+    outdir = getenv('SUBMIT_OUTDIR')
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
     

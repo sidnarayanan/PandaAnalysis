@@ -266,12 +266,12 @@ void PandaAnalyzer::SetDataDir(const char *s) {
   OpenCorrection(cPUDown,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeightsDown",1);
 
   // electrons
-  OpenCorrection(cEleVeto,dirPath+"moriond17/scaleFactor_electron_summer16.root",
-                 "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
-  OpenCorrection(cEleTight,dirPath+"moriond17/scaleFactor_electron_summer16.root",
-                 "scaleFactor_electron_tightid_RooCMSShape_pu_0_100",2);
-  OpenCorrection(cEleReco,dirPath+"moriond17/scaleFactor_electron_reco_summer16.root",
-                 "scaleFactor_electron_reco_RooCMSShape_pu_0_100",2);
+  OpenCorrection(cEleVeto,dirPath+"vbf16/lep/scalefactors_80x_egpog_37ifb.root",
+                 "scalefactors_Veto_Electron",2);
+  OpenCorrection(cEleTight,dirPath+"vbf16/lep/scalefactors_80x_egpog_37ifb.root",
+                 "scalefactors_Tight_Electron",2);
+  OpenCorrection(cEleReco,dirPath+"vbf16/lep/scalefactors_80x_egpog_37ifb.root",
+                 "scalefactors_Reco_Electron",2);
 
   // muons
   OpenCorrection(cMuLooseID,dirPath+"moriond17/muon_scalefactors_37ifb.root",
@@ -282,7 +282,8 @@ void PandaAnalyzer::SetDataDir(const char *s) {
                  "scalefactors_TightId_Muon",2);
   OpenCorrection(cMuTightIso,dirPath+"moriond17/muon_scalefactors_37ifb.root",
                  "scalefactors_Iso_MuonTightId",2);
-  OpenCorrection(cMuReco,dirPath+"moriond17/Tracking_12p9.root","htrack2",1);
+  OpenCorrection(cMuReco,dirPath+"vbf16/lep/tracking_muon_sf.root","h_npv_reco",1);
+  // OpenCorrection(cMuReco,dirPath+"moriond17/Tracking_12p9.root","htrack2",1);
 
   // photons
   OpenCorrection(cPho,dirPath+"moriond17/scalefactors_80x_medium_photon_37ifb.root",
@@ -1510,6 +1511,8 @@ void PandaAnalyzer::Run() {
          gt->jot1Pt = jet.pt();
          gt->jot1Eta = jet.eta();
          gt->jot1Phi = jet.phi();
+         gt->jot1CHF = jet.chf;
+         gt->jot1NHF = jet.nhf;
          if (doVBF && fabs(gt->jot1Eta)<2.4) { // if it's a central jet, must pass ID requirements
            gt->jot1VBFID = jet.monojet ? 1 : 0;
          } else { // if leading jet is not central, leave the event be
@@ -1520,6 +1523,8 @@ void PandaAnalyzer::Run() {
          gt->jot2Pt = jet.pt();
          gt->jot2Eta = jet.eta();
          gt->jot2Phi = jet.phi();
+         gt->jot2CHF = jet.chf;
+         gt->jot2NHF = jet.nhf;
        }
  
        if (cleanedJets.size()<3) {
@@ -2211,47 +2216,59 @@ void PandaAnalyzer::Run() {
     gt->sf_qcdV_VBF2lTight=1;
     if (!isData) {
       // calculate the mjj 
-      unsigned nGenJet = 0;
-      TLorentzVector vGenJet;
-      std::vector<GenParticle*> genLeptons;
-      for (auto &gp : event.genParticles) {
-        if (!gp.finalState)
-          continue;
-        unsigned id = abs(gp.pdgid);
-        if ((id == 11 || id == 13) &&
-            (gp.pt() > 20 && fabs(gp.eta()) < 4.7))
-          genLeptons.push_back(&gp);
-      }
-      TLorentzVector v;
-      for (auto &gj : event.ak4GenJets) {
-        bool matchesLep = false;
-        for (auto *gl : genLeptons) {
-          if (DeltaR2(gj.eta(), gj.phi(), gl->eta(), gl->phi()) < 0.16) {
-            matchesLep = true;
-            break;
-          }
-        }
-        if (matchesLep)
-          continue;
-
-        v.SetPtEtaPhiM(gj.pt(), gj.eta(), gj.phi(), gj.m());
-        if (nGenJet == 0) { gt->genJet1Pt = gj.pt(); gt->genJet1Eta = gj.eta(); }
-        else if (nGenJet == 1) { gt->genJet2Pt = gj.pt(); gt->genJet2Eta = gj.eta(); }
-
-
-        vGenJet += v;
-        nGenJet++;
-        if (nGenJet == 2)
-          break;
-      }
-      float mjj;
-      if (nGenJet == 2) {
-        gt->genMjj = vGenJet.M();
-        mjj = gt->genMjj; 
+      double mjj;
+      if (jot1 && jot2 && jot1->matchedGenJet.isValid() && jot2->matchedGenJet.isValid()) {
+        const panda::GenJet *gj1 = jot1->matchedGenJet.get();
+        const panda::GenJet *gj2 = jot2->matchedGenJet.get();
+        TLorentzVector v1; v1.SetPtEtaPhiM(gj1->pt(), gj1->eta(), gj1->phi(), gj1->m());
+        TLorentzVector v2; v2.SetPtEtaPhiM(gj2->pt(), gj2->eta(), gj2->phi(), gj2->m());
+        gt->genMjj = (v1+v2).M();
+        mjj = gt->genMjj;
       } else {
-        gt->genMjj = -1;
         mjj = gt->jot12Mass;
+        gt->genMjj = -1 * mjj;
       }
+//       unsigned nGenJet = 0;
+//       TLorentzVector vGenJet;
+//       std::vector<GenParticle*> genLeptons;
+//       for (auto &gp : event.genParticles) {
+//         if (!gp.finalState)
+//           continue;
+//         unsigned id = abs(gp.pdgid);
+//         if ((id == 11 || id == 13) &&
+//             (gp.pt() > 20 && fabs(gp.eta()) < 4.7))
+//           genLeptons.push_back(&gp);
+//       }
+//       TLorentzVector v;
+//       for (auto &gj : event.ak4GenJets) {
+//         bool matchesLep = false;
+//         for (auto *gl : genLeptons) {
+//           if (DeltaR2(gj.eta(), gj.phi(), gl->eta(), gl->phi()) < 0.16) {
+//             matchesLep = true;
+//             break;
+//           }
+//         }
+//         if (matchesLep)
+//           continue;
+// 
+//         v.SetPtEtaPhiM(gj.pt(), gj.eta(), gj.phi(), gj.m());
+//         if (nGenJet == 0) { gt->genJet1Pt = gj.pt(); gt->genJet1Eta = gj.eta(); }
+//         else if (nGenJet == 1) { gt->genJet2Pt = gj.pt(); gt->genJet2Eta = gj.eta(); }
+// 
+// 
+//         vGenJet += v;
+//         nGenJet++;
+//         if (nGenJet == 2)
+//           break;
+//       }
+//       float mjj;
+//       if (nGenJet == 2) {
+//         gt->genMjj = vGenJet.M();
+//         mjj = gt->genMjj; 
+//       } else {
+//         gt->genMjj = -1;
+//         mjj = gt->jot12Mass;
+//       }
 
       bool found = processType!=kA 
                    && processType!=kZ 
@@ -2306,6 +2323,8 @@ void PandaAnalyzer::Run() {
             gt->genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
             gt->sf_qcdV_VBF = GetCorr(cVBF_EWKZ,gt->genBosonPt,mjj);
             gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
+            gt->sf_qcdV_VBF2l = gt->sf_qcdV_VBF; // for consistency
+            gt->sf_qcdV_VBF2lTight = gt->sf_qcdV_VBF; // for consistency
           } else if (processType==kWEWK) {
             gt->trueGenBosonPt = gen.pt();
             gt->genBosonMass = gen.m();
@@ -2313,6 +2332,8 @@ void PandaAnalyzer::Run() {
             gt->genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
             gt->sf_qcdV_VBF = GetCorr(cVBF_EWKW,gt->genBosonPt,mjj);
             gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
+            gt->sf_qcdV_VBF2l = gt->sf_qcdV_VBF; // for consistency
+            gt->sf_qcdV_VBF2lTight = gt->sf_qcdV_VBF; // for consistency
           } else if (processType==kA) {
             // take the highest pT
             if (gen.pt() > gt->trueGenBosonPt) {
@@ -2373,10 +2394,14 @@ void PandaAnalyzer::Run() {
         else if (processType==kZEWK) {
           gt->sf_qcdV_VBF = GetCorr(cVBF_EWKZ,gt->genBosonPt,mjj);
           gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
+          gt->sf_qcdV_VBF2l = gt->sf_qcdV_VBF; // for consistency
+          gt->sf_qcdV_VBF2lTight = gt->sf_qcdV_VBF; // for consistency
         } 
         else if (processType==kWEWK) {
           gt->sf_qcdV_VBF = GetCorr(cVBF_EWKW,gt->genBosonPt,mjj);
-          gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency  
+          gt->sf_qcdV_VBFTight = gt->sf_qcdV_VBF; // for consistency
+          gt->sf_qcdV_VBF2l = gt->sf_qcdV_VBF; // for consistency
+          gt->sf_qcdV_VBF2lTight = gt->sf_qcdV_VBF; // for consistency
         }  
       }
     }

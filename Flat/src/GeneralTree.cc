@@ -98,6 +98,10 @@ void GeneralTree::Reset() {
   }
 
 //ENDCUSTOMRESET
+    jot1NHF = -1;
+    jot1CHF = -1;
+    jot2NHF = -1;
+    jot2CHF = -1;
     genDEta = -1;
     genJet1Pt = -1;
     genJet2Pt = -1;
@@ -481,6 +485,10 @@ void GeneralTree::WriteTree(TTree *t) {
     Book(btagn,&(sf_btags[p]),btagn+"/F");
   }
 //ENDCUSTOMWRITE
+    Book("jot1NHF",&jot1NHF,"jot1NHF/F");
+    Book("jot1CHF",&jot1CHF,"jot1CHF/F");
+    Book("jot2NHF",&jot2NHF,"jot2NHF/F");
+    Book("jot2CHF",&jot2CHF,"jot2CHF/F");
     Book("genDEta",&genDEta,"genDEta/F");
     Book("genJet1Pt",&genJet1Pt,"genJet1Pt/F");
     Book("genJet2Pt",&genJet2Pt,"genJet2Pt/F");

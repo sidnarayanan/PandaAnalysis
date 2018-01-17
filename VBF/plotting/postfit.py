@@ -10,13 +10,10 @@ dataDir = baseDir
 
 parser = argparse.ArgumentParser(description='plot stuff')
 parser.add_argument('--outdir',metavar='outdir',type=str,default=None)
-parser.add_argument('--cut',metavar='cut',type=str,default='1==1')
-parser.add_argument('--region',metavar='region',type=str,default=None)
-parser.add_argument('--cat',type=str,default='loose')
 args = parser.parse_args()
 lumi = 36000.
 blind=True
-region = args.region
+region = 'signal'
 sname = argv[0]
 do_jec = True
 
@@ -29,19 +26,30 @@ import PandaAnalysis.VBF.PandaSelection as sel
 #import PandaAnalysis.VBF.TriggerSelection as sel
 from PandaCore.Drawers.plot_utility import *
 
+scales = {
+
+        'Diboson' : "(0.893678*(200.0<jot12Mass&&jot12Mass<400.0))+(0.893678*(400.0<jot12Mass&&jot12Mass<600.0))+(0.893678*(600.0<jot12Mass&&jot12Mass<900.0))+(0.893678*(900.0<jot12Mass&&jot12Mass<1200.0))+(0.893678*(1200.0<jot12Mass&&jot12Mass<1500.0))+(0.893678*(1500.0<jot12Mass&&jot12Mass<2000.0))+(0.893678*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.893678*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.893678*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+        'Top' : "(0.856676*(200.0<jot12Mass&&jot12Mass<400.0))+(0.856677*(400.0<jot12Mass&&jot12Mass<600.0))+(0.856676*(600.0<jot12Mass&&jot12Mass<900.0))+(0.856676*(900.0<jot12Mass&&jot12Mass<1200.0))+(0.856676*(1200.0<jot12Mass&&jot12Mass<1500.0))+(0.856676*(1500.0<jot12Mass&&jot12Mass<2000.0))+(0.856676*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.856676*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.856676*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+        'Z+jets [EWK]' : "(1.007564*(200.0<jot12Mass&&jot12Mass<400.0))+(1.025401*(400.0<jot12Mass&&jot12Mass<600.0))+(1.054702*(600.0<jot12Mass&&jot12Mass<900.0))+(1.076168*(900.0<jot12Mass&&jot12Mass<1200.0))+(1.102413*(1200.0<jot12Mass&&jot12Mass<1500.0))+(1.022041*(1500.0<jot12Mass&&jot12Mass<2000.0))+(0.977125*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.827909*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.733391*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+        'W+jets [EWK]' : "(1.058023*(200.0<jot12Mass&&jot12Mass<400.0))+(1.085203*(400.0<jot12Mass&&jot12Mass<600.0))+(1.107709*(600.0<jot12Mass&&jot12Mass<900.0))+(1.145824*(900.0<jot12Mass&&jot12Mass<1200.0))+(1.152217*(1200.0<jot12Mass&&jot12Mass<1500.0))+(1.094762*(1500.0<jot12Mass&&jot12Mass<2000.0))+(1.023695*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.875813*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.827997*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+        'QCD' : "(0.954892*(200.0<jot12Mass&&jot12Mass<400.0))+(0.928491*(400.0<jot12Mass&&jot12Mass<600.0))+(0.940957*(600.0<jot12Mass&&jot12Mass<900.0))+(0.930812*(900.0<jot12Mass&&jot12Mass<1200.0))+(0.932788*(1200.0<jot12Mass&&jot12Mass<1500.0))+(0.931599*(1500.0<jot12Mass&&jot12Mass<2000.0))+(0.936846*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.934052*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.914625*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+        'Z+jets [QCD]' : "(1.007564*(200.0<jot12Mass&&jot12Mass<400.0))+(1.025401*(400.0<jot12Mass&&jot12Mass<600.0))+(1.054702*(600.0<jot12Mass&&jot12Mass<900.0))+(1.076168*(900.0<jot12Mass&&jot12Mass<1200.0))+(1.102413*(1200.0<jot12Mass&&jot12Mass<1500.0))+(1.022041*(1500.0<jot12Mass&&jot12Mass<2000.0))+(0.977125*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.827909*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.733391*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+        'W+jets [QCD]' : "(1.008800*(200.0<jot12Mass&&jot12Mass<400.0))+(1.045349*(400.0<jot12Mass&&jot12Mass<600.0))+(1.053005*(600.0<jot12Mass&&jot12Mass<900.0))+(1.098035*(900.0<jot12Mass&&jot12Mass<1200.0))+(1.099920*(1200.0<jot12Mass&&jot12Mass<1500.0))+(1.044082*(1500.0<jot12Mass&&jot12Mass<2000.0))+(0.979727*(2000.0<jot12Mass&&jot12Mass<2750.0))+(0.830397*(2750.0<jot12Mass&&jot12Mass<3500.0))+(0.765759*(3500.0<jot12Mass&&jot12Mass<5000.0))",
+
+
+        }
+
 ### DEFINE REGIONS ###
 
-cut = tAND(sel.cuts[args.region],args.cut)
-cut = tAND(cut,getattr(sel,args.cat))
+cut = tAND(tAND(sel.cuts[region],sel.mjj),'200<jot12Mass && jot12Mass<5000')
 
 ### LOAD PLOTTING UTILITY ###
 BLIND=False
 
 plot = PlotUtility()
 plot.Stack(True)
-if not(BLIND and 'signal' in region):
-    plot.Ratio(True)
-    plot.FixRatio(0.5)
+plot.Ratio(True)
+plot.FixRatio(0.5)
 plot.SetTDRStyle("vbf")
 plot.InitLegend()
 plot.DrawMCErrors(True)
@@ -53,17 +61,11 @@ plot.AddLumiLabel(True)
 plot.do_overflow = True
 plot.do_underflow = True
 
-if args.cat == 'cnc':
-    weight = sel.weights_cnc[region]%lumi
-else:
-    weight = sel.weights[region]%lumi
+weight = sel.weights[region]%lumi
 plot.mc_weight = weight
 
 ### DEFINE PROCESSES ###
-if 'signal' in args.region:
-    zjets         = Process('Z+jets [QCD]',root.kZjets)
-else:
-    zjets         = Process('Z+jets [QCD]',root.kExtra1)
+zjets         = Process('Z+jets [QCD]',root.kZjets)
 wjets         = Process('W+jets [QCD]',root.kWjets)
 zjets_ewk     = Process('Z+jets [EWK]',root.kExtra3)
 wjets_ewk     = Process('W+jets [EWK]',root.kExtra2)
@@ -71,40 +73,24 @@ diboson       = Process('Diboson',root.kDiboson)
 top           = Process('Top',root.kTTbar)
 qcd           = Process("QCD",root.kQCD)
 data          = Process("Data",root.kData)
-vbf           = Process('VBF H(inv)',root.kSignal1)
 #vbf           = Process('VBF H(inv)',root.kExtra4)
 
 ### ASSIGN FILES TO PROCESSES ###
-if 'signal' in region:
-    zjets.add_file(baseDir+'ZtoNuNu.root')
-    zjets_ewk.add_file(baseDir+'ZtoNuNu_EWK.root')
-    data.add_file(baseDir+'MET.root')
-    data.additional_cut = sel.triggers['met']
-else:
-    zjets.add_file(baseDir+'ZJets.root')
-    zjets_ewk.add_file(baseDir+'ZJets_EWK.root')
-    if 'muon' in region:
-        data.add_file(baseDir+'MET.root')
-        data.additional_cut = sel.triggers['met']
-    elif 'electron' in region:
-        data.add_file(baseDir+'SingleElectron.root')
-        data.additional_cut = sel.triggers['ele']
+zjets.add_file(baseDir+'ZtoNuNu.root')
+zjets_ewk.add_file(baseDir+'ZtoNuNu_EWK.root')
+data.add_file(baseDir+'MET.root')
+data.additional_cut = sel.triggers['met']
 wjets.add_file(baseDir+'WJets.root')
 wjets_ewk.add_file(baseDir+'WJets_EWK.root')
 diboson.add_file(baseDir+'Diboson.root')
 top.add_file(baseDir+'TTbar.root');
 top.add_file(baseDir+'SingleTop.root');
 qcd.add_file(baseDir+'QCD.root')
-vbf.add_file(baseDir+'vbfHinv_m125.root')
 
-if 'single' in region:
-    processes = [qcd,diboson,zjets,zjets_ewk,top,wjets_ewk,wjets,data]
-elif 'di' in region:
-    processes = [qcd,diboson,wjets,wjets_ewk,top,zjets_ewk,zjets,data]
-else:
-    processes = [qcd,diboson,top,wjets_ewk,zjets_ewk,wjets,zjets,vbf]
-    if not BLIND:
-        processes.append(data)
+processes = [qcd,diboson,top,wjets_ewk,zjets_ewk,wjets,zjets]
+for p in processes:
+    p.additional_weight = scales[p.name]
+processes.append(data)
 
 for p in processes:
     plot.add_process(p)
@@ -162,5 +148,4 @@ plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 '''
 
 ### DRAW AND CATALOGUE ###
-region = '%s/%s'%(args.cat,region)
-plot.draw_all(args.outdir+'/'+region+'_')
+plot.draw_all(args.outdir)

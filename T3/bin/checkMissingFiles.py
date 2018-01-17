@@ -20,6 +20,7 @@ parser.add_argument('--force',action='store_true')
 parser.add_argument('--nfiles',type=int,default=-1)
 parser.add_argument('--width',type=int,default=None)
 parser.add_argument('--silent',action='store_true')
+parser.add_argument('--monitor',action='store_true')
 args = parser.parse_args()
 outdir = args.outdir
 
@@ -94,21 +95,24 @@ class Output:
 
 # determine what files have been processed and logged as such
 processedfiles = []
-print 'Finding locks...                      \r',
-sys.stdout.flush()
+if not args.monitor:
+    print 'Finding locks...                      \r',
+    sys.stdout.flush()
 locks = glob(outdir+'/locks/*lock')
 nl = len(locks)
 il = 1
 for lock in locks:
-    print 'Reading lock %i/%i                   \r'%(il,nl),
+    if not args.monitor:
+        print 'Reading lock %i/%i                   \r'%(il,nl),
     sys.stdout.flush()
     il += 1
     flock = open(lock)
     for l in flock:
         processedfiles.append(l.strip())
 
-print 'Checking jobs...                 \r',
-sys.stdout.flush()
+if not args.monitor:
+    print 'Checking jobs...                 \r',
+    sys.stdout.flush()
 
 # determine what samples from previous resubmissions are still running
 running_samples = []
@@ -120,7 +124,7 @@ else:
     submissions = []
 for s in submissions:
     results = s.query_status()
-    running_samples += results['running']
+    running_samples += results['T3'] + results['T2']
     idle_samples += results['idle']
 
 running_files = list(chain.from_iterable([x.files for x in running_samples]))
@@ -132,7 +136,8 @@ outputs = {}
 data = Output('Data')
 mc = Output('MC')
 
-print 'Rebuilding configuration...            \r',
+if not args.monitor:
+    print 'Rebuilding configuration...            \r',
 
 all_samples = read_sample_config(args.infile)
 filtered_samples = {}
@@ -195,8 +200,9 @@ else:
             outfile.write(c%(counter,counter))
             counter += 1
 
-print '\r',
-sys.stdout.flush()
+if not args.monitor:
+    print '\r',
+    sys.stdout.flush()
 print 'Summary:                     '
 
 print header

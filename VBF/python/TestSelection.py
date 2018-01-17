@@ -27,18 +27,19 @@ cuts = {
 
 
 weights = {
-  'signal'         : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_metTrigVBF*sf_ewkV*sf_qcdV_VBF',
-  'w'              : '%f*normalizedWeight*sf_pu*sf_tt*sf_lepID*sf_lepIso*sf_lepTrack*sf_metTrigVBF*sf_ewkV*sf_qcdV_VBF',
-  'z'              : '%f*normalizedWeight*sf_pu*sf_tt*sf_lepID*sf_lepIso*sf_lepTrack*sf_metTrigVBF*sf_ewkV*sf_qcdV_VBF',
-  'qcd'            : '%f*normalizedWeight*sf_pu*sf_tt*sf_lepID*sf_lepIso*sf_lepTrack*sf_metTrigVBF*sf_ewkV*sf_qcdV_VBF',
+  'signal'         : '%f*normalizedWeight',
+  'w'              : '%f*normalizedWeight',
+  'z'              : '%f*normalizedWeight',
+  'qcd'            : '%f*normalizedWeight',
 }
 
-#weights = {
-#  'signal'         : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV_VBF*sf_metTrigVBF',
-#  'w'              : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV_VBF',
-#  'z'              : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV_VBF2l',
-#  'qcd'            : '%f*sf_pu*normalizedWeight',
-#}
+# weights = {
+#   'signal'         : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV_VBF*sf_metTrigVBF',
+#   'w'              : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV_VBF',
+#   'z'              : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV_VBF2l',
+#   'qcd'            : '%f*sf_pu*normalizedWeight',
+# }
+
 
 weights['qcd'] = weights['signal']
 
@@ -47,13 +48,14 @@ for x in ['dimuon','dielectron','singlemuon','singleelectron']:
       if 'di' in x:
         weights[x] = weights['z']
       else:
-        weights[x] = tTIMES(weights['w'],'sf_eleTrig')
+        #weights[x] = tTIMES(weights['w'],'sf_eleTrig')
+        weights[x] = weights['w']
     else:
       if 'di' in x:
-          weights[x] = tTIMES(weights['z'],'sf_metTrigZmmVBF')
-    #      weights[x] = weights['z']
+#          weights[x] = tTIMES(weights['z'],'sf_metTrigZmmVBF')
+          weights[x] = weights['z']
       else:
-          weights[x] = tTIMES(weights['w'],'sf_metTrigVBF')
+          weights[x] = weights['w']
 
 weights_cnc = {k:(v.replace('sf_qcdV_VBF','sf_qcdV_VBFTight')).replace('VBFTight2l','VBF2lTight') 
                 for k,v in weights.iteritems()}

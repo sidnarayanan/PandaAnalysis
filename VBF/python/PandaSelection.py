@@ -39,7 +39,7 @@ weights['qcd'] = weights['signal']
 for x in ['dimuon','dielectron','singlemuon','singleelectron']:
     if 'electron' in x:
       if 'di' in x:
-        weights[x] = weights['z']
+        weights[x] = tTIMES(weights['z'], 'sf_eleTrig')
       else:
         weights[x] = tTIMES(weights['w'],'sf_eleTrig')
     else:
