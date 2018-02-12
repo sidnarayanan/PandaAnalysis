@@ -13,11 +13,38 @@ infile = basedir+'/SingleMuon.root'
 
 parser = argparse.ArgumentParser(description='plot stuff')
 parser.add_argument('--outdir',metavar='outdir',type=str,default=None)
+parser.add_argument('--addcut',metavar='addcut',type=str,default='none')
 parser.add_argument('--nmu',metavar='nmu',type=int,default=1)
 args = parser.parse_args()
 
 figsdir = args.outdir
 argv=[]
+
+addcuts = {
+    'none' : '1==1',
+    'npv0' : 'npv<20',
+    'npv1' : 'npv>20 && npv<30',
+    'npv2' : 'npv>30',
+    'mjj0' : 'jot12Mass<800',
+    'mjj1' : 'jot12Mass>800 && jot12Mass<1750',
+    'mjj2' : 'jot12Mass>1750',
+    'deta0' : 'jot12DEta<1',
+    'deta1' : 'jot12DEta>1 && jot12DEta<2.5',
+    'deta2' : 'jot12DEta>2.5',
+    }
+
+addlabels = {
+    'none' : '',
+    'npv0' : 'N_{PV}<20',
+    'npv1' : '20<N_{PV}<30',
+    'npv2' : 'N_{PV}>30',
+    'mjj0' : 'm_{jj}<800',
+    'mjj1' : '800<m_{jj}<1750',
+    'mjj2' : 'm_{jj}>1750',
+    'deta0' : '#Delta#eta_{jj}<1',
+    'deta1' : '1<#Delta#eta_{jj}<2.5',
+    'deta2' : '#Delta#eta_{jj}>2.5',
+    }
 
 import ROOT as root
 from PandaCore.Tools.Load import Load
@@ -36,6 +63,7 @@ else:
   base_cut = sel.cuts['dimuon']
   metnomu = 'pfUZmag'
 base_cut = tAND(base_cut, '(trigger&8)!=0')
+base_cut = tAND(base_cut, addcuts[args.addcut])
 
 plot = root.GraphAsymmErrDrawer()
 plot.SetTDRStyle()
@@ -47,7 +75,7 @@ root.gStyle.SetOptStat(0)
 
 s = Selector()
 f = root.TFile.Open(infile); t = f.Get('events')
-branches = [metnomu, 'jot12Mass', 'jet1Pt', 'jet1Pt+jet2Pt', 'fabs(jot1Eta)', 'trigger&1', 'fabs(jot2Eta)', 'barrelJet1Pt', 'barrelHT', 'barrelHTMiss', 'barrelJet12Pt']
+branches = [metnomu, 'jot12Mass', 'jet1Pt', 'jet1Pt+jet2Pt', 'fabs(jot1Eta)', 'trigger&1', 'fabs(jot2Eta)', 'barrelJet1Pt', 'barrelHT', 'barrelHTMiss', 'barrelJet12Pt','jot12DEta','fabs(jot12DPhi)']
 s.read_tree(t, branches = branches, cut = base_cut)
 
 triggered = ( s['trigger&1'] != 0 )
@@ -61,6 +89,8 @@ fb = (~j1 & j2)
 ratios_to_plot = {
   metnomu : ([250, 350, 500, 700, 1000],'U [GeV]'),
   'jot12Mass' : ([200, 400, 600, 800, 1000, 1250, 1500, 1750, 2000, 2500, 3500, 5000],'m_{jj} [GeV]'),
+  'jot12DEta' : ([0,0.5,1,2,3,4,5],'#Delta#eta_{jj}'),
+  'fabs(jot12DPhi)' : ([x*3.14/10 for x in xrange(10)],'#Delta#phi_{jj}'),
   'jet1Pt' : ([0, 40, 80, 120, 160, 200, 300, 500],'Central jet 1 p_{T} [GeV]'),
   'jet1Pt+jet2Pt' : ([0, 40, 80, 120, 160, 200, 300, 500],'Central jet 1 p_{T} + jet 2 p_{T} [GeV]'),
   'barrelJet1Pt' : ([0, 40, 80, 120, 160, 200, 300, 500],'Barrel jet 1 p_{T} [GeV]'),
@@ -69,13 +99,14 @@ ratios_to_plot = {
   'barrelHTMiss' : ([0, 80, 120, 160, 200, 240, 280, 320, 360, 400, 450, 500, 600, 1000],'Barrel H_{T}^{miss} [GeV]'),
 }
 
-fout = root.TFile(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/vbf16/trig/param_nmu%i.root'%args.nmu, 'RECREATE')
+#fout = root.TFile(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/vbf16/trig/param_nmu%i.root'%args.nmu, 'RECREATE')
 
 for k,v in ratios_to_plot.iteritems():
     plot.Clear()
     plot.InitLegend()
     plot.AddCMSLabel()
     plot.AddLumiLabel()
+    plot.AddPlotLabel(addlabels[args.addcut],.18,.77,False,42,.05)
 
     h_inc = s.draw(k, weight=None, vbins=v[0])
     h_trig = s.draw(k, weight=None, mask=triggered, vbins=v[0])
@@ -92,10 +123,8 @@ for k,v in ratios_to_plot.iteritems():
     h_ratio.SetMinimum(0)
 
     hh_ratio = h_trig.Clone(); hh_ratio.Divide(h_inc)
-    fout.WriteTObject(hh_ratio, 'h_%s'%k)
-    fout.WriteTObject(h_ratio, 'g_%s'%k)
-
-    plot.AddGraph(h_ratio, 'Inclusive', 1, 1, 'ep')
+#    fout.WriteTObject(hh_ratio, 'h_%s'%k)
+#    fout.WriteTObject(h_ratio, 'g_%s'%k)
 
     h_ratio_masked = {}
     for i, (mask, label) in enumerate([(bb, 'BB'), (bf, 'BF'), (fb, 'FB')]):
@@ -104,9 +133,16 @@ for k,v in ratios_to_plot.iteritems():
         h_ratio_masked[label] = h_ratio.Clone() 
         h_ratio_masked[label].BayesDivide(h_trig, h_inc)
         hh_ratio = h_trig.Clone(); hh_ratio.Divide(h_inc)
-        fout.WriteTObject(hh_ratio, 'h_%s_%s'%(k,label))
-        fout.WriteTObject(h_ratio_masked[label], 'g_%s_%s'%(k,label))
+        h_ratio_masked[label].GetXaxis().SetTitle(v[1])
+        h_ratio_masked[label].GetYaxis().SetTitle('Efficiency')
+        h_ratio_masked[label].SetMaximum(1.4)
+        h_ratio_masked[label].SetMinimum(0)
+
+#        fout.WriteTObject(hh_ratio, 'h_%s_%s'%(k,label))
+#        fout.WriteTObject(h_ratio_masked[label], 'g_%s_%s'%(k,label))
 
         plot.AddGraph(h_ratio_masked[label], label, i+2, 1, 'ep')
 
-    plot.Draw(args.outdir,'trigeff_nmu%i'%args.nmu+k)
+    plot.AddGraph(h_ratio, 'Inclusive', 1, 1, 'ep')
+
+    plot.Draw(args.outdir,args.addcut + '_' + 'trigeff_nmu%i'%args.nmu+k)

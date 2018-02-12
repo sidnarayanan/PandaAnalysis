@@ -93,8 +93,8 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   if (flags["pfCands"])
     readlist.push_back("pfCandidates");
 
+  readlist.push_back("triggers");
   if (isData) {
-    readlist.push_back("triggers");
   } else {
    readlist.push_back("genParticles");
    readlist.push_back("genReweight");
@@ -756,7 +756,7 @@ void PandaAnalyzer::Run() {
   std::vector<unsigned int> muTriggers;
   std::vector<unsigned int> jetTriggers;
 
-  if (isData) {
+  if (isData || true) {
     std::vector<TString> metTriggerPaths = {
           "HLT_PFMET170_NoiseCleaned",
           "HLT_PFMET170_HBHECleaned",
@@ -904,42 +904,42 @@ void PandaAnalyzer::Run() {
     gt->egmFilter = (!event.metFilters.dupECALClusters) ? 1 : 0;
     gt->egmFilter = (gt->egmFilter==1 && !event.metFilters.unfixedECALHits) ? 1 : 0;
  
+    // save triggers
+    for (auto iT : metTriggers) {
+      if (event.triggerFired(iT)) {
+        gt->trigger |= kMETTrig;
+        break;
+      }
+    }
+    for (auto iT : eleTriggers) {
+      if (event.triggerFired(iT)) {
+        gt->trigger |= kSingleEleTrig;
+        break;
+      }
+    }
+    for (auto iT : phoTriggers) {
+      if (event.triggerFired(iT)) {
+        gt->trigger |= kSinglePhoTrig;
+        break;
+      }
+    }
+    for (auto iT : jetTriggers) {
+      if (event.triggerFired(iT)) {
+        gt->trigger |= kJetHTTrig;
+        break;
+      }
+    }
+    for (auto iT : muTriggers) {
+      if (event.triggerFired(iT)) {
+        gt->trigger |= kSingleMuTrig;
+        break;
+      }
+    }
     if (isData) {
       // check the json
       if (applyJSON && !PassGoodLumis(gt->runNumber,gt->lumiNumber))
         continue;
 
-      // save triggers
-      for (auto iT : metTriggers) {
-        if (event.triggerFired(iT)) {
-          gt->trigger |= kMETTrig;
-          break;
-        }
-      }
-      for (auto iT : eleTriggers) {
-        if (event.triggerFired(iT)) {
-          gt->trigger |= kSingleEleTrig;
-          break;
-        }
-      }
-      for (auto iT : phoTriggers) {
-        if (event.triggerFired(iT)) {
-          gt->trigger |= kSinglePhoTrig;
-          break;
-        }
-      }
-      for (auto iT : jetTriggers) {
-        if (event.triggerFired(iT)) {
-          gt->trigger |= kJetHTTrig;
-          break;
-        }
-      }
-      for (auto iT : muTriggers) {
-        if (event.triggerFired(iT)) {
-          gt->trigger |= kSingleMuTrig;
-          break;
-        }
-      }
     } else {
       gt->sf_npv = GetCorr(cNPV,gt->npv);
       gt->sf_pu = GetCorr(cPU,gt->pu);

@@ -15,9 +15,10 @@ metFilter='metFilter==1 && egmFilter==1'
 presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7 && nTau==0 && jetNMBtags==0 && jot1VBFID==1 && (fabs(jot1Eta)<3 || fabs(jot2Eta)<3)'
 cnc = 'fabs(jot12DEta)>4 && jot12Mass>1300 && fabs(jot12DPhi)<1.5'
 mjj = 'fabs(jot12DEta)>1 && fabs(jot12DPhi)<1.5'
+nminus1 = 'fabs(jot12DEta)>1'
 
 cuts = {
-    'signal'             : tAND(metFilter,tAND(presel,'pfmet>250   && dphipfmet>0.5 && nLooseMuon==0 && nLooseElectron==0 && nLoosePhoton==0 && fabs(calomet-pfmet)/pfmet<0.5')), 
+    'signal'             : tAND(metFilter,tAND(presel,'pfmet>250 && dphipfmet>0.5 && nLooseMuon==0 && nLooseElectron==0 && nLoosePhoton==0 && fabs(calomet-pfmet)/pfmet<0.5')), 
     'singlemuon'         : tAND(metFilter,tAND(presel,'pfUWmag>250 && dphipfUW>0.5 && nLoosePhoton==0 && nLooseMuon==1 && nTightMuon==1 && nLooseElectron==0 && fabs(calomet-pfmet)/pfUWmag<0.5 && mT<160')),
     'singleelectron'     : tAND(metFilter,tAND(presel,'pfUWmag>250 && dphipfUW>0.5 && nLoosePhoton==0 && nLooseElectron==1 && nTightElectron==1 && nLooseMuon==0 && fabs(calomet-pfmet)/pfUWmag<0.5 && mT<160 && pfmet>60')),
     'dimuon'             : tAND(metFilter,tAND(presel,'pfUZmag>250 && dphipfUZ>0.5 && nLooseElectron==0 && nLoosePhoton==0 && nLooseMuon==2 && nTightMuon>0 && 60<diLepMass && diLepMass<120 && fabs(calomet-pfmet)/pfUZmag<0.5')),

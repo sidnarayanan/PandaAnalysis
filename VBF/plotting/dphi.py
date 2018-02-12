@@ -54,8 +54,7 @@ plot.SetLumi(lumi/1000)
 plot.AddLumiLabel(True)
 plot.do_overflow = True
 plot.do_underflow = True
-if args.data_cut != '1==1':
-    plot.SetNormFactor(True)
+plot.SetNormFactor(True)
 
 if args.cat == 'cnc':
     weight = sel.weights_cnc[region]%lumi
@@ -76,7 +75,6 @@ top           = Process('Top',root.kTTbar)
 qcd           = Process("QCD",root.kQCD)
 data          = Process("Data",root.kData); data.additional_cut = args.data_cut
 vbf           = Process('VBF H(inv)',root.kSignal1)
-#vbf           = Process('VBF H(inv)',root.kExtra4)
 
 ### ASSIGN FILES TO PROCESSES ###
 if 'signal' in region:
@@ -107,13 +105,13 @@ elif 'di' in region:
     processes = [qcd,diboson,wjets,wjets_ewk,top,zjets_ewk,zjets,data]
 else:
     processes = [qcd,diboson,top,wjets_ewk,zjets_ewk,wjets,zjets]
-    processes.append(vbf)
     if not BLIND:
         processes.append(data)
 
 for p in processes:
     plot.add_process(p)
 
+plot.AddPlotLabel(args.cut,.18,.7,False,42,.03)
 recoilBins = [200., 230., 260.0, 290.0, 320.0, 350.0, 390.0, 430.0, 470.0, 510.0, 550.0, 590.0, 640.0, 690.0, 740.0, 790.0, 840.0, 900.0, 960.0, 1020.0, 1090.0, 1160.0, 1250.0]
 nRecoilBins = len(recoilBins)-1
 

@@ -57,23 +57,20 @@ branches = ['pfmet', 'jot12Mass', '1',
             weight]
 s.read_tree(t, branches = branches, cut = base_cut)
 
-t_mask = ((s['genTauPt'] > 1) )
-accp = ((s['genTauPt'] > 18) & (s['fabs(genTauEta)'] < 2.3))
-t_in_mask = t_mask & accp
+t_mask = ((s['genTauPt'] > 1) & (s['fabs(genTauEta)']<2.3) )
+accp = ((s['genTauPt'] > 18))
 t_out_mask = t_mask & (~accp) 
 
 
 e_mask = ((s['genTauPt'] < 1) &
-          (s['genElectronPt'] > 1))
-accp = ((s['genElectronPt'] > 10) & (s['fabs(genElectronEta)'] < 2.6))
-e_in_mask = e_mask & accp
+          (s['genElectronPt'] > 1) & (s['fabs(genElectronEta)']<2.4))
+accp = ((s['genElectronPt'] > 10))
 e_out_mask = e_mask & (~accp) 
 
 m_mask = ((s['genTauPt'] < 1) &
           (s['genElectronPt'] < 1) &
-          (s['genMuonPt'] > 1))
-accp = ((s['genMuonPt'] > 10) & (s['fabs(genMuonEta)'] < 2.4))
-m_in_mask = m_mask & accp
+          (s['genMuonPt'] > 1) & (s['fabs(genMuonEta)']<2.4))
+accp = ((s['genMuonPt'] > 10))
 m_out_mask = m_mask & (~accp) 
 
 
@@ -88,11 +85,8 @@ for k,v in ratios_to_plot.iteritems():
 
     hs = {}
 
-    hs['h_t_in'] = s.draw(k, weight, mask=t_in_mask, vbins=v[0])
     hs['h_t_out'] = s.draw(k, weight, mask=t_out_mask, vbins=v[0])
-    hs['h_m_in'] = s.draw(k, weight, mask=m_in_mask, vbins=v[0])
     hs['h_m_out'] = s.draw(k, weight, mask=m_out_mask, vbins=v[0])
-    hs['h_e_in'] = s.draw(k, weight, mask=e_in_mask, vbins=v[0])
     hs['h_e_out'] = s.draw(k, weight, mask=e_out_mask, vbins=v[0])
 
     plot.Reset(False)
@@ -100,19 +94,14 @@ for k,v in ratios_to_plot.iteritems():
         h.Divide(h_inc)
         h.GetXaxis().SetTitle(v[1])
         h.GetYaxis().SetTitle('Fraction of W events')
-        h.SetMaximum(0.6)
+        h.SetMaximum(0.4)
         h.SetLineWidth(2)
         if k=='1':
           print name, h.Integral()
-    for h in [hs[x] for x in ['h_t_in', 'h_e_in', 'h_m_in']]:
-        h.SetLineStyle(2)
 
-    plot.AddHistogram(hs['h_e_out'], 'W#rightarrowe [out]', 7, -1, 'histe')
-    plot.AddHistogram(hs['h_e_in'], 'W#rightarrowe [in]', 7, -1, 'histe')
-    plot.AddHistogram(hs['h_m_out'], 'W#rightarrow#mu [out]', 6, -1, 'histe')
-    plot.AddHistogram(hs['h_m_in'], 'W#rightarrow#mu [in]', 6, -1, 'histe')
-    plot.AddHistogram(hs['h_t_out'], 'W#rightarrow#tau [out]', 8, -1, 'histe')
-    plot.AddHistogram(hs['h_t_in'], 'W#rightarrow#tau [in]', 8, -1, 'histe')
+    plot.AddHistogram(hs['h_e_out'], 'W#rightarrowe p_{T} < 10 GeV', 7, -1, 'histe')
+    plot.AddHistogram(hs['h_m_out'], 'W#rightarrow#mu p_{T} < 10 GeV', 6, -1, 'histe')
+    plot.AddHistogram(hs['h_t_out'], 'W#rightarrow#tau p_{T} < 18 GeV', 8, -1, 'histe')
 
 
     plot.Draw(args.outdir,'ratio_'+label+'_'+k)

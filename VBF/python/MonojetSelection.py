@@ -1,33 +1,45 @@
 from PandaCore.Tools.Misc import *
+from re import sub
 
-fixedmjj = "mjj"
+triggers = {
+    'met':'(trigger&1)!=0',
+    'ele':'(trigger&2)!=0',
+    'pho':'(trigger&4)!=0',
+}
 
-cuts = {}
-weights = {}
-triggers = {}
+metFilter='metFilter==1 && egmFilter==1'
 
-eventsel = 'metfilter==1 && filterbadChCandidate==1 && filterbadPFMuon==1 && fabs(minJetMetDPhi_withendcap)>0.5 && (fabs(caloMet-trueMet)/met)<0.5 && n_tau==0 && met>200'
-noid = tAND(eventsel,'jet1Pt>100. && leadingJet_outaccp==0 && fabs(jet1Eta)<2.4') 
-baseline = tAND(noid,'jet1isMonoJetIdNew==1')
+presel = 'jot1Pt>80 && jot1VBFID==1 && fabs(jot1Eta)<2.4'
 
-#regions
-cuts['signal'] = tAND(baseline,'n_loosepho==0 && n_looselep==0')
-cuts['wmn'] = tAND(baseline,'n_loosepho==0 && n_looselep==1 && abs(lep1PdgId)==13 && n_tightlep>0 && mt<160')
-#cuts['wmn'] = 'jet1isMonoJetIdNew==1&&leadingJet_outaccp==0&&1==1&&abs(jet1Eta)<2.5&&n_tau==0&&n_bjetsMedium==0&&n_looselep == 1 && abs(lep1PdgId)==13 && mt<160&&n_loosepho==0&&metfilter==1 && filterbadChCandidate==1 && filterbadPFMuon==1&&jet1Pt>100. &&(abs(caloMet-trueMet)/met) < 0.5&&n_tightlep > 0&&abs(minJetMetDPhi_withendcap) > 0.5&&met>200.0'
-cuts['wen'] = tAND(baseline,'n_loosepho==0 && n_looselep==1 && abs(lep1PdgId)==11 && n_tightlep>0 && trueMet>50 && mt<160 && lep1IsHLTSafe==1')
-cuts['zmm'] = tAND(baseline,'n_loosepho==0 && n_looselep == 2 && lep2PdgId*lep1PdgId==-169 && n_tightlep>0 && fabs(dilep_m-91)<30')
-cuts['zee'] = tAND(baseline,'n_loosepho==0 && n_looselep == 2 && lep2PdgId*lep1PdgId==-121 && n_tightlep==1 && fabs(dilep_m-91)<30')
-cuts['pho'] = tAND(baseline,'photonPt>175 && fabs(photonEta)<1.4442 && n_mediumpho==1 && n_loosepho==1 && n_looselep == 0')
-cuts['zll'] = tOR(cuts['zmm'],cuts['zee'])
-cuts['wlv'] = tOR(cuts['wmn'],cuts['wen'])
+cuts = {
+    'signal'             : tAND(metFilter,tAND(presel,'pfmet>250   && dphipfmet>0.5 && nLooseMuon==0 && nLooseElectron==0 && nLoosePhoton==0 && fabs(calomet-pfmet)/pfmet<0.5')), 
+    'singlemuon'         : tAND(metFilter,tAND(presel,'pfUWmag>250 && dphipfUW>0.5 && nLoosePhoton==0 && nLooseMuon==1 && nTightMuon==1 && nLooseElectron==0 && fabs(calomet-pfmet)/pfUWmag<0.5 && mT<160')),
+    'singleelectron'     : tAND(metFilter,tAND(presel,'pfUWmag>250 && dphipfUW>0.5 && nLoosePhoton==0 && nLooseElectron==1 && nTightElectron==1 && nLooseMuon==0 && fabs(calomet-pfmet)/pfUWmag<0.5 && mT<160 && pfmet>60')),
+    'dimuon'             : tAND(metFilter,tAND(presel,'pfUZmag>250 && dphipfUZ>0.5 && nLooseElectron==0 && nLoosePhoton==0 && nLooseMuon==2 && nTightMuon>0 && 60<diLepMass && diLepMass<120 && fabs(calomet-pfmet)/pfUZmag<0.5')),
+    'dielectron'         : tAND(metFilter,tAND(presel,'pfUZmag>250 && dphipfUZ>0.5 && nLooseMuon==0 && nLoosePhoton==0 && nLooseElectron==2 && nTightElectron>0 && 60<diLepMass && diLepMass<120 && fabs(calomet-pfmet)/pfUZmag<0.5')),
+    'qcd'                : tAND(metFilter,tAND(presel,'nLooseMuon==0 && nLoosePhoton==0 && nLooseElectron==0')),
+}
 
-weights['signal'] = 'normalizedWeight*topPtReweighting*METTrigger'
-weights['zmm'] = 'normalizedWeight*topPtReweighting*lepton_SF1*lepton_SF2*tracking_SF1*tracking_SF2*METTrigger'
-weights['zee'] = 'normalizedWeight*topPtReweighting*lepton_SF1*lepton_SF2*gsfTracking_SF1*gsfTracking_SF2'
-weights['wmn'] = 'normalizedWeight*topPtReweighting*lepton_SF1*tracking_SF1*METTrigger'
-weights['wen'] = 'normalizedWeight*topPtReweighting*lepton_SF1*gsfTracking_SF1*EleTrigger'
-weights['pho'] = 'normalizedWeight*PhoTrigger*topPtReweighting*photon_SF*PhoTrigger'
 
-triggers['met'] = ' || '.join(['triggerFired[%i]'%x for x in [54,55,56,57,58,59,60,61,62,63,64,65]])
-triggers['ele'] = ' || '.join(['triggerFired[%i]'%x for x in [7,8,11,12,13,42,43,44,45]])
-triggers['pho'] = ' || '.join(['triggerFired[%i]'%x for x in [73,74,75,76,77]])
+weights = {
+  'signal'         : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV*sf_metTrig',
+  'w'              : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV',
+  'z'              : '%f*sf_pu*sf_tt*normalizedWeight*sf_lepID*sf_lepIso*sf_lepTrack*sf_ewkV*sf_qcdV',
+  'qcd'            : '%f*sf_pu*normalizedWeight',
+}
+
+
+weights['qcd'] = weights['signal']
+
+for x in ['dimuon','dielectron','singlemuon','singleelectron']:
+    if 'electron' in x:
+      if 'di' in x:
+        weights[x] = tTIMES(weights['z'], 'sf_eleTrig')
+      else:
+        weights[x] = tTIMES(weights['w'],'sf_eleTrig')
+    else:
+      if 'di' in x:
+          weights[x] = tTIMES(weights['z'],'sf_metTrigZmm')
+      else:
+          weights[x] = tTIMES(weights['w'],'sf_metTrig')
+
