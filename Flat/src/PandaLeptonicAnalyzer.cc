@@ -119,6 +119,10 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   Float_t xbinsPtRap3[nBinPtRap3+1] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,25,28,32,37,43,52,65,85,120,160,190,220,250,300,400,1500};
   Float_t xbinsPtRap4[nBinPtRap4+1] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,25,28,32,37,43,52,65,85,120,160,190,220,250,300,400,1500};
 
+  Float_t xbinsWWSSMLL[nBinWWSS+1];
+    xbinsWWSSMLL[ 0] =   0;      xbinsWWSSMLL[ 1] = 100;      xbinsWWSSMLL[ 2] = 200;      xbinsWWSSMLL[ 3] = 300;      xbinsWWSSMLL[ 4] = 400;
+    xbinsWWSSMLL[ 5] = 600;
+
   Float_t xbinsWWMLL[nBinWW+1];
     xbinsWWMLL[ 0] =  20;      xbinsWWMLL[ 1] =  40;      xbinsWWMLL[ 2] =  55;      xbinsWWMLL[ 3] =  70;      xbinsWWMLL[ 4] =  85;
     xbinsWWMLL[ 5] = 100;      xbinsWWMLL[ 6] = 120;      xbinsWWMLL[ 7] = 150;      xbinsWWMLL[ 8] = 200;      xbinsWWMLL[ 9] = 800;
@@ -154,6 +158,7 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   hDDilPtRap3EE = new TH1D("hDDilPtRap3EE", "hDDilPtRap3EE", nBinPtRap3, xbinsPtRap3);
   hDDilPtRap4MM = new TH1D("hDDilPtRap4MM", "hDDilPtRap4MM", nBinPtRap4, xbinsPtRap4);
   hDDilPtRap4EE = new TH1D("hDDilPtRap4EE", "hDDilPtRap4EE", nBinPtRap4, xbinsPtRap4);
+  hDWWSSMLL = new TH1D("hDWWSSMLL", "hDWWSSMLL", nBinWWSS, xbinsWWSSMLL);
   hDWWMLL = new TH1D("hDWWMLL", "hDWWMLL", nBinWW, xbinsWWMLL);
   hDWWPTL1 = new TH1D("hDWWPTL1", "hDWWPTL1", nBinWW, xbinsWWPTL1);
   hDWWPTL2 = new TH1D("hDWWPTL2", "hDWWPTL2", nBinWW, xbinsWWPTL2);
@@ -530,6 +535,9 @@ void PandaLeptonicAnalyzer::Terminate() {
     }
   }
   {
+    printf("hDWWSSMLL: %f\n",hDWWSSMLL->GetSumOfWeights());
+  }
+  {
     printf("hDWWMLL: (%f/%f/%f/%f/%f/%f->%f)\n",
   	    hDWWMLL_QCDPart[0]->GetSumOfWeights(),hDWWMLL_QCDPart[1]->GetSumOfWeights(),hDWWMLL_QCDPart[2]->GetSumOfWeights(),
   	    hDWWMLL_QCDPart[3]->GetSumOfWeights(),hDWWMLL_QCDPart[4]->GetSumOfWeights(),hDWWMLL_QCDPart[5]->GetSumOfWeights(),hDWWMLL->GetSumOfWeights());
@@ -624,6 +632,7 @@ void PandaLeptonicAnalyzer::Terminate() {
   fOut->WriteTObject(hDDilPtRap3EE); fOut->WriteTObject(hDDilPtRap3EE_PDF); fOut->WriteTObject(hDDilPtRap3EE_QCD);
   fOut->WriteTObject(hDDilPtRap4MM); fOut->WriteTObject(hDDilPtRap4MM_PDF); fOut->WriteTObject(hDDilPtRap4MM_QCD);
   fOut->WriteTObject(hDDilPtRap4EE); fOut->WriteTObject(hDDilPtRap4EE_PDF); fOut->WriteTObject(hDDilPtRap4EE_QCD);
+  fOut->WriteTObject(hDWWSSMLL);  
   fOut->WriteTObject(hDWWMLL);       fOut->WriteTObject(hDWWMLL_PDF);       fOut->WriteTObject(hDWWMLL_QCD);    
   fOut->WriteTObject(hDWWPTL1);      fOut->WriteTObject(hDWWPTL1_PDF);      fOut->WriteTObject(hDWWPTL1_QCD);    
   fOut->WriteTObject(hDWWPTL2);      fOut->WriteTObject(hDWWPTL2_PDF);      fOut->WriteTObject(hDWWPTL2_QCD);    
@@ -1960,6 +1969,7 @@ void PandaLeptonicAnalyzer::Run() {
 
       } //looking for targets
 
+      std::vector<int> targetsJet;
       int nGoodGenJets[3] = {0,0,0};
       for (int iG=0; iG!=event.ak4GenJets.size(); ++iG) {
         auto& partj(event.ak4GenJets.at(iG));
@@ -1988,9 +1998,22 @@ void PandaLeptonicAnalyzer::Run() {
           }
 	}
 	if(isLepton == kTRUE) continue;
-        if(partj.pt() > 25) nGoodGenJets[0]++;
-        if(partj.pt() > 30) nGoodGenJets[1]++;
-        if(partj.pt() > 35) nGoodGenJets[2]++;
+        if(partj.pt() > 25) {nGoodGenJets[0]++;}
+        if(partj.pt() > 30) {nGoodGenJets[1]++; targetsJet.push_back(iG);}
+        if(partj.pt() > 35) {nGoodGenJets[2]++;}
+      }
+
+      double deltaEtaJJGen = 0; double mJJGen = 0.;
+      if(targetsJet.size() >= 2) {
+        auto& partj1(event.ak4GenJets.at(0));
+        auto& partj2(event.ak4GenJets.at(1));
+        TLorentzVector genjet1;
+        genjet1.SetPtEtaPhiM(partj1.pt(),partj1.eta(),partj1.phi(),0.0);
+        TLorentzVector genjet2;
+        genjet2.SetPtEtaPhiM(partj2.pt(),partj2.eta(),partj2.phi(),0.0);
+	TLorentzVector dijet = genjet1 + genjet2;
+	deltaEtaJJGen = TMath::Abs(partj1.eta()-partj2.eta());
+	mJJGen = dijet.M();
       }
 
       TLorentzVector the_rhoP4(0,0,0,0);
@@ -2192,6 +2215,18 @@ void PandaLeptonicAnalyzer::Run() {
             }
 	  }
 	}
+      }
+
+      // Filling WWSS info at gen level
+      if(gt->genLep1Pt > 20 && TMath::Abs(gt->genLep1Eta) < 2.5 && abs(gt->genLep1PdgId) != 15 && 
+         gt->genLep2Pt > 20 && TMath::Abs(gt->genLep2Eta) < 2.5 && abs(gt->genLep2PdgId) != 15 &&
+	 deltaEtaJJGen > 2.5 && mJJGen > 500){
+        TLorentzVector genlep1;
+        genlep1.SetPtEtaPhiM(gt->genLep1Pt,gt->genLep1Eta,gt->genLep1Phi,0.0);
+        TLorentzVector genlep2;
+        genlep2.SetPtEtaPhiM(gt->genLep2Pt,gt->genLep2Eta,gt->genLep2Phi,0.0);
+	TLorentzVector dilep = genlep1 + genlep2;
+        hDWWSSMLL->Fill(TMath::Min((double)dilep.M(),599.999),event.weight);
       }
 
       // Filling WW info at gen level

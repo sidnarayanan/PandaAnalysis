@@ -159,6 +159,7 @@ private:
     const int nBinPtRap2 = 34;
     const int nBinPtRap3 = 34;
     const int nBinPtRap4 = 34;
+    const int nBinWWSS = 5;
     const int nBinWW = 9;
     const int nBinWWN0JET = 3;
     bool PassGoodLumis(int run, int lumi);
@@ -219,6 +220,7 @@ private:
     TH1D *hDDilPtRap3EE; TH1D *hDDilPtRap3EE_PDF; TH1D *hDDilPtRap3EE_QCD; TH1D *hDDilPtRap3EE_QCDPart[6];
     TH1D *hDDilPtRap4MM; TH1D *hDDilPtRap4MM_PDF; TH1D *hDDilPtRap4MM_QCD; TH1D *hDDilPtRap4MM_QCDPart[6];
     TH1D *hDDilPtRap4EE; TH1D *hDDilPtRap4EE_PDF; TH1D *hDDilPtRap4EE_QCD; TH1D *hDDilPtRap4EE_QCDPart[6];
+    TH1D *hDWWSSMLL;
     TH1D *hDWWMLL;       TH1D *hDWWMLL_PDF;	  TH1D *hDWWMLL_QCD;	   TH1D *hDWWMLL_QCDPart[6];
     TH1D *hDWWPTL1;      TH1D *hDWWPTL1_PDF;	  TH1D *hDWWPTL1_QCD;	   TH1D *hDWWPTL1_QCDPart[6];
     TH1D *hDWWPTL2;      TH1D *hDWWPTL2_PDF;	  TH1D *hDWWPTL2_QCD;	   TH1D *hDWWPTL2_QCDPart[6];
