@@ -107,6 +107,15 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   hDTotalMCWeight = new TH1F("hDTotalMCWeight","hDTotalMCWeight",1,0,2);
   hDTotalMCWeight->SetBinContent(1,hweights->GetBinContent(1));
 
+  Float_t xbinsEta[nBinEta+1] = {-2.4,-2.3,-2.2,-2.1,-2.0,-1.7,-1.6,-1.5,-1.4,-1.2,-0.8,-0.5,-0.3,-0.2,0.0,
+                                  0.2, 0.3, 0.5, 0.8, 1.2, 1.4, 1.5, 1.6, 1.7, 2.0, 2.1, 2.2, 2.3, 2.4};
+  hDReco_Eta = new TH1D(Form("hDReco_Eta"), Form("hDReco_Eta"), nBinEta, xbinsEta);
+  for(int i=0; i<nBinEta; i++){
+    hDRecoMM_Den[i] = new TH1D(Form("hDRecoMM_Den_%d",i), Form("hDRecoMM_Den_%d",i), 60, 60, 120);
+    hDRecoMM_Num[i] = new TH1D(Form("hDRecoMM_Num_%d",i), Form("hDRecoMM_Num_%d",i), 60, 60, 120);
+    hDRecoMM_Eff[i] = new TH1D(Form("hDRecoMM_Eff_%d",i), Form("hDRecoMM_Eff_%d",i), 60, 60, 120);
+  }
+
   Float_t xbinsPt[nBinPt+1] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,25,28,32,37,43,52,65,85,120,160,190,220,250,300,400,500,800,1500};
   Float_t xbinsRap[nBinRap+1] = {0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4};
   Float_t xbinsPhiStar[nBinPhiStar+1] = {1e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 7e-3, 8e-3, 9e-3,
@@ -613,9 +622,12 @@ void PandaLeptonicAnalyzer::Terminate() {
     }
   }
 
-
-
   fOut->WriteTObject(tOut);
+  for(int i=0; i<nBinEta; i++){
+    fOut->WriteTObject(hDRecoMM_Den[i]);
+    fOut->WriteTObject(hDRecoMM_Num[i]);
+    fOut->WriteTObject(hDRecoMM_Eff[i]);
+  }
   fOut->WriteTObject(hDDilPtMM);     fOut->WriteTObject(hDDilPtMM_PDF);     fOut->WriteTObject(hDDilPtMM_QCD);    
   fOut->WriteTObject(hDDilPtEE);     fOut->WriteTObject(hDDilPtEE_PDF);     fOut->WriteTObject(hDDilPtEE_QCD);    
   fOut->WriteTObject(hDDilRapMM);    fOut->WriteTObject(hDDilRapMM_PDF);    fOut->WriteTObject(hDDilRapMM_QCD);   
@@ -666,6 +678,11 @@ void PandaLeptonicAnalyzer::Terminate() {
   delete ak4JERReader;
   
   delete hDTotalMCWeight;
+  for(int i=0; i<nBinEta; i++){
+    delete hDRecoMM_Den[i];
+    delete hDRecoMM_Num[i];
+    delete hDRecoMM_Eff[i];
+  }
   delete hDDilPtMM;     delete hDDilPtMM_PDF;	  delete hDDilPtMM_QCD;	    for(int i=0; i<6; i++) delete hDDilPtMM_QCDPart[i];
   delete hDDilPtEE;     delete hDDilPtEE_PDF;	  delete hDDilPtEE_QCD;	    for(int i=0; i<6; i++) delete hDDilPtEE_QCDPart[i];
   delete hDDilRapMM;    delete hDDilRapMM_PDF;    delete hDDilRapMM_QCD;    for(int i=0; i<6; i++) delete hDDilRapMM_QCDPart[i];   

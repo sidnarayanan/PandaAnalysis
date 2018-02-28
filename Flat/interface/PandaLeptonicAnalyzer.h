@@ -151,6 +151,7 @@ private:
             double eff, sf, sfup, sfdown;
     };
 
+    const int nBinEta = 28;
     const int nBinPt = 36;
     const int nBinRap = 12;
     const int nBinPhiStar = 34;
@@ -204,6 +205,10 @@ private:
     TTree *tOut;
     GeneralLeptonicTree *gt; // essentially a wrapper around tOut
     TH1F *hDTotalMCWeight=0;
+    TH1D *hDReco_Eta;
+    TH1D *hDRecoMM_Den[28];
+    TH1D *hDRecoMM_Num[28];
+    TH1D *hDRecoMM_Eff[28];
     TH1D *hDDilPtMM;     TH1D *hDDilPtMM_PDF;	  TH1D *hDDilPtMM_QCD;	   TH1D *hDDilPtMM_QCDPart[6];
     TH1D *hDDilPtEE;	 TH1D *hDDilPtEE_PDF;	  TH1D *hDDilPtEE_QCD;	   TH1D *hDDilPtEE_QCDPart[6];
     TH1D *hDDilRapMM;	 TH1D *hDDilRapMM_PDF;	  TH1D *hDDilRapMM_QCD;    TH1D *hDDilRapMM_QCDPart[6];
