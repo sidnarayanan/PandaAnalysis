@@ -205,10 +205,17 @@ private:
     TTree *tOut;
     GeneralLeptonicTree *gt; // essentially a wrapper around tOut
     TH1F *hDTotalMCWeight=0;
+/*
     TH1D *hDReco_Eta;
-    TH1D *hDRecoMM_Den[28];
-    TH1D *hDRecoMM_Num[28];
-    TH1D *hDRecoMM_Eff[28];
+    TH1D *hDRecoMuon_P[28];
+    TH1D *hDRecoMuon_F[28];
+    TH1D *hDRecoTrack_P[28];
+    TH1D *hDRecoTrack_F[28];
+    TH1D *hDRecoMuonIso_P[28];
+    TH1D *hDRecoMuonIso_F[28];
+    TH1D *hDRecoTrackIso_P[28];
+    TH1D *hDRecoTrackIso_F[28];
+*/
     TH1D *hDDilPtMM;     TH1D *hDDilPtMM_PDF;	  TH1D *hDDilPtMM_QCD;	   TH1D *hDDilPtMM_QCDPart[6];
     TH1D *hDDilPtEE;	 TH1D *hDDilPtEE_PDF;	  TH1D *hDDilPtEE_QCD;	   TH1D *hDDilPtEE_QCDPart[6];
     TH1D *hDDilRapMM;	 TH1D *hDDilRapMM_PDF;	  TH1D *hDDilRapMM_QCD;    TH1D *hDDilRapMM_QCDPart[6];

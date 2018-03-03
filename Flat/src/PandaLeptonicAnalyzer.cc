@@ -89,6 +89,7 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
                                      "electrons", "muons", "taus", "photons", 
                                      "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet",
                                      "recoil","metFilters","genMet","superClusters", "vertices", "triggerObjects"});
+  //readlist.push_back("pfCandidates");
   readlist.setVerbosity(0);
 
   readlist.push_back("triggers");
@@ -107,14 +108,21 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   hDTotalMCWeight = new TH1F("hDTotalMCWeight","hDTotalMCWeight",1,0,2);
   hDTotalMCWeight->SetBinContent(1,hweights->GetBinContent(1));
 
+/*
   Float_t xbinsEta[nBinEta+1] = {-2.4,-2.3,-2.2,-2.1,-2.0,-1.7,-1.6,-1.5,-1.4,-1.2,-0.8,-0.5,-0.3,-0.2,0.0,
                                   0.2, 0.3, 0.5, 0.8, 1.2, 1.4, 1.5, 1.6, 1.7, 2.0, 2.1, 2.2, 2.3, 2.4};
   hDReco_Eta = new TH1D(Form("hDReco_Eta"), Form("hDReco_Eta"), nBinEta, xbinsEta);
   for(int i=0; i<nBinEta; i++){
-    hDRecoMM_Den[i] = new TH1D(Form("hDRecoMM_Den_%d",i), Form("hDRecoMM_Den_%d",i), 60, 60, 120);
-    hDRecoMM_Num[i] = new TH1D(Form("hDRecoMM_Num_%d",i), Form("hDRecoMM_Num_%d",i), 60, 60, 120);
-    hDRecoMM_Eff[i] = new TH1D(Form("hDRecoMM_Eff_%d",i), Form("hDRecoMM_Eff_%d",i), 60, 60, 120);
+    hDRecoMuon_P[i]  = new TH1D(Form("hDRecoMuon_P_%d",i),  Form("hDRecoMuon_P_%d",i),  60, 60, 120);
+    hDRecoMuon_F[i]  = new TH1D(Form("hDRecoMuon_F_%d",i),  Form("hDRecoMuon_F_%d",i),  60, 60, 120);
+    hDRecoTrack_P[i] = new TH1D(Form("hDRecoTrack_P_%d",i), Form("hDRecoTrack_P_%d",i), 60, 60, 120);
+    hDRecoTrack_F[i] = new TH1D(Form("hDRecoTrack_F_%d",i), Form("hDRecoTrack_F_%d",i), 60, 60, 120);
+    hDRecoMuonIso_P[i]  = new TH1D(Form("hDRecoMuonIso_P_%d",i),  Form("hDRecoMuonIso_P_%d",i),  60, 60, 120);
+    hDRecoMuonIso_F[i]  = new TH1D(Form("hDRecoMuonIso_F_%d",i),  Form("hDRecoMuonIso_F_%d",i),  60, 60, 120);
+    hDRecoTrackIso_P[i] = new TH1D(Form("hDRecoTrackIso_P_%d",i), Form("hDRecoTrackIso_P_%d",i), 60, 60, 120);
+    hDRecoTrackIso_F[i] = new TH1D(Form("hDRecoTrackIso_F_%d",i), Form("hDRecoTrackIso_F_%d",i), 60, 60, 120);
   }
+*/
 
   Float_t xbinsPt[nBinPt+1] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,25,28,32,37,43,52,65,85,120,160,190,220,250,300,400,500,800,1500};
   Float_t xbinsRap[nBinRap+1] = {0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4};
@@ -623,11 +631,18 @@ void PandaLeptonicAnalyzer::Terminate() {
   }
 
   fOut->WriteTObject(tOut);
+/*
   for(int i=0; i<nBinEta; i++){
-    fOut->WriteTObject(hDRecoMM_Den[i]);
-    fOut->WriteTObject(hDRecoMM_Num[i]);
-    fOut->WriteTObject(hDRecoMM_Eff[i]);
+    fOut->WriteTObject(hDRecoMuon_P[i]);
+    fOut->WriteTObject(hDRecoMuon_F[i]);
+    fOut->WriteTObject(hDRecoTrack_P[i]);
+    fOut->WriteTObject(hDRecoTrack_F[i]);
+    fOut->WriteTObject(hDRecoMuonIso_P[i]);
+    fOut->WriteTObject(hDRecoMuonIso_F[i]);
+    fOut->WriteTObject(hDRecoTrackIso_P[i]);
+    fOut->WriteTObject(hDRecoTrackIso_F[i]);
   }
+*/
   fOut->WriteTObject(hDDilPtMM);     fOut->WriteTObject(hDDilPtMM_PDF);     fOut->WriteTObject(hDDilPtMM_QCD);    
   fOut->WriteTObject(hDDilPtEE);     fOut->WriteTObject(hDDilPtEE_PDF);     fOut->WriteTObject(hDDilPtEE_QCD);    
   fOut->WriteTObject(hDDilRapMM);    fOut->WriteTObject(hDDilRapMM_PDF);    fOut->WriteTObject(hDDilRapMM_QCD);   
@@ -678,11 +693,18 @@ void PandaLeptonicAnalyzer::Terminate() {
   delete ak4JERReader;
   
   delete hDTotalMCWeight;
+/*
   for(int i=0; i<nBinEta; i++){
-    delete hDRecoMM_Den[i];
-    delete hDRecoMM_Num[i];
-    delete hDRecoMM_Eff[i];
+    delete hDRecoMuon_P[i];
+    delete hDRecoMuon_F[i];
+    delete hDRecoTrack_P[i];
+    delete hDRecoTrack_F[i];
+    delete hDRecoMuonIso_P[i];
+    delete hDRecoMuonIso_F[i];
+    delete hDRecoTrackIso_P[i];
+    delete hDRecoTrackIso_F[i];
   }
+*/
   delete hDDilPtMM;     delete hDDilPtMM_PDF;	  delete hDDilPtMM_QCD;	    for(int i=0; i<6; i++) delete hDDilPtMM_QCDPart[i];
   delete hDDilPtEE;     delete hDDilPtEE_PDF;	  delete hDDilPtEE_QCD;	    for(int i=0; i<6; i++) delete hDDilPtEE_QCDPart[i];
   delete hDDilRapMM;    delete hDDilRapMM_PDF;    delete hDDilRapMM_QCD;    for(int i=0; i<6; i++) delete hDDilRapMM_QCDPart[i];   
@@ -1395,6 +1417,76 @@ void PandaLeptonicAnalyzer::Run() {
      float pt = mu.pt(); float eta = mu.eta(); float aeta = fabs(eta);
       if (pt<10 || aeta>2.4)
         continue;
+/*
+      // Begin tracking efficiency study
+      if(pt > 30 && mu.tight  && mu.combIso()/mu.pt() < 0.15){
+	bool isTrigger = false;
+
+        for (auto& trigObj : event.triggerObjects.filterObjects("hltL3crIsoL1sMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p09")) { // HLT_IsoMu24
+         if (trigObj->pt() > 0 && mu.pt() > 0 && trigObj->dR(mu) < 0.1) isTrigger = true;
+        }
+	if(isTrigger == false){
+          for (auto& trigObj : event.triggerObjects.filterObjects("hltL3fL1sMu22L1f0Tkf24QL3trkIsoFiltered0p09")) { // HLT_IsoTkMu24
+           if (trigObj->pt() > 0 && mu.pt() > 0 && trigObj->dR(mu) < 0.1) isTrigger = true;
+          }
+	}
+	if(isTrigger == false){
+          for (auto& trigObj : event.triggerObjects.filterObjects("hltL3crIsoL1sMu20L1f0L2f10QL3f22QL3trkIsoFiltered0p09")) { // HLT_IsoMu22
+           if (trigObj->pt() > 0 && mu.pt() > 0 && trigObj->dR(mu) < 0.1) isTrigger = true;
+          }
+	}
+	if(isTrigger == false){
+          for (auto& trigObj : event.triggerObjects.filterObjects("hltL3fL1sMu20L1f0Tkf22QL3trkIsoFiltered0p09")) { // HLT_IsoTkMu22
+           if (trigObj->pt() > 0 && mu.pt() > 0 && trigObj->dR(mu) < 0.1) isTrigger = true;
+          }
+	}
+	if(isTrigger == false){
+          for (auto& trigObj : event.triggerObjects.filterObjects("hltL3fL1sMu22Or25L1f0L2f10QL3Filtered50Q")) { // HLT_Mu50
+           if (trigObj->pt() > 0 && mu.pt() > 0 && trigObj->dR(mu) < 0.1) isTrigger = true;
+          }
+	}
+
+        isTrigger = isTrigger || mu.triggerMatch[panda::Muon::fIsoMu24] || mu.triggerMatch[panda::Muon::fIsoTkMu24] || mu.triggerMatch[panda::Muon::fIsoMu22er] || mu.triggerMatch[panda::Muon::fIsoTkMu22er] || mu.triggerMatch[panda::Muon::fMu50];
+        if(isTrigger) {
+          for (auto& mu2 : event.muons) {
+            if (mu2.pt() < 10 || fabs(mu2.eta()) > 2.4) continue;
+            TLorentzVector v1,v2;
+            v1.SetPtEtaPhiM(mu.pt() ,mu.eta() ,mu.phi() ,mu.m() );
+            v2.SetPtEtaPhiM(mu2.pt(),mu2.eta(),mu2.phi(),mu2.m());
+	    if((v1+v2).M() > 60 && (v1+v2).M() < 120){
+               int nMuEta = hDReco_Eta->GetXaxis()->FindFixBin(mu2.eta())-1;
+               if(nMuEta < 0 || nMuEta >= nBinEta) {printf("PROBLEM WITH ETA!\n"); return;};
+	       bool isSTMuon = false;
+	       if     (!mu2.global && !mu2.tracker) isSTMuon = true;
+	       else if(!mu2.global &&  mu2.tracker) isSTMuon = false;
+	       else if( mu2.global) isSTMuon = true;
+	       if(isSTMuon) {
+                 // Muon
+	         if(mu2.tracker || mu2.global) hDRecoMuon_P[nMuEta]->Fill((v1+v2).M(),event.weight);
+	         else                          hDRecoMuon_F[nMuEta]->Fill((v1+v2).M(),event.weight);
+		 if(mu2.combIso()/mu2.pt() < 0.4){
+	           if(mu2.tracker || mu2.global) hDRecoMuonIso_P[nMuEta]->Fill((v1+v2).M(),event.weight);
+	           else                          hDRecoMuonIso_F[nMuEta]->Fill((v1+v2).M(),event.weight);
+		 }
+		 // Track
+		 bool isTrack = false;
+                 for (auto& cand : event.pfCandidates) {
+                   if (cand.q() == 0 || cand.pt() < 10) continue;
+                   if(cand.dR(mu2) < 0.15) {isTrack = true; break;}
+                 }
+	         if(isTrack) hDRecoTrack_P[nMuEta]->Fill((v1+v2).M(),event.weight);
+	         else        hDRecoTrack_F[nMuEta]->Fill((v1+v2).M(),event.weight);
+		 if(mu2.combIso()/mu2.pt() < 0.4){
+	           if(isTrack) hDRecoTrackIso_P[nMuEta]->Fill((v1+v2).M(),event.weight);
+	           else        hDRecoTrackIso_F[nMuEta]->Fill((v1+v2).M(),event.weight);
+		 }
+               } // standalone muon cut
+	    } // mass cut
+	  } // loop over muons
+	} // trigger cut
+      } // muon quality cut
+      // End tracking efficiency study
+*/
       if (!mu.loose)
         continue;
       looseLeps.push_back(&mu);
