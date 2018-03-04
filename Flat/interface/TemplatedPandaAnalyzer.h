@@ -245,14 +245,17 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   tr->TriggerSubEvent("sd and tau");
 
   // get ecfs
-  unsigned nFilter = std::min(25, (int)sdConstituents.size());
+  unsigned nFilter = std::min(30, (int)sdConstituents.size());
   VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
 
+  GeneralTree::ECFParams p;
   for (int beta = 1; beta != 3; ++beta) {
     pandaecf::calcECFN(beta+1, sdConstsFiltered, ecfnMan);
     for (int N = 1; N != 5 ; ++N) {
       for (int o = 1; o != 4; ++o) {
         genJetInfo.ecfs[o-1][N-1][beta-1] = ecfnMan->ecfns[Form("%i_%i", N, o)];
+        p.order = o; p.N = N; p.ibeta = beta;
+        gt->fj1ECFNs[p] = ecfnMan->ecfns[Form("%i_%i", N, o)];
       }
     }
   }

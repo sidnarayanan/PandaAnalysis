@@ -1,3 +1,5 @@
+_qcd_bins = ['300','500','700','1000','1500','2000','inf']
+
 d = {
     'Top'                 : ['ZpTT_med-%i'%m for m in [1000,1250,1500,2000,2500,3000,3500,4000,500,750]],
     'Top_lo'              : [('ZpTT_lo_med-%i_w-%i'%m).replace('.','p') for m in 
@@ -35,7 +37,7 @@ d = {
                               (2500,300), (2500,400), (2500,500), (2500,600), (2500,700), (2500,800), 
                               (600,300), (600,400), (800,300), (800,400), (800,500), (800,600)]
                             ],
-    'QCD'                 : ['QCD_ht300to500','QCD_ht500to700',
-                             'QCD_ht700to1000','QCD_ht1000to1500','QCD_ht1500to2000','QCD_ht2000toinf'],
+    'QCD'                 : ['QCD_ht%sto%s'%x for x in zip(_qcd_bins[:-1], _qcd_bins[1:])],
+    'QCD_Nominal'         : ['QCD_HT%sto%s_Nominal'%x for x in zip(_qcd_bins[:-1], _qcd_bins[1:])],
 }
 

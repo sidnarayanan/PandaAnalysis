@@ -378,7 +378,6 @@ private:
     TF1* puppisd_corrRECO_cen=0;
     TF1* puppisd_corrRECO_for=0;
     RoccoR *rochesterCorrection=0;
-    TRandom3 rng;
     CSVHelper *csvReweighter=0, *cmvaReweighter=0;
 
     //////////////////////////////////////////////////////////////////////////////////////

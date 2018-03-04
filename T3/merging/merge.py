@@ -88,14 +88,14 @@ def hadd(inpath,outpath):
 
 def normalizeFast(fpath,opt):
     xsec=-1
-    if type(opt)==type(1.) or type(opt)==type(1):
+    if type(opt)==float or type(opt)==int:
         xsec = opt
     else:
         try:
-            xsec = processes[proc][2]
+            xsec = processes[fpath][2]
         except KeyError:
             for k,v in processes.iteritems():
-                if proc in k:
+                if fpath in k:
                     xsec = v[2]
     if xsec<0:
         PError(sname,'could not find xsec, skipping %s!'%opt)
@@ -108,6 +108,7 @@ def normalizeFast(fpath,opt):
 def merge(shortnames,mergedname):
     to_skip = []
     for shortname in shortnames:
+        xsec = None
         if 'monotop' in shortname:
             pd = shortname
             xsec = 1
@@ -152,7 +153,7 @@ def merge(shortnames,mergedname):
                     break
         inpath = inbase+shortname+'_*.root'
         success = hadd(inpath,'/tmp/%s/split/%s.root'%(user,shortname))
-        if xsec>0 and success:
+        if success:
             normalizeFast('/tmp/%s/split/%s.root'%(user,shortname),xsec)
         if not success:
             if not skip_missing:

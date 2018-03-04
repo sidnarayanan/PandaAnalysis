@@ -72,7 +72,7 @@ void PandaAnalyzer::SetOutputFile(TString fOutName)
 
   gt->monohiggs      = (analysis->monoh || analysis->hbb);
   gt->vbf            = analysis->vbf;
-  gt->fatjet         = analysis->fatjet;
+  gt->fatjet         = (analysis->fatjet || analysis->deepGen);
   gt->leptonic       = analysis->complicatedLeptons;
   gt->photonic       = analysis->complicatedPhotons;
   gt->hfCounting     = analysis->hfCounting;
@@ -108,6 +108,9 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     return 0;
   }
   tIn = t;
+
+  // create an RNG
+  event.initRNG();
 
   ////////////////////////////////////////////////////////////////////// 
   // manipulate which branches to read
@@ -196,6 +199,8 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
                                      "scaleDown","pdf.*","gen.*",
                                      "sf_tt.*","sf_qcdTT.*",
                                      "trueGenBosonPt","sf_qcd.*","sf_ewk.*"};
+    if (analysis->deepGen)
+      keepable.push_back("fj1ECFN.*");
     gt->RemoveBranches({".*"},keepable);
   }
   if (!analysis->fatjet && !analysis->ak8) {
@@ -429,7 +434,6 @@ void PandaAnalyzer::SetDataDir(const char *s)
     if (DEBUG>5) PDebug("PandaAnalyzer::Run","Loading the Rochester corrections with random seed 3393");
     // TO DO: Hard coded to 2016 rochester corrections for now, need to do this in a better way later
     rochesterCorrection = new RoccoR(Form("%s/rcdata.2016.v3",dirPath.Data()));
-    rng=TRandom3(3393); //Dylan's b-day
   } else {
     OpenCorrection(cEleVeto,dirPath+"moriond17/scaleFactor_electron_summer16.root","scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
     OpenCorrection(cEleTight,dirPath+"moriond17/scaleFactor_electron_summer16.root","scaleFactor_electron_tightid_RooCMSShape_pu_0_100",2);
