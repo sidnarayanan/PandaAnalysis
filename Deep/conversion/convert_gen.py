@@ -15,6 +15,7 @@ name = argv[2]
 singletons = None
 outdir = getenv('SUBMIT_NPY')
 datadir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/deep/'
+submit_name = getenv('SUBMIT_NAME')
 me = argv[0].split('/')[-1]
 argv = []
 
@@ -41,12 +42,16 @@ h_pt = f_pt.Get('h_%s'%('_'.join(name.split('_')[:-1])))
 f_pt_scaled = root.TFile.Open(datadir + 'flatten_gen_scaled.root')
 h_pt_scaled = f_pt_scaled.Get('h_%s'%('_'.join(name.split('_')[:-1])))
 
-print 'h_%s'%('_'.join(name.split('_')[:-1]))
+print 'h_%s_%s'%('_'.join(name.split('_')[:-1]), submit_name)
 
 data = {}
 for fpath in fcfg.readlines():
     print fpath.strip()
-    d = np.load(fpath.strip())
+    try:
+        d = np.load(fpath.strip())
+    except [IOError, AttributeError] as e:
+        PError(me, str(e))
+        continue
     mask = (d['nprongs'] == n_partons)
     for k,v in d.iteritems():
         if k == 'singleton_branches':

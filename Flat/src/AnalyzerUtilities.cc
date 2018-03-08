@@ -28,68 +28,77 @@ void JetTree::Node::GetTerminals(vector<int>& terminals_)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-ParticleGridder::ParticleGridder(unsigned etaN, unsigned phiN, float etaMax) 
+ParticleGridder::ParticleGridder(unsigned etaN, unsigned phiN, float etaMax, bool on):
+  _on(on)
 {
   float phiMax = TMath::Pi();
-  hEta_ = new TH1F("eta","eta",etaN*2,-etaMax,etaMax);
-  hPhi_ = new TH1F("phi","phi",phiN*2,-phiMax,phiMax);
-  etaMax_ = etaMax; phiMax_ = phiMax - 0.000001;
-  collections_.resize(etaN*2);
-  for (auto &v : collections_)
+  _etaMax = etaMax; _phiMax = phiMax - 0.000001;
+  _hEta = new TH1F("eta","eta",etaN*2,-etaMax,etaMax);
+  _hPhi = new TH1F("phi","phi",phiN*2,-phiMax,phiMax);
+  _collections.resize(etaN*2);
+  for (auto &v : _collections)
     v.resize(phiN*2);
 }
 
 void ParticleGridder::clear() 
 {
-  particles_.clear();
-  for (auto &v : collections_) {
+  _particles.clear();
+  for (auto &v : _collections) {
     for (auto &vv : v) {
       vv.clear();
     }
   }
-  gridded_.clear();
-  nonEmpty_.clear();
+  _gridded.clear();
+  _nonEmpty.clear();
 }
 
 void ParticleGridder::add(panda::Particle& p) 
 {
-  particles_.push_back(p.p4());
+  _particles.push_back(p.p4());
 }
 
 
 std::vector<TLorentzVector>& ParticleGridder::get() 
 {
-  for (auto &p : particles_) {
+  for (auto &p : _particles) {
     float eta = p.Eta();
     float phi = p.Phi();
-    if (fabs(eta) >= etaMax_)
+    if (fabs(eta) >= _etaMax)
       continue;
-    phi = bound(phi, -phiMax_, phiMax_);
-    int etabin = hEta_->FindBin(eta)-1;
-    int phibin = hPhi_->FindBin(phi)-1;
-    collections_.at(etabin).at(phibin).push_back(&p);
+    phi = bound(phi, -_phiMax, _phiMax);
+    int etabin = _hEta->FindBin(eta)-1;
+    int phibin = _hPhi->FindBin(phi)-1;
+    _collections.at(etabin).at(phibin).push_back(&p);
     std::pair<int,int>bin(etabin,phibin);
-    if (std::find(nonEmpty_.begin(),nonEmpty_.end(),bin) == nonEmpty_.end())
-      nonEmpty_.push_back(bin);
+    _nonEmpty.insert(bin);
   }
 
   // grid is filled
-  gridded_.clear();
-  for (auto &bin : nonEmpty_) {
+  _gridded.clear();
+  for (auto &bin : _nonEmpty) {
     int iEta = bin.first, iPhi = bin.second;
-    std::vector<TLorentzVector*> inBin = collections_.at(iEta).at(iPhi);
+    std::vector<TLorentzVector*> inBin = _collections.at(iEta).at(iPhi);
     if (inBin.size() > 0) {
-      TLorentzVector vSum;
-      for (auto *p : inBin) {
-        vSum += *p;
+      if (_on) {
+        TLorentzVector vSum;
+        for (auto *p : inBin) {
+          vSum += *p;
+        }
+        float eta = _hEta->GetBinCenter(iEta);
+        float phi = _hPhi->GetBinCenter(iPhi);
+        vSum.SetPtEtaPhiM(vSum.Pt(), eta, phi, vSum.M());
+        _gridded.push_back(vSum);
+      } else {
+        for (auto *p : inBin) {
+          _gridded.push_back(*p);
+        }
       }
-      float eta = hEta_->GetBinCenter(iEta);
-      float phi = hPhi_->GetBinCenter(iPhi);
-      vSum.SetPtEtaPhiM(vSum.Pt(), eta, phi, vSum.M());
-      gridded_.push_back(vSum);
+    } else {
+      PError("ParticleGridder::get",Form("Bin %i,%i is supposed to be non-empty, but found otherwise!",
+                                         iEta, iPhi));
     }
   }
-  return gridded_;
+  return _gridded;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

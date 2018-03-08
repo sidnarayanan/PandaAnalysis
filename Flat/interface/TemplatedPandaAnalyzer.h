@@ -116,7 +116,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   if (analysis->deepGenGrid)
     grid->clear();
 
-  std::vector<int> leptonIndices; // hard leptons from t->W->lv decay
+  std::set<int> leptonIndices; // hard leptons from t->W->lv decay
   std::vector<fastjet::PseudoJet> finalStates;
   unsigned idx = -1;
   for (auto &p : genParticles) {
@@ -128,7 +128,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
         apdgid == 14 ||
         apdgid == 16)
       continue; 
-    if (p.pt() > 0.001) {
+    if (p.pt() > 0.001 && fabs(p.eta()) < 5) {
       if (!analysis->deepGenGrid || (pdgToQ[apdgid] != 0)) { // it's charged, so we have tracking
         finalStates.emplace_back(p.px(), p.py(), p.pz(), p.e());
         finalStates.back().set_user_index(idx);
@@ -158,7 +158,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
             }
           }
           if (foundT) {
-            leptonIndices.push_back(idx);
+            leptonIndices.insert(idx);
           }
         }
       } else {
@@ -187,7 +187,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
     bool jetOverlapsLepton = false;
     for (auto& c : testJet.constituents()) {
       int idx = c.user_index();
-      if (std::find(leptonIndices.begin(),leptonIndices.end(),idx) != leptonIndices.end()) {
+      if (leptonIndices.find(idx) != leptonIndices.end()) {
         jetOverlapsLepton = true;
         break;
       }

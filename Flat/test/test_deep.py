@@ -24,7 +24,7 @@ Load('PandaAnalyzer')
 
 skimmer = root.PandaAnalyzer(debug_level)
 a = deepgen()
-#a.deepGenGrid = True
+a.deepGenGrid = True
 #a.deepAntiKtSort = True
 a.processType=root.kTop
 skimmer.SetAnalysis(a)

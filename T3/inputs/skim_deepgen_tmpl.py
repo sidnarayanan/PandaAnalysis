@@ -38,7 +38,8 @@ def fn(input_name, isData, full_path):
     if processType == root.kSignal:
         processType = root.kTop
     analysis = deepgen() 
-    analysis.processType=processType 
+    analysis.processType = processType 
+#    analysis.deepGenGrid = True
 #    analysis.deepAntiKtSort = True
     analysis.dump()
     skimmer.SetAnalysis(analysis)

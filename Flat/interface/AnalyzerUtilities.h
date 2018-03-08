@@ -19,8 +19,9 @@
 #include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/MeasureDefinition.hh"
 
-// root
+// root, stl
 #include "TRotation.h"
+#include <set>
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,18 +58,19 @@ class JetTree {
 
 class ParticleGridder {
   public:
-    ParticleGridder(unsigned etaN, unsigned phiN, float etaMax=5);
-    ~ParticleGridder() { clear(); delete hEta_; delete hPhi_; }
+    ParticleGridder(unsigned etaN, unsigned phiN, float etaMax=5, bool on=true);
+    ~ParticleGridder() { clear(); delete _hEta; delete _hPhi; }
     void clear();
     void add(panda::Particle& p);
     std::vector<TLorentzVector>& get();
   private:
-    float etaMax_, phiMax_;
-    TH1F *hEta_=0, *hPhi_=0;
-    std::vector<std::vector<std::vector<TLorentzVector*>>> collections_;
-    std::vector<TLorentzVector> particles_;
-    std::vector<std::pair<int,int>> nonEmpty_;
-    std::vector<TLorentzVector> gridded_; 
+    bool _on;
+    float _etaMax, _phiMax;
+    TH1F *_hEta=0, *_hPhi=0;
+    std::vector<std::vector<std::vector<TLorentzVector*>>> _collections;
+    std::vector<TLorentzVector> _particles;
+    std::set<std::pair<int,int>> _nonEmpty;
+    std::vector<TLorentzVector> _gridded; 
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
