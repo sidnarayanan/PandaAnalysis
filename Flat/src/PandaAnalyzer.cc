@@ -239,10 +239,11 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     if (analysis->deepGen) {
       ecfnMan = new pandaecf::ECFNManager();
       if (analysis->deepGenGrid) {
-        grid = new ParticleGridder(250,157,5,false); // 0.02x0.02
-        // grid = new ParticleGridder(250,157,5); // 0.02x0.02
+        grid = new ParticleGridder(250,157,5); // 0.02x0.02
         // grid = new ParticleGridder(1000,628,5); // 0.005x0.005
         // grid = new ParticleGridder(2500,1570,5); // 0.002x0.002
+        // grid->_on = false;
+        grid->_etaphi = false;
       }
     }
   }

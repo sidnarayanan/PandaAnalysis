@@ -43,5 +43,7 @@
 #pragma link C++ class VariableMap;
 #pragma link C++ class Process;
 #pragma link C++ class Region;
+#pragma link C++ class ParticleGridder;
+#pragma link C++ class JetTree;
 
 #endif

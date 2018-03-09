@@ -15,9 +15,6 @@
 #include "fastjet/GhostedAreaSpec.hh"
 #include "fastjet/AreaDefinition.hh"
 #include "fastjet/ClusterSequenceArea.hh"
-#include "fastjet/contrib/SoftDrop.hh"
-#include "fastjet/contrib/Njettiness.hh"
-#include "fastjet/contrib/MeasureDefinition.hh"
 
 // root, stl
 #include "TRotation.h"
@@ -58,18 +55,32 @@ class JetTree {
 
 class ParticleGridder {
   public:
-    ParticleGridder(unsigned etaN, unsigned phiN, float etaMax=5, bool on=true);
-    ~ParticleGridder() { clear(); delete _hEta; delete _hPhi; }
+    ParticleGridder(unsigned etaN, unsigned phiN, float etaMax=5);
+    ~ParticleGridder() { clear(); }
     void clear();
-    void add(panda::Particle& p);
+    void add(const panda::Particle& p);
     std::vector<TLorentzVector>& get();
+    bool _on = true;
+    bool _etaphi = true;
   private:
-    bool _on;
+    class Bin {
+    public:
+      Bin(float lo, float hi, int N):
+        _lo(lo),
+        _scale(2. * N / (hi - lo)),
+        _invscale(1. / _scale)
+      {}
+      int find(float x) { return static_cast<int>( (x - _lo) * _scale ); }
+      float center(int i) { return (_invscale * (i + 0.5)) + _lo; }
+      float left(int i) { return (_invscale * i) + _lo; }
+    private:
+      float _lo, _scale, _invscale;
+    }; 
+
     float _etaMax, _phiMax;
-    TH1F *_hEta=0, *_hPhi=0;
-    std::vector<std::vector<std::vector<TLorentzVector*>>> _collections;
+    Bin _etaBin, _phiBin;
+    std::map<std::pair<int,int>, std::vector<TLorentzVector*>> _collections;
     std::vector<TLorentzVector> _particles;
-    std::set<std::pair<int,int>> _nonEmpty;
     std::vector<TLorentzVector> _gridded; 
 };
 

@@ -166,6 +166,9 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
       }
     }
   }
+
+  tr->TriggerSubEvent("reading gen");
+
   if (analysis->deepGenGrid) {
     int user_idx = -2;
     for (auto &v : grid->get()) {
@@ -173,6 +176,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
       finalStates.back().set_user_index(user_idx); // not associated with a real particle
       --user_idx;
     } 
+    tr->TriggerSubEvent("gen grid");
   }
 
   // cluster the  jet 

@@ -19,6 +19,9 @@
 
 #include "AnalyzerUtilities.h"
 #include "GeneralTree.h"
+#include "fastjet/contrib/SoftDrop.hh"
+#include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/MeasureDefinition.hh"
 
 // btag
 #include "CondFormats/BTauObjects/interface/BTagEntry.h"
