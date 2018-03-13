@@ -63,10 +63,11 @@ void PandaAnalyzer::JetBasics()
     // For VBF we require nTightLep>0, but in monotop looseLep1IsTight
     // No good reason to do that, should switch to former
     // Should update jet cleaning accordingly (just check all loose objects)
-    if (IsMatched(&matchLeps,0.16,jet.eta(),jet.phi()) ||
-        IsMatched(&matchPhos,0.16,jet.eta(),jet.phi()))
+    if (IsMatched(&matchLeps,0.16,jet.eta(),jet.phi()))
       continue;
-    if (analysis->vbf && !jet.loose)
+    if(!analysis->hbb && IsMatched(&matchPhos,0.16,jet.eta(),jet.phi()))
+      continue;
+    if ((analysis->vbf || analysis->hbb) && !jet.loose)
       continue;
 
 
@@ -359,10 +360,8 @@ void PandaAnalyzer::IsoJet(panda::Jet& jet)
       gt->isojet2Pt = jet.pt();
       gt->isojet2CSV = jet.csv;
     }
-    if (analysis->monoh)
       gt->jetIso[cleanedJets.size()-1]=1;
   } else {
-    if (analysis->monoh)
       gt->jetIso[cleanedJets.size()-1]=0;
   }
   tr->TriggerSubEvent("iso jets");
@@ -569,6 +568,8 @@ void PandaAnalyzer::JetHbbReco()
         );
         // B-jet regression with central value for jet energy
         // Call this last so that the central value for jetRegFac[i] is stored in gt
+        bjetreg_vars[0] = gt->jetPt[gt->hbbjtidx[i]];
+        bjetreg_vars[3] = gt->jetE[gt->hbbjtidx[i]];
         gt->jetRegFac[i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
         hbbdaughters_corr[i].SetPtEtaPhiM(
           gt->jetRegFac[i]*gt->jetPt[gt->hbbjtidx[i]],

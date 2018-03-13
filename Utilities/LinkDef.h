@@ -2,7 +2,6 @@
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
 
-
 #ifdef __CLING__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -15,5 +14,6 @@
 #pragma link C++ class RocOne;
 #pragma link C++ class RoccoR;
 #pragma link C++ class CSVHelper;
+#pragma link C++ class PackingHelperStandalone;
 
 #endif

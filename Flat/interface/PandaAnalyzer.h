@@ -139,6 +139,8 @@ private:
         cEleLoose,    //!< monojet SF, Tight ID for e
         cEleMedium,   //!< monojet SF, Tight ID for e
         cEleTight,    //!< monojet SF, Tight ID for e
+        cEleMvaWP90,
+        cEleMvaWP80,
         cEleReco,     //!< monojet SF, tracking for e
         cWmHEwkCorr,     //!< W(l-V)H Ewk Corr weight  
         cWmHEwkCorrUp,   //!< W(l-V)H Ewk Corr weight Up  

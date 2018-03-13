@@ -286,6 +286,8 @@ class GeneralTree : public genericTree {
       float electronSfLoose[NLEP];
       float electronSfMedium[NLEP];
       float electronSfTight[NLEP];
+      float electronSfMvaWP90[NLEP];
+      float electronSfMvaWP80[NLEP];
       float electronSfUnc[NLEP];
       float electronSfReco[NLEP];
       int electronSelBit[NLEP];

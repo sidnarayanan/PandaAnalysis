@@ -428,6 +428,8 @@ void PandaAnalyzer::SetDataDir(const char *s)
     OpenCorrection(cEleLoose,dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root","scalefactors_Loose_Electron",2);
     OpenCorrection(cEleMedium,dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root","scalefactors_Medium_Electron",2);
     OpenCorrection(cEleTight,dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root","scalefactors_Tight_Electron",2);
+    OpenCorrection(cEleMvaWP90,dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root","scalefactors_MediumMVA_Electron",2);
+    OpenCorrection(cEleMvaWP80,dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root","scalefactors_TightMVA_Electron",2);
     OpenCorrection(cEleReco,dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root","scalefactors_Reco_Electron",2);
     // EWK corrections 
     OpenCorrection(cWZEwkCorr,dirPath+"leptonic/data.root","hEWKWZCorr",1);

@@ -181,6 +181,8 @@ void GeneralTree::Reset() {
     electronSfLoose[iL] = -99;
     electronSfMedium[iL] = -99;
     electronSfTight[iL] = -99;
+    electronSfMvaWP90[iL] = -99;
+    electronSfMvaWP80[iL] = -99;
     electronSfUnc[iL] = -99;
     electronSfReco[iL] = -99;
     electronSelBit[iL] = -99;
@@ -765,6 +767,8 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("electronSfLoose",electronSfLoose,"electronSfLoose[nLooseElectron]/F");
     Book("electronSfMedium",electronSfMedium,"electronSfMedium[nLooseElectron]/F");
     Book("electronSfTight",electronSfTight,"electronSfTight[nLooseElectron]/F");
+    Book("electronSfMvaWP90",electronSfMvaWP90,"electronSfMvaWP90[nLooseElectron]/F");
+    Book("electronSfMvaWP80",electronSfMvaWP80,"electronSfMvaWP80[nLooseElectron]/F");
     Book("electronSfUnc",electronSfUnc,"electronSfUnc[nLooseElectron]/F");
     Book("electronSfReco",electronSfReco,"electronSfReco[nLooseElectron]/F");
     // Advanced muon properties for nerds
