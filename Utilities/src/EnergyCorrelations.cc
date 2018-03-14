@@ -66,21 +66,23 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
   int nParticles = particles.size();
 
   // cache kinematics
-  pT.resize(nParticles); dR.resize(nParticles); dRBeta.resize(nParticles);
+  pT.resize(nParticles, d2m(0)); dR.resize(nParticles); dRBeta.resize(nParticles);
   for (int iP=0; iP!=nParticles; ++iP) {
-    dR[iP].resize(iP);
-    dRBeta[iP].resize(iP);
+    dR[iP].resize(nParticles, d2m(0));
+    dRBeta[iP].resize(nParticles, d2m(0));
   }
 
   for (int iP=0; iP!=nParticles; ++iP) {
     const fastjet::PseudoJet& pi = particles[iP];
     pT[iP] = pi.perp();
     for (int jP=0; jP!=iP; ++jP) {
+      if (iP == jP)
+        continue;
       const fastjet::PseudoJet& pj = particles[jP];
       dR[iP][jP] = DeltaR2(pi,pj);
     }
   }
-  
+
   for (int bI = 0; bI != _bN; ++bI) {
     // get the normalization factor
     mpfloat baseNorm{0};
@@ -91,6 +93,8 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
     mpfloat halfBeta{_bs.at(bI) / 2.};
     for (int iP=0; iP!=nParticles; ++iP) {
       for (int jP=0; jP!=iP; ++jP) {
+        if (iP == jP)
+          continue;
         dRBeta[iP][jP] = pow(dR[iP][jP], halfBeta);
       }
     }
@@ -161,6 +165,7 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
       } // j
     } // i
 
+  
     // set the values
     mpfloat val2 = vals[1][0];
     val2 /= norm2;
