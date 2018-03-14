@@ -207,11 +207,11 @@ void PandaAnalyzer::ComplicatedLeptons() {
         double dR = genP4.DeltaR(mu.p4());
         if (dR < 0.3) muonIsTruthMatched=true;
       } if (muonIsTruthMatched) { // correct using the gen-particle pt
-        double random1 = event.rng->uniform(rocRNGIdx);
+        double random1 = event.rng.uniform(rocRNGIdx);
         ptCorrection=rochesterCorrection->kScaleFromGenMC((int)mu.charge, pt, eta, mu.phi(), mu.trkLayersWithMmt, genParticle.pt(), random1, 0, 0);
       } else { // if gen match not found, correct the other way
-        double random1 = event.rng->uniform(rocRNGIdx); 
-        double random2 = event.rng->uniform(rocRNGIdx);
+        double random1 = event.rng.uniform(rocRNGIdx); 
+        double random2 = event.rng.uniform(rocRNGIdx);
         ptCorrection=rochesterCorrection->kScaleAndSmearMC((int)mu.charge, pt, eta, mu.phi(), mu.trkLayersWithMmt, random1, random2, 0, 0);
       }
       pt *= ptCorrection;

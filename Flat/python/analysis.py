@@ -45,7 +45,7 @@ vbf = lambda v=False : _analysis(
         vbf = True,
         fatjet = False,
         btagSFs = False,
-        puppi_jets = False
+        puppiJets = False
     )
 
 monoh = lambda v=False : _analysis(

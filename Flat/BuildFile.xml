@@ -1,6 +1,9 @@
 <use   name="root"/>
 <use   name="roottmva"/>
 <use   name="roofit"/>
+<use   name="boost"/>
+<use   name="gmp"/>
+<use   name="mpfr"/>
 <use   root=""/>
 <use   name="PandaTree/Objects"/>
 <use   name="PandaCore/Tools"/>

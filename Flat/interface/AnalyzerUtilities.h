@@ -147,7 +147,7 @@ public:
   bool jetFlavorPartons = true;
   bool jetFlavorJets = false;
   bool monoh = false;
-  bool puppi_jets = true;
+  bool puppiJets = true;
   bool recluster = false;
   bool reclusterGen = false;
   bool recoil = true;

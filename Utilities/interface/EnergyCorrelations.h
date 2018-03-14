@@ -5,13 +5,24 @@
  */
 #include "fastjet/PseudoJet.hh"
 #include <vector>
+#include <utility>
+#include <tuple>
 #include <map>
+#include "boost/multiprecision/gmp.hpp"
+
 #include "TMath.h"
 #include "TString.h"
-#include "PandaCore/Tools/interface/Functions.h"
+#include "PandaCore/Tools/interface/Common.h"
 
 #ifndef PANDA_ECF_H
 #define PANDA_ECF_H
+
+//namespace mp = boost::multiprecision;
+//typedef  mp::mpf_float_50 mpfloat; 
+typedef double mpfloat;
+template <typename D>
+inline mpfloat d2m(D x) { return static_cast<mpfloat>(x); }
+
 
 namespace pandaecf {
   /**
@@ -20,53 +31,68 @@ namespace pandaecf {
    * @param  j2 second jet
    * @return    \f$dR^2\f$
    */
-  double DeltaR2(fastjet::PseudoJet j1, fastjet::PseudoJet j2);
+   mpfloat DeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2);
 
-  /**
-   * \brief Calculates un-normalized ECFs.
-   *
-   * If any of the pointers are not provided (or NULL), that value will not be calculated
-   * @param beta         angular paramater
-   * @param constituents particles with which to calculate the correlations
-   * @param n1           pointer to location of N=1 ECF
-   * @param n2           pointer to location of N=2 ECF
-   * @param n3           pointer to location of N=3 ECF
-   * @param n4           pointer to location of N=4 ECF
-   */
-  void calcECF(double beta, const std::vector<fastjet::PseudoJet> &constituents, 
-               double *n1=0, double *n2=0, double *n3=0, double *n4=0);
-
-  /**
-   * \brief Just a bunch of floats and bools ot hold different values of normalized ECFs
-   */
-  class ECFNManager {
+  class Calculator {
   public:
-    ECFNManager() {
-      flags["3_1"]=true; 
-      flags["3_2"]=true; 
-      flags["3_3"]=true; 
-      flags["4_1"]=true; 
-      flags["4_2"]=true; 
-      flags["4_3"]=false; 
-    }
-    ~ECFNManager() {}
+    enum param {
+      oP=0, nP, bP, ecfP
+    };
+    typedef std::tuple<int, int, int, mpfloat> data_type;
+    typedef std::tuple<int, int, int> pos_type;
 
-    std::map<TString,double> ecfns; //!< maps "N_I" to ECFN
-    std::map<TString,bool>   flags; //!< maps "N_I" to flag
+    Calculator(int maxN = 4,
+               std::vector<float> bs = {0.5, 1, 2, 4});
+    ~Calculator() { }
 
-    bool doN1=true, doN2=true, doN3=true, doN4=true;
+    data_type access(int pos) const { return access(_oneToThree(pos)); }
+    data_type access(pos_type pos) const;
+    void calculate(const std::vector<fastjet::PseudoJet>&);
 
+    // just a forward iterator
+    class iterator {
+    public:
+      iterator(const Calculator *c, int pos = 0): _c(c), _pos(pos) { _access(); }
+      iterator(const iterator& rhs): _c(rhs._c), _pos(rhs._pos), _data(rhs._data) { }
+      ~iterator() { }
+
+      iterator& operator++() { _pos++; _access(); return *this; }
+      iterator operator++(int) { auto old(*this); ++(*this); return old; }
+      iterator operator+(int n) const { return iterator(_c, _pos+n); }
+      iterator& operator+=(int n) { _pos += n; _access(); return *this; }
+      int operator-(const iterator& rhs) const { return this->_pos - rhs._pos; }
+      bool operator==(const iterator& rhs) const { return this->_pos == rhs._pos; }
+      bool operator!=(const iterator& rhs) const { return !( (*this) == rhs ); }
+      const data_type& operator->() const { return _data; }
+      template <int I>
+        auto get() const { return std::get<I>(_data); }
+
+    private:
+      const Calculator *_c;
+      int _pos;
+      data_type _data;
+
+      void _access() { _data = _c->access(_pos); }
+
+    };
+
+    iterator begin() const { return iterator(this, 0); }
+    iterator end() const { return iterator(this, _bN * _nN * _oN); } 
+
+  private:
+    void _set(pos_type pos, mpfloat x) { _ecfs[_threeToOne(pos)] = x; }
+    pos_type _oneToThree(int pos) const;
+    int _threeToOne(pos_type pos) const { return std::get<oP>(pos) 
+                                                 + _oN * std::get<nP>(pos) 
+                                                 + _oN + _nN * std::get<bP>(pos); }
+
+    std::vector<float> _bs;
+    std::vector<int> _ns, _os;
+    const int _bN, _nN, _oN;
+    std::vector<mpfloat> _ecfs;
+    std::vector<mpfloat> pT; // these are member variables just to avoid
+    std::vector<std::vector<mpfloat>> dR, dRBeta; // re-allocating memory 
   };
-
-  /**
-   * \brief Calculates normalized energy correlation functions
-   * @param beta         angular parameter
-   * @param constituents particles with which to calculate the correlations
-   * @param manager      provides configuration and storage of ECFNs
-   * @param useMin       DEPRECATED
-   */
-  void calcECFN(double beta, const std::vector<fastjet::PseudoJet> &constituents, 
-                ECFNManager *manager, bool useMin=true);
 }
 
 #endif

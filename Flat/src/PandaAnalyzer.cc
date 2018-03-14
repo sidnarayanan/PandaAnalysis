@@ -110,13 +110,13 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   tIn = t;
 
   // create an RNG
-  event.initRNG();
+  event.rng.setSize(20);
 
   ////////////////////////////////////////////////////////////////////// 
   // manipulate which branches to read
   event.setStatus(*t, {"!*"}); // turn everything off first
 
-  TString jetname = (analysis->puppi_jets) ? "puppi" : "chs";
+  TString jetname = (analysis->puppiJets) ? "puppi" : "chs";
   panda::utils::BranchList readlist({"runNumber", "lumiNumber", "eventNumber","weight"});
   readlist.setVerbosity(0);
 
@@ -237,11 +237,11 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
                                             fastjet::contrib::NormalizedMeasure(1., radius));
 
     if (analysis->deepGen) {
-      ecfnMan = new pandaecf::ECFNManager();
+      ecfcalc = new pandaecf::Calculator();
       if (analysis->deepGenGrid) {
-        grid = new ParticleGridder(250,157,5); // 0.02x0.02
+        // grid = new ParticleGridder(250,157,5); // 0.02x0.02
         // grid = new ParticleGridder(1000,628,5); // 0.005x0.005
-        // grid = new ParticleGridder(2500,1570,5); // 0.002x0.002
+        grid = new ParticleGridder(2500,1570,5); // 0.002x0.002
         // grid->_on = false;
         grid->_etaphi = false;
       }
@@ -356,7 +356,7 @@ void PandaAnalyzer::Terminate()
   delete bjetregReader;
   delete rochesterCorrection;
 
-  delete ecfnMan;
+  delete ecfcalc;
   delete grid;
 
   if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
@@ -887,12 +887,12 @@ void PandaAnalyzer::Run()
   }
 
   if (analysis->ak8) {
-    if (analysis->puppi_jets)
+    if (analysis->puppiJets)
       fatjets = &event.puppiAK8Jets;
     else
       fatjets = &event.chsAK8Jets;
   } else if (analysis->fatjet) {
-    if (analysis->puppi_jets)
+    if (analysis->puppiJets)
       fatjets = &event.puppiCA15Jets;
     else
       fatjets = &event.chsCA15Jets;

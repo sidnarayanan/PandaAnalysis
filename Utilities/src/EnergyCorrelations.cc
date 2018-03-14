@@ -6,263 +6,169 @@
 #include "../interface/EnergyCorrelations.h"
 #define PI 3.141592654
 
-double pandaecf::DeltaR2(fastjet::PseudoJet j1, fastjet::PseudoJet j2) 
-{
-    float dEta2 = (j1.eta()-j2.eta()); dEta2 *= dEta2;
+using namespace pandaecf;
+using namespace std;
+typedef Calculator C;
 
-    float dPhi = j1.phi()-j2.phi();
+mpfloat pandaecf::DeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2) 
+{
+    mpfloat dEta{j1.eta()-j2.eta()}; 
+    mpfloat dPhi{j1.phi()-j2.phi()};
+
     if (dPhi<-PI)
         dPhi = 2*PI+dPhi;
     else if (dPhi>PI)
         dPhi = -2*PI+dPhi;
 
-    return dEta2 + dPhi*dPhi;
+    return dEta*dEta + dPhi*dPhi;
 }
 
-void pandaecf::calcECF(double beta, const std::vector<fastjet::PseudoJet> &constituents, 
-                       double *n1/*=0*/, double *n2/*=0*/, double *n3/*=0*/, double *n4/*=0*/) 
+C::Calculator(int maxN, vector<float> bs):
+  _bs(bs),
+  _os({1,2,3}),
+  _bN(_bs.size()),
+  _nN(maxN),
+  _oN(_os.size())
 {
-  unsigned int nC = constituents.size();
-  double halfBeta = beta/2.;
+  _ns = vector<int>(maxN);
+  for (int i = 0; i != maxN; ++i)
+    _ns[i] = i + 1;
+  _ecfs.resize(_nN * _oN * _bN);
+}
 
-  // if only N=1,2, do not bother caching kinematics
-  if (!n3 && !n4) {
-    if (n1) { // N=1
-      double val=0;
-      for (unsigned int iC=0; iC!=nC; ++iC) {    
-        val += constituents[iC].perp();
-      }
-      *n1 = val;
-    }
-    if (n2) { // N=2
-      double val=0;
-      for (unsigned int iC=0; iC!=nC; ++iC) {
-        fastjet::PseudoJet iconst = constituents[iC];
-        for (unsigned int jC=0; jC!=iC; ++jC) {
-          fastjet::PseudoJet jconst = constituents[jC];
-          val += iconst.perp() * jconst.perp() * pow(pandaecf::DeltaR2(iconst,jconst),halfBeta);
-        }
-      }
-      *n2 = val;
-    }
+C::data_type C::access(C::pos_type pos) const
+{
+  if (_threeToOne(pos) == _oN * _nN * _bN) {
+    // don't throw error - fail silently, to allow end() to be defined
+    return make_tuple(-1,-1,-1,d2m(-1));
+  }
+  return make_tuple(_os.at(get<oP>(pos)),
+                    _ns.at(get<nP>(pos)),
+                    get<nP>(pos),
+                    _ecfs.at(_threeToOne(pos)));
+}
+
+C::pos_type C::_oneToThree(int pos) const
+{
+  auto oI = pos % _oN;
+  pos -= oI; pos /= _oN;
+  auto nI = pos % _nN;
+  pos -= nI; pos /= _nN;
+  auto bI = pos;
+  return make_tuple(oI, nI, bI);
+}
+
+void C::calculate(const vector<fastjet::PseudoJet> &particles)
+{
+  if (_nN == 0 || _bN == 0 || _oN == 0)
     return;
-  }
+
+  int nParticles = particles.size();
 
   // cache kinematics
-  std::vector<double> pTs(nC);
-  std::vector<std::vector<double>> dRs(nC);
-  for (unsigned int iC=0; iC!=nC; ++iC) {
-    dRs[iC].resize(iC);
+  pT.resize(nParticles); dR.resize(nParticles); dRBeta.resize(nParticles);
+  for (int iP=0; iP!=nParticles; ++iP) {
+    dR[iP].resize(iP);
+    dRBeta[iP].resize(iP);
   }
 
-  for (unsigned int iC=0; iC!=nC; ++iC) {
-    fastjet::PseudoJet iconst = constituents[iC];
-    pTs[iC] = iconst.perp();
-    for (unsigned int jC=0; jC!=iC; ++jC) {
-      fastjet::PseudoJet jconst = constituents[jC];
-      dRs[iC][jC] = pow(pandaecf::DeltaR2(iconst,jconst),halfBeta);
+  for (int iP=0; iP!=nParticles; ++iP) {
+    const fastjet::PseudoJet& pi = particles[iP];
+    pT[iP] = pi.perp();
+    for (int jP=0; jP!=iP; ++jP) {
+      const fastjet::PseudoJet& pj = particles[jP];
+      dR[iP][jP] = DeltaR2(pi,pj);
     }
   }
   
-  // now we calculate the real ECFs
-  if (n1) { // N=1
-    double val=0;
-    for (unsigned int iC=0; iC!=nC; ++iC) {    
-      val += pTs[iC];
-    } // iC
-    *n1 = val;
-  }
-  if (n2) { // N=2
-    double val=0;
-    for (unsigned int iC=0; iC!=nC; ++iC) {
-      for (unsigned int jC=0; jC!=iC; ++jC) {
-        val += pTs[iC] * pTs[jC] * dRs[iC][jC]; 
-      } // jC
-    } // iC
-    *n2 = val;
-  }
-  if (n3) {
-    double val=0;
-    for (unsigned int iC=0; iC!=nC; ++iC) {
-      for (unsigned int jC=0; jC!=iC; ++jC) {
-        double val_ij = pTs[iC]*pTs[jC]*dRs[iC][jC];
-        for (unsigned int kC=0; kC!=jC; ++kC) {
-          val += val_ij * pTs[kC] * dRs[iC][kC] * dRs[jC][kC];
-        } // kC
-      } // jC
-    } // iC
-    *n3 = val;
-  }
-  if (n4) {
-    double val=0;
-    for (unsigned int iC=0; iC!=nC; ++iC) {
-      for (unsigned int jC=0; jC!=iC; ++jC) {
-        double val_ij = pTs[iC]*pTs[jC]*dRs[iC][jC];
-        for (unsigned int kC=0; kC!=jC; ++kC) {
-          double val_ijk = val_ij * pTs[kC] * dRs[iC][kC] * dRs[jC][kC];
-          for (unsigned int lC=0; lC!=kC; ++lC) {
-            val += val_ijk * pTs[lC] * dRs[iC][lC] * dRs[jC][lC] * dRs[kC][lC];
-          } // lC
-        } // kC
-      } // jC
-    } // iC
-    *n4 = val;
-  }
-
-}
-
-/* TODO: switch from manual sort to std::partial_sort for readability*/
-void pandaecf::calcECFN(double beta, const std::vector<fastjet::PseudoJet> &constituents, 
-                        pandaecf::ECFNManager *manager, bool useMin/*=true*/) 
-{
-  unsigned int nC = constituents.size();
-  double halfBeta = beta/2.;
-
-  // get the normalization factor
-  double baseNorm=0; 
-  pandaecf::calcECF(beta,constituents,&baseNorm,0,0,0);
-
-  // cache kinematics
-  std::vector<double> pTs(nC);
-  std::vector<std::vector<double>> dRs(nC);
-  for (unsigned int iC=0; iC!=nC; ++iC) {
-    dRs[iC].resize(iC);
-  }
-
-  for (unsigned int iC=0; iC!=nC; ++iC) {
-    fastjet::PseudoJet iconst = constituents[iC];
-    pTs[iC] = iconst.perp();
-    for (unsigned int jC=0; jC!=iC; ++jC) {
-      fastjet::PseudoJet jconst = constituents[jC];
-      dRs[iC][jC] = pow(pandaecf::DeltaR2(iconst,jconst),halfBeta);
+  for (int bI = 0; bI != _bN; ++bI) {
+    // get the normalization factor
+    mpfloat baseNorm{0};
+    for (auto& pt : pT)
+      baseNorm += pt;
+    
+    // reweight angles
+    mpfloat halfBeta{_bs.at(bI) / 2.};
+    for (int iP=0; iP!=nParticles; ++iP) {
+      for (int jP=0; jP!=iP; ++jP) {
+        dRBeta[iP][jP] = pow(dR[iP][jP], halfBeta);
+      }
     }
-  }
-  
-  // now we calculate the ECFNs
-  if (manager->doN1) { // N=1
-    manager->ecfns["1_1"] = 1;
-    manager->ecfns["1_2"] = 1;
-    manager->ecfns["1_3"] = 1;
-  }
-  if (manager->doN2) { // N=2
-    double norm = pow(baseNorm,2);
-    double val=0;
-    for (unsigned int iC=0; iC!=nC; ++iC) {
-      for (unsigned int jC=0; jC!=iC; ++jC) {
-        val += pTs[iC] * pTs[jC] * dRs[iC][jC]; 
-      } // jC
-    } // iC
-    val /= norm;
-    manager->ecfns["2_1"] = val;
-    manager->ecfns["2_2"] = val;
-    manager->ecfns["2_3"] = val;
-  }
 
-  bool doI1=manager->flags["3_1"];
-  bool doI2=manager->flags["3_2"];
-  bool doI3=manager->flags["3_3"];
-  if (manager->doN3 && (doI1||doI2||doI3)) {
-    double norm = pow(baseNorm,3);
-    double val1=0,val2=0,val3=0;
-    unsigned int nAngles=3;
-    std::vector<double> angles(nAngles);
+    // now we compute the ECFNs
+    // trivial case, n = 1
+    for (int oI = 0; oI != _oN; ++oI) {
+      _set(make_tuple(oI, 0, bI), d2m(1));
+    }
 
-    for (unsigned int iC=0; iC!=nC; ++iC) {
-      for (unsigned int jC=0; jC!=iC; ++jC) {
-        double val_ij = pTs[iC]*pTs[jC];
-        angles[0] = dRs[iC][jC];
+    if (_nN < 2)
+      return;
 
-        for (unsigned int kC=0; kC!=jC; ++kC) {
-          angles[1] = dRs[iC][kC];
-          angles[2] = dRs[jC][kC];
+    mpfloat norm2{pow(baseNorm, 2)};
+    mpfloat norm3{pow(baseNorm, 3)};
+    mpfloat norm4{pow(baseNorm, 4)};
+    vector<vector<mpfloat>> vals(_nN);
+    for (int nI = 0; nI != _nN; ++nI) {
+      vals[nI].resize(_oN, d2m(0));
+    }
 
-          if (doI1||doI2||doI3) {
-            double angle_1=999; unsigned int index_1=999;
-            for (unsigned int iA=0; iA!=nAngles; ++iA) {
-              if (angles[iA]<angle_1) {
-                angle_1 = angles[iA];
-                index_1 = iA;
-              }
+    // now we loop
+    vector<double> angles3(3), angles4(6); // N(N-1)/2
+    for (int iP = 0; iP != nParticles; ++iP) {
+      for (int jP = 0; jP != nParticles; ++jP) {
+        const mpfloat pt_ij{pT[iP] * pT[jP]};
+        const mpfloat angle_ij{dRBeta[iP][jP]};
+
+        angles3[0] = angle_ij; angles4[0] = angle_ij;
+        vals[1][0] += pt_ij * angle_ij;
+
+        if (_nN > 2) { 
+          for (int kP = 0; kP != nParticles; ++kP) {
+            const mpfloat angle_ik{dRBeta[iP][kP]}, angle_jk{dRBeta[jP][kP]};
+            const mpfloat pt_ijk{pt_ij * pT[kP]};
+
+            angles3[1] = angle_ik; angles3[2] = angle_jk;
+            angles4[1] = angle_ik; angles4[2] = angle_jk;
+
+            insertion_sort<double>(angles3);
+            
+            mpfloat inc{pt_ijk};
+            for (int oI = 0; oI != _oN; ++oI) {
+              inc *= angles3[oI];
+              vals[2][oI] += inc;
             }
-            if (doI2||doI3) {
-              double angle_2=999; 
-              for (unsigned int jA=0; jA!=nAngles; ++jA) {
-                if (jA==index_1) continue;
-                if (angles[jA]<angle_2) {
-                  angle_2 = angles[jA];
+
+            if (_nN > 3) {
+              for (int lP = 0; lP != nParticles; ++lP) {
+                const mpfloat pt_ijkl{pt_ijk * pT[lP]};
+                angles4[3] = dRBeta[iP][lP]; 
+                angles4[4] = dRBeta[jP][lP];
+                angles4[5] = dRBeta[kP][lP];
+
+                partial_sort(angles4.begin(), angles4.begin() + 3, angles4.end());
+
+                mpfloat inc{pt_ijkl};
+                for (int oI = 0; oI != _oN; ++oI) {
+                  inc *= angles4[oI];
+                  vals[3][oI] += inc;
                 }
-              }
-              if (doI3) {
-                val3 += val_ij * pTs[kC] * angles[0] * angles[1] * angles[2];
-              }
-              if (doI2)
-                val2 += val_ij * pTs[kC] * angle_1 * angle_2;
-            }
-            if (doI1)
-              val1 += val_ij * pTs[kC] * angle_1;
-          }
+                
+              } // l
+            } // N > 3
 
-        } // kC
-      } // jC
-    } // iC
-    val1 /= norm; val2 /= norm; val3 /= norm;
-    manager->ecfns["3_1"] = val1;
-    manager->ecfns["3_2"] = val2;
-    manager->ecfns["3_3"] = val3;
-  }
+          } // k
+        } // N > 2
+      } // j
+    } // i
 
-  doI1=manager->flags["4_1"];
-  doI2=manager->flags["4_2"];
-  if (manager->doN4 && (doI1||doI2)) {
-    double norm = pow(baseNorm,4);
-    double val1=0,val2=0;
-    unsigned int nAngles=6;
-    std::vector<double> angles(nAngles);
-
-    for (unsigned int iC=0; iC!=nC; ++iC) {
-      for (unsigned int jC=0; jC!=iC; ++jC) {
-        double val_ij = pTs[iC]*pTs[jC];
-        angles[0] = dRs[iC][jC];
-
-        for (unsigned int kC=0; kC!=jC; ++kC) {
-          double val_ijk = val_ij * pTs[kC];
-          angles[1] = dRs[iC][kC];
-          angles[2] = dRs[jC][kC];
-
-          for (unsigned int lC=0; lC!=kC; ++lC) {
-            angles[3] = dRs[iC][lC];
-            angles[4] = dRs[jC][lC];
-            angles[5] = dRs[kC][lC];
-
-            if (doI1||doI2) {
-              double angle_1=999; unsigned int index_1=999;
-              for (unsigned int iA=0; iA!=nAngles; ++iA) {
-                if (angles[iA]<angle_1) {
-                  angle_1 = angles[iA];
-                  index_1 = iA;
-                }
-              }
-              if (doI2) {
-                double angle_2=999; 
-                for (unsigned int jA=0; jA!=nAngles; ++jA) {
-                  if (jA==index_1) continue;
-                  if (angles[jA]<angle_2) {
-                    angle_2 = angles[jA];
-                  }
-                }
-                val2 += val_ijk * pTs[lC] * angle_1 * angle_2;
-              }
-              if (doI1)
-                val1 += val_ijk * pTs[lC] * angle_1;
-            }
-          } // lC
-        } // kC
-      } // jC
-    } // iC
-    val1 /= norm; val2 /= norm;
-    manager->ecfns["4_1"] = val1;
-    manager->ecfns["4_2"] = val2;
-    manager->ecfns["4_3"] = 0;
-  }
-
+    // set the values
+    mpfloat val2 = vals[1][0];
+    val2 /= norm2;
+    for (int oI = 0; oI != _oN; ++oI) {
+      _set(make_tuple(oI, 1, bI), val2);
+      _set(make_tuple(oI, 2, bI), vals[2][oI] / norm3);
+      _set(make_tuple(oI, 3, bI), vals[3][oI] / norm4);
+    }
+  } // beta loop
 }
+

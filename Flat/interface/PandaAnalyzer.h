@@ -367,7 +367,7 @@ private:
 
     EraHandler eras = EraHandler(2016); //!< determining data-taking era, to be used for era-dependent JEC
     ParticleGridder *grid = 0;
-    pandaecf::ECFNManager *ecfnMan = 0;
+    pandaecf::Calculator *ecfcalc = 0;
 
     //////////////////////////////////////////////////////////////////////////////////////
 

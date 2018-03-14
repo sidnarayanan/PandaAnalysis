@@ -253,15 +253,15 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
 
   GeneralTree::ECFParams p;
-  for (int beta = 1; beta != 3; ++beta) {
-    pandaecf::calcECFN(beta+1, sdConstsFiltered, ecfnMan);
-    for (int N = 1; N != 5 ; ++N) {
-      for (int o = 1; o != 4; ++o) {
-        genJetInfo.ecfs[o-1][N-1][beta-1] = ecfnMan->ecfns[Form("%i_%i", N, o)];
-        p.order = o; p.N = N; p.ibeta = beta;
-        gt->fj1ECFNs[p] = ecfnMan->ecfns[Form("%i_%i", N, o)];
-      }
-    }
+  ecfcalc->calculate(sdConstsFiltered);
+  for (auto iter = ecfcalc->begin(); iter != ecfcalc->end(); ++iter) {
+    int N = iter.get<pandaecf::Calculator::nP>();
+    int o = iter.get<pandaecf::Calculator::oP>();
+    int beta = iter.get<pandaecf::Calculator::bP>();
+    float ecf = static_cast<float>( iter.get<pandaecf::Calculator::ecfP>() );
+    genJetInfo.ecfs[o-1][N-1][beta] = ecf;
+    p.order = o; p.N = N, p.ibeta = beta;
+    gt->fj1ECFNs[p] = ecf;
   }
   
   tr->TriggerSubEvent("ecfs");

@@ -119,10 +119,10 @@ class GeneralTree : public genericTree {
       virtual void SetAuxTree(TTree *t);  
 
     private:
-        std::vector<double> betas = {0.5, 1.0, 2.0, 4.0};
-        std::vector<int> ibetas = {0,1,2,3};
-        std::vector<int> Ns = {1,2,3,4}; 
-        std::vector<int> orders = {1,2,3};
+        const std::vector<double> betas = {0.5, 1.0, 2.0, 4.0};
+        const std::vector<int> ibetas = {0,1,2,3};
+        const std::vector<int> Ns = {1,2,3,4}; 
+        const std::vector<int> orders = {1,2,3};
         std::vector<ECFParams> ecfParams;
         std::vector<BTagParams> btagParams;
 

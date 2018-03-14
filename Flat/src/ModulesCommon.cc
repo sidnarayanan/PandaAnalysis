@@ -32,7 +32,7 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
   for (int o = 0; o != 3; ++o) {
     genJetInfo.ecfs.at(o).resize(4);
     for (int N = 0; N != 4; ++N) {
-      genJetInfo.ecfs.at(o).at(N).resize(2);
+      genJetInfo.ecfs.at(o).at(N).resize(4);
     }
   }
 
