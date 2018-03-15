@@ -17,8 +17,9 @@
 #ifndef PANDA_ECF_H
 #define PANDA_ECF_H
 
-namespace mp = boost::multiprecision;
-typedef  mp::mpf_float_50 mpfloat; 
+// namespace mp = boost::multiprecision;
+// typedef  mp::mpf_float_50 mpfloat; 
+typedef double mpfloat;
 template <typename D>
 inline mpfloat d2m(D x) { return static_cast<mpfloat>(x); }
 
@@ -64,7 +65,7 @@ namespace pandaecf {
       bool operator!=(const iterator& rhs) const { return !( (*this) == rhs ); }
       const data_type& operator->() const { return _data; }
       template <int I>
-        auto get() const { return std::get<I>(_data); }
+        const typename std::tuple_element<I, data_type>::type& get() const { return std::get<I>(_data); }
 
     private:
       const Calculator *_c;
