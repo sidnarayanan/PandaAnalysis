@@ -8,6 +8,7 @@
 #include <utility>
 #include <tuple>
 #include <map>
+#include <type_traits>
 #include "boost/multiprecision/gmp.hpp"
 
 #include "TMath.h"
@@ -51,6 +52,12 @@ namespace pandaecf {
 
     // just a forward iterator
     class iterator {
+    private:
+      const Calculator *_c;
+      int _pos;
+      data_type _data;
+
+      void _access() { _data = _c->access(_pos); }
     public:
       iterator(const Calculator *c, int pos = 0): _c(c), _pos(pos) { _access(); }
       iterator(const iterator& rhs): _c(rhs._c), _pos(rhs._pos), _data(rhs._data) { }
@@ -66,13 +73,8 @@ namespace pandaecf {
       const data_type& operator->() const { return _data; }
       template <int I>
         const typename std::tuple_element<I, data_type>::type& get() const { return std::get<I>(_data); }
-
-    private:
-      const Calculator *_c;
-      int _pos;
-      data_type _data;
-
-      void _access() { _data = _c->access(_pos); }
+        // leaving this here just because I'm kind of proud of this C++11 mess
+        // auto get() -> typename std::add_const<typename std::add_lvalue_reference<decltype(std::get<I> (_data))>::type>::type const { return std::get<I>(_data); }
 
     };
 
