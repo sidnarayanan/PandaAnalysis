@@ -9,8 +9,10 @@
 #pragma link off all functions;
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;
+#pragma link C++ namespace pandaecf;
 
-#pragma link C++ class ECFNManager;
+#pragma link C++ class pandaecf::Calculator;
+#pragma link C++ class pandaecf::Calculator::iterator;
 #pragma link C++ class RocRes;
 #pragma link C++ class RocOne;
 #pragma link C++ class RoccoR;

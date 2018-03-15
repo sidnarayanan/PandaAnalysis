@@ -42,9 +42,9 @@ C::data_type C::access(C::pos_type pos) const
     // don't throw error - fail silently, to allow end() to be defined
     return make_tuple(-1,-1,-1,d2m(-1));
   }
-  return make_tuple(_os.at(get<oP>(pos)),
-                    _ns.at(get<nP>(pos)),
+  return make_tuple(get<oP>(pos),
                     get<nP>(pos),
+                    get<bP>(pos),
                     _ecfs.at(_threeToOne(pos)));
 }
 
