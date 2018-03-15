@@ -17,9 +17,8 @@
 #ifndef PANDA_ECF_H
 #define PANDA_ECF_H
 
-//namespace mp = boost::multiprecision;
-//typedef  mp::mpf_float_50 mpfloat; 
-typedef double mpfloat;
+namespace mp = boost::multiprecision;
+typedef  mp::mpf_float_50 mpfloat; 
 template <typename D>
 inline mpfloat d2m(D x) { return static_cast<mpfloat>(x); }
 

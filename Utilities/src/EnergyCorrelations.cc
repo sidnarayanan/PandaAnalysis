@@ -117,7 +117,7 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
     }
 
     // now we loop
-    vector<double> angles3(3), angles4(6); // N(N-1)/2
+    vector<mpfloat> angles3(3), angles4(6); // N(N-1)/2
     for (int iP = 0; iP != nParticles; ++iP) {
       for (int jP = 0; jP != nParticles; ++jP) {
         const mpfloat pt_ij{pT[iP] * pT[jP]};
@@ -134,7 +134,7 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
             angles3[1] = angle_ik; angles3[2] = angle_jk;
             angles4[1] = angle_ik; angles4[2] = angle_jk;
 
-            insertion_sort<double>(angles3);
+            insertion_sort(angles3);
             
             mpfloat inc{pt_ijk};
             for (int oI = 0; oI != _oN; ++oI) {

@@ -258,7 +258,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
     int N = iter.get<pandaecf::Calculator::nP>();
     int o = iter.get<pandaecf::Calculator::oP>();
     int beta = iter.get<pandaecf::Calculator::bP>();
-    float ecf = static_cast<float>( iter.get<pandaecf::Calculator::ecfP>() );
+    float ecf = iter.get<pandaecf::Calculator::ecfP>().template convert_to<float>();
     genJetInfo.ecfs[o-1][N-1][beta] = ecf;
     p.order = o; p.N = N, p.ibeta = beta;
     gt->fj1ECFNs[p] = ecf;
