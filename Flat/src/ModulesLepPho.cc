@@ -9,7 +9,11 @@
 using namespace panda;
 using namespace std;
 
-void PandaAnalyzer::SimpleLeptons() {
+// Save generic lepton information, for analyses that do not use extremely 
+// complicated electrons or muons.
+// Responsible: S. Narayanan
+void PandaAnalyzer::SimpleLeptons() 
+{
   looseLep1PdgId=-1; looseLep2PdgId=-1;
   //electrons
   for (auto& ele : event.electrons) {
@@ -126,7 +130,11 @@ void PandaAnalyzer::SimpleLeptons() {
   tr->TriggerEvent("leptons");
 }
 
-void PandaAnalyzer::ComplicatedLeptons() {
+// Store more complicated leptons for, e.g. WH, Z(ll), etc. Take care of
+// combinatorics in cases of nLep>2, save MVA inputs, ...
+// Responsible: D. Hsu
+void PandaAnalyzer::ComplicatedLeptons() 
+{
   //electrons
   looseLep1PdgId=-1, looseLep2PdgId=-1, looseLep3PdgId=-1, looseLep4PdgId=-1;
   for (auto& ele : event.electrons) {
@@ -199,8 +207,8 @@ void PandaAnalyzer::ComplicatedLeptons() {
     } else if (pt>0) { // perform the rochester correction to the simulated particle
       // attempt gen-matching to a final state muon
       bool muonIsTruthMatched=false; TLorentzVector genP4; GenParticle genParticle;
-      for (unsigned iG = 0; iG != event.genParticles.size() && !muonIsTruthMatched; ++iG) {
-        genParticle = event.genParticles[iG];
+      for (unsigned iG = 0; iG != validGenP.size() && !muonIsTruthMatched; ++iG) {
+        genParticle = pToGRef(validGenP[iG]);
         if (genParticle.finalState != 1) continue;
         if (genParticle.pdgid != ((int)mu.charge) * -13) continue;
         genP4.SetPtEtaPhiM(genParticle.pt(), genParticle.eta(), genParticle.phi(), 0.106);
@@ -304,6 +312,8 @@ void PandaAnalyzer::ComplicatedLeptons() {
   tr->TriggerEvent("complicated leptons");
 }
 
+// Photons used for almost all analyses
+// Responsible: S. Narayanan
 void PandaAnalyzer::SimplePhotons()
 {
     for (auto& pho : event.photons) {
@@ -347,6 +357,8 @@ void PandaAnalyzer::SimplePhotons()
     tr->TriggerEvent("photons");
 }
 
+// Photons used for monophoton - needed for Z(ll)+DM veto
+// Responsible: G. Gomez-Ceballos
 void PandaAnalyzer::ComplicatedPhotons()
 {
     for (auto& pho : event.photons) {
@@ -399,6 +411,8 @@ void PandaAnalyzer::ComplicatedPhotons()
     tr->TriggerEvent("complicated photons");
 }
 
+// Match photons with nearby charged PF
+// Responsible: G. Gomez-Ceballos
 bool PandaAnalyzer::PFChargedPhotonMatch(const panda::Photon& photon)
 {
   double matchedRelPt = -1.;
@@ -423,6 +437,8 @@ bool PandaAnalyzer::PFChargedPhotonMatch(const panda::Photon& photon)
 
 }
 
+// Tau info for all analyses
+// Responsible: S. Narayanan
 void PandaAnalyzer::Taus()
 {
   for (auto& tau : event.taus) {
@@ -447,7 +463,8 @@ void PandaAnalyzer::Taus()
   tr->TriggerEvent("taus");
 }
 
-
+// Generator-level leptons
+// Responsible: D. Hsu
 void PandaAnalyzer::SaveGenLeptons()
 {
     gt->genTauPt = -1;
@@ -455,7 +472,8 @@ void PandaAnalyzer::SaveGenLeptons()
     gt->genMuonPt = -1;
     GenParticle *tau = NULL;
     bool foundTauLeptonic = false; 
-    for (auto& gen : event.genParticles) {
+    for (auto* genptr : validGenP) {
+      auto& gen = pToGRef(genptr);
       unsigned apdgid = abs(gen.pdgid);
       float pt = gen.pt();
       bool isEmu = false; 
@@ -502,6 +520,9 @@ void PandaAnalyzer::SaveGenLeptons()
     tr->TriggerEvent("gen leptons");
 
 }
+
+// Lepton scale factors for all analyses
+// Responsibles: D. Hsu, S. Narayanan
 void PandaAnalyzer::LeptonSFs()
 {
   // For the hadronic analyses, store a single branch for lepton ID,
@@ -537,6 +558,8 @@ void PandaAnalyzer::LeptonSFs()
     tr->TriggerEvent("lepton SFs");
 }
 
+// Photon scale factors for all analyses
+// Responsible: S. Narayanan
 void PandaAnalyzer::PhotonSFs()
 {
       if (gt->nLoosePhoton < 1)

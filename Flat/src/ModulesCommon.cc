@@ -9,6 +9,8 @@
 using namespace panda;
 using namespace std;
 
+// Create a new auxillary file for gen info
+// Responsible: S. Narayanan
 void PandaAnalyzer::IncrementGenAuxFile(bool close)
 {
   if (fAux) {
@@ -67,6 +69,8 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
     tr->TriggerEvent("increment aux file");
 }
 
+// Create a new auxillary file for reco info
+// Responsible: S. Narayanan
 void PandaAnalyzer::IncrementAuxFile(bool close)
 {
   if (fAux) {
@@ -125,6 +129,8 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
     tr->TriggerEvent("increment aux file");
 }
 
+// Register triggers
+// Responsible: S. Narayanan
 void PandaAnalyzer::RegisterTriggers() 
 {
   for (auto &th : triggerHandlers) {
@@ -139,6 +145,8 @@ void PandaAnalyzer::RegisterTriggers()
   }
 }
 
+// Apply a preselection to the recoil
+// Responsible: S. Narayanan
 bool PandaAnalyzer::RecoilPresel() 
 {
     if ( (preselBits&kMonotop) || (preselBits&kMonohiggs) || 
@@ -150,6 +158,8 @@ bool PandaAnalyzer::RecoilPresel()
     return true;
 }
 
+// Calculate various trigger efficiencies
+// Responsible: S. Narayanan, D. Hsu
 void PandaAnalyzer::TriggerEffs()
 {
 
@@ -200,6 +210,8 @@ void PandaAnalyzer::TriggerEffs()
     tr->TriggerEvent("triggers");
 }
 
+// Calculate various flavors of recoil
+// Responsible: S. Narayanan
 void PandaAnalyzer::Recoil()
 {
     TLorentzVector vpfUp; vpfUp.SetPtEtaPhiM(gt->pfmetUp,0,gt->pfmetphi,0);
@@ -270,6 +282,8 @@ void PandaAnalyzer::Recoil()
     tr->TriggerEvent("recoils");
 }
 
+// count heavy flavor in an event/jet
+// Responsible: D. Hsu, B. Maier
 void PandaAnalyzer::HeavyFlavorCounting() 
 {
   // Simple B and C counting stored in nB, nHF
@@ -295,6 +309,8 @@ void PandaAnalyzer::HeavyFlavorCounting()
   }
 }
 
+// MET sig
+// Responsible: D. Hsu
 void PandaAnalyzer::GetMETSignificance()
 {
   gt->pfmetsig = event.pfMet.significance;

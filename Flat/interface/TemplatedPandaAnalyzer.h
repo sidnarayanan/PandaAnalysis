@@ -19,8 +19,28 @@ void PandaAnalyzer::MatchGenJets(T& genJets)
 }
 
 template <typename T>
-void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons, 
-                                    const panda::Collection<T>& genParticles)
+void PandaAnalyzer::RemoveGenDups(const panda::Collection<T>& genParticles)
+{
+  for (auto& g : genParticles) {
+    bool foundDup = false;
+    float ptThreshold = g.pt() * 0.01;
+    for (auto* pPtr : validGenP) {
+      const T* gPtr = static_cast<const T*>(pPtr);
+      if ((g.pdgid == gPtr->pdgid) &&
+          ((g.pt() - gPtr->pt()) < ptThreshold) &&
+          (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
+        foundDup = true;
+        break;
+      }
+    }
+    if (!foundDup) {
+      validGenP.push_back(&g);
+    }
+  } 
+}
+
+template <typename T>
+void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons)
 {
   float dR2 = FATJETMATCHDR2;
   float base_eta = genJetInfo.eta, base_phi = genJetInfo.phi;
@@ -28,8 +48,9 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons,
     return DeltaR2(base_eta, base_phi, p.eta(), p.phi()) < dR2;
   };
   float threshold = genJetInfo.pt * 0.2;
-  for (auto &gen : genParticles) {
-    unsigned apdgid = abs(gen.pdgid);
+  for (auto* gen_ : validGenP) {
+    auto* gen = static_cast<const T*>(gen_);
+    unsigned apdgid = abs(gen->pdgid);
     if (apdgid > 5 && 
         apdgid != 21 &&
         apdgid != 15 &&
@@ -37,13 +58,13 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons,
         apdgid != 13)
       continue; 
 
-    if (gen.pt() < threshold)
+    if (gen->pt() < threshold)
       continue; 
 
-    if (!matchJet(gen))
+    if (!matchJet(*gen))
       continue;
 
-    const T *parent = &gen;
+    const T *parent = gen;
     const T *foundParent = NULL;
     while (parent->parent.isValid()) {
       parent = parent->parent.get();
@@ -55,12 +76,13 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons,
 
 
     const T *dau1 = NULL, *dau2 = NULL;
-    for (auto &child : genParticles) {
-      if (!(child.parent.isValid() && 
-            child.parent.get() == &gen))
+    for (const auto* child_ : validGenP) {
+      auto* child = static_cast<const T*>(child_); 
+      if (!(child->parent.isValid() && 
+            child->parent.get() == gen))
         continue; 
       
-      unsigned child_apdgid = abs(child.pdgid);
+      unsigned child_apdgid = abs(child->pdgid);
       if (child_apdgid > 5 && 
           child_apdgid != 21 &&
           child_apdgid != 15 &&
@@ -69,9 +91,9 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons,
         continue; 
 
       if (dau1)
-        dau2 = &child;
+        dau2 = child;
       else
-        dau1 = &child;
+        dau1 = child;
 
       if (dau1 && dau2)
         break;
@@ -88,7 +110,7 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons,
     } else if (foundParent) {
       continue; 
     } else {
-      partons.insert(&gen);
+      partons.insert(gen);
     }
   }
 
@@ -107,7 +129,7 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons,
 
 
 template <typename T>
-void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
+void PandaAnalyzer::FillGenTree()
 {
 
   genJetInfo.reset();  
@@ -119,24 +141,32 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   std::set<int> leptonIndices; // hard leptons from t->W->lv decay
   std::vector<fastjet::PseudoJet> finalStates;
   unsigned idx = -1;
-  for (auto &p : genParticles) {
+
+  for (auto* p_ : validGenP) {
+    auto* p = static_cast<const T*>(p_);
     idx++;
-    unsigned apdgid = abs(p.pdgid);
-    if (!p.finalState)
+    unsigned apdgid = abs(p->pdgid);
+    if (!p->finalState)
       continue;
     if (apdgid == 12 ||
         apdgid == 14 ||
         apdgid == 16)
       continue; 
-    if (p.pt() > 0.001 && fabs(p.eta()) < 5) {
+    if (p->pt() > 0.001 && fabs(p->eta()) < 5) {
       if (!analysis->deepGenGrid || (pdgToQ[apdgid] != 0)) { // it's charged, so we have tracking
-        finalStates.emplace_back(p.px(), p.py(), p.pz(), p.e());
+  //      for (auto& f : finalStates) {
+  //        if (DeltaR2(f.eta(), TVector2::Phi_mpi_pi(f.phi()), p.eta(), p.phi()) < 0.00001) { 
+  //          PDebug("",Form("%.4f,%.4f,%.4f matches with %.4f,%.4f,%.4f", 
+  //                         f.perp(), f.eta(), TVector2::Phi_mpi_pi(f.phi()), p.pt(), p.eta(), p.phi()));
+  //        }
+  //      }
+        finalStates.emplace_back(p->px(), p->py(), p->pz(), p->e());
         finalStates.back().set_user_index(idx);
 
         if (apdgid == 11 ||
             apdgid == 13 ||
             apdgid == 15) {
-          const T *parent = &p;
+          const T *parent = p;
           bool foundW = false, foundT = false;
           while (parent->parent.isValid()) {
             parent = parent->parent.get();
@@ -162,7 +192,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
           }
         }
       } else {
-        grid->add(p);
+        grid->add(*p);
       }
     }
   }
@@ -178,6 +208,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
     } 
     tr->TriggerSubEvent("gen grid");
   }
+
 
   // cluster the  jet 
   fastjet::ClusterSequenceArea seq(finalStates, *jetDef, *areaDef);
@@ -252,7 +283,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   unsigned nFilter = std::min(30, (int)sdConstituents.size());
   VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
 
-  GeneralTree::ECFParams p;
+  GeneralTree::ECFParams ep;
   ecfcalc->calculate(sdConstsFiltered);
   for (auto iter = ecfcalc->begin(); iter != ecfcalc->end(); ++iter) {
     int N = iter.get<pandaecf::Calculator::nP>();
@@ -260,9 +291,10 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
     int beta = iter.get<pandaecf::Calculator::bP>();
     // float ecf = iter.get<pandaecf::Calculator::ecfP>().template convert_to<float>();
     float ecf = static_cast<float>(iter.get<pandaecf::Calculator::ecfP>());
+    // PDebug("",Form("io=%i, iN=%i, ibeta=%i, ecf=%g", o, N, beta, ecf));
     genJetInfo.ecfs[o][N][beta] = ecf;
-    p.order = o + 1; p.N = N + 1, p.ibeta = beta;
-    gt->fj1ECFNs[p] = ecf;
+    ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
+    gt->fj1ECFNs[ep] = ecf;
   }
   
   tr->TriggerSubEvent("ecfs");
@@ -270,10 +302,10 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
 
   // now we have to count the number of prongs 
   std::unordered_set<const T*> partons; 
-  CountGenPartons(partons, genParticles); // fill the parton set
+  CountGenPartons<T>(partons); // fill the parton set
 
   std::map<const T*, unsigned> partonToIdx;
-  for (auto& parton : partons) 
+  for (auto* parton : partons) 
     partonToIdx[parton] = partonToIdx.size(); // just some arbitrary ordering 
 
   // get the hardest particle with angle wrt jet axis > 0.1
@@ -382,8 +414,8 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
     unsigned ptype = 0;
     int parent_idx = -1;
     if (c.user_index() >= 0) {
-      T &gen = genParticles.at(c.user_index());
-      int pdgid = gen.pdgid;
+      const T* gen = static_cast<const T*>(validGenP.at(c.user_index()));
+      int pdgid = gen->pdgid;
       unsigned apdgid = abs(pdgid);
       if (apdgid == 11) {
         ptype = 1 * sign(pdgid * -11);
@@ -403,7 +435,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
           ptype = 6;
       }
 
-      const T *parent = &gen;
+      const T *parent = gen;
       while (parent->parent.isValid()) {
         parent = parent->parent.get();
         if (partons.find(parent) != partons.end()) {

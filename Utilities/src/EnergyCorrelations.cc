@@ -50,11 +50,11 @@ C::data_type C::access(C::pos_type pos) const
 
 C::pos_type C::_oneToThree(int pos) const
 {
-  auto oI = pos % _oN;
+  int oI = pos % _oN;
   pos -= oI; pos /= _oN;
-  auto nI = pos % _nN;
+  int nI = pos % _nN;
   pos -= nI; pos /= _nN;
-  auto bI = pos;
+  int bI = pos;
   return make_tuple(oI, nI, bI);
 }
 
@@ -119,7 +119,7 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
     // now we loop
     vector<mpfloat> angles3(3), angles4(6); // N(N-1)/2
     for (int iP = 0; iP != nParticles; ++iP) {
-      for (int jP = 0; jP != nParticles; ++jP) {
+      for (int jP = 0; jP != iP; ++jP) {
         const mpfloat pt_ij{pT[iP] * pT[jP]};
         const mpfloat angle_ij{dRBeta[iP][jP]};
 
@@ -127,7 +127,7 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
         vals[1][0] += pt_ij * angle_ij;
 
         if (_nN > 2) { 
-          for (int kP = 0; kP != nParticles; ++kP) {
+          for (int kP = 0; kP != jP; ++kP) {
             const mpfloat angle_ik{dRBeta[iP][kP]}, angle_jk{dRBeta[jP][kP]};
             const mpfloat pt_ijk{pt_ij * pT[kP]};
 
@@ -136,14 +136,14 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
 
             insertion_sort(angles3);
             
-            mpfloat inc{pt_ijk};
+            mpfloat inc3{pt_ijk};
             for (int oI = 0; oI != _oN; ++oI) {
-              inc *= angles3[oI];
-              vals[2][oI] += inc;
+              inc3 *= angles3[oI];
+              vals[2][oI] += inc3;
             }
 
             if (_nN > 3) {
-              for (int lP = 0; lP != nParticles; ++lP) {
+              for (int lP = 0; lP != kP; ++lP) {
                 const mpfloat pt_ijkl{pt_ijk * pT[lP]};
                 angles4[3] = dRBeta[iP][lP]; 
                 angles4[4] = dRBeta[jP][lP];
@@ -151,10 +151,14 @@ void C::calculate(const vector<fastjet::PseudoJet> &particles)
 
                 partial_sort(angles4.begin(), angles4.begin() + 3, angles4.end());
 
-                mpfloat inc{pt_ijkl};
+                // PDebug("",Form("%.1f %.1f %.1f %.1f ; %g %g %g",
+                //                pT[iP], pT[jP], pT[kP], pT[lP],
+                //                angles4[0], angles4[1], angles4[2]));
+
+                mpfloat inc4{pt_ijkl};
                 for (int oI = 0; oI != _oN; ++oI) {
-                  inc *= angles4[oI];
-                  vals[3][oI] += inc;
+                  inc4 *= angles4[oI];
+                  vals[3][oI] += inc4;
                 }
                 
               } // l

@@ -10,6 +10,8 @@
 using namespace panda;
 using namespace std;
 
+// determine the partons associated with a fatjet
+// Responsible: S. Narayanan
 void PandaAnalyzer::FatjetPartons() 
 {
   gt->fj1NPartons = 0;
@@ -25,7 +27,8 @@ void PandaAnalyzer::FatjetPartons()
     };
 
     unordered_set<const panda::GenParticle*> partons; 
-    for (auto &gen : event.genParticles) {
+    for (auto* genptr : validGenP) {
+      auto& gen = pToGRef(genptr);
       unsigned apdgid = abs(gen.pdgid);
       if (apdgid > 5 && 
           apdgid != 21 &&
@@ -41,7 +44,7 @@ void PandaAnalyzer::FatjetPartons()
         continue;
 
       const GenParticle *parent = &gen;
-      const GenParticle *foundParent = NULL;
+      const GenParticle *foundParent = nullptr;
       while (parent->parent.isValid()) {
         parent = parent->parent.get();
         if (partons.find(parent) != partons.end()) {
@@ -51,8 +54,9 @@ void PandaAnalyzer::FatjetPartons()
       }
 
 
-      GenParticle *dau1 = NULL, *dau2 = NULL;
-      for (auto &child : event.genParticles) {
+      const GenParticle *dau1 = nullptr, *dau2 = nullptr;
+      for (auto* childptr : validGenP) {
+        auto& child = pToGRef(childptr);
         if (!(child.parent.isValid() && 
               child.parent.get() == &gen))
           continue; 
@@ -111,7 +115,8 @@ void PandaAnalyzer::FatjetPartons()
 
 }
 
-
+// fill an aux tree with reco info of the fatjet
+// Responsible: S. Narayanan
 void PandaAnalyzer::FillPFTree() 
 {
   // this function saves the PF information of the leading fatjet
@@ -263,6 +268,8 @@ void PandaAnalyzer::FillPFTree()
 }
 
 
+// Correct the SD mass of 2-prong puppi jets
+// Responsible: B. Maier
 float PandaAnalyzer::GetMSDCorr(float puppipt, float puppieta) 
 {
 
@@ -282,6 +289,8 @@ float PandaAnalyzer::GetMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
+// run the basic fatjet selection
+// Responsible: S. Narayanan
 void PandaAnalyzer::FatjetBasics() 
 {
   fj1=0;
@@ -294,8 +303,6 @@ void PandaAnalyzer::FatjetBasics()
     float eta = fj.eta();
     float mass = fj.m();
     float ptcut = 200;
-    if (analysis->monoh)
-      ptcut = 200;
     if (analysis->deep)
       ptcut = 400;
     
@@ -462,6 +469,8 @@ void PandaAnalyzer::FatjetBasics()
   tr->TriggerSubEvent("fatjet basics");
 }
 
+// Recluster the fatjets from PF candidates
+// Responsible: S. Narayanan
 void PandaAnalyzer::FatjetRecluster() 
 {
   if (fj1) {
@@ -508,9 +517,11 @@ void PandaAnalyzer::FatjetRecluster()
   }
 }
 
+
+// identify interesting gen particles for fatjet matching
+// Responsible: S. Narayanan
 void PandaAnalyzer::FatjetMatching() 
 {
-  // identify interesting gen particles for fatjet matching
   unsigned int pdgidTarget=0;
   if (!isData && analysis->processType>=kTT) {
     switch(analysis->processType) {
@@ -532,9 +543,9 @@ void PandaAnalyzer::FatjetMatching()
 
     std::vector<int> targets;
 
-    int nGen = event.genParticles.size();
+    int nGen = validGenP.size();
     for (int iG=0; iG!=nGen; ++iG) {
-      auto& part(event.genParticles.at(iG));
+      auto& part = pToGRef(validGenP.at(iG));
       int pdgid = part.pdgid;
       unsigned int abspdgid = abs(pdgid);
       if (abspdgid == pdgidTarget)
@@ -542,12 +553,12 @@ void PandaAnalyzer::FatjetMatching()
     } //looking for targets
 
     for (int iG : targets) {
-      auto& part(event.genParticles.at(iG));
+      auto& part = pToGRef(validGenP.at(iG));
 
       // check there is no further copy:
       bool isLastCopy=true;
       for (int jG : targets) {
-        if (event.genParticles.at(jG).parent.get() == &part) {
+        if (pToGPtr(validGenP.at(jG))->parent.get() == &part) {
           isLastCopy=false;
           break;
         }
@@ -561,7 +572,7 @@ void PandaAnalyzer::FatjetMatching()
         // first look for a W whose parent is the top at iG, or a W further down the chain
         panda::GenParticle const* lastW(0);
         for (int jG=0; jG!=nGen; ++jG) {
-          GenParticle const& partW(event.genParticles.at(jG));
+          GenParticle const& partW = pToGRef(validGenP.at(jG));
           if (TMath::Abs(partW.pdgid)==24 && partW.pdgid*part.pdgid>0) {
             // it's a W and has the same sign as the top
             if (!lastW && partW.parent.get() == &part) {
@@ -580,7 +591,7 @@ void PandaAnalyzer::FatjetMatching()
         int iB=-1, iQ1=-1, iQ2=-1;
         double size=0, sizeW=0;
         for (int jG=0; jG!=nGen; ++jG) {
-          auto& partQ(event.genParticles.at(jG));
+          auto& partQ = pToGRef(validGenP.at(jG));
           int pdgidQ = partQ.pdgid;
           unsigned int abspdgidQ = TMath::Abs(pdgidQ);
           if (abspdgidQ>5)
@@ -622,7 +633,7 @@ void PandaAnalyzer::FatjetMatching()
         int iQ1=-1, iQ2=-1;
         double size=0;
         for (int jG=0; jG!=nGen; ++jG) {
-          auto& partQ(event.genParticles.at(jG));
+          auto& partQ = pToGRef(validGenP.at(jG));
           int pdgidQ = partQ.pdgid;
           unsigned int abspdgidQ = TMath::Abs(pdgidQ);
           if (abspdgidQ>5)
@@ -657,7 +668,7 @@ void PandaAnalyzer::FatjetMatching()
   if (!isData && gt->nFatjet>0) {
     // first see if jet is matched
     auto* matched = MatchToGen(fj1->eta(),fj1->phi(),1.5,pdgidTarget);
-    if (matched!=NULL) {
+    if (matched!=nullptr) {
       gt->fj1IsMatched = 1;
       gt->fj1GenPt = matched->pt();
       gt->fj1GenSize = genObjects[matched];
@@ -666,7 +677,7 @@ void PandaAnalyzer::FatjetMatching()
     }
     if (pdgidTarget==6) { // matched to top; try for W
       auto* matchedW = MatchToGen(fj1->eta(),fj1->phi(),1.5,24);
-      if (matchedW!=NULL) {
+      if (matchedW!=nullptr) {
         gt->fj1IsWMatched = 1;
         gt->fj1GenWPt = matchedW->pt();
         gt->fj1GenWSize = genObjects[matchedW];
@@ -680,7 +691,8 @@ void PandaAnalyzer::FatjetMatching()
     int has_gluon_splitting=0;
     panda::GenParticle const* first_b_mo(0);
     // now get the highest pT gen particle inside the jet cone
-    for (auto& gen : event.genParticles) {
+    for (auto* genptr : validGenP) {
+      auto& gen = pToGRef(genptr);
       float pt = gen.pt();
       int pdgid = gen.pdgid;
       if (pt>(gt->fj1HighestPtGenPt)
@@ -729,7 +741,8 @@ void PandaAnalyzer::FatjetMatching()
       for (unsigned int iSJ=0; iSJ!=nSJ; ++iSJ) {
         auto& subjet = fj1->subjets.objAt(iSJ);
         int flavor=0;
-        for (auto& gen : event.genParticles) {
+        for (auto* genptr : validGenP) {
+          auto& gen = pToGRef(genptr);
           int apdgid = abs(gen.pdgid);
           if (apdgid==0 || (apdgid>5 && apdgid!=21)) // light quark or gluon
             continue;

@@ -22,6 +22,19 @@
 
 ////////////////////////////////////////////////////////////////////////////////////
 
+// semi-temporary measure to deal with v009 gen duplication issue
+inline const panda::GenParticle* pToGPtr(const panda::Particle* p)
+{
+  return dynamic_cast<const panda::GenParticle*>(p);
+}
+
+inline const panda::GenParticle& pToGRef(const panda::Particle* p)
+{
+  return dynamic_cast<const panda::GenParticle&>(*p);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
 class JetTree {
   public:
     JetTree(fastjet::PseudoJet& root): _root(root) { }

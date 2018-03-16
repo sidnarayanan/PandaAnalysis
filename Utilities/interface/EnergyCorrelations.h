@@ -85,8 +85,8 @@ namespace pandaecf {
     void _set(pos_type pos, mpfloat x) { _ecfs[_threeToOne(pos)] = x; }
     pos_type _oneToThree(int pos) const;
     int _threeToOne(pos_type pos) const { return std::get<oP>(pos) 
-                                                 + _oN * std::get<nP>(pos) 
-                                                 + _oN + _nN * std::get<bP>(pos); }
+                                                 + (_oN * std::get<nP>(pos)) 
+                                                 + (_oN * _nN * std::get<bP>(pos)); }
 
     std::vector<float> _bs;
     std::vector<int> _ns, _os;

@@ -48,6 +48,7 @@ void PandaAnalyzer::ResetBranches()
   bCandJetGenFlavor.clear();
   bCandJetGenPt.clear();
   genJetsNu.clear();
+  validGenP.clear();
   fj1 = 0;
   for (TLorentzVector v_ : {vPFMET, vPuppiMET, vpfUW, vpfUZ, vpfUA, vpfU,
                             vpuppiUW, vpuppiUZ, vpuppiUA, vpuppiU,
@@ -1074,7 +1075,7 @@ void PandaAnalyzer::Run()
 
 
     tr->TriggerEvent(TString::Format("GetEntry %u",iE));
-    if (DEBUG>2) {
+    if (DEBUG > 5) {
       PDebug("PandaAnalyzer::Run::Dump","");
       event.print(std::cout, 2);
       std::cout << std::endl;
@@ -1162,17 +1163,29 @@ void PandaAnalyzer::Run()
 
     tr->TriggerEvent("met");
 
-    // do this up here before the preselection
-    if (analysis->deepGen) {
-      if (event.genParticles.size() > 0) 
-        FillGenTree(event.genParticles);
-      else
-        FillGenTree(event.genParticlesU);
-      if (gt->genFatJetPt > 400) 
-        tAux->Fill();
-      if (tAux->GetEntriesFast() == 2500)
-        IncrementGenAuxFile();
-      tr->TriggerEvent("fill gen aux");
+    if (!isData) {
+      // take care of bug in panda version <= 009
+      // replace duplicate gen particles with preferred version.
+      // template type could be inferred but let's be explicit
+      // so we can read it.
+      if (event.genParticles.size() > 0) {
+        RemoveGenDups<GenParticle>(event.genParticles);
+      } else {
+        RemoveGenDups<UnpackedGenParticle>(event.genParticlesU);
+      }
+
+      // do this up here before the preselection
+      if (analysis->deepGen) {
+        if (event.genParticles.size() > 0) 
+          FillGenTree<GenParticle>();
+        else
+          FillGenTree<UnpackedGenParticle>();
+        if (gt->genFatJetPt > 400) 
+          tAux->Fill();
+        if (tAux->GetEntriesFast() == 2500)
+          IncrementGenAuxFile();
+        tr->TriggerEvent("fill gen aux");
+      }
     }
 
 

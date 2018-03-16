@@ -10,6 +10,8 @@
 using namespace panda;
 using namespace std;
 
+// Per-jet b-tag scale factors
+// Responsible: S. Narayanan
 void PandaAnalyzer::CalcBJetSFs(BTagType bt, int flavor,
                                 double eta, double pt, double eff, double uncFactor,
                                 double &sf, double &sfUp, double &sfDown) 
@@ -33,6 +35,8 @@ void PandaAnalyzer::CalcBJetSFs(BTagType bt, int flavor,
   return;
 }
 
+// Per-event b-tag scale factors
+// Responsible: S. Narayanan
 void PandaAnalyzer::EvalBTagSF(std::vector<btagcand> &cands, std::vector<double> &sfs,
                                GeneralTree::BTagShift shift,GeneralTree::BTagJet jettype, bool do2) 
 {
@@ -100,7 +104,8 @@ void PandaAnalyzer::EvalBTagSF(std::vector<btagcand> &cands, std::vector<double>
 
 }
 
-
+// Calculate all b-tag SFs relevant to an event
+// Responsible: S. Narayanan
 void PandaAnalyzer::JetBtagSFs() 
 {
       // now get the jet btag SFs
@@ -161,6 +166,8 @@ void PandaAnalyzer::JetBtagSFs()
     tr->TriggerEvent("ak4 gen-matching");
 }
 
+// Calculate all CMVA reweightings relevant to an event
+// Responsible: D. Hsu
 void PandaAnalyzer::JetCMVAWeights() 
 {
   for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {

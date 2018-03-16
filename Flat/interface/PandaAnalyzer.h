@@ -311,8 +311,11 @@ private:
     double WeightZHEWKCorr(float baseCorr);
 
     // templated functions
-    template <typename T> void CountGenPartons(std::unordered_set<const T*>&, const panda::Collection<T>&);
-    template <typename T> void FillGenTree(panda::Collection<T>& genParticles);
+    // T = gen particle type
+    template <typename T> void CountGenPartons(std::unordered_set<const T*>&);
+    template <typename T> void FillGenTree();
+    template <typename T> void RemoveGenDups(const panda::Collection<T>&);
+    // T = gen jet type
     template <typename T> void MatchGenJets(T& genJets);
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -424,6 +427,8 @@ private:
     TVector2 vMETNoMu;
     TLorentzVector vpfUW, vpfUZ, vpfUA, vpfU;
     TLorentzVector vpuppiUW, vpuppiUZ, vpuppiUA, vpuppiU;
+
+    std::vector<const panda::Particle*> validGenP;
 
     panda::FatJet *fj1 = 0;
     panda::FatJetCollection *fatjets = 0;

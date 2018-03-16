@@ -9,14 +9,16 @@
 using namespace panda;
 using namespace std;
 
-
+// reweight the ttbar pT distribution
+// Responsible: S. Narayanan
 void PandaAnalyzer::TopPTReweight()
 {
       if (analysis->processType != kTT)
         return;
 
       gt->genWPlusPt = -1; gt->genWMinusPt = -1;
-      for (auto& gen : event.genParticles) {
+      for (auto* genptr : validGenP) {
+        auto& gen = pToGRef(genptr);
         if (abs(gen.pdgid)!=24)
           continue;
         if (analysis->firstGen) {
@@ -37,7 +39,8 @@ void PandaAnalyzer::TopPTReweight()
       }
       TLorentzVector vT,vTbar;
       float pt_t=0, pt_tbar=0;
-      for (auto& gen : event.genParticles) {
+      for (auto* genptr : validGenP) {
+        auto& gen = pToGRef(genptr);
         if (abs(gen.pdgid)!=6)
           continue;
         if (analysis->firstGen) {
@@ -86,14 +89,17 @@ void PandaAnalyzer::TopPTReweight()
     tr->TriggerEvent("tt SFs");
 }
 
+// reweight the V+jets kinematic distributions
+// Responsible: S. Narayanan
 void PandaAnalyzer::VJetsReweight() 
 {
       // calculate the mjj 
       TLorentzVector vGenJet;
       if (analysis->vbf) {
         // first find high pT leptons
-        std::vector<GenParticle*> genLeptons;
-        for (auto &gp : event.genParticles) {
+        std::vector<const GenParticle*> genLeptons;
+        for (auto* genptr : validGenP) {
+          auto& gp = pToGRef(genptr);
           if (!gp.finalState)
             continue;
           unsigned id = abs(gp.pdgid);
@@ -138,12 +144,14 @@ void PandaAnalyzer::VJetsReweight()
       if (analysis->processType==kZ || analysis->processType==kZEWK) target=23;
       if (analysis->processType==kA) target=22;
 
-      for (auto& gen : event.genParticles) {
+      for (auto* genptr : validGenP) {
+        auto& gen = pToGRef(genptr);
         if (found) break;
         int apdgid = abs(gen.pdgid);
         if (apdgid==target)     {
           bool foundChild = false;
-          for (auto& child : event.genParticles) {
+          for (auto* childptr : validGenP) {
+            auto& child = pToGRef(childptr);
             if (abs(child.pdgid) != target)
               continue;
             if (child.parent.isValid() && child.parent.get() == &(gen)) {
@@ -217,7 +225,8 @@ void PandaAnalyzer::VJetsReweight()
 
         TLorentzVector vpt(0,0,0,0);
 
-        for (auto& part : event.genParticles) {
+        for (auto* partptr : validGenP) {
+          auto& part = pToGRef(partptr);
           int pdgid = part.pdgid;
           unsigned int abspdgid = abs(pdgid);
 
@@ -280,6 +289,8 @@ void PandaAnalyzer::VJetsReweight()
 }
 
 
+// store gen info about signals
+// Responsible: S. Narayanan
 void PandaAnalyzer::SignalInfo()
 {
       if (analysis->processType != kSignal)
@@ -287,7 +298,8 @@ void PandaAnalyzer::SignalInfo()
 
       bool found=false, foundbar=false;
       TLorentzVector vMediator(0,0,0,0);
-      for (auto& gen : event.genParticles) {
+      for (auto* genptr : validGenP) {
+        auto& gen =  pToGRef(genptr);
         if (found && foundbar)
           break;
         if (abs(gen.pdgid) != 18)
@@ -308,6 +320,8 @@ void PandaAnalyzer::SignalInfo()
       }
 }
 
+// store QCD uncertainties
+// Responsible: S. Narayanan
 void PandaAnalyzer::QCDUncs()
 {
       gt->pdfUp = 1 + event.genReweight.pdfDW;
@@ -339,6 +353,8 @@ void PandaAnalyzer::QCDUncs()
       tr->TriggerEvent("qcd uncertainties");
 }
 
+// reweight the signal distributions according to couplings
+// Responsible: S. Narayanan
 void PandaAnalyzer::SignalReweights()
 {
       unsigned nW = wIDs.size();
@@ -348,6 +364,9 @@ void PandaAnalyzer::SignalReweights()
         }
       }
 }
+
+// PROVIDE DESCRIPTION
+// Responsible: D. Hsu, G. Gomez-Ceballos
 double PandaAnalyzer::WeightEWKCorr(float pt, int type) {
   double parWZ08[2] = { 2.85714,-0.05714};
   double parZZ08[2] = {-4.57143,-0.06857};
@@ -369,9 +388,15 @@ double PandaAnalyzer::WeightEWKCorr(float pt, int type) {
   return (1.0+corr);
 }
 
+
+// PROVIDE DESCRIPTION
+// Responsible: D. Hsu, G. Gomez-Ceballos
 double PandaAnalyzer::WeightZHEWKCorr(float baseCorr) {
   return (baseCorr+0.31+0.11)/((1-0.053)+0.31+0.11);
 }
+
+// PROVIDE DESCRIPTION
+// Responsible: D. Hsu, G. Gomez-Ceballos
 void PandaAnalyzer::GenStudyEWK() {
   gt->genLep1Pt = 0;
   gt->genLep1Eta = -1;
@@ -424,9 +449,9 @@ void PandaAnalyzer::GenStudyEWK() {
   std::vector<int> targetsTop;
   std::vector<int> targetsN;
 
-  int nGen = event.genParticles.size();
+  int nGen = validGenP.size();
   for (int iG=0; iG!=nGen; ++iG) {
-    auto& part(event.genParticles.at(iG));
+    auto& part = pToGRef(validGenP.at(iG));
     int pdgid = part.pdgid;
     unsigned int abspdgid = abs(pdgid);
     
@@ -465,7 +490,7 @@ void PandaAnalyzer::GenStudyEWK() {
   tr->TriggerSubEvent("check gen infos");
 
   for (int jG : targetsPhoton) {
-    auto& partph(event.genParticles.at(jG));
+    auto& partph = pToGRef(validGenP.at(jG));
     
     if (partph.pt() <= 10) continue; // ignore low pt photons
 
@@ -477,13 +502,13 @@ void PandaAnalyzer::GenStudyEWK() {
   TLorentzVector rhoP4(0,0,0,0);
   double bosonPtMin = 1000000000;
   for (int iG : targetsLepton) {
-    auto& part(event.genParticles.at(iG));
+    auto& part = pToGRef(validGenP.at(iG));
     TLorentzVector dressedLepton;
     dressedLepton.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
   
     rhoP4 = rhoP4 + dressedLepton;
     for (int jG : targetsPhoton) {
-      auto& partj(event.genParticles.at(jG));
+      auto& partj = pToGRef(validGenP.at(jG));
 
       if (DeltaR2(part.eta(),part.phi(),partj.eta(),partj.phi()) < 0.01) {
         TLorentzVector photonV;
@@ -635,13 +660,14 @@ void PandaAnalyzer::GenStudyEWK() {
   
   unsigned char nNeutrinos=0;
   for (int iG : targetsN) {
-    auto& part(event.genParticles.at(iG));
+    auto& part = pToGRef(validGenP.at(iG));
     TLorentzVector neutrino;
     neutrino.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
     // check there is no further copy:
     bool isLastCopy=true;
     for (int kG : targetsN) {
-      if (event.genParticles.at(kG).parent.isValid() && event.genParticles.at(kG).parent.get() == &part) {
+      auto& kpart = pToGRef(validGenP.at(kG));
+      if (kpart.parent.isValid() && kpart.parent.get() == &part) {
         isLastCopy=false;
         break;
       }
@@ -657,15 +683,16 @@ void PandaAnalyzer::GenStudyEWK() {
   TLorentzVector higgsBosons(0,0,0,0);
   int nHBosons = 0;
   for (int iG : targetsH) {
-    auto& part(event.genParticles.at(iG));
+    auto& part = pToGRef(validGenP.at(iG));
     TLorentzVector boson;
     boson.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
 
     // check there is no further copy:
     bool isLastCopy=true;
     for (int kG : targetsH) {
-      if (event.genParticles.at(kG).parent.isValid() 
-          && event.genParticles.at(kG).parent.get() == &part) {
+      auto& kpart = pToGRef(validGenP.at(kG));
+      if (kpart.parent.isValid() 
+          && kpart.parent.get() == &part) {
         isLastCopy=false;
         break;
       }
@@ -680,15 +707,16 @@ void PandaAnalyzer::GenStudyEWK() {
   TLorentzVector wBosons(0,0,0,0);
   int nZBosons = 0; int nWBosons = 0; vector<bool> wBosonQ; wBosonQ.reserve(8);
   for (int iG : targetsV) {
-    auto& part(event.genParticles.at(iG));
+    auto& part = pToGRef(validGenP.at(iG));
     TLorentzVector boson;
     boson.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
 
     // check there is no further copy:
     bool isLastCopy=true;
     for (int kG : targetsV) {
-      if (event.genParticles.at(kG).parent.isValid() 
-          && event.genParticles.at(kG).parent.get() == &part) {
+      auto& kpart = pToGRef(validGenP.at(kG));
+      if (kpart.parent.isValid() 
+          && kpart.parent.get() == &part) {
         isLastCopy=false;
         break;
       }
