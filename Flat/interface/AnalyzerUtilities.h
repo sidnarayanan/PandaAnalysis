@@ -19,18 +19,25 @@
 // root, stl
 #include "TRotation.h"
 #include <set>
+#include <stdexcept>
 
 ////////////////////////////////////////////////////////////////////////////////////
 
 // semi-temporary measure to deal with v009 gen duplication issue
 inline const panda::GenParticle* pToGPtr(const panda::Particle* p)
 {
-  return dynamic_cast<const panda::GenParticle*>(p);
+  auto* g = dynamic_cast<const panda::GenParticle*>(p);
+  if (g == nullptr) {
+    PError("pToGPtr",Form("Trying to cast a non-GenParticle at %p", p));
+    throw std::runtime_error("");
+  }
+  return g;
 }
 
 inline const panda::GenParticle& pToGRef(const panda::Particle* p)
 {
-  return dynamic_cast<const panda::GenParticle&>(*p);
+  // I think this is what I want - the underlying data type really is a GenParticle
+  return *pToGPtr(p);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

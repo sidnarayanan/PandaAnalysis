@@ -25,7 +25,7 @@ void PandaAnalyzer::RemoveGenDups(const panda::Collection<T>& genParticles)
     bool foundDup = false;
     float ptThreshold = g.pt() * 0.01;
     for (auto* pPtr : validGenP) {
-      const T* gPtr = static_cast<const T*>(pPtr);
+      const T* gPtr = dynamic_cast<const T*>(pPtr);
       if ((g.pdgid == gPtr->pdgid) &&
           ((g.pt() - gPtr->pt()) < ptThreshold) &&
           (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
@@ -49,7 +49,7 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons)
   };
   float threshold = genJetInfo.pt * 0.2;
   for (auto* gen_ : validGenP) {
-    auto* gen = static_cast<const T*>(gen_);
+    auto* gen = dynamic_cast<const T*>(gen_);
     unsigned apdgid = abs(gen->pdgid);
     if (apdgid > 5 && 
         apdgid != 21 &&
@@ -77,7 +77,7 @@ void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons)
 
     const T *dau1 = NULL, *dau2 = NULL;
     for (const auto* child_ : validGenP) {
-      auto* child = static_cast<const T*>(child_); 
+      auto* child = dynamic_cast<const T*>(child_); 
       if (!(child->parent.isValid() && 
             child->parent.get() == gen))
         continue; 
@@ -143,7 +143,7 @@ void PandaAnalyzer::FillGenTree()
   unsigned idx = -1;
 
   for (auto* p_ : validGenP) {
-    auto* p = static_cast<const T*>(p_);
+    auto* p = dynamic_cast<const T*>(p_);
     idx++;
     unsigned apdgid = abs(p->pdgid);
     if (!p->finalState)
@@ -290,7 +290,7 @@ void PandaAnalyzer::FillGenTree()
     int o = iter.get<pandaecf::Calculator::oP>();
     int beta = iter.get<pandaecf::Calculator::bP>();
     // float ecf = iter.get<pandaecf::Calculator::ecfP>().template convert_to<float>();
-    float ecf = static_cast<float>(iter.get<pandaecf::Calculator::ecfP>());
+    float ecf(iter.get<pandaecf::Calculator::ecfP>());
     // PDebug("",Form("io=%i, iN=%i, ibeta=%i, ecf=%g", o, N, beta, ecf));
     genJetInfo.ecfs[o][N][beta] = ecf;
     ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
