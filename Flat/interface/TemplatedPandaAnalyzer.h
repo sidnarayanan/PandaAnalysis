@@ -414,7 +414,7 @@ void PandaAnalyzer::FillGenTree()
     unsigned ptype = 0;
     int parent_idx = -1;
     if (c.user_index() >= 0) {
-      const T* gen = static_cast<const T*>(validGenP.at(c.user_index()));
+      const T* gen = dynamic_cast<const T*>(validGenP.at(c.user_index()));
       int pdgid = gen->pdgid;
       unsigned apdgid = abs(pdgid);
       if (apdgid == 11) {
