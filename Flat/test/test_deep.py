@@ -18,6 +18,7 @@ argv = []
 import ROOT as root
 from PandaCore.Tools.Load import *
 from PandaAnalysis.Flat.analysis import deep, deepgen
+import PandaAnalysis.Flat.selection as selection
 import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
@@ -26,8 +27,10 @@ skimmer = root.PandaAnalyzer(debug_level)
 a = deepgen()
 #a.deepGenGrid = True
 #a.deepAntiKtSort = True
+#a.deepExC = True
 a.processType=root.kTT
 skimmer.SetAnalysis(a)
+skimmer.AddPresel(root.GenFatJetSel())
 #skimmer.SetPreselectionBit(root.PandaAnalyzer.kGenFatJet)
 
 skimmer.firstEvent=0

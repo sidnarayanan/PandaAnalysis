@@ -209,6 +209,7 @@ void GeneralTree::Reset() {
   }
 
 //ENDCUSTOMRESET
+    isData = 0;
     jot1PhiUp = -1;
     jot1PhiDown = -1;
     jot2PhiUp = -1;
@@ -891,6 +892,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("looseGenPho1PdgId",&looseGenPho1PdgId,"looseGenPho1PdgId/I");
   }
 //ENDCUSTOMWRITE
+    Book("isData",&isData,"isData/I");
 
   Book("genFatJetNProngs",&genFatJetNProngs,"genFatJetNProngs/I");
   Book("genJet1Pt",&genJet1Pt,"genJet1Pt/F");

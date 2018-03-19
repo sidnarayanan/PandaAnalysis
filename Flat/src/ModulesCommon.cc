@@ -9,6 +9,103 @@
 using namespace panda;
 using namespace std;
 
+/***** miscellaneous helper functions *****/
+
+// Register triggers
+// Responsible: S. Narayanan
+void PandaAnalyzer::RegisterTriggers() 
+{
+  for (auto &th : triggerHandlers) {
+    unsigned N = th.paths.size();
+    for (unsigned i = 0; i != N; i++) {
+      unsigned panda_idx = event.registerTrigger(th.paths.at(i));
+      th.indices[i] = panda_idx;
+      if (DEBUG) PDebug("PandaAnalyzer::RegisterTriggers",
+        Form("Got index %d for trigger path %s", panda_idx, th.paths.at(i).Data())
+      );
+    }
+  }
+}
+
+// Match an object at arbitrary eta,phi to a gen particle with specific pdgid
+// Responsible: S. Narayanan
+panda::GenParticle const *PandaAnalyzer::MatchToGen(double eta, double phi, double radius, int pdgid) 
+{
+  panda::GenParticle const* found=NULL;
+  double r2 = radius*radius;
+  pdgid = abs(pdgid);
+
+  unsigned int counter=0;
+  for (map<panda::GenParticle const*,float>::iterator iG=genObjects.begin();
+      iG!=genObjects.end(); ++iG) {
+    if (found!=NULL)
+      break;
+    if (pdgid!=0 && abs(iG->first->pdgid)!=pdgid)
+      continue;
+    if (DeltaR2(eta,phi,iG->first->eta(),iG->first->phi())<r2)
+      found = iG->first;
+  }
+
+  return found;
+}
+
+
+double PandaAnalyzer::GetCorr(CorrectionType ct, double x, double y) 
+{
+  if (h1Corrs[ct]!=0) {
+    return h1Corrs[ct]->Eval(x); 
+  } else if (h2Corrs[ct]!=0) {
+    return h2Corrs[ct]->Eval(x,y);
+  } else if (f1Corrs[ct]!=0) {
+    return f1Corrs[ct]->Eval(x);
+  } else {
+    PError("PandaAnalyzer::GetCorr",
+       TString::Format("No correction is defined for CorrectionType=%u",ct));
+    return 1;
+  }
+}
+
+double PandaAnalyzer::GetError(CorrectionType ct, double x, double y) 
+{
+  if (h1Corrs[ct]!=0) {
+    return h1Corrs[ct]->Error(x); 
+  } else if (h2Corrs[ct]!=0) {
+    return h2Corrs[ct]->Error(x,y);
+  } else {
+    PError("PandaAnalyzer::GetError",
+       TString::Format("No correction is defined for CorrectionType=%u",ct));
+    return 1;
+  }
+}
+
+
+bool PandaAnalyzer::PassPresel(Selection::Stage stage) 
+{
+  if (selections.size() == 0)
+    return true;
+
+  bool pass = false;
+  for (auto* s : selections) {
+    if (s->anded())
+      continue;
+    if (s->accept(stage)) {
+      pass = true;
+      break;
+    }
+  }
+
+  for (auto* s : selections) {
+    if (s->anded()) {
+      pass = pass && s->accept(stage);
+    }
+  }
+
+  return pass;
+}
+
+
+/***** common physics methods *****/
+
 // Create a new auxillary file for gen info
 // Responsible: S. Narayanan
 void PandaAnalyzer::IncrementGenAuxFile(bool close)
@@ -127,35 +224,6 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
 
   if (tr)
     tr->TriggerEvent("increment aux file");
-}
-
-// Register triggers
-// Responsible: S. Narayanan
-void PandaAnalyzer::RegisterTriggers() 
-{
-  for (auto &th : triggerHandlers) {
-    unsigned N = th.paths.size();
-    for (unsigned i = 0; i != N; i++) {
-      unsigned panda_idx = event.registerTrigger(th.paths.at(i));
-      th.indices[i] = panda_idx;
-      if (DEBUG) PDebug("PandaAnalyzer::RegisterTriggers",
-        Form("Got index %d for trigger path %s", panda_idx, th.paths.at(i).Data())
-      );
-    }
-  }
-}
-
-// Apply a preselection to the recoil
-// Responsible: S. Narayanan
-bool PandaAnalyzer::RecoilPresel() 
-{
-    if ( (preselBits&kMonotop) || (preselBits&kMonohiggs) || 
-         (preselBits&kMonojet) || (preselBits&kRecoil) ) 
-    {
-       if (event.recoil.max<175)
-         return false;
-    } 
-    return true;
 }
 
 // Calculate various trigger efficiencies

@@ -19,7 +19,7 @@ void PandaAnalyzer::FatjetPartons()
     unsigned nP = 0;
     double threshold = 0.2 * fj1->rawPt;
 
-    FatJet *my_fj = fj1; 
+    const FatJet *my_fj = fj1; 
     double dR2 = FATJETMATCHDR2; // put these guys in local scope
 
     auto matchJet = [my_fj, dR2](const GenParticle &p) -> bool {

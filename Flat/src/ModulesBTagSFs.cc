@@ -114,7 +114,7 @@ void PandaAnalyzer::JetBtagSFs()
 
       unsigned int nJ = bCandJets.size();
       for (unsigned int iJ=0; iJ!=nJ; ++iJ) {
-        panda::Jet *jet = bCandJets.at(iJ);
+        const panda::Jet *jet = bCandJets.at(iJ);
         bool isIsoJet=false;
         if (!analysis->fatjet || // if we do not consider fatjets, everything is an isojet 
             std::find(isoJets.begin(), isoJets.end(), jet) != isoJets.end()) // otherwise, explicitly check isojet
@@ -186,7 +186,7 @@ void PandaAnalyzer::JetCMVAWeights()
   jetCMVAs.reserve(nJ);
   jetFlavors.reserve(nJ);
   for (unsigned int iJ=0; iJ!=nJ; ++iJ) {
-    panda::Jet *jet = bCandJets.at(iJ);
+    const panda::Jet *jet = bCandJets.at(iJ);
     jetPts.push_back(jet->pt());
     jetEtas.push_back(jet->eta());
     jetCSVs.push_back(jet->csv);

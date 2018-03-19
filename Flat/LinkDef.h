@@ -6,6 +6,7 @@
 #include "PandaAnalysis/Flat/interface/PandaAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/TagAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/genericTree.h"
+#include "PandaAnalysis/Flat/interface/Selection.h"
 
 
 #ifdef __CLING__
@@ -23,6 +24,19 @@
 #pragma link C++ enum GeneralTree::BTagJet;
 #pragma link C++ enum GeneralTree::BTagTags;
 
+#pragma link C++ class Selection;
+#pragma link C++ class LambdaSel;
+#pragma link C++ class TriggerSel;
+#pragma link C++ class GenBosonPtSel;
+#pragma link C++ class FatjetSel;
+#pragma link C++ class Fatjet450Sel;
+#pragma link C++ class GenFatJetSel;
+#pragma link C++ class LeptonSel;
+#pragma link C++ class LeptonFakeSel;
+#pragma link C++ class RecoilSel;
+#pragma link C++ class MonotopSel;
+#pragma link C++ class MonohiggsSel;
+#pragma link C++ class VHbbSel;
 #pragma link C++ class Analysis;
 #pragma link C++ class LumiRange;
 #pragma link C++ class TCorr;
