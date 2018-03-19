@@ -224,7 +224,7 @@ def check(stdscr=None):
 
         if force_refresh or (recent_lock >= last_lock) or (time() - last_lock > args.monitor):
             # determine what files have been processed and logged as such
-            processedfiles = []
+            processedfiles = set([])
             locks = glob(lockdir+'/*lock')
             nl = len(locks)
             il = 1
@@ -233,7 +233,7 @@ def check(stdscr=None):
                 try:
                     flock = open(lock)
                     for l in flock:
-                        processedfiles.append(l.strip())
+                        processedfiles.add(l.strip())
                 except IOError:
                     pass
 

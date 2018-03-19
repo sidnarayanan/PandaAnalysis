@@ -6,6 +6,7 @@ from array import array
 import argparse
 
 basedir = getenv('PANDA_FLATDIR')
+submit_name = getenv('SUBMIT_NAME')
 
 parser = argparse.ArgumentParser(description='plot stuff')
 parser.add_argument('--proc')
@@ -36,7 +37,10 @@ n_partons = {
         'Higgs' : 2,
         'W' : 2,
         }
-n_parton = n_partons[args.proc]
+try:
+    n_parton = n_partons[args.proc]
+except KeyError:
+    n_parton = n_partons[args.proc.split('_')[0]]
 
 f = root.TFile(basedir + '/' + args.proc + '.root')
 t = f.Get('events')
@@ -62,14 +66,16 @@ for ib in xrange(1, h_inv.GetNbinsX()+1):
     if h.GetBinContent(ib) == 0:
         h_inv.SetBinContent(ib, 0)
 
+print 'Saving histogram as h_%s_%s'%(args.proc, submit_name)
+
 fout = root.TFile.Open(getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/deep/flatten_gen.root', 'UPDATE')
-fout.WriteTObject(h_inv, 'h_'+args.proc, 'overwrite')
+fout.WriteTObject(h_inv, 'h_%s_%s'%(args.proc, submit_name), 'overwrite')
 fout.Close()
 
 h_inv.Scale(h.Integral()/50.)
 
 fout = root.TFile.Open(getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/deep/flatten_gen_scaled.root', 'UPDATE')
-fout.WriteTObject(h_inv, 'h_'+args.proc, 'overwrite')
+fout.WriteTObject(h_inv, 'h_%s_%s'%(args.proc, submit_name), 'overwrite')
 fout.Close()
 
 

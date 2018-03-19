@@ -28,68 +28,87 @@ void JetTree::Node::GetTerminals(vector<int>& terminals_)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-ParticleGridder::ParticleGridder(unsigned etaN, unsigned phiN, float etaMax) 
+ParticleGridder::ParticleGridder(unsigned etaN, unsigned phiN, float etaMax):
+  _etaMax(etaMax),
+  _phiMax(TMath::Pi() - 0.000001),
+  _etaBin(-_etaMax, _etaMax, etaN),
+  _phiBin(-_phiMax, _phiMax, phiN)
 {
-  float phiMax = TMath::Pi();
-  hEta_ = new TH1F("eta","eta",etaN*2,-etaMax,etaMax);
-  hPhi_ = new TH1F("phi","phi",phiN*2,-phiMax,phiMax);
-  etaMax_ = etaMax; phiMax_ = phiMax - 0.000001;
-  collections_.resize(etaN*2);
-  for (auto &v : collections_)
-    v.resize(phiN*2);
 }
 
 void ParticleGridder::clear() 
 {
-  particles_.clear();
-  for (auto &v : collections_) {
-    for (auto &vv : v) {
-      vv.clear();
-    }
+  for (auto &v : _collections) {
+    v.second.clear();
   }
-  gridded_.clear();
-  nonEmpty_.clear();
+  _collections.clear();
+  _particles.clear();
+  _gridded.clear();
 }
 
-void ParticleGridder::add(panda::Particle& p) 
+void ParticleGridder::add(const panda::Particle& p) 
 {
-  particles_.push_back(p.p4());
+  _particles.push_back(p.p4());
 }
 
-
-std::vector<TLorentzVector>& ParticleGridder::get() 
+vector<TLorentzVector>& ParticleGridder::get() 
 {
-  for (auto &p : particles_) {
+  for (auto &p : _particles) {
     float eta = p.Eta();
     float phi = p.Phi();
-    if (fabs(eta) >= etaMax_)
+    if (fabs(eta) >= _etaMax)
       continue;
-    phi = bound(phi, -phiMax_, phiMax_);
-    int etabin = hEta_->FindBin(eta)-1;
-    int phibin = hPhi_->FindBin(phi)-1;
-    collections_.at(etabin).at(phibin).push_back(&p);
-    std::pair<int,int>bin(etabin,phibin);
-    if (std::find(nonEmpty_.begin(),nonEmpty_.end(),bin) == nonEmpty_.end())
-      nonEmpty_.push_back(bin);
+    phi = bound(phi, -_phiMax, _phiMax);
+    int iEta = _etaBin.find(eta);
+    int iPhi = _phiBin.find(phi);
+    pair<int,int> i(iEta, iPhi);
+    auto iter = _collections.find(i);
+    if (iter == _collections.end()) {
+      _collections[i] = {&p};
+    } else {
+      iter->second.push_back(&p);
+    }      
+//    PDebug("ParticleGridder in",
+//           Form("pt=%.3f,eta=%.3f,phi=%.3f,m=%.3f in %i,%i", p.Pt(), eta, phi, p.M(), iEta, iPhi));
   }
 
   // grid is filled
-  gridded_.clear();
-  for (auto &bin : nonEmpty_) {
+  _gridded.clear();
+  for (auto &iter : _collections) {
+    const pair<int,int> &bin = iter.first;
+    const vector<TLorentzVector*> coll = iter.second;
     int iEta = bin.first, iPhi = bin.second;
-    std::vector<TLorentzVector*> inBin = collections_.at(iEta).at(iPhi);
-    if (inBin.size() > 0) {
-      TLorentzVector vSum;
-      for (auto *p : inBin) {
-        vSum += *p;
+    if (coll.size() > 0) {
+      if (_on) {
+        TLorentzVector vSum;
+        for (auto *p : coll) {
+          vSum += *p;
+        }
+        if (_etaphi) {
+          float eta = _etaBin.center(iEta);
+          float phi = _phiBin.center(iPhi);
+          vSum.SetPtEtaPhiM(vSum.Pt(), eta, phi, vSum.M()); // => no spatial resolution within the cell
+        }
+//        PDebug("ParticleGridder out",
+//               Form("pt=%.3f,eta=%.3f,phi=%.3f,m=%.3f in %i,%i", vSum.Pt(), eta, phi, vSum.M(), iEta, iPhi));
+//        PDebug("ParticleGridder out",
+//               Form("eta = [%.3f,%.3f], phi=[%.3f,%.3f]", 
+//                    _etaBin.left(iEta),
+//                    _etaBin.left(iEta+1),
+//                    _phiBin.left(iPhi),
+//                    _phiBin.left(iPhi+1))); 
+        _gridded.push_back(vSum);
+      } else {
+        for (auto *p : coll) {
+          _gridded.push_back(*p);
+        }
       }
-      float eta = hEta_->GetBinCenter(iEta);
-      float phi = hPhi_->GetBinCenter(iPhi);
-      vSum.SetPtEtaPhiM(vSum.Pt(), eta, phi, vSum.M());
-      gridded_.push_back(vSum);
+    } else {
+      PError("ParticleGridder::get",Form("Bin %i,%i is supposed to be non-empty, but found otherwise!",
+                                         iEta, iPhi));
     }
   }
-  return gridded_;
+  return _gridded;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +139,7 @@ void JetRotation::Rotate(float& x, float& y, float& z)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-VPseudoJet ConvertPFCands(std::vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
+VPseudoJet ConvertPFCands(vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
 {
   VPseudoJet vpj;
   vpj.reserve(incoll.size());
@@ -139,7 +158,7 @@ VPseudoJet ConvertPFCands(std::vector<const panda::PFCand*> &incoll, bool puppi,
 
 VPseudoJet ConvertPFCands(panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
 {
-  std::vector<const panda::PFCand*> outcoll;
+  vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
   for (auto incand : incoll)
     outcoll.push_back(incand.get());
@@ -149,7 +168,7 @@ VPseudoJet ConvertPFCands(panda::RefVector<panda::PFCand> &incoll, bool puppi, d
 
 VPseudoJet ConvertPFCands(panda::PFCandCollection &incoll, bool puppi, double minPt) 
 {
-  std::vector<const panda::PFCand*> outcoll;
+  vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
   for (auto &incand : incoll)
     outcoll.push_back(&incand);
@@ -185,7 +204,7 @@ bool MuonIP(double dxy, double dz)
   return (dxy < 0.02 && dz < 0.10);
 }
 
-bool IsMatched(std::vector<panda::Particle*>*objects,
+bool IsMatched(vector<panda::Particle*>*objects,
                double deltaR2, double eta, double phi) 
 {
   for (auto *x : *objects) {

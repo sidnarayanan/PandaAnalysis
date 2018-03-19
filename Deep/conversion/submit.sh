@@ -7,11 +7,11 @@ if [[ "$executable" == "" ]]; then
     exit 1
 fi
 
-rm -rf cache
-mkdir cache
+rm -rf ${SUBMIT_NPY}/cache
+mkdir ${SUBMIT_NPY}/cache
 
 #for f in ZpWW ZpTT ZpA0h QCD; do
 for f in Top_lo QCD; do
 #for f in Top_lo; do
-    submit --exec $executable --arglist partitions/${f}.txt --cache $(readlink -f cache/$f) 
+    submit --exec $executable --arglist ${SUBMIT_NPY}/partitions/${f}.txt --cache $(readlink -f ${SUBMIT_NPY}/cache/$f) 
 done

@@ -210,6 +210,7 @@ void PandaAnalyzer::ComplicatedLeptons() {
   }
 
   // muons
+  int rocRNGIdx = 0;
   for (auto& mu : event.muons) {
     float pt = mu.pt(); float eta = mu.eta(); float aeta = fabs(eta);
     if (pt<2 || aeta>2.4) continue;
@@ -227,10 +228,11 @@ void PandaAnalyzer::ComplicatedLeptons() {
         double dR = genP4.DeltaR(mu.p4());
         if (dR < 0.3) muonIsTruthMatched=true;
       } if (muonIsTruthMatched) { // correct using the gen-particle pt
-        double random1=rng.Rndm();
+        double random1 = event.rng->uniform(rocRNGIdx);
         ptCorrection=rochesterCorrection->kScaleFromGenMC((int)mu.charge, pt, eta, mu.phi(), mu.trkLayersWithMmt, genParticle.pt(), random1, 0, 0);
       } else { // if gen match not found, correct the other way
-        double random1=rng.Rndm(); double random2=rng.Rndm();
+        double random1 = event.rng->uniform(rocRNGIdx); 
+        double random2 = event.rng->uniform(rocRNGIdx);
         ptCorrection=rochesterCorrection->kScaleAndSmearMC((int)mu.charge, pt, eta, mu.phi(), mu.trkLayersWithMmt, random1, random2, 0, 0);
       }
     }
@@ -395,7 +397,7 @@ void PandaAnalyzer::ComplicatedPhotons()
         if (!PFChargedPhotonMatch(pho)) phoSelBit |= pTrkVeto;
         gt->loosePho1SelBit = phoSelBit;
         if (pho.medium && pho.csafeVeto && pho.pixelVeto) gt->loosePho1IsTight = 1;
-	else                                              gt->loosePho1IsTight = 0;
+        else                                              gt->loosePho1IsTight = 0;
       }
       if ( pho.medium && pho.csafeVeto && pho.pixelVeto) { // apply eta cut offline
         gt->nTightPhoton++;
@@ -449,14 +451,14 @@ void PandaAnalyzer::Taus()
   for (auto& tau : event.taus) {
     if (analysis->vbf) {
       if (!tau.decayMode || !tau.decayModeNew)
-	continue;
+        continue;
       if (!tau.looseIsoMVAOld)
-	continue;
+        continue;
     } else {
       if (!tau.decayMode || !tau.decayModeNew)
-	continue;
+        continue;
       if (!tau.looseIsoMVA)
-	continue;
+        continue;
     }
     if (tau.pt()<18 || fabs(tau.eta())>2.3)
       continue;

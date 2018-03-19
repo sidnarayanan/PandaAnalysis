@@ -116,7 +116,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   if (analysis->deepGenGrid)
     grid->clear();
 
-  std::vector<int> leptonIndices; // hard leptons from t->W->lv decay
+  std::set<int> leptonIndices; // hard leptons from t->W->lv decay
   std::vector<fastjet::PseudoJet> finalStates;
   unsigned idx = -1;
   for (auto &p : genParticles) {
@@ -128,7 +128,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
         apdgid == 14 ||
         apdgid == 16)
       continue; 
-    if (p.pt() > 0.001) {
+    if (p.pt() > 0.001 && fabs(p.eta()) < 5) {
       if (!analysis->deepGenGrid || (pdgToQ[apdgid] != 0)) { // it's charged, so we have tracking
         finalStates.emplace_back(p.px(), p.py(), p.pz(), p.e());
         finalStates.back().set_user_index(idx);
@@ -158,7 +158,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
             }
           }
           if (foundT) {
-            leptonIndices.push_back(idx);
+            leptonIndices.insert(idx);
           }
         }
       } else {
@@ -166,6 +166,9 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
       }
     }
   }
+
+  tr->TriggerSubEvent("reading gen");
+
   if (analysis->deepGenGrid) {
     int user_idx = -2;
     for (auto &v : grid->get()) {
@@ -173,6 +176,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
       finalStates.back().set_user_index(user_idx); // not associated with a real particle
       --user_idx;
     } 
+    tr->TriggerSubEvent("gen grid");
   }
 
   // cluster the  jet 
@@ -187,7 +191,7 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
     bool jetOverlapsLepton = false;
     for (auto& c : testJet.constituents()) {
       int idx = c.user_index();
-      if (std::find(leptonIndices.begin(),leptonIndices.end(),idx) != leptonIndices.end()) {
+      if (leptonIndices.find(idx) != leptonIndices.end()) {
         jetOverlapsLepton = true;
         break;
       }
@@ -245,14 +249,17 @@ void PandaAnalyzer::FillGenTree(panda::Collection<T>& genParticles)
   tr->TriggerSubEvent("sd and tau");
 
   // get ecfs
-  unsigned nFilter = std::min(25, (int)sdConstituents.size());
+  unsigned nFilter = std::min(30, (int)sdConstituents.size());
   VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
 
+  GeneralTree::ECFParams p;
   for (int beta = 1; beta != 3; ++beta) {
     pandaecf::calcECFN(beta+1, sdConstsFiltered, ecfnMan);
     for (int N = 1; N != 5 ; ++N) {
       for (int o = 1; o != 4; ++o) {
         genJetInfo.ecfs[o-1][N-1][beta-1] = ecfnMan->ecfns[Form("%i_%i", N, o)];
+        p.order = o; p.N = N; p.ibeta = beta;
+        gt->fj1ECFNs[p] = ecfnMan->ecfns[Form("%i_%i", N, o)];
       }
     }
   }

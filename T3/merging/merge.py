@@ -45,9 +45,12 @@ for k,v in processes.iteritems():
     else:
         pds[v[0]] = (k,-1)
 
+submit_name = environ['SUBMIT_NAME']
 user = environ['USER']
-system('mkdir -p /tmp/%s/split'%user) # tmp dir
-system('mkdir -p /tmp/%s/merged'%user) # tmp dir
+split_dir = '/tmp/%s/split/%s/'%(user, submit_name)
+merged_dir = '/tmp/%s/merged/%s/'%(user, submit_name)
+for d in [split_dir, merged_dir]:
+    system('mkdir -p ' + d)
 
 inbase = environ['SUBMIT_OUTDIR']
 outbase = environ['PANDA_FLATDIR']
@@ -88,14 +91,14 @@ def hadd(inpath,outpath):
 
 def normalizeFast(fpath,opt):
     xsec=-1
-    if type(opt)==type(1.) or type(opt)==type(1):
+    if type(opt)==float or type(opt)==int:
         xsec = opt
     else:
         try:
-            xsec = processes[proc][2]
+            xsec = processes[fpath][2]
         except KeyError:
             for k,v in processes.iteritems():
-                if proc in k:
+                if fpath in k:
                     xsec = v[2]
     if xsec<0:
         PError(sname,'could not find xsec, skipping %s!'%opt)
@@ -108,6 +111,7 @@ def normalizeFast(fpath,opt):
 def merge(shortnames,mergedname):
     to_skip = []
     for shortname in shortnames:
+        xsec = None
         if 'monotop' in shortname:
             pd = shortname
             xsec = 1
@@ -151,17 +155,17 @@ def merge(shortnames,mergedname):
                     xsec = pds[shortname_][1]
                     break
         inpath = inbase+shortname+'_*.root'
-        success = hadd(inpath,'/tmp/%s/split/%s.root'%(user,shortname))
-        if xsec>0 and success:
-            normalizeFast('/tmp/%s/split/%s.root'%(user,shortname),xsec)
+        success = hadd(inpath, split_dir + '%s.root'%(shortname))
+        if success:
+            normalizeFast(split_dir + '%s.root'%(shortname),xsec)
         if not success:
             if not skip_missing:
                 PError(sname, 'Could not merge %s, exiting!'%shortname)
                 exit(1)
             else:
                 to_skip.append(shortname)
-    to_hadd = ['/tmp/%s/split/%s.root'%(user,x) for x in shortnames if x not in to_skip]
-    hadd(to_hadd, '/tmp/%s/merged/%s.root'%(user,mergedname))
+    to_hadd = [split_dir + '%s.root'%(x) for x in shortnames if x not in to_skip]
+    hadd(to_hadd, merged_dir + '%s.root'%(mergedname))
     for f in to_hadd:
         system('rm -f %s'%f)
 
@@ -176,7 +180,7 @@ for pd in arguments:
 
 for pd in args:
     merge(args[pd],pd)
-    merged_file = '/tmp/%s/merged/%s.root'%(user,pd)
+    merged_file = merged_dir + '%s.root'%(pd)
     hadd(merged_file ,outbase) # really an mv
     system('rm -f %s'%merged_file)
     PInfo(sname,'finished with '+pd)
