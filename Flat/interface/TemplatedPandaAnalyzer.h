@@ -27,7 +27,7 @@ void PandaAnalyzer::RemoveGenDups(const panda::Collection<T>& genParticles)
     for (auto* pPtr : validGenP) {
       const T* gPtr = dynamic_cast<const T*>(pPtr);
       if ((g.pdgid == gPtr->pdgid) &&
-          ((g.pt() - gPtr->pt()) < ptThreshold) &&
+          (fabs(g.pt() - gPtr->pt()) < ptThreshold) &&
           (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
         foundDup = true;
         break;
