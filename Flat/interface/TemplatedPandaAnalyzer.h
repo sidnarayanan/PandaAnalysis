@@ -223,7 +223,7 @@ void PandaAnalyzer::FillGenTree()
 
   fastjet::PseudoJet* fullJet = NULL;
   for (auto& testJet : allJets) {
-    if (testJet.perp() < 450)
+    if (testJet.perp() < 200)
       break;
     bool jetOverlapsLepton = false;
     for (auto& c : testJet.constituents()) {
@@ -247,7 +247,7 @@ void PandaAnalyzer::FillGenTree()
   }
 
   gt->genFatJetPt = fullJet->perp();
-  if (gt->genFatJetPt < 450) {
+  if (gt->genFatJetPt < 200) {
     tr->TriggerEvent("fill gen tree");
     return;
   }
@@ -282,6 +282,10 @@ void PandaAnalyzer::FillGenTree()
   genJetInfo.tau1sd = tauN->getTau(1, sdConstituents);
   genJetInfo.tau2sd = tauN->getTau(2, sdConstituents);
   genJetInfo.tau3sd = tauN->getTau(3, sdConstituents);
+  gt->fj1Tau32 = genJetInfo.tau3/genJetInfo.tau2;
+  gt->fj1Tau21 = genJetInfo.tau2/genJetInfo.tau1;
+  gt->fj1Tau32SD = genJetInfo.tau3sd/genJetInfo.tau2sd;
+  gt->fj1Tau21SD = genJetInfo.tau2sd/genJetInfo.tau1sd;
 
   tr->TriggerSubEvent("sd and tau");
 

@@ -148,9 +148,12 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     std::vector<TString> keepable = {"mcWeight","scale","scaleUp",
                                      "scaleDown","pdf.*","gen.*",
                                      "sf_tt.*","sf_qcdTT.*",
-                                     "trueGenBosonPt","sf_qcd.*","sf_ewk.*"};
-    if (analysis->deepGen)
+                                     "trueGenBosonPt","sf_qcd.*","sf_ewk.*",
+                                     "nHF.*", "nB.*"};
+    if (analysis->deepGen) {
       keepable.push_back("fj1ECFN.*");
+      keepable.push_back("fj1Tau.*");
+    }
     gt->RemoveBranches({".*"},keepable);
   }
   if (!analysis->fatjet && !analysis->ak8) {
