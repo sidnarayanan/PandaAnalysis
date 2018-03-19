@@ -6,7 +6,7 @@ import ROOT as root
 import cppyy
 import sys
 
-# this module let's you build a LambdaSelection instance on the fly
+# this module lets you build a LambdaSelection instance on the fly
 
 # look we're doing C++ in python, we even have this:
 this = sys.modules[__name__]
