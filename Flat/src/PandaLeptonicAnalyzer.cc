@@ -122,7 +122,7 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     hDRecoTrackIso_P[i] = new TH1D(Form("hDRecoTrackIso_P_%d",i), Form("hDRecoTrackIso_P_%d",i), 60, 60, 120);
     hDRecoTrackIso_F[i] = new TH1D(Form("hDRecoTrackIso_F_%d",i), Form("hDRecoTrackIso_F_%d",i), 60, 60, 120);
   }
-  for(int i=0; i<4; i++){
+  for(int i=0; i<8; i++){
     hDGenToMuon[i]  = new TH1D(Form("hDGenToMuon_%d",i),  Form("hDGenToMuon_%d",i),  96, -2.4, 2.4);
   }
 */
@@ -684,7 +684,7 @@ void PandaLeptonicAnalyzer::Terminate() {
     fOut->WriteTObject(hDRecoTrackIso_P[i]);
     fOut->WriteTObject(hDRecoTrackIso_F[i]);
   }
-  for(int i=0; i<4; i++){
+  for(int i=0; i<8; i++){
     fOut->WriteTObject(hDGenToMuon[i]);
   }
 */
@@ -751,7 +751,7 @@ void PandaLeptonicAnalyzer::Terminate() {
     delete hDRecoTrackIso_P[i];
     delete hDRecoTrackIso_F[i];
   }
-  for(int i=0; i<4; i++){
+  for(int i=0; i<8; i++){
     delete hDGenToMuon[i];
   }
 */
@@ -2224,22 +2224,28 @@ void PandaLeptonicAnalyzer::Run() {
 	  bool isTrack = false;
           for (auto& cand : event.pfCandidates) {
             if (cand.q() == 0 || cand.pt() < 10) continue;
-            if(cand.dR(part) < 0.15) {isTrack = true; break;}
+            if(cand.dR(part) >= 0.15) continue;
+	    isTrack = true; break;
           }
-	  bool isMuon = false;
+	  bool isSTMuon = false; bool isTKMuon = false;
           for (auto& mu2 : event.muons) {
             if (mu2.pt() < 10 || fabs(mu2.eta()) > 2.4) continue;
-	    bool isSTMuon = false;
+	    if(mu2.dR(part) >= 0.15) continue;
+	    isTKMuon = mu2.tracker;
+	    isSTMuon = false;
 	    if     (!mu2.global && !mu2.tracker) isSTMuon = true;
 	    else if(!mu2.global &&  mu2.tracker) isSTMuon = false;
 	    else if( mu2.global) isSTMuon = true;
-	    if(isSTMuon == false) continue;
-	    if(mu2.dR(part) < 0.15) {isMuon = true; break;}
+	    break;
           }
-	  if     ( isTrack &&  isMuon) hDGenToMuon[0]->Fill(dressedLepton.Eta(),event.weight);
-	  else if(!isTrack &&  isMuon) hDGenToMuon[1]->Fill(dressedLepton.Eta(),event.weight);
-	  else if( isTrack && !isMuon) hDGenToMuon[2]->Fill(dressedLepton.Eta(),event.weight);
-	  else if(!isTrack && !isMuon) hDGenToMuon[3]->Fill(dressedLepton.Eta(),event.weight);
+	  if     ( isTrack &&  isSTMuon) hDGenToMuon[0]->Fill(dressedLepton.Eta(),event.weight);
+	  else if(!isTrack &&  isSTMuon) hDGenToMuon[1]->Fill(dressedLepton.Eta(),event.weight);
+	  else if( isTrack && !isSTMuon) hDGenToMuon[2]->Fill(dressedLepton.Eta(),event.weight);
+	  else if(!isTrack && !isSTMuon) hDGenToMuon[3]->Fill(dressedLepton.Eta(),event.weight);
+	  if     ( isTKMuon &&  isSTMuon) hDGenToMuon[4]->Fill(dressedLepton.Eta(),event.weight);
+	  else if(!isTKMuon &&  isSTMuon) hDGenToMuon[5]->Fill(dressedLepton.Eta(),event.weight);
+	  else if( isTKMuon && !isSTMuon) hDGenToMuon[6]->Fill(dressedLepton.Eta(),event.weight);
+	  else if(!isTKMuon && !isSTMuon) hDGenToMuon[7]->Fill(dressedLepton.Eta(),event.weight);
 	}
         // End gen to muon efficiency study
 */

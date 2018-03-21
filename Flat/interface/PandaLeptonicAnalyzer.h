@@ -216,7 +216,7 @@ private:
     TH1D *hDRecoMuonIso_F[28];
     TH1D *hDRecoTrackIso_P[28];
     TH1D *hDRecoTrackIso_F[28];
-    TH1D *hDGenToMuon[4];
+    TH1D *hDGenToMuon[8];
 */
     TH1D *hDDilPtMM;     TH1D *hDDilPtMM_PDF;	  TH1D *hDDilPtMM_QCD;	   TH1D *hDDilPtMM_QCDPart[6];
     TH1D *hDDilPtEE;	 TH1D *hDDilPtEE_PDF;	  TH1D *hDDilPtEE_QCD;	   TH1D *hDDilPtEE_QCDPart[6];
