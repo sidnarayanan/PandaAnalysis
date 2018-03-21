@@ -89,7 +89,7 @@ int PandaLeptonicAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
                                      "electrons", "muons", "taus", "photons", 
                                      "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet",
                                      "recoil","metFilters","genMet","superClusters", "vertices", "triggerObjects"});
-  readlist.push_back("pfCandidates");
+  //readlist.push_back("pfCandidates");
   readlist.setVerbosity(0);
 
   readlist.push_back("triggers");
