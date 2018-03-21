@@ -153,6 +153,7 @@ private:
 
     const int nBinEta = 28;
     const int nBinPt = 36;
+    const int nBinHighPt = 5;
     const int nBinRap = 12;
     const int nBinPhiStar = 34;
     const int nBinPtRap0 = 34;
@@ -215,9 +216,12 @@ private:
     TH1D *hDRecoMuonIso_F[28];
     TH1D *hDRecoTrackIso_P[28];
     TH1D *hDRecoTrackIso_F[28];
+    TH1D *hDGenToMuon[4];
 */
     TH1D *hDDilPtMM;     TH1D *hDDilPtMM_PDF;	  TH1D *hDDilPtMM_QCD;	   TH1D *hDDilPtMM_QCDPart[6];
     TH1D *hDDilPtEE;	 TH1D *hDDilPtEE_PDF;	  TH1D *hDDilPtEE_QCD;	   TH1D *hDDilPtEE_QCDPart[6];
+    TH1D *hDDilHighPtMM; TH1D *hDDilHighPtMM_PDF; TH1D *hDDilHighPtMM_QCD; TH1D *hDDilHighPtMM_QCDPart[6];
+    TH1D *hDDilHighPtEE; TH1D *hDDilHighPtEE_PDF; TH1D *hDDilHighPtEE_QCD; TH1D *hDDilHighPtEE_QCDPart[6];
     TH1D *hDDilRapMM;	 TH1D *hDDilRapMM_PDF;	  TH1D *hDDilRapMM_QCD;    TH1D *hDDilRapMM_QCDPart[6];
     TH1D *hDDilRapEE;	 TH1D *hDDilRapEE_PDF;	  TH1D *hDDilRapEE_QCD;	   TH1D *hDDilRapEE_QCDPart[6];
     TH1D *hDDilPhiStarMM;TH1D *hDDilPhiStarMM_PDF;TH1D *hDDilPhiStarMM_QCD;TH1D *hDDilPhiStarMM_QCDPart[6];
