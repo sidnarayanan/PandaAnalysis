@@ -242,6 +242,7 @@ private:
     TH1D *hDWWPTL2;      TH1D *hDWWPTL2_PDF;	  TH1D *hDWWPTL2_QCD;	   TH1D *hDWWPTL2_QCDPart[6];
     TH1D *hDWWDPHILL;    TH1D *hDWWDPHILL_PDF;	  TH1D *hDWWDPHILL_QCD;	   TH1D *hDWWDPHILL_QCDPart[6];
     TH1D *hDWWN0JET;     TH1D *hDWWN0JET_PDF;	  TH1D *hDWWN0JET_QCD;	   TH1D *hDWWN0JET_QCDPart[6];
+    TH1D *hDWWNJET;      TH1D *hDWWNJET_PDF;	  TH1D *hDWWNJET_QCD;	   TH1D *hDWWNJET_QCDPart[6];
     TTree *tIn=0;    // input tree to read
     unsigned int preselBits=0;
 
