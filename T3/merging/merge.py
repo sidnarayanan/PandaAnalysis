@@ -106,6 +106,8 @@ def normalizeFast(fpath,opt):
     xsec *= xsecscale
     PInfo(sname,'normalizing %s (%s) ...'%(fpath,opt))
     n = root.Normalizer();
+    if not VERBOSE:
+        n.reportFreq = 2
     n.NormalizeTree(fpath,xsec)
 
 def merge(shortnames,mergedname):

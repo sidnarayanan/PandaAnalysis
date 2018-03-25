@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <vector>
 
-#define EGMSCALE 1
 
 // only contain the main methods
 
@@ -562,6 +561,8 @@ void PandaAnalyzer::Run()
   } // entry loop
 
   tr->Summary();
+  for (auto* s : selections) 
+    s->report(); 
 
   if (DEBUG) { PDebug("PandaAnalyzer::Run","Done with entry loop"); }
 

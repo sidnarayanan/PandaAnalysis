@@ -5,7 +5,6 @@
 #include <vector>
 #include <unordered_set>
 
-#define EGMSCALE 1
 
 using namespace panda;
 using namespace std;
@@ -16,7 +15,6 @@ void PandaAnalyzer::FatjetPartons()
 {
   gt->fj1NPartons = 0;
   if (fj1) {
-    unsigned nP = 0;
     double threshold = 0.2 * fj1->rawPt;
 
     const FatJet *my_fj = fj1; 
@@ -29,7 +27,7 @@ void PandaAnalyzer::FatjetPartons()
     unordered_set<const panda::GenParticle*> partons; 
     for (auto* genptr : validGenP) {
       auto& gen = pToGRef(genptr);
-      unsigned apdgid = abs(gen.pdgid);
+      int apdgid = abs(gen.pdgid);
       if (apdgid > 5 && 
           apdgid != 21 &&
           apdgid != 15 &&
@@ -61,7 +59,7 @@ void PandaAnalyzer::FatjetPartons()
               child.parent.get() == &gen))
           continue; 
         
-        unsigned child_apdgid = abs(child.pdgid);
+        int child_apdgid = abs(child.pdgid);
         if (child_apdgid > 5 && 
             child_apdgid != 21 &&
             child_apdgid != 15 &&
@@ -101,8 +99,8 @@ void PandaAnalyzer::FatjetPartons()
       vTmp.SetPtEtaPhiM(p->pt(), p->eta(), p->phi(), p->m());
       vPartonSum += vTmp;
 
-      unsigned digit3 = (p->pdgid%1000 - p->pdgid%100) / 100;
-      unsigned digit4 = (p->pdgid%10000 - p->pdgid%1000) / 1000;
+      int digit3 = (p->pdgid%1000 - p->pdgid%100) / 100;
+      int digit4 = (p->pdgid%10000 - p->pdgid%1000) / 1000;
       if (p->pdgid == 5 || digit3 == 5 || digit4 == 5)
         gt->fj1NBPartons++;
       if (p->pdgid == 4 || digit3 == 4 || digit4 == 4)
@@ -130,14 +128,14 @@ void PandaAnalyzer::FillPFTree()
 
   // jet-wide quantities
   fjpt = -1; fjmsd = -1; fjeta = -1; fjphi = -1; fjphi = -1; fjrawpt = -1;
-  for (unsigned i = 0; i != NMAXPF; ++i) {
-    for (unsigned j = 0; j != NPFPROPS; ++j) {
+  for (int i = 0; i != NMAXPF; ++i) {
+    for (int j = 0; j != NPFPROPS; ++j) {
       pfInfo[i][j] = 0;
     }
   }
   if (analysis->deepSVs) {
-    for (unsigned i = 0; i != NMAXSV; ++i) {
-      for (unsigned j = 0; j != NSVPROPS; ++j) {
+    for (int i = 0; i != NMAXSV; ++i) {
+      for (int j = 0; j != NSVPROPS; ++j) {
         svInfo[i][j] = 0;
       }
     }}
@@ -160,7 +158,7 @@ void PandaAnalyzer::FillPFTree()
   std::map<const SecondaryVertex*, std::unordered_set<const PFCand*>> svTracks;
   std::map<const SecondaryVertex*, int> svIdx;
   if (analysis->deepSVs) {
-    unsigned idx = 0;
+    int idx = 0;
     for (auto &sv : event.secondaryVertices) {
       if (idx == NMAXSV)
         break;
@@ -224,7 +222,7 @@ void PandaAnalyzer::FillPFTree()
          [](const PFCand *x, const PFCand *y) { return x->pt() > y->pt(); });
   }
 
-  unsigned idx = 0;
+  int idx = 0;
   for (auto *cand : sortedC) {
     if (idx == NMAXPF)
       break;
@@ -370,7 +368,7 @@ void PandaAnalyzer::FatjetBasics()
 
         // now have to do this mess with the subjets...
         TLorentzVector sjSum, sjSumUp, sjSumDown, sjSumSmear;
-        for (unsigned int iSJ=0; iSJ!=fj.subjets.size(); ++iSJ) {
+        for (int iSJ=0; iSJ!=(int)fj.subjets.size(); ++iSJ) {
           auto& subjet = fj.subjets.objAt(iSJ);
           // now correct...
           double factor=1;
@@ -436,7 +434,7 @@ void PandaAnalyzer::FatjetBasics()
       gt->fj1HTTFRec = fj.htt_frec;
 
       std::vector<panda::MicroJet const*> subjets;
-      for (unsigned iS(0); iS != fj.subjets.size(); ++iS)
+      for (int iS(0); iS != fj.subjets.size(); ++iS)
         subjets.push_back(&fj.subjets.objAt(iS));
 
       auto csvsort([](panda::MicroJet const* j1, panda::MicroJet const* j2)->bool {
@@ -454,7 +452,7 @@ void PandaAnalyzer::FatjetBasics()
 
       gt->fj1DoubleCSV = fj.double_sub;
       if (analysis->monoh) {
-        for (unsigned int iSJ=0; iSJ!=fj.subjets.size(); ++iSJ) {
+        for (int iSJ=0; iSJ!=fj.subjets.size(); ++iSJ) {
           auto& subjet = fj.subjets.objAt(iSJ);
           gt->fj1sjPt[iSJ]=subjet.pt();
           gt->fj1sjEta[iSJ]=subjet.eta();
@@ -491,7 +489,7 @@ void PandaAnalyzer::FatjetRecluster()
 
       gt->fj1NConst = constituents.size();
       double eTot=0, eTrunc=0;
-      for (unsigned iC=0; iC!=gt->fj1NConst; ++iC) {
+      for (int iC=0; iC!=gt->fj1NConst; ++iC) {
         double e = constituents.at(iC).E();
         eTot += e;
         if (iC<100)
@@ -504,7 +502,7 @@ void PandaAnalyzer::FatjetRecluster()
       VPseudoJet sdConstituents = fastjet::sorted_by_pt(sdJet.constituents());
       gt->fj1NSDConst = sdConstituents.size();
       eTot=0; eTrunc=0;
-      for (unsigned iC=0; iC!=gt->fj1NSDConst; ++iC) {
+      for (int iC=0; iC!=gt->fj1NSDConst; ++iC) {
         double e = sdConstituents.at(iC).E();
         eTot += e;
         if (iC<100)
@@ -522,7 +520,7 @@ void PandaAnalyzer::FatjetRecluster()
 // Responsible: S. Narayanan
 void PandaAnalyzer::FatjetMatching() 
 {
-  unsigned int pdgidTarget=0;
+  int pdgidTarget=0;
   if (!isData && analysis->processType>=kTT) {
     switch(analysis->processType) {
       case kTop:
@@ -547,7 +545,7 @@ void PandaAnalyzer::FatjetMatching()
     for (int iG=0; iG!=nGen; ++iG) {
       auto& part = pToGRef(validGenP.at(iG));
       int pdgid = part.pdgid;
-      unsigned int abspdgid = abs(pdgid);
+      int abspdgid = abs(pdgid);
       if (abspdgid == pdgidTarget)
         targets.push_back(iG);
     } //looking for targets
@@ -593,7 +591,7 @@ void PandaAnalyzer::FatjetMatching()
         for (int jG=0; jG!=nGen; ++jG) {
           auto& partQ = pToGRef(validGenP.at(jG));
           int pdgidQ = partQ.pdgid;
-          unsigned int abspdgidQ = TMath::Abs(pdgidQ);
+          int abspdgidQ = TMath::Abs(pdgidQ);
           if (abspdgidQ>5)
             continue;
           if (abspdgidQ==5 && iB<0 && partQ.parent.get() == &part) {
@@ -635,7 +633,7 @@ void PandaAnalyzer::FatjetMatching()
         for (int jG=0; jG!=nGen; ++jG) {
           auto& partQ = pToGRef(validGenP.at(jG));
           int pdgidQ = partQ.pdgid;
-          unsigned int abspdgidQ = TMath::Abs(pdgidQ);
+          int abspdgidQ = TMath::Abs(pdgidQ);
           if (abspdgidQ>5)
             continue;
           if (partQ.parent.get() == &part) {
@@ -737,8 +735,8 @@ void PandaAnalyzer::FatjetMatching()
       // now get the subjet btag SFs
       vector<btagcand> sj_btagcands;
       vector<double> sj_sf_cent, sj_sf_bUp, sj_sf_bDown, sj_sf_mUp, sj_sf_mDown;
-      unsigned int nSJ = fj1->subjets.size();
-      for (unsigned int iSJ=0; iSJ!=nSJ; ++iSJ) {
+      int nSJ = fj1->subjets.size();
+      for (int iSJ=0; iSJ!=nSJ; ++iSJ) {
         auto& subjet = fj1->subjets.objAt(iSJ);
         int flavor=0;
         for (auto* genptr : validGenP) {
@@ -761,8 +759,8 @@ void PandaAnalyzer::FatjetMatching()
         float btagUncFactor = 1;
         float eta = subjet.eta();
         double eff(1),sf(1),sfUp(1),sfDown(1);
-        unsigned int binpt = btagpt.bin(pt);
-        unsigned int bineta = btageta.bin(fabs(eta));
+        int binpt = btagpt.bin(pt);
+        int bineta = btageta.bin(fabs(eta));
         if (flavor==5) {
           eff = beff[bineta][binpt];
         } else if (flavor==4) {

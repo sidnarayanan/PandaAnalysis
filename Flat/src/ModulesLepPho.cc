@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <vector>
 
-#define EGMSCALE 1
 
 using namespace panda;
 using namespace std;
@@ -24,7 +23,7 @@ void PandaAnalyzer::SimpleLeptons()
       continue;
     if (!ElectronIP(ele.eta(),ele.dxy,ele.dz)) 
       continue;
-    unsigned iL = gt->nLooseElectron;
+    int iL = gt->nLooseElectron;
     bool isFake   = ele.hltsafe;
     bool isMedium = ele.medium;
     bool isTight  = ele.tight && pt>40 && aeta<2.5;
@@ -68,7 +67,7 @@ void PandaAnalyzer::SimpleLeptons()
     if (isMedium) muSelBit |= kMedium;
     if (isTight ) muSelBit |= kTight;
     if (isDxyz  ) muSelBit |= kDxyz;
-    unsigned iL=gt->nLooseMuon;
+    int iL=gt->nLooseMuon;
     gt->muonPt[iL]                   = pt;
     gt->muonEta[iL]                  = eta;
     gt->muonPhi[iL]                  = mu.phi();
@@ -145,7 +144,7 @@ void PandaAnalyzer::ComplicatedLeptons()
       if (pt<10 || aeta>2.5 || !ele.veto) continue;
     }
     ele.setPtEtaPhiM(pt,eta,ele.phi(),511e-6);
-    unsigned iL=gt->nLooseElectron;
+    int iL=gt->nLooseElectron;
     bool isFake   = ele.hltsafe;
     bool isMedium = ele.medium;
     bool isTight  = ele.tight;
@@ -207,7 +206,7 @@ void PandaAnalyzer::ComplicatedLeptons()
     } else if (pt>0) { // perform the rochester correction to the simulated particle
       // attempt gen-matching to a final state muon
       bool muonIsTruthMatched=false; TLorentzVector genP4; GenParticle genParticle;
-      for (unsigned iG = 0; iG != validGenP.size() && !muonIsTruthMatched; ++iG) {
+      for (int iG = 0; iG != (int)validGenP.size() && !muonIsTruthMatched; ++iG) {
         genParticle = pToGRef(validGenP[iG]);
         if (genParticle.finalState != 1) continue;
         if (genParticle.pdgid != ((int)mu.charge) * -13) continue;
@@ -240,7 +239,7 @@ void PandaAnalyzer::ComplicatedLeptons()
     if (isMedium) muSelBit |= kMedium;
     if (isTight ) muSelBit |= kTight;
     if (isDxyz  ) muSelBit |= kDxyz;
-    unsigned iL=gt->nLooseMuon;
+    int iL=gt->nLooseMuon;
     gt->muonPt[iL]                   = pt;
     gt->muonEta[iL]                  = eta;
     gt->muonPhi[iL]                  = mu.phi();
@@ -319,7 +318,7 @@ void PandaAnalyzer::SimplePhotons()
     for (auto& pho : event.photons) {
       if (!pho.loose || !pho.csafeVeto)
         continue;
-      float pt = pho.pt() * EGMSCALE;
+      float pt = pho.pt();
       if (pt<1) continue;
       float eta = pho.eta(), phi = pho.phi();
       if (pt<15 || fabs(eta)>2.5)
@@ -364,7 +363,7 @@ void PandaAnalyzer::ComplicatedPhotons()
     for (auto& pho : event.photons) {
       if (!pho.medium)
         continue;
-      float pt = pho.pt() * EGMSCALE;
+      float pt = pho.pt();
       if (pt<1) continue;
       float eta = pho.eta(), phi = pho.phi();
       if (pt<25 || fabs(eta)>2.5)
@@ -474,7 +473,7 @@ void PandaAnalyzer::SaveGenLeptons()
     bool foundTauLeptonic = false; 
     for (auto* genptr : validGenP) {
       auto& gen = pToGRef(genptr);
-      unsigned apdgid = abs(gen.pdgid);
+      int apdgid = abs(gen.pdgid);
       float pt = gen.pt();
       bool isEmu = false; 
 
@@ -529,7 +528,7 @@ void PandaAnalyzer::LeptonSFs()
   // isolation, and tracking, computed based on the 2 leading loose
   // leptons in the event. Cool guyz get per-leg scalefactors
   // computed in ModulesLepPho.cc
-  for (unsigned int iL=0; iL!=TMath::Min(gt->nLooseLep,2); ++iL) {
+  for (int iL=0; iL!=TMath::Min(gt->nLooseLep,2); ++iL) {
     auto* lep = looseLeps.at(iL);
     float pt = lep->pt(), eta = lep->eta(), aeta = TMath::Abs(eta);
     Muon* mu = dynamic_cast<Muon*>(lep);

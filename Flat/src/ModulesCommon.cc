@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <vector>
 
-#define EGMSCALE 1
 
 using namespace panda;
 using namespace std;
@@ -35,7 +34,6 @@ panda::GenParticle const *PandaAnalyzer::MatchToGen(double eta, double phi, doub
   double r2 = radius*radius;
   pdgid = abs(pdgid);
 
-  unsigned int counter=0;
   for (map<panda::GenParticle const*,float>::iterator iG=genObjects.begin();
       iG!=genObjects.end(); ++iG) {
     if (found!=NULL)
@@ -123,7 +121,7 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
   tAux = new TTree("inputs","inputs");
   
   genJetInfo.particles.resize(NMAXPF);
-  for (unsigned i = 0; i != NMAXPF; ++i) {
+  for (int i = 0; i != NMAXPF; ++i) {
     genJetInfo.particles[i].resize(NGENPROPS);
   }
 
@@ -136,25 +134,27 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
   }
 
   tAux->Branch("eventNumber",&(gt->eventNumber),"eventNumber/l");
-  tAux->Branch("nprongs",&(genJetInfo.nprongs),"nprongs/I");
-  tAux->Branch("partonpt",&(genJetInfo.partonpt),"partonpt/F");
-  tAux->Branch("partonm",&(genJetInfo.partonm),"partonm/F");
-  tAux->Branch("pt",&(genJetInfo.pt),"pt/F");
-  tAux->Branch("msd",&(genJetInfo.msd),"msd/F");
-  tAux->Branch("eta",&(genJetInfo.eta),"eta/F");
-  tAux->Branch("phi",&(genJetInfo.phi),"phi/F");
-  tAux->Branch("m",&(genJetInfo.m),"m/F");
-  tAux->Branch("tau3",&(genJetInfo.tau3),"tau3/F");
-  tAux->Branch("tau2",&(genJetInfo.tau2),"tau2/F");
-  tAux->Branch("tau1",&(genJetInfo.tau1),"tau1/F");
-  tAux->Branch("tau3sd",&(genJetInfo.tau3sd),"tau3sd/F");
-  tAux->Branch("tau2sd",&(genJetInfo.tau2sd),"tau2sd/F");
-  tAux->Branch("tau1sd",&(genJetInfo.tau1sd),"tau1sd/F");
-  for (int o = 1; o != 4; ++o) {
-    for (int N = 1; N != 5; ++N) {
-      for (int beta = 1; beta != 3; ++beta) {
-        TString bname = Form("%i_%i_%i",o,N,beta);
-        tAux->Branch(bname,&(genJetInfo.ecfs[o-1][N-1][beta-1]),bname+"/F");
+  if (!analysis->deepExC) {
+    tAux->Branch("nprongs",&(genJetInfo.nprongs),"nprongs/I");
+    tAux->Branch("partonpt",&(genJetInfo.partonpt),"partonpt/F");
+    tAux->Branch("partonm",&(genJetInfo.partonm),"partonm/F");
+    tAux->Branch("pt",&(genJetInfo.pt),"pt/F");
+    tAux->Branch("msd",&(genJetInfo.msd),"msd/F");
+    tAux->Branch("eta",&(genJetInfo.eta),"eta/F");
+    tAux->Branch("phi",&(genJetInfo.phi),"phi/F");
+    tAux->Branch("m",&(genJetInfo.m),"m/F");
+    tAux->Branch("tau3",&(genJetInfo.tau3),"tau3/F");
+    tAux->Branch("tau2",&(genJetInfo.tau2),"tau2/F");
+    tAux->Branch("tau1",&(genJetInfo.tau1),"tau1/F");
+    tAux->Branch("tau3sd",&(genJetInfo.tau3sd),"tau3sd/F");
+    tAux->Branch("tau2sd",&(genJetInfo.tau2sd),"tau2sd/F");
+    tAux->Branch("tau1sd",&(genJetInfo.tau1sd),"tau1sd/F");
+    for (int o = 1; o != 4; ++o) {
+      for (int N = 1; N != 5; ++N) {
+        for (int beta = 1; beta != 3; ++beta) {
+          TString bname = Form("%i_%i_%i",o,N,beta);
+          tAux->Branch(bname,&(genJetInfo.ecfs[o-1][N-1][beta-1]),bname+"/F");
+        }
       }
     }
   }
@@ -183,13 +183,13 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
   tAux = new TTree("inputs","inputs");
   
   pfInfo.resize(NMAXPF);
-  for (unsigned i = 0; i != NMAXPF; ++i) {
+  for (int i = 0; i != NMAXPF; ++i) {
     pfInfo[i].resize(NPFPROPS);
   }
   tAux->Branch("kinematics",&pfInfo);
   
   svInfo.resize(NMAXSV);
-  for (unsigned i = 0; i != NMAXSV; ++i) {
+  for (int i = 0; i != NMAXSV; ++i) {
     svInfo[i].resize(NSVPROPS);
   }
   tAux->Branch("svs",&svInfo);
@@ -364,7 +364,7 @@ void PandaAnalyzer::HeavyFlavorCounting()
     int apdgid = abs(pdgid);
     if (apdgid!=5 && apdgid!=4) 
       continue;
-    if (gen.pt()>5) {
+    if (pt>5) {
       gt->nHF++;
       if (apdgid==5)
         gt->nB++;

@@ -203,13 +203,28 @@ void PandaAnalyzer::FillGenTree()
     tr->TriggerSubEvent("gen grid");
   }
 
-  // to test exclusive clustering, don't need to cluster jets
+  // to test exclusive clustering, don't need to cluster fat jets
   if (analysis->deepExC) {
-    for (int iC = 0; iC != std::min((size_t)NMAXPF,finalStates.size()); ++iC) {
+    std::sort(finalStates.begin(), finalStates.end(),
+              [](const fastjet::PseudoJet& x, const fastjet::PseudoJet& y) { return x.perp() > y.perp(); });
+    for (int iC = 0; iC != std::min(NMAXPF,(int)finalStates.size()); ++iC) {
       auto& p = finalStates.at(iC);
+      p.set_user_index(iC); // overwrite the indices
       genJetInfo.particles[iC][0] = p.eta();
       genJetInfo.particles[iC][1] = p.phi();
       genJetInfo.particles[iC][2] = p.perp();
+      genJetInfo.particles[iC][3] = p.e();
+    }
+    // cluster into ak4 jets
+    fastjet::ClusterSequenceArea seq(finalStates, *jetDefGen, *areaDef);
+    std::vector<fastjet::PseudoJet> allJets(fastjet::sorted_by_pt(seq.inclusive_jets(0.)));
+    for (int iJ = 0; iJ != (int)allJets.size(); ++iJ) {
+      auto& j = allJets.at(iJ);
+      for (auto& p : j.constituents()) {
+        if (p.user_index() < NMAXPF && p.user_index() > 0) {
+          genJetInfo.particles[p.user_index()][4] = iJ + 1;
+        }
+      }
     }
     tr->TriggerEvent("fill gen tree");
     return;
@@ -389,7 +404,7 @@ void PandaAnalyzer::FillGenTree()
     if (c.user_index() >= 0) {
       const T* gen = dynamic_cast<const T*>(validGenP.at(c.user_index()));
       int pdgid = gen->pdgid;
-      unsigned apdgid = abs(pdgid);
+      int apdgid = abs(pdgid);
       if (apdgid == 11) {
         ptype = 1 * sign(pdgid * -11);
       } else if (apdgid == 13) {

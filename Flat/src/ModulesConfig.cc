@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <vector>
 
-#define EGMSCALE 1
 
 // contains any configuration-related method
 
@@ -218,8 +217,12 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
       NPFPROPS += 3;
     }
   }
+  if (analysis->deepExC) {
+    NMAXPF = 250;
+    NGENPROPS = 5;
+  }
 
-  if (analysis->reclusterGen) {
+  if (analysis->reclusterGen || analysis->deepExC) {
     double radius = 0.4;
     jetDefGen = new fastjet::JetDefinition(fastjet::antikt_algorithm,radius);
   }

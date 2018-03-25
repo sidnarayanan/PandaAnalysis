@@ -1,6 +1,4 @@
 <use   name="root"/>
-<use   name="gmp"/>
-<use   name="boost"/>
 <use   root=""/>
 <use   name="fastjet"/>
 <use   name="fastjet-contrib"/>

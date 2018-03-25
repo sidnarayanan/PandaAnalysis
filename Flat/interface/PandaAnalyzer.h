@@ -46,13 +46,6 @@
 #include "TMVA/Reader.h"
 
 /////////////////////////////////////////////////////////////////////////////
-// some misc definitions
-
-#define NMAXPF 100
-#define NMAXSV 10
-
-
-/////////////////////////////////////////////////////////////////////////////
 // PandaAnalyzer definition
 class PandaAnalyzer {
 public :
@@ -196,15 +189,11 @@ private:
         nprongs=-1;
         partonpt=-1; partonm=-1;
         for (auto& v : particles) {
-          for (auto& vv : v) {
-            vv = 0;
-          }
+          std::fill(v.begin(), v.end(), 0);
         }
         for (auto& v : ecfs) {
           for (auto& vv : v) {
-            for (auto& vvv : vv) {
-              vvv = -1;
-            }
+            std::fill(vv.begin(), vv.end(), -1);
           }
         }
       }
@@ -421,6 +410,7 @@ private:
     std::vector<std::vector<float>> svInfo; 
     float fjmsd, fjpt, fjrawpt, fjeta, fjphi;
     int NPFPROPS = 9, NSVPROPS = 13;
+    int NMAXPF = 100, NMAXSV = 10;
 
     GenJetInfo genJetInfo;
     int NGENPROPS = 8; 

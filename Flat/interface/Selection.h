@@ -7,6 +7,8 @@
 #ifndef PANDA_SELECTION
 #define PANDA_SELECTION
 
+#define __LAMBDA(x) [](const GeneralTree* gt) { return x; }
+
 class Selection {
 public:
   enum Stage {
@@ -17,7 +19,7 @@ public:
   virtual ~Selection() { }
   
   virtual void report() const final { 
-    PDebug("Selection " + name, Form("Passed %i out of %i", nPassed, nTotal)); 
+    PDebug("Selection::" + name, Form("Accepted %i/%i events", nPassed, nTotal)); 
   }
   virtual void set_gt(const GeneralTree *gt_) final { gt = gt_; }
   // if called at a different stage, just return true
@@ -52,8 +54,6 @@ protected:
 private:
   accept_func f;
 };
-
-#define __LAMBDA(x) [](const GeneralTree* gt) { return x; }
 
 class TriggerSel: public LambdaSel {
 public:

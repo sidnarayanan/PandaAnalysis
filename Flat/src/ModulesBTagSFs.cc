@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 
-#define EGMSCALE 1
 
 using namespace panda;
 using namespace std;

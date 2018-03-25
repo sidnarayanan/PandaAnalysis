@@ -92,6 +92,12 @@ reweight_s = np.vectorize(reweight_s)
 data['ptweight'] = reweight(data['pt'])
 data['ptweight_scaled'] = reweight_s(data['pt'])
 
+def xform(x, pt, name):
+    if re.match(r'^[0-9]_[0-9]_[0-9]$', name):
+        exponent = int(name.split('_')[0])
+        return x / np.power(pt, exponent)
+    else:
+        return x
 
 def dump(idx, partition):
     global singletons 
@@ -100,7 +106,7 @@ def dump(idx, partition):
 
     # singletons
     singletons = data['singleton_branches']
-    d = np.vstack([data[x][idx] for x in singletons]).T 
+    d = np.vstack([xform(data[x][idx], data['pt'], x) for x in singletons]).T 
     np.save(outpath%'singletons', d)
 
     # particles

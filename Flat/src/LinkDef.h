@@ -16,7 +16,6 @@
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;
 
-#pragma link C++ enum PandaAnalyzer::PreselectionBit;
 #pragma link C++ enum PandaAnalyzer::ProcessType;
 #pragma link C++ enum PandaAnalyzer::TriggerBits;
 #pragma link C++ enum TagAnalyzer::ProcessType;

@@ -12,6 +12,9 @@
 #include <vector>
 #include "PandaCore/Tools/interface/Common.h"
 
+// g++ warns that tbe below line defines an unused variable, but I'm
+// not sure what that's about. This static variable is used and modified
+// elsewhere. 
 static int treeCounter=0; // used to give distinct names to trees
 
 class xformula {

@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <vector>
 
-#define EGMSCALE 1
 
 using namespace panda;
 using namespace std;
@@ -574,7 +573,6 @@ void PandaAnalyzer::GenStudyEWK() {
       gt->genLep4Phi   = dressedLepton.Phi();
       gt->genLep4PdgId = pdgId; 
     }
-    panda::Muon *mu; panda::Electron *ele;
     if (v1.Pt() > 0 && DeltaR2(part.eta(),part.phi(),v1.Eta(),v1.Phi()) < 0.01) {
       if (part.testFlag(GenParticle::kIsTauDecayProduct) 
           || part.testFlag(GenParticle::kIsPromptTauDecayProduct) 
