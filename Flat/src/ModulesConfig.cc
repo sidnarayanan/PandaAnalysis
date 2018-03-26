@@ -109,9 +109,8 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   ////////////////////////////////////////////////////////////////////// 
 
   // read MC weights
-  hDTotalMCWeight = new TH1F("hDTotalMCWeight","hDTotalMCWeight",1,0,2);
+  hDTotalMCWeight = dynamic_cast<TH1F*>(hweights->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
-  hDTotalMCWeight->SetBinContent(1,hweights->GetBinContent(1));
 
   if (weightNames && analysis->processType==kSignal) { // hack?
     if (weightNames->GetEntries()!=377 && weightNames->GetEntries()!=22) {
