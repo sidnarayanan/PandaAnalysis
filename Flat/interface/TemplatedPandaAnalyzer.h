@@ -218,8 +218,10 @@ void PandaAnalyzer::FillGenTree()
     // cluster into ak4 jets
     fastjet::ClusterSequenceArea seq(finalStates, *jetDefGen, *areaDef);
     std::vector<fastjet::PseudoJet> allJets(fastjet::sorted_by_pt(seq.inclusive_jets(0.)));
-    for (int iJ = 0; iJ != (int)allJets.size(); ++iJ) {
+    for (int iJ = 0; iJ != std::min(5,(int)allJets.size()); ++iJ) {
       auto& j = allJets.at(iJ);
+      if (j.perp() < 10)
+        continue;
       for (auto& p : j.constituents()) {
         if (p.user_index() < NMAXPF && p.user_index() > 0) {
           genJetInfo.particles[p.user_index()][4] = iJ + 1;
