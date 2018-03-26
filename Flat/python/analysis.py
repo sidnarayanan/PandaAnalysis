@@ -103,6 +103,26 @@ wlnhbb = lambda v=False : _analysis(
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
+wlnhbb_ca15 = lambda v=False : _analysis(
+        name = 'wlnhbb',
+        verbose = v,
+        ak8 = False,
+        hbb = True,
+        monoh = False,
+        recoil = True,
+        fatjet = True,
+        btagSFs = True,
+        btagWeights = True,
+        useCMVA = True,
+        complicatedLeptons = True,
+        hfCounting = True,
+        reclusterGen = True,
+        bjetRegression = True,
+        varyJES = True,
+        rerunJES = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+    )
 
 vv = lambda v=False : _analysis(
         name = 'vv',
