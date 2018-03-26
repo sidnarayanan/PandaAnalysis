@@ -34,9 +34,10 @@ def fn(input_name, isData, full_path):
     # now we instantiate and configure the analyzer
     skimmer = root.PandaAnalyzer()
 
-    processType = utils.classify_sample(full_path, isData)
-    if processType in {root.kSignal, root.kTT}:
-        processType = root.kTop
+    #processType = utils.classify_sample(full_path, isData)
+    #if processType in {root.kSignal, root.kTT}:
+    #    processType = root.kTop
+    processType = root.kNone
     analysis = deepgen() 
     analysis.processType = processType 
     analysis.dump()

@@ -416,6 +416,7 @@ private:
 
     GenJetInfo genJetInfo;
     int NGENPROPS = 8; 
+    float genFatJetMinPt = 450;
     
     float minSoftTrackPt=0.3; // 300 MeV
 };

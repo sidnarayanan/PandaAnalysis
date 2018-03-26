@@ -541,7 +541,7 @@ void PandaAnalyzer::Run()
     }
 
     
-    if (analysis->genOnly && !PassPresel(Selection::sGen)) // only check gen presel here
+    if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
 
     if (analysis->deep) {

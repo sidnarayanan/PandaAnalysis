@@ -147,9 +147,12 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     std::vector<TString> keepable = {"mcWeight","scale","scaleUp",
                                      "scaleDown","pdf.*","gen.*",
                                      "sf_tt.*","sf_qcdTT.*",
-                                     "trueGenBosonPt","sf_qcd.*","sf_ewk.*"};
-    if (analysis->deepGen)
+                                     "trueGenBosonPt","sf_qcd.*","sf_ewk.*",
+                                     "nHF.*", "nB.*"};
+    if (analysis->deepGen) {
       keepable.push_back("fj1ECFN.*");
+      keepable.push_back("fj1Tau.*");
+    }
     gt->RemoveBranches({".*"},keepable);
   }
   if (!analysis->fatjet && !analysis->ak8) {
@@ -230,9 +233,12 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     softTrackJetDefinition = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
 
   // Custom jet pt threshold
-  if (analysis->hbb) jetPtThreshold=20;
+  if (analysis->hbb) {
+    jetPtThreshold = 20;
+    genFatJetMinPt = 200;
+  }
   if (analysis->vbf || analysis->hbb || analysis->complicatedLeptons) 
-    bJetPtThreshold=20;
+    bJetPtThreshold = 20;
 
   if (DEBUG) PDebug("PandaAnalyzer::Init","Finished configuration");
 

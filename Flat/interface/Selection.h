@@ -84,7 +84,13 @@ public:
 class GenFatJetSel: public LambdaSel {
 public:
   GenFatJetSel():
-    LambdaSel(Selection::sGen, "GenFatJet", __LAMBDA(gt->genFatJetPt > 400)) { }
+    LambdaSel(Selection::sGen, "GenFatJet", __LAMBDA(gt->genFatJetPt > 450)) { }
+};
+
+class GenFatJet200Sel: public LambdaSel {
+public:
+  GenFatJet200Sel():
+    LambdaSel(Selection::sGen, "GenFatJet200", __LAMBDA(gt->genFatJetPt > 200)) { }
 };
 
 
