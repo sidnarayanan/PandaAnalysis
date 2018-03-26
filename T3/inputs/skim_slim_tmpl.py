@@ -81,9 +81,7 @@ def fn(input_name,isData,full_path):
     skimmer = root.PandaAnalyzer()
     skimmer.isData=isData
     skimmer.SetFlag('firstGen',True)
-#    skimmer.SetFlag('applyEGCorr',False)
-#    skimmer.SetPreselectionBit(root.PandaAnalyzer.kRecoil)
-    skimmer.SetPreselectionBit(root.PandaAnalyzer.kMonotop)
+    skimmer.AddPresel(root.MonotopSel())
     processType=root.PandaAnalyzer.kNone
     if not isData:
         if any([x in full_path for x in ['Vector_','Scalar_']]):

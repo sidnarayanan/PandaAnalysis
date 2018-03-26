@@ -26,8 +26,8 @@ def fn(input_name, isData, full_path):
     PInfo(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
     skimmer = root.PandaAnalyzer()
-    skimmer.SetPreselectionBit(root.PandaAnalyzer.kLeptonFake)
-    skimmer.SetPreselectionBit(root.PandaAnalyzer.kPassTrig)
+    skimmer.AddPresel(root.LeptonFakeSel())
+    skimmer.AddPresel(root.TriggerSel())
     analysis = vv(True)
     analysis.processType = utils.classify_sample(full_path, isData)	
     skimmer.SetAnalysis(analysis)

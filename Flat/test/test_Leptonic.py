@@ -23,8 +23,8 @@ Load('PandaAnalyzer')
 
 skimmer = root.PandaAnalyzer(debug_level)
 analysis = vv(True)
-skimmer.SetPreselectionBit(root.PandaAnalyzer.kPassTrig)
-skimmer.SetPreselectionBit(root.PandaAnalyzer.kLepton)
+skimmer.AddPresel(root.LeptonSel())
+skimmer.AddPresel(root.TriggerSel())
 skimmer.SetAnalysis(analysis)
 
 skimmer.firstEvent=0
