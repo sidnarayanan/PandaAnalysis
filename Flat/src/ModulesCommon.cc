@@ -4,10 +4,105 @@
 #include <algorithm>
 #include <vector>
 
-#define EGMSCALE 1
 
 using namespace panda;
 using namespace std;
+
+/***** miscellaneous helper functions *****/
+
+// Register triggers
+// Responsible: S. Narayanan
+void PandaAnalyzer::RegisterTriggers() 
+{
+  for (auto &th : triggerHandlers) {
+    unsigned N = th.paths.size();
+    for (unsigned i = 0; i != N; i++) {
+      unsigned panda_idx = event.registerTrigger(th.paths.at(i));
+      th.indices[i] = panda_idx;
+      if (DEBUG) PDebug("PandaAnalyzer::RegisterTriggers",
+        Form("Got index %d for trigger path %s", panda_idx, th.paths.at(i).Data())
+      );
+    }
+  }
+}
+
+// Match an object at arbitrary eta,phi to a gen particle with specific pdgid
+// Responsible: S. Narayanan
+panda::GenParticle const *PandaAnalyzer::MatchToGen(double eta, double phi, double radius, int pdgid) 
+{
+  panda::GenParticle const* found=NULL;
+  double r2 = radius*radius;
+  pdgid = abs(pdgid);
+
+  for (map<panda::GenParticle const*,float>::iterator iG=genObjects.begin();
+      iG!=genObjects.end(); ++iG) {
+    if (found!=NULL)
+      break;
+    if (pdgid!=0 && abs(iG->first->pdgid)!=pdgid)
+      continue;
+    if (DeltaR2(eta,phi,iG->first->eta(),iG->first->phi())<r2)
+      found = iG->first;
+  }
+
+  return found;
+}
+
+
+double PandaAnalyzer::GetCorr(CorrectionType ct, double x, double y) 
+{
+  if (h1Corrs[ct]!=0) {
+    return h1Corrs[ct]->Eval(x); 
+  } else if (h2Corrs[ct]!=0) {
+    return h2Corrs[ct]->Eval(x,y);
+  } else if (f1Corrs[ct]!=0) {
+    return f1Corrs[ct]->Eval(x);
+  } else {
+    PError("PandaAnalyzer::GetCorr",
+       TString::Format("No correction is defined for CorrectionType=%u",ct));
+    return 1;
+  }
+}
+
+double PandaAnalyzer::GetError(CorrectionType ct, double x, double y) 
+{
+  if (h1Corrs[ct]!=0) {
+    return h1Corrs[ct]->Error(x); 
+  } else if (h2Corrs[ct]!=0) {
+    return h2Corrs[ct]->Error(x,y);
+  } else {
+    PError("PandaAnalyzer::GetError",
+       TString::Format("No correction is defined for CorrectionType=%u",ct));
+    return 1;
+  }
+}
+
+
+bool PandaAnalyzer::PassPresel(Selection::Stage stage) 
+{
+  if (selections.size() == 0)
+    return true;
+
+  bool pass = false;
+  for (auto* s : selections) {
+    if (s->anded())
+      continue;
+    if (s->accept(stage)) {
+      pass = true;
+      break;
+    }
+  }
+
+  for (auto* s : selections) {
+    if (s->anded()) {
+      pass = pass && s->accept(stage);
+    }
+  }
+
+  return pass;
+}
+
+
+/***** common physics methods *****/
 
 // Create a new auxillary file for gen info
 // Responsible: S. Narayanan
@@ -26,7 +121,7 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
   tAux = new TTree("inputs","inputs");
   
   genJetInfo.particles.resize(NMAXPF);
-  for (unsigned i = 0; i != NMAXPF; ++i) {
+  for (int i = 0; i != NMAXPF; ++i) {
     genJetInfo.particles[i].resize(NGENPROPS);
   }
 
@@ -39,25 +134,27 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
   }
 
   tAux->Branch("eventNumber",&(gt->eventNumber),"eventNumber/l");
-  tAux->Branch("nprongs",&(genJetInfo.nprongs),"nprongs/I");
-  tAux->Branch("partonpt",&(genJetInfo.partonpt),"partonpt/F");
-  tAux->Branch("partonm",&(genJetInfo.partonm),"partonm/F");
-  tAux->Branch("pt",&(genJetInfo.pt),"pt/F");
-  tAux->Branch("msd",&(genJetInfo.msd),"msd/F");
-  tAux->Branch("eta",&(genJetInfo.eta),"eta/F");
-  tAux->Branch("phi",&(genJetInfo.phi),"phi/F");
-  tAux->Branch("m",&(genJetInfo.m),"m/F");
-  tAux->Branch("tau3",&(genJetInfo.tau3),"tau3/F");
-  tAux->Branch("tau2",&(genJetInfo.tau2),"tau2/F");
-  tAux->Branch("tau1",&(genJetInfo.tau1),"tau1/F");
-  tAux->Branch("tau3sd",&(genJetInfo.tau3sd),"tau3sd/F");
-  tAux->Branch("tau2sd",&(genJetInfo.tau2sd),"tau2sd/F");
-  tAux->Branch("tau1sd",&(genJetInfo.tau1sd),"tau1sd/F");
-  for (int o = 1; o != 4; ++o) {
-    for (int N = 1; N != 5; ++N) {
-      for (int beta = 1; beta != 3; ++beta) {
-        TString bname = Form("%i_%i_%i",o,N,beta);
-        tAux->Branch(bname,&(genJetInfo.ecfs[o-1][N-1][beta-1]),bname+"/F");
+  if (!analysis->deepExC) {
+    tAux->Branch("nprongs",&(genJetInfo.nprongs),"nprongs/I");
+    tAux->Branch("partonpt",&(genJetInfo.partonpt),"partonpt/F");
+    tAux->Branch("partonm",&(genJetInfo.partonm),"partonm/F");
+    tAux->Branch("pt",&(genJetInfo.pt),"pt/F");
+    tAux->Branch("msd",&(genJetInfo.msd),"msd/F");
+    tAux->Branch("eta",&(genJetInfo.eta),"eta/F");
+    tAux->Branch("phi",&(genJetInfo.phi),"phi/F");
+    tAux->Branch("m",&(genJetInfo.m),"m/F");
+    tAux->Branch("tau3",&(genJetInfo.tau3),"tau3/F");
+    tAux->Branch("tau2",&(genJetInfo.tau2),"tau2/F");
+    tAux->Branch("tau1",&(genJetInfo.tau1),"tau1/F");
+    tAux->Branch("tau3sd",&(genJetInfo.tau3sd),"tau3sd/F");
+    tAux->Branch("tau2sd",&(genJetInfo.tau2sd),"tau2sd/F");
+    tAux->Branch("tau1sd",&(genJetInfo.tau1sd),"tau1sd/F");
+    for (int o = 1; o != 4; ++o) {
+      for (int N = 1; N != 5; ++N) {
+        for (int beta = 1; beta != 3; ++beta) {
+          TString bname = Form("%i_%i_%i",o,N,beta);
+          tAux->Branch(bname,&(genJetInfo.ecfs[o-1][N-1][beta-1]),bname+"/F");
+        }
       }
     }
   }
@@ -86,13 +183,13 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
   tAux = new TTree("inputs","inputs");
   
   pfInfo.resize(NMAXPF);
-  for (unsigned i = 0; i != NMAXPF; ++i) {
+  for (int i = 0; i != NMAXPF; ++i) {
     pfInfo[i].resize(NPFPROPS);
   }
   tAux->Branch("kinematics",&pfInfo);
   
   svInfo.resize(NMAXSV);
-  for (unsigned i = 0; i != NMAXSV; ++i) {
+  for (int i = 0; i != NMAXSV; ++i) {
     svInfo[i].resize(NSVPROPS);
   }
   tAux->Branch("svs",&svInfo);
@@ -127,35 +224,6 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
 
   if (tr)
     tr->TriggerEvent("increment aux file");
-}
-
-// Register triggers
-// Responsible: S. Narayanan
-void PandaAnalyzer::RegisterTriggers() 
-{
-  for (auto &th : triggerHandlers) {
-    unsigned N = th.paths.size();
-    for (unsigned i = 0; i != N; i++) {
-      unsigned panda_idx = event.registerTrigger(th.paths.at(i));
-      th.indices[i] = panda_idx;
-      if (DEBUG) PDebug("PandaAnalyzer::RegisterTriggers",
-        Form("Got index %d for trigger path %s", panda_idx, th.paths.at(i).Data())
-      );
-    }
-  }
-}
-
-// Apply a preselection to the recoil
-// Responsible: S. Narayanan
-bool PandaAnalyzer::RecoilPresel() 
-{
-    if ( (preselBits&kMonotop) || (preselBits&kMonohiggs) || 
-         (preselBits&kMonojet) || (preselBits&kRecoil) ) 
-    {
-       if (event.recoil.max<175)
-         return false;
-    } 
-    return true;
 }
 
 // Calculate various trigger efficiencies
@@ -296,7 +364,7 @@ void PandaAnalyzer::HeavyFlavorCounting()
     int apdgid = abs(pdgid);
     if (apdgid!=5 && apdgid!=4) 
       continue;
-    if (gen.pt()>5) {
+    if (pt>5) {
       gt->nHF++;
       if (apdgid==5)
         gt->nB++;

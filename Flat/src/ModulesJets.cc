@@ -3,9 +3,8 @@
 #include "TMath.h"
 #include <algorithm>
 #include <vector>
-#include "PandaAnalysis/Utilities/src/NeutrinoSolver.cc"
+#include "PandaAnalysis/Utilities/interface/NeutrinoSolver.h"
 #include "PandaAnalysis/Utilities/interface/Helicity.h"
-#define EGMSCALE 1
 #define TWOPI 6.28318531
 
 using namespace panda;
@@ -42,8 +41,6 @@ void PandaAnalyzer::JetBasics()
 {
   gt->barrelJet12Pt = 0;
   gt->barrelHT = 0;
-  unsigned nBarrelJets = 0;
-  panda::Jet *jet1=0, *jet2=0;
   jot1=0; jot2=0;
   jotUp1=0; jotUp2=0;
   jotDown1=0; jotDown2=0;
@@ -157,7 +154,6 @@ void PandaAnalyzer::JetBasics()
         if (fabs(jet.eta())<2.4) {
           centralJets.push_back(&jet  );
           if (centralJets.size()==1) {
-            jet1 = &jet;
             gt->jet1Pt = jet.pt();
             gt->jet1Eta = jet.eta();
             gt->jet1Phi = jet.phi();
@@ -167,7 +163,6 @@ void PandaAnalyzer::JetBasics()
             gt->jet1Flav = flavor;
             gt->jet1GenPt = genpt;
           } else if (centralJets.size()==2) {
-            jet2 = &jet;
             gt->jet2Pt = jet.pt();
             gt->jet2Eta = jet.eta();
             gt->jet2Phi = jet.phi();
@@ -257,11 +252,11 @@ void PandaAnalyzer::JetBasics()
 
 // basic jet info for more jtes
 // Responsible: B. Maier
-void PandaAnalyzer::JetHbbBasics(panda::Jet& jet)
+void PandaAnalyzer::JetHbbBasics(const panda::Jet& jet)
 {
   float csv = (fabs(jet.eta())<2.5) ? jet.csv : -1;
   float cmva = (fabs(jet.eta())<2.5) ? jet.cmva : -1;
-  unsigned N = cleanedJets.size()-1;
+  int N = cleanedJets.size()-1;
   gt->jetPt[N]=jet.pt();
   gt->jetPtUp[N]=jet.ptCorrUp;
   gt->jetPtDown[N]=jet.ptCorrDown;
@@ -277,22 +272,22 @@ void PandaAnalyzer::JetHbbBasics(panda::Jet& jet)
 
 // stuff for b-jet energy regression
 // Responsible: B. Maier, D. Hsu
-void PandaAnalyzer::JetBRegressionInfo(panda::Jet& jet)
+void PandaAnalyzer::JetBRegressionInfo(const panda::Jet& jet)
 {
-  unsigned N = cleanedJets.size()-1;
+  int N = cleanedJets.size()-1;
   gt->jetEMFrac[N] = jet.cef + jet.nef;
   gt->jetHadFrac[N] = jet.chf + jet.nhf;
   gt->jetLeadingLepPt[N] = 0;
   gt->jetLeadingTrkPt[N] = 0;
   gt->jetNLep[N] = 0;
-  for (const panda::Ref<panda::PFCand> &c_iter : jet.constituents) {
+  for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
     if (!c_iter.isValid())
       continue;
     auto *pf = c_iter.get();
     if (pf->q() != 0) {
       float pt = pf->pt();
       gt->jetLeadingTrkPt[N] = max(pt, gt->jetLeadingTrkPt[N]);
-      unsigned pdgid = abs(pf->pdgId());
+      int pdgid = abs(pf->pdgId());
       if (pdgid == 11 || pdgid == 13) {
         gt->jetNLep[N]++;
         if (pt > gt->jetLeadingLepPt[N]) {
@@ -318,7 +313,7 @@ void PandaAnalyzer::JetBRegressionInfo(panda::Jet& jet)
 
 // info for VBF jets
 // Responsible: S. Narayanan
-void PandaAnalyzer::JetVBFBasics(panda::Jet& jet)
+void PandaAnalyzer::JetVBFBasics(const panda::Jet& jet)
 {
   if (cleanedJets.size()==1) {
     jot1 = &jet;
@@ -351,7 +346,7 @@ void PandaAnalyzer::JetVBFBasics(panda::Jet& jet)
 
 // isolated jet information
 // Responsible: S. Narayanan
-void PandaAnalyzer::IsoJet(panda::Jet& jet) 
+void PandaAnalyzer::IsoJet(const panda::Jet& jet) 
 {
   float maxIsoEta = (analysis->monoh) ? 4.5 : 2.5;
   bool isIsoJet = ( (gt->nFatjet==0) || 
@@ -382,7 +377,7 @@ void PandaAnalyzer::IsoJet(panda::Jet& jet)
 
 // vary jet energy scales for jet
 // Responsible: S. Narayanan, D. Hsu
-void PandaAnalyzer::JetVaryJES(panda::Jet& jet)
+void PandaAnalyzer::JetVaryJES(const panda::Jet& jet)
 {
   // do jes variation OUTSIDE of nominal jet check 
   if (jet.ptCorrUp>jetPtThreshold) { // Vary the pT up
@@ -497,21 +492,21 @@ void PandaAnalyzer::JetVBFSystem()
 void PandaAnalyzer::JetHbbReco() 
 {
   if (centralJets.size() > 1) {
-    vector<Jet*> btagSortedJets = centralJets;
+    vector<const Jet*> btagSortedJets = centralJets;
     sort(
       btagSortedJets.begin(),
       btagSortedJets.end(),
-      analysis->useCMVA?
-        [](panda::Jet *x, panda::Jet *y) -> bool { return x->cmva > y->cmva; } :
-        [](panda::Jet *x, panda::Jet *y) -> bool { return x->csv  > y->csv ; }
+      analysis->useCMVA ?
+        [](const panda::Jet *x, const panda::Jet *y) -> bool { return x->cmva > y->cmva; } :
+        [](const panda::Jet *x, const panda::Jet *y) -> bool { return x->csv  > y->csv ; }
     );
-    map<Jet*, unsigned> order;
-    for (unsigned i = 0; i != cleanedJets.size(); ++i) 
+    map<const Jet*, int> order;
+    for (int i = 0; i != (int)cleanedJets.size(); ++i) 
       order[cleanedJets[i]] = i;
 
     // the 2 best b-tagged central jets
-    panda::Jet *jet_1 = btagSortedJets.at(0);
-    panda::Jet *jet_2 = btagSortedJets.at(1);
+    const panda::Jet *jet_1 = btagSortedJets.at(0);
+    const panda::Jet *jet_2 = btagSortedJets.at(1);
     gt->hbbjtidx[0] = order[jet_1];
     gt->hbbjtidx[1] = order[jet_2];
     
@@ -551,7 +546,7 @@ void PandaAnalyzer::JetHbbReco()
     TLorentzVector hbbsystem_corr, hbbsystem_corr_jesUp, hbbsystem_corr_jesDown;
     if (analysis->bjetRegression && gt->hbbm>0.) {
       
-      for (unsigned i = 0; i<2; i++) {
+      for (int i = 0; i<2; i++) {
         // Central value for the jet energies to perform the b-jet regression
         bjetreg_vars[0] = gt->jetPt[gt->hbbjtidx[i]];
         bjetreg_vars[1] = gt->nJot;
@@ -703,7 +698,7 @@ void PandaAnalyzer::GenJetsNu()
       finalStates.emplace_back(p.px(), p.py(), p.pz(), p.e());
       continue;
     }
-    unsigned apdgid = abs(p.pdgid);
+    int apdgid = abs(p.pdgid);
     if (apdgid == 4 || apdgid == 5) {
       bcs.push_back(&p);
     }
@@ -797,7 +792,7 @@ void PandaAnalyzer::JetHbbSoftActivity() {
       if (trackIsSpokenFor) continue;
       // Require tracks to have the lowest |dz| with the hardest PV amongst all others
       int idxVertexWithMinAbsDz=-1; float minAbsDz=9999;
-      for (int iV=0; iV!=event.vertices.size(); iV++) {
+      for (int iV=0; iV!=(int)event.vertices.size(); iV++) {
         auto& theVertex = event.vertices[iV];
         float vertexAbsDz = fabs(softTrack->dz(theVertex.position()));
         if (DEBUG > 10) 

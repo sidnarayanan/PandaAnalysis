@@ -22,6 +22,21 @@
 #include <stdexcept>
 
 ////////////////////////////////////////////////////////////////////////////////////
+enum TriggerBits {
+    kMETTrig       = 0,
+    kSingleEleTrig,
+    kSinglePhoTrig,
+    kSingleMuTrig,
+    kDoubleMuTrig,
+    kDoubleEleTrig,
+    kEMuTrig,
+    kJetHTTrig,
+    kMuFakeTrig,
+    kEleFakeTrig,
+    kNTrig
+};
+
+////////////////////////////////////////////////////////////////////////////////////
 
 // semi-temporary measure to deal with v009 gen duplication issue
 inline const panda::GenParticle* pToGPtr(const panda::Particle* p)
@@ -119,9 +134,9 @@ class JetRotation {
 ////////////////////////////////////////////////////////////////////////////////////
 
 typedef std::vector<fastjet::PseudoJet> VPseudoJet;
-VPseudoJet ConvertPFCands(std::vector<const panda::PFCand*> &incoll, bool puppi, double minPt=0.001);
-VPseudoJet ConvertPFCands(panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt=0.001);
-VPseudoJet ConvertPFCands(panda::PFCandCollection &incoll, bool puppi, double minPt=0.001);
+VPseudoJet ConvertPFCands(const std::vector<const panda::PFCand*> &incoll, bool puppi, double minPt=0.001);
+VPseudoJet ConvertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt=0.001);
+VPseudoJet ConvertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt=0.001);
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -154,6 +169,7 @@ public:
   bool complicatedPhotons = false;
   bool deep = false;
   bool deepAntiKtSort = false;
+  bool deepExC = false;
   bool deepGen = false;
   bool deepGenGrid = false;
   bool deepKtSort = false;

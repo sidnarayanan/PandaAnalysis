@@ -6,7 +6,7 @@ void PandaAnalyzer::MatchGenJets(T& genJets)
 {
   unsigned N = cleanedJets.size();
   for (unsigned i = 0; i != N; ++i) {
-    panda::Jet *reco = cleanedJets.at(i);
+    const panda::Jet *reco = cleanedJets.at(i);
     for (auto &gen : genJets) {
       if (DeltaR2(gen.eta(), gen.phi(), reco->eta(), reco->phi()) < 0.09) {
         gt->jetGenPt[i] = gen.pt();
@@ -27,7 +27,7 @@ void PandaAnalyzer::RemoveGenDups(const panda::Collection<T>& genParticles)
     for (auto* pPtr : validGenP) {
       const T* gPtr = dynamic_cast<const T*>(pPtr);
       if ((g.pdgid == gPtr->pdgid) &&
-          ((g.pt() - gPtr->pt()) < ptThreshold) &&
+          (fabs(g.pt() - gPtr->pt()) < ptThreshold) &&
           (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
         foundDup = true;
         break;
@@ -154,12 +154,6 @@ void PandaAnalyzer::FillGenTree()
       continue; 
     if (p->pt() > 0.001 && fabs(p->eta()) < 5) {
       if (!analysis->deepGenGrid || (pdgToQ[apdgid] != 0)) { // it's charged, so we have tracking
-  //      for (auto& f : finalStates) {
-  //        if (DeltaR2(f.eta(), TVector2::Phi_mpi_pi(f.phi()), p.eta(), p.phi()) < 0.00001) { 
-  //          PDebug("",Form("%.4f,%.4f,%.4f matches with %.4f,%.4f,%.4f", 
-  //                         f.perp(), f.eta(), TVector2::Phi_mpi_pi(f.phi()), p.pt(), p.eta(), p.phi()));
-  //        }
-  //      }
         finalStates.emplace_back(p->px(), p->py(), p->pz(), p->e());
         finalStates.back().set_user_index(idx);
 
@@ -207,6 +201,35 @@ void PandaAnalyzer::FillGenTree()
       --user_idx;
     } 
     tr->TriggerSubEvent("gen grid");
+  }
+
+  // to test exclusive clustering, don't need to cluster fat jets
+  if (analysis->deepExC) {
+    std::sort(finalStates.begin(), finalStates.end(),
+              [](const fastjet::PseudoJet& x, const fastjet::PseudoJet& y) { return x.perp() > y.perp(); });
+    for (int iC = 0; iC != std::min(NMAXPF,(int)finalStates.size()); ++iC) {
+      auto& p = finalStates.at(iC);
+      p.set_user_index(iC); // overwrite the indices
+      genJetInfo.particles[iC][0] = p.eta();
+      genJetInfo.particles[iC][1] = p.phi();
+      genJetInfo.particles[iC][2] = p.perp();
+      genJetInfo.particles[iC][3] = p.e();
+    }
+    // cluster into ak4 jets
+    fastjet::ClusterSequenceArea seq(finalStates, *jetDefGen, *areaDef);
+    std::vector<fastjet::PseudoJet> allJets(fastjet::sorted_by_pt(seq.inclusive_jets(0.)));
+    for (int iJ = 0; iJ != std::min(5,(int)allJets.size()); ++iJ) {
+      auto& j = allJets.at(iJ);
+      if (j.perp() < 10)
+        continue;
+      for (auto& p : j.constituents()) {
+        if (p.user_index() < NMAXPF && p.user_index() > 0) {
+          genJetInfo.particles[p.user_index()][4] = iJ + 1;
+        }
+      }
+    }
+    tr->TriggerEvent("fill gen tree");
+    return;
   }
 
 
@@ -350,34 +373,6 @@ void PandaAnalyzer::FillGenTree()
         unclustered.push_back(iC);
     }
 
-
-    /* // old algorithm
-    auto& history = seq.history();
-    auto& jets = seq.jets();
-    std::vector<JetHistory> ordered_jets;
-    for (auto& h : history) {
-      if (h.jetp_index >= 0) {
-        auto& j = jets.at(h.jetp_index);
-        if (j.user_index() != -1) { // >=0 implies a real particle, <=-2 implies a calo tower
-          auto iter = std::find(allConstituents.begin(), allConstituents.end(), j);
-          if (iter == allConstituents.end()) {
-            continue;
-          }
-          JetHistory jh;
-          jh.user_idx = static_cast<int>(iter - allConstituents.begin());
-          jh.child_idx = h.child;
-          ordered_jets.push_back(jh);
-        }
-      }
-    }
-    std::sort(ordered_jets.begin(), ordered_jets.end(),
-              [](JetHistory x, JetHistory y) { return x.child_idx < y.child_idx; });
-    for (auto& jh : ordered_jets) {
-      indices.push_back(jh.user_idx);
-      unclustered.erase(std::remove(unclustered.begin(), unclustered.end(), jh.user_idx),
-                        unclustered.end());
-    }
-    */
   }
 
   // now we fill the particles
@@ -396,11 +391,6 @@ void PandaAnalyzer::FillGenTree()
     if (c.perp() < 0.001) // not a real particle
       continue;
 
-    // genJetInfo.particles[iC][0] = c.perp() / fullJet->perp();
-    // genJetInfo.particles[iC][1] = c.eta() - fullJet->eta();
-    // genJetInfo.particles[iC][2] = SignedDeltaPhi(c.phi(), fullJet->phi());
-    // genJetInfo.particles[iC][3] = c.m();
-    // genJetInfo.particles[iC][4] = c.e();
     float angle = DeltaR2(c.eta(), c.phi(), genJetInfo.eta, genJetInfo.phi);
     float x=c.px(), y=c.py(), z=c.pz();
     rot.Rotate(x, y, z);  // perform two rotations on the jet 
@@ -416,7 +406,7 @@ void PandaAnalyzer::FillGenTree()
     if (c.user_index() >= 0) {
       const T* gen = dynamic_cast<const T*>(validGenP.at(c.user_index()));
       int pdgid = gen->pdgid;
-      unsigned apdgid = abs(pdgid);
+      int apdgid = abs(pdgid);
       if (apdgid == 11) {
         ptype = 1 * sign(pdgid * -11);
       } else if (apdgid == 13) {

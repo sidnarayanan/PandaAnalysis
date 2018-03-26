@@ -34,8 +34,8 @@ def fn(input_name, isData, full_path):
     analysis.reclusterGen = True
     skimmer.SetAnalysis(analysis)
     skimmer.isData=isData
-    skimmer.SetPreselectionBit(root.PandaAnalyzer.kVHBB)
-    skimmer.SetPreselectionBit(root.PandaAnalyzer.kPassTrig)  
+    skimmer.AddPresel(root.VHBBSel())
+    skimmer.AddPresel(root.TriggerSel())
 
     return utils.run_PandaAnalyzer(skimmer, isData, input_name)
 

@@ -310,6 +310,7 @@ class GeneralTree : public genericTree {
       float electronCombIso[NLEP];
 
 //ENDCUSTOMDEF
+    int isData = -1;
     float jot1PhiUp = -1;
     float jot1PhiDown = -1;
     float jot2PhiUp = -1;

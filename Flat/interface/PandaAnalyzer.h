@@ -19,6 +19,9 @@
 
 #include "AnalyzerUtilities.h"
 #include "GeneralTree.h"
+#include "Selection.h"
+
+// fastjet
 #include "fastjet/contrib/SoftDrop.hh"
 #include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/MeasureDefinition.hh"
@@ -43,33 +46,9 @@
 #include "TMVA/Reader.h"
 
 /////////////////////////////////////////////////////////////////////////////
-// some misc definitions
-
-#define NMAXPF 100
-#define NMAXSV 10
-
-
-/////////////////////////////////////////////////////////////////////////////
 // PandaAnalyzer definition
 class PandaAnalyzer {
 public :
-    // configuration enums
-    enum PreselectionBit {
-     kMonotop    =(1<<0),
-     kMonohiggs  =(1<<2),
-     kMonojet    =(1<<3),
-     kPassTrig   =(1<<4),
-     kVBF        =(1<<5),
-     kRecoil     =(1<<6),
-     kFatjet     =(1<<7),
-     kFatjet450  =(1<<8),
-     kRecoil50   =(1<<9),
-     kGenBosonPt =(1<<10),
-     kGenFatJet  =(1<<11),
-     kVHBB       =(1<<12),
-     kLepton     =(1<<13),
-     kLeptonFake =(1<<14)
-    };
     
     enum LepSelectionBit {
      kLoose     =(1<<0),
@@ -90,20 +69,6 @@ public :
      pTrkVeto   =(1<<5)
     };
 
-    enum TriggerBits {
-        kMETTrig       = 0,
-        kSingleEleTrig,
-        kSinglePhoTrig,
-        kSingleMuTrig,
-        kDoubleMuTrig,
-        kDoubleEleTrig,
-        kEMuTrig,
-        kJetHTTrig,
-        kMuFakeTrig,
-        kEleFakeTrig,
-        kNTrig
-    };
-
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,12 +80,7 @@ public :
     void Run();
     void Terminate();
     void SetDataDir(const char *s);
-    void SetPreselectionBit(PreselectionBit b,bool on=true) {
-        if (on) 
-            preselBits |= b;
-        else 
-            preselBits &= ~b;
-    }
+    void AddPresel(Selection *s) { selections.push_back(s); }
     void AddGoodLumiRange(int run, int l0, int l1);
 
     // public configuration
@@ -229,15 +189,11 @@ private:
         nprongs=-1;
         partonpt=-1; partonm=-1;
         for (auto& v : particles) {
-          for (auto& vv : v) {
-            vv = 0;
-          }
+          std::fill(v.begin(), v.end(), 0);
         }
         for (auto& v : ecfs) {
           for (auto& vv : v) {
-            for (auto& vvv : vv) {
-              vvv = -1;
-            }
+            std::fill(vv.begin(), vv.end(), -1);
           }
         }
       }
@@ -252,7 +208,7 @@ private:
     //////////////////////////////////////////////////////////////////////////////////////
 
     bool PassGoodLumis(int run, int lumi);
-    bool PassPreselection();
+    bool PassPresel(Selection::Stage stage);
     void OpenCorrection(CorrectionType,TString,TString,int);
     double GetCorr(CorrectionType ct,double x, double y=0);
     double GetError(CorrectionType ct,double x, double y=0);
@@ -261,7 +217,7 @@ private:
 
     // these are functions used for analysis-specific tasks inside Run.
     // ideally the return type is void (e.g. they are stateful functions),
-    // but that is not always possible (e.g. RecoilPresel)
+    // but that is not always possible 
     void CalcBJetSFs(BTagType bt, int flavor, double eta, double pt, 
                      double eff, double uncFactor, double &sf, double &sfUp, double &sfDown);
     void ComplicatedLeptons();
@@ -280,23 +236,22 @@ private:
     void GenStudyEWK();
     float GetMSDCorr(float, float); 
     void HeavyFlavorCounting();
-    void IsoJet(panda::Jet&);
-    void JetBRegressionInfo(panda::Jet&);
+    void IsoJet(const panda::Jet&);
+    void JetBRegressionInfo(const panda::Jet&);
     void JetBasics();
     void JetBtagSFs();
     void JetCMVAWeights();
-    void JetHbbBasics(panda::Jet&);
+    void JetHbbBasics(const panda::Jet&);
     void JetHbbReco();
     void JetHbbSoftActivity();
-    void JetVBFBasics(panda::Jet&);
+    void JetVBFBasics(const panda::Jet&);
     void JetVBFSystem();
-    void JetVaryJES(panda::Jet&);
+    void JetVaryJES(const panda::Jet&);
     void LeptonSFs();
     bool PFChargedPhotonMatch(const panda::Photon& photon);
     void PhotonSFs();
     void QCDUncs();
     void Recoil();
-    bool RecoilPresel();
     void SaveGenLeptons();
     void SetupJES();
     void SignalInfo();
@@ -371,6 +326,7 @@ private:
     EraHandler eras = EraHandler(2016); //!< determining data-taking era, to be used for era-dependent JEC
     ParticleGridder *grid = 0;
     pandaecf::Calculator *ecfcalc = 0;
+    std::vector<Selection*> selections;
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -430,20 +386,20 @@ private:
 
     std::vector<const panda::Particle*> validGenP;
 
-    panda::FatJet *fj1 = 0;
+    const panda::FatJet *fj1 = 0;
     panda::FatJetCollection *fatjets = 0;
-    std::vector<panda::Jet*> cleanedJets, isoJets, centralJets, bCandJets;
+    std::vector<const panda::Jet*> cleanedJets, isoJets, centralJets, bCandJets;
     TLorentzVector vJet, vBarrelJets;
     panda::JetCollection *jets = 0;
-    panda::Jet *jot1 = 0, *jot2 = 0;
-    panda::Jet *jotUp1 = 0, *jotUp2 = 0;
-    panda::Jet *jotDown1 = 0, *jotDown2 = 0;
-    panda::Jet *jetUp1 = 0, *jetUp2 = 0;
-    panda::Jet *jetDown1 = 0, *jetDown2 = 0;
+    const panda::Jet *jot1 = 0, *jot2 = 0;
+    const panda::Jet *jotUp1 = 0, *jotUp2 = 0;
+    const panda::Jet *jotDown1 = 0, *jotDown2 = 0;
+    const panda::Jet *jetUp1 = 0, *jetUp2 = 0;
+    const panda::Jet *jetDown1 = 0, *jetDown2 = 0;
     float jetPtThreshold=30;
     float bJetPtThreshold=30;
-    std::map<panda::Jet*,int> bCandJetGenFlavor;
-    std::map<panda::Jet*,float> bCandJetGenPt;
+    std::map<const panda::Jet*,int> bCandJetGenFlavor;
+    std::map<const panda::Jet*,float> bCandJetGenPt;
 
     std::vector<panda::GenJet> genJetsNu;
     float genBosonPtMin, genBosonPtMax;
@@ -454,6 +410,7 @@ private:
     std::vector<std::vector<float>> svInfo; 
     float fjmsd, fjpt, fjrawpt, fjeta, fjphi;
     int NPFPROPS = 9, NSVPROPS = 13;
+    int NMAXPF = 100, NMAXSV = 10;
 
     GenJetInfo genJetInfo;
     int NGENPROPS = 8; 

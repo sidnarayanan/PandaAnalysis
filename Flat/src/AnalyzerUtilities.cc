@@ -139,7 +139,7 @@ void JetRotation::Rotate(float& x, float& y, float& z)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-VPseudoJet ConvertPFCands(vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
+VPseudoJet ConvertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
 {
   VPseudoJet vpj;
   vpj.reserve(incoll.size());
@@ -156,7 +156,7 @@ VPseudoJet ConvertPFCands(vector<const panda::PFCand*> &incoll, bool puppi, doub
   return vpj;
 }
 
-VPseudoJet ConvertPFCands(panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
+VPseudoJet ConvertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
 {
   vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
@@ -166,7 +166,7 @@ VPseudoJet ConvertPFCands(panda::RefVector<panda::PFCand> &incoll, bool puppi, d
   return ConvertPFCands(outcoll, puppi, minPt);
 }
 
-VPseudoJet ConvertPFCands(panda::PFCandCollection &incoll, bool puppi, double minPt) 
+VPseudoJet ConvertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt) 
 {
   vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
