@@ -355,7 +355,7 @@ private:
     unsigned auxCounter=0;
     TFile *fAux=0; // auxillary file
     TTree *tAux=0;
-    TH1F *hDTotalMCWeight=0;
+    TH1D *hDTotalMCWeight=0;
     TTree *tIn=0;    // input tree to read
     unsigned int preselBits=0;
     panda::EventAnalysis event;

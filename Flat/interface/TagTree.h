@@ -3,7 +3,7 @@
 
 #include "TFile.h"
 #include "TTree.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TLorentzVector.h"
 #include "TClonesArray.h"
 #include "TString.h"

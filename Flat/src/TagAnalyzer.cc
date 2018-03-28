@@ -69,7 +69,7 @@ int TagAnalyzer::Init(TTree *t, TH1D *hweights)
  
   if (DEBUG) PDebug("TagAnalyzer::Init","Set addresses");
 
-  hDTotalMCWeight = new TH1F("hDTotalMCWeight","hDTotalMCWeight",1,0,2);
+  hDTotalMCWeight = new TH1D("hDTotalMCWeight","hDTotalMCWeight",1,0,2);
   hDTotalMCWeight->SetBinContent(1,hweights->GetBinContent(1));
 
   if (DEBUG) PDebug("TagAnalyzer::Init","Finished configuration");

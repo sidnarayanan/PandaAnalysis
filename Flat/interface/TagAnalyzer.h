@@ -77,7 +77,7 @@ private:
     TFile *fOut;     // output file is owned by TagAnalyzer
     TTree *tOut;
     TagTree *gt; // essentially a wrapper around tOut
-    TH1F *hDTotalMCWeight=0;
+    TH1D *hDTotalMCWeight=0;
     TTree *tIn=0;    // input tree to read
 
     // objects to read from the tree
