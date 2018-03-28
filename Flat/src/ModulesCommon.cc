@@ -110,6 +110,8 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
 {
   if (fAux) {
     fAux->WriteTObject(tAux, "inputs", "Overwrite");
+    TString path = TString::Format(auxFilePath.Data(),auxCounter);
+    if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Closing "+path);
     fAux->Close();
   }
   if (close)

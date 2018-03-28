@@ -231,11 +231,12 @@ public:
 template <typename T>
 class TCorr {
 public:
-  TCorr(T*) {} 
+  TCorr(TObject* o): base(o) { } 
   virtual ~TCorr() {}
   virtual double Eval(double x)=0; 
 protected:
-  T *h=0;
+  T *h=nullptr;
+  const TObject *base=nullptr;
 };
 
 
@@ -244,7 +245,6 @@ public:
   TF1Corr(TF1 *f_):
     TCorr(f_) 
   {
-//    f_->SetDirectory(0);
     h = f_;
   }
   ~TF1Corr() {} 
@@ -258,11 +258,12 @@ public:
 template <typename T>
 class THCorr : public TCorr<T> {
 public:
-  // wrapper around TH* to do corrections
-  THCorr(T *h_):
+  // wrapper around TH[12] to do corrections
+  THCorr(TObject *h_):
     TCorr<T>(h_)
   {
-    this->h = h_;
+    this->h = new T();
+    h_->Copy(*(this->h));  // easiest way to cast e.g. TH1F->TH1D
     dim = this->h->GetDimension();
     TAxis *thurn = this->h->GetXaxis(); 
     lo1 = thurn->GetBinCenter(1);
@@ -273,7 +274,7 @@ public:
       hi2 = taxis->GetBinCenter(taxis->GetNbins());
     }
   }
-  ~THCorr() {} // does not own histogram!
+  ~THCorr() { delete this->h; } // this is a clone, not a pointer to the original hist
   double Eval(double x) {
     if (dim!=1) {
       PError("THCorr1::Eval",

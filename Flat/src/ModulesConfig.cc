@@ -249,9 +249,9 @@ void PandaAnalyzer::OpenCorrection(CorrectionType ct, TString fpath, TString hna
 {
   fCorrs[ct] = TFile::Open(fpath);
   if (dim==1) 
-    h1Corrs[ct] = new THCorr1((TH1D*)fCorrs[ct]->Get(hname));
+    h1Corrs[ct] = new THCorr1(fCorrs[ct]->Get(hname));
   else if (dim==2)
-    h2Corrs[ct] = new THCorr2((TH2D*)fCorrs[ct]->Get(hname));
+    h2Corrs[ct] = new THCorr2(fCorrs[ct]->Get(hname));
   else 
     f1Corrs[ct] = new TF1Corr((TF1*)fCorrs[ct]->Get(hname));
 }
@@ -306,6 +306,12 @@ void PandaAnalyzer::SetDataDir(const char *s)
     OpenCorrection(cEleTight,
                    dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                    "scalefactors_Tight_Electron",2);
+    OpenCorrection(cEleMvaWP90,
+                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                   "scalefactors_MediumMVA_Electron",2);
+    OpenCorrection(cEleMvaWP80,
+                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                   "scalefactors_TightMVA_Electron",2);
     OpenCorrection(cEleReco,
                    dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                    "scalefactors_Reco_Electron",2);
@@ -345,29 +351,41 @@ void PandaAnalyzer::SetDataDir(const char *s)
   // Differential Electroweak VH Corrections
   if (analysis->hbb) {
     OpenCorrection(cWmHEwkCorr    ,
-                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_rebin"     ,1);
+                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_rebin"     ,1);
     OpenCorrection(cWmHEwkCorrUp  ,
-                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_up_rebin"  ,1);
+                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_up_rebin"  ,1);
     OpenCorrection(cWmHEwkCorrDown,
-                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_down_rebin",1);
+                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_down_rebin",1);
     OpenCorrection(cWpHEwkCorr    ,
-                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_rebin"     ,1);
+                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_rebin"     ,1);
     OpenCorrection(cWpHEwkCorrUp  ,
-                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_up_rebin"  ,1);
+                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_up_rebin"  ,1);
     OpenCorrection(cWpHEwkCorrDown,
-                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_down_rebin",1);
+                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_down_rebin",1);
     OpenCorrection(cZnnHEwkCorr    ,
-                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_rebin"     ,1);
+                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_rebin"     ,1);
     OpenCorrection(cZnnHEwkCorrUp  ,
-                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_up_rebin"  ,1);
+                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_up_rebin"  ,1);
     OpenCorrection(cZnnHEwkCorrDown,
-                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_down_rebin",1);
+                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_down_rebin",1);
     OpenCorrection(cZllHEwkCorr    ,
-                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_rebin"     ,1);
+                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_rebin"     ,1);
     OpenCorrection(cZllHEwkCorrUp  ,
-                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_up_rebin"  ,1);
+                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_up_rebin"  ,1);
     OpenCorrection(cZllHEwkCorrDown,
-                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root","SignalWeight_nloEWK_down_rebin",1);
+                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
+                   "SignalWeight_nloEWK_down_rebin",1);
   }
 
   // photons
@@ -401,17 +419,17 @@ void PandaAnalyzer::SetDataDir(const char *s)
     fKFactor = new TFile(dirPath+"kfactors.root"); 
   fCorrs[cZNLO] = fKFactor; // just for garbage collection
 
-  TH1D *hZLO    = (TH1D*)fKFactor->Get("ZJets_LO/inv_pt");
-  TH1D *hWLO    = (TH1D*)fKFactor->Get("WJets_LO/inv_pt");
-  TH1D *hALO    = (TH1D*)fKFactor->Get("GJets_LO/inv_pt_G");
+  TH1F *hZLO    = (TH1F*)fKFactor->Get("ZJets_LO/inv_pt");
+  TH1F *hWLO    = (TH1F*)fKFactor->Get("WJets_LO/inv_pt");
+  TH1F *hALO    = (TH1F*)fKFactor->Get("GJets_LO/inv_pt_G");
 
-  h1Corrs[cZNLO] = new THCorr1((TH1D*)fKFactor->Get("ZJets_012j_NLO/nominal"));
-  h1Corrs[cWNLO] = new THCorr1((TH1D*)fKFactor->Get("WJets_012j_NLO/nominal"));
-  h1Corrs[cANLO] = new THCorr1((TH1D*)fKFactor->Get("GJets_1j_NLO/nominal_G"));
+  h1Corrs[cZNLO] = new THCorr1(fKFactor->Get("ZJets_012j_NLO/nominal"));
+  h1Corrs[cWNLO] = new THCorr1(fKFactor->Get("WJets_012j_NLO/nominal"));
+  h1Corrs[cANLO] = new THCorr1(fKFactor->Get("GJets_1j_NLO/nominal_G"));
 
-  h1Corrs[cZEWK] = new THCorr1((TH1D*)fKFactor->Get("EWKcorr/Z"));
-  h1Corrs[cWEWK] = new THCorr1((TH1D*)fKFactor->Get("EWKcorr/W"));
-  h1Corrs[cAEWK] = new THCorr1((TH1D*)fKFactor->Get("EWKcorr/photon"));
+  h1Corrs[cZEWK] = new THCorr1(fKFactor->Get("EWKcorr/Z"));
+  h1Corrs[cWEWK] = new THCorr1(fKFactor->Get("EWKcorr/W"));
+  h1Corrs[cAEWK] = new THCorr1(fKFactor->Get("EWKcorr/photon"));
 
   h1Corrs[cZEWK]->GetHist()->Divide(h1Corrs[cZNLO]->GetHist());     
   h1Corrs[cWEWK]->GetHist()->Divide(h1Corrs[cWNLO]->GetHist());     

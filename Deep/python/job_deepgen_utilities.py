@@ -68,6 +68,6 @@ def run_model(infilepattern, outfilepath):
         infilepath = infilepattern % i
         data = tree_to_arrays(infilepath)
         normalize_arrays(data, 'particles', infilepath)
-        utils.print_time('preprocessing')
+        utils.print_time('preprocessing '+infilepath)
         if not STORE:
             utils.cleanup(infilepath)
