@@ -12,6 +12,15 @@
 #include <map>
 
 // ENDCUSTOM
+#define NJET 20
+#define NSUBJET 2
+enum class shiftjes { 
+  kNominal,
+  kJESUp,
+  kJESDown,
+  N
+}; 
+#define NLEP 4
 class GeneralTree : public genericTree {
   public:
     GeneralTree();

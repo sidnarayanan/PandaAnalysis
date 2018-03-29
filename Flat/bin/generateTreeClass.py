@@ -37,6 +37,11 @@ class Word(object):
                 self.expr = self.expr.replace(n, str(x))
     def __str__(self):
         return str(self.expr)
+    def write_header(self):
+        r = []
+        if self.name.startswith('const:'):
+            r.append('#define %s %s'%(self.name.replace('const:',''),self.expr))
+        return r
 
 class Shift(Word):
     def __init__(self, line, predef):
@@ -49,13 +54,16 @@ class Shift(Word):
     @property
     def cname(self):
         return self.name.replace('shift:','')
-    def write_public(self):
-        enum = ''
-        enum += 'enum class %sShift { '%self.cname
+    def write_header(self):
+        enum = []
+        enum.append('enum class shift%s { '%self.cname)
         for e in self.expr:
-            enum += ' %s, \n'%e
-        enum += '  N%s \n'%self.cname
-        enum += '}; '
+            if e == '':
+                enum.append('  kNominal,')
+            else:
+                enum.append('  k%s,'%(e[1:]))
+        enum.append('  N')
+        enum.append('}; ')
         return enum
 
 class Block(object):
@@ -232,6 +240,8 @@ if __name__ == '__main__':
 
     header_out = ['#ifndef %s_H'%class_name, '#define %s_H'%class_name] 
     header_out.extend(get_custom(custom, 'HEADER'))
+    for _,d in defined.iteritems():
+        header_out.extend(d.write_header())
 
     header_out.append(('\n'.join([
             'class {n} : public genericTree {{',
