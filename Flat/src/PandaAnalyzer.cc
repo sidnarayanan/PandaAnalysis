@@ -544,8 +544,10 @@ void PandaAnalyzer::Run()
     if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
 
-    if (analysis->deep) {
+    if (analysis->deep || analysis->hbb)
       FatjetPartons();
+    if (analysis->deep) {
+      //FatjetPartons();
       FillPFTree();
       tAux->Fill();
       if (tAux->GetEntriesFast() == 2500)

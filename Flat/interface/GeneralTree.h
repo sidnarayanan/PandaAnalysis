@@ -224,6 +224,8 @@ class GeneralTree : public genericTree {
       float jetPt[NJET];
       float jetPtUp[NJET];
       float jetPtDown[NJET];
+      float jetPtSmearUp[NJET];
+      float jetPtSmearDown[NJET];
       float jetEta[NJET];
       float jetPhi[NJET];
       float jetE[NJET];
@@ -443,7 +445,8 @@ class GeneralTree : public genericTree {
     float jot2Eta = -1;
     float jot12DPhi = -1;
     int isGS = -1;
-    float fj1SubMaxCSV = -1;
+    int fj1SubMaxCSV = -1;
+    float fj1GenNumB = -1;
     int runNumber = -1;
     int lumiNumber = -1;
     ULong64_t eventNumber = -1;
