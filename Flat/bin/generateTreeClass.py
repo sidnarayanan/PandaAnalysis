@@ -29,14 +29,19 @@ class Word(object):
     def __init__(self, line, predef):
         # word must look like name expr 
         ll = line.split()
-        assert len(ll) == 2, line
+        assert len(ll) == 2, "Bad definition: "+line
         self.name = ll[0]
-        self.expr = ll[1].replace('const:','')
+        self.expr = ll[1]
         for n,x in predef.iteritems():
-            if not(n.startswith('const:')) and (n in self.expr):
+            if n in self.expr:
                 self.expr = self.expr.replace(n, str(x))
     def __str__(self):
-        return str(self.expr)
+        return str(self.expr.replace('const:',''))
+    def to_tstring(self):
+        if self.expr.isdigit():
+            return 'TString("%s")'%self.expr 
+        else:  # assume it's a bare string or C++ expr
+            return 'TString(%s)'%self.expr 
     def write_header(self):
         r = []
         if self.name.startswith('const:'):
@@ -90,16 +95,20 @@ class Branch(object):
         self.name = args[0]
         self.filled = block.words.get('filled',[])[:]
         self.shift = block.words.get('shifts',[None])[-1]
-        self.tree_size = block.words.get('tree_size',None)
+        self.tree_size = block.words.get('tree_size',[None])[0]
         if '[' in args[1]:
             self.array = True
             self.ctype = sub('\[[:A-z0-9]*\]','',args[1])
             self.N = sub('.*\[([:A-z0-9]*)\]',r'\1',args[1])
-            self.N = self.N.replace('const:','')
-            self.tree_size = self.N
+            if self.N.startswith('const:'):
+                self.N = predef[self.N]
+            if not self.tree_size:
+                self.tree_size = self.N
             for a in args[2:]:
                 if 'tree_size' in a:
                     self.tree_size = Word(a, predef)
+            if type(self.tree_size) == str:
+                self.tree_size = Word("tree_size "+self.tree_size, predef)
         else:
             self.array = False
             self.ctype = args[1]
@@ -126,9 +135,9 @@ class Branch(object):
     def write_public(self):
         s = self.ctype + ' ' + self.name 
         if self.shift:
-            s += '[' + str(len(self.shift.expr) + 1) + ']'
+            s += '[' + str(len(self.shift.expr)) + ']'
         if self.array:
-            s += '[' + self.N + ']'
+            s += '[' + str(self.N) + ']'
         s += ';'
         return s 
     def write_constructor(self):
@@ -148,11 +157,11 @@ class Branch(object):
         if self.shift:
             if self.array:
                 for i,e in enumerate(self.shift.expr):
-                    s = 'Book("{n}{v}",{n}[{i}],"{n}{v}[{s}]/{t}");'.format(
+                    s = 'Book("{n}{v}",{n}[{i}],"{n}{v}["+{s}+"]/{t}");'.format(
                             n=self.name,
                             v=e,
                             i=i,
-                            s=self.tree_size,
+                            s=self.tree_size.to_tstring(),
                             t=suffixes[self.ctype]
                         )
                     final_s.append(s)
@@ -167,9 +176,9 @@ class Branch(object):
                     final_s.append(s)
         else:
             if self.array:
-                s = 'Book("{n}",{n},"{n}[{s}]/{t}");'.format(
+                s = 'Book("{n}",{n},"{n}["+{s}+"]/{t}");'.format(
                         n=self.name,
-                        s=self.tree_size,
+                        s=self.tree_size.to_tstring(),
                         t=suffixes[self.ctype]
                     )
                 final_s.append(s)
