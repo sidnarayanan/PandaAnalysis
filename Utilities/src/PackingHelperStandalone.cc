@@ -3,11 +3,11 @@
 
 // This standalone class allows you to unpack interactively instead of relying on tabulated info.
 // After compiling PandaAnalysis using scram, you can call the following in CINT:
-//   gSystem->Load("libPandaAnalysisUtilities.so")
 //   #include "PandaAnalysis/Utilities/src/PackingHelperStandalone.cc"
 // and then perform a TTree Draw or Scan e.g.
-//   events->Scan("panda::PackingHelperStandalone::unpackUnbound(genParticles.packedPt)")
-
+//   events->Scan("panda::PHS::up(genParticles.packedPt)")
+// This is the analog of panda::PackingHelper::unpackUnbound.
+// For the analog of panda::PackingHelper::unpack8LogBound, use panda::PHS::up8(...)
 #include "Rtypes.h"
 #include <cmath>
 
@@ -16,14 +16,14 @@ namespace panda {
   public:
     PackingHelperStandalone();
 
-    static Double_t unpackUnbound(UShort_t);
-    static Double_t unpack8LogBound(Char_t, Double_t min, Double_t max, UChar_t baseminus1);
+    static Double_t up(UShort_t);
+    static Double_t up8(Char_t, Double_t min, Double_t max, UChar_t baseminus1);
   };
-
+  typedef PackingHelperStandalone PHS;
 }
 
 Double_t
-panda::PackingHelperStandalone::unpackUnbound(UShort_t p)
+panda::PackingHelperStandalone::up(UShort_t p) // unpackUnbound
 {
   if(p==0) return 0;
   union {
@@ -71,7 +71,7 @@ panda::PackingHelperStandalone::unpackUnbound(UShort_t p)
 }
 
 Double_t
-panda::PackingHelperStandalone::unpack8LogBound(Char_t i, Double_t min, Double_t max, UChar_t baseminus1)
+panda::PackingHelperStandalone::up8(Char_t i, Double_t min, Double_t max, UChar_t baseminus1) // unpack8LogBound
 {
   if (baseminus1 > 127)
     baseminus1 = 127;
