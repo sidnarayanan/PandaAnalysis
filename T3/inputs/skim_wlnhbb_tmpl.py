@@ -29,12 +29,12 @@ def fn(input_name, isData, full_path):
     skimmer = root.PandaAnalyzer()
     analysis = wlnhbb(True)
     analysis.processType = utils.classify_sample(full_path, isData)	
-    #if analysis.processType == root.kTT or analysis.processType == root.kH:
-    #    analysis.reclusterGen = True # only turn on if necessary
-    analysis.reclusterGen = True
+    if analysis.processType == root.kTT or analysis.processType == root.kH:
+        analysis.reclusterGen = True # only turn on if necessary
+    #analysis.reclusterGen = True
     skimmer.SetAnalysis(analysis)
     skimmer.isData=isData
-    skimmer.AddPresel(root.VHBBSel())
+    skimmer.AddPresel(root.VHbbSel())
     skimmer.AddPresel(root.TriggerSel())
 
     return utils.run_PandaAnalyzer(skimmer, isData, input_name)
