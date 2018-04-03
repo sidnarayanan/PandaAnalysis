@@ -99,3 +99,8 @@ double weightZHEWKCorr(THCorr1 *fhDEWK, float pt){
   double mypt = TMath::Min(pt,(float)499.999);
   return (fhDEWK->Eval(mypt)+0.31+0.11)/((1-0.053)+0.31+0.11);
 }
+
+double weightWWEWKCorr(THCorr1 *fhDEWK, float pt){
+  double mypt = TMath::Min(pt,(float)499.999);
+  return fhDEWK->Eval(mypt);
+}
