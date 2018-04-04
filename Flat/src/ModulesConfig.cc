@@ -78,11 +78,15 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
                  "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet", 
                  "recoil","metFilters","trkMet"};
 
-    if (analysis->ak8)
+    if (analysis->ak8) {
       readlist += {jetname+"AK8Jets", "subjets", jetname+"AK8Subjets","Subjets"};
-    else if (analysis->fatjet) 
+      if (!isData)
+        readlist += {"ak8GenJets"};
+    }
+    else if (analysis->fatjet) {
       readlist += {jetname+"CA15Jets", "subjets", jetname+"CA15Subjets","Subjets"};
-    
+        readlist += {"ca15GenJets"};
+    }
     if (analysis->recluster || analysis->bjetRegression || 
         analysis->deep || analysis->hbb || analysis->complicatedPhotons) {
       readlist.push_back("pfCandidates");

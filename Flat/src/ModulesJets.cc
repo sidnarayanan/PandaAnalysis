@@ -70,8 +70,8 @@ void PandaAnalyzer::JetBasics()
     if ((analysis->vbf || analysis->hbb) && !jet.loose)
       continue;
 
-
-    if (jet.ptSmear>jetPtThreshold || jet.ptSmear>bJetPtThreshold) { // nominal or b jets
+    float pt = isData? jet.pt() : jet.ptSmear;
+    if (pt>jetPtThreshold || pt>bJetPtThreshold) { // nominal or b jets
 
       // get jet flavor
       int flavor=0;
@@ -110,7 +110,7 @@ void PandaAnalyzer::JetBasics()
         }
       }
 
-      if (jet.ptSmear>bJetPtThreshold && fabs(jet.eta())<2.4) { // b jets
+      if (pt>bJetPtThreshold && fabs(jet.eta())<2.4) { // b jets
 
         if (jet.csv > 0.5426) {
           // loose WP
@@ -130,7 +130,7 @@ void PandaAnalyzer::JetBasics()
         bCandJetGenPt[&jet] = genpt;
       }
 
-      if (jet.ptSmear>jetPtThreshold) { // nominal jets
+      if (pt>jetPtThreshold) { // nominal jets
         if ((analysis->hbb || analysis->monoh) && cleanedJets.size() >= NJET) 
           continue;
         cleanedJets.push_back(&jet);
@@ -155,7 +155,7 @@ void PandaAnalyzer::JetBasics()
         if (fabs(jet.eta())<2.4) {
           centralJets.push_back(&jet  );
           if (centralJets.size()==1) {
-            gt->jet1Pt = jet.ptSmear;
+            gt->jet1Pt = pt;
             gt->jet1Eta = jet.eta();
             gt->jet1Phi = jet.phi();
             gt->jet1CSV = csv;
@@ -164,7 +164,7 @@ void PandaAnalyzer::JetBasics()
             gt->jet1Flav = flavor;
             gt->jet1GenPt = genpt;
           } else if (centralJets.size()==2) {
-            gt->jet2Pt = jet.ptSmear;
+            gt->jet2Pt = pt;
             gt->jet2Eta = jet.eta();
             gt->jet2Phi = jet.phi();
             gt->jet2CSV = csv;
@@ -174,7 +174,7 @@ void PandaAnalyzer::JetBasics()
           }
         }
 
-        vJet.SetPtEtaPhiM(jet.ptSmear,jet.eta(),jet.phi(),jet.m());
+        vJet.SetPtEtaPhiM(pt,jet.eta(),jet.phi(),jet.m());
 
         if (analysis->vbf || analysis->complicatedLeptons)
           JetVBFBasics(jet);
@@ -258,11 +258,19 @@ void PandaAnalyzer::JetHbbBasics(const panda::Jet& jet)
   float csv = (fabs(jet.eta())<2.5) ? jet.csv : -1;
   float cmva = (fabs(jet.eta())<2.5) ? jet.cmva : -1;
   int N = cleanedJets.size()-1;
-  gt->jetPt[N] = jet.ptSmear;
-  gt->jetPtUp[N] = jet.ptSmear*jet.ptCorrUp/jet.pt();
-  gt->jetPtDown[N] = jet.ptSmear*jet.ptCorrDown/jet.pt();
-  gt->jetPtSmearUp[N] = jet.ptSmearUp;
-  gt->jetPtSmearDown[N] = jet.ptSmearDown;
+  if(isData) { 
+    gt->jetPt[N] = jet.ptSmear;
+    gt->jetPtUp[N] = jet.ptSmear*jet.ptCorrUp/jet.pt();
+    gt->jetPtDown[N] = jet.ptSmear*jet.ptCorrDown/jet.pt();
+    gt->jetPtSmearUp[N] = jet.ptSmearUp;
+    gt->jetPtSmearDown[N] = jet.ptSmearDown;
+  } else {
+    gt->jetPt[N] = jet.pt();
+    gt->jetPtUp[N] = jet.ptCorrUp;
+    gt->jetPtDown[N] = jet.ptCorrDown;
+    gt->jetPtSmearUp[N] = jet.pt();
+    gt->jetPtSmearDown[N] = jet.pt();
+  }
   gt->jetEta[N]=jet.eta();
   gt->jetPhi[N]=jet.phi();
   gt->jetE[N]=jet.e();
@@ -363,10 +371,10 @@ void PandaAnalyzer::IsoJet(const panda::Jet& jet)
     if (csv>0.5426)
       ++gt->isojetNBtags;
     if (isoJets.size()==1) {
-      gt->isojet1Pt = jet.ptSmear;
+      gt->isojet1Pt = isData? jet.pt() : jet.ptSmear;
       gt->isojet1CSV = jet.csv;
     } else if (isoJets.size()==2) {
-      gt->isojet2Pt = jet.ptSmear;
+      gt->isojet2Pt = isData? jet.pt() : jet.ptSmear;
       gt->isojet2CSV = jet.csv;
     }
       gt->jetIso[cleanedJets.size()-1]=1;
@@ -680,9 +688,14 @@ void PandaAnalyzer::JetHbbReco()
         gt->topMassLep1Met_jesDown = topP4.M();
       }
       tr->TriggerSubEvent("Top(bW) reco");
+    } else {
+      TVector2 leptonV2, metV2, WV2;
+      leptonV2.SetMagPhi(looseLeps[0]->pt(),looseLeps[0]->phi());
+      metP4.SetMagPhi(gt->pfmet, gt->pfmetphi);
+      WV2 = leptonV2 + metV2;
+      gt->topWBosonPt  = WV2.Mod();
+      gt->topWBosonPhi = WV2.Phi();
     }
-
-
   }
   
   tr->TriggerEvent("monohiggs");

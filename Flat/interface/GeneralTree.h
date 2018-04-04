@@ -446,7 +446,7 @@ class GeneralTree : public genericTree {
     float jot12DPhi = -1;
     int isGS = -1;
     int fj1SubMaxCSV = -1;
-    float fj1GenNumB = -1;
+    int fj1GenNumB = -1;
     int runNumber = -1;
     int lumiNumber = -1;
     ULong64_t eventNumber = -1;
