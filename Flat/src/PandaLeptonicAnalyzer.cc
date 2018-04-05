@@ -2330,6 +2330,25 @@ void PandaLeptonicAnalyzer::Run() {
 	}
       }
       
+      for (int iG : targetsN) {
+        auto& part(event.genParticles.at(iG));
+        TLorentzVector neutrino;
+        neutrino.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
+
+        // check there is no further copy:
+        bool isLastCopy=true;
+        for (int kG : targetsN) {
+          if (event.genParticles.at(kG).parent.isValid() && event.genParticles.at(kG).parent.get() == &part) {
+            isLastCopy=false;
+            break;
+          }
+        }
+        if (!isLastCopy)
+          continue;
+	
+	the_rhoP4 = the_rhoP4 + neutrino;
+      }
+
       // Filling Z info at gen level
       if(gt->genLep1Pt > 25 && TMath::Abs(gt->genLep1Eta) < 2.4 && abs(gt->genLep1PdgId) != 15 &&
          gt->genLep2Pt > 25 && TMath::Abs(gt->genLep2Eta) < 2.4 && abs(gt->genLep2PdgId) != 15){
@@ -2461,7 +2480,8 @@ void PandaLeptonicAnalyzer::Run() {
 
       // Filling WW EWK corr
       double theEWKCorr = 1.0;
-      if(lepNegGen.Pt() > 0){
+      double the_rho = 0.0; if(the_rhoP4.P() > 0) the_rho = the_rhoP4.Pt()/the_rhoP4.P();
+      if(lepNegGen.Pt() > 0 && the_rho <= 0.3){
         theEWKCorr = weightWWEWKCorr(h1Corrs[cWWEWKCorr], lepNegGen.Pt());
       }
        hDWWEWKNorm->Fill(0.5,event.weight*theEWKCorr);
@@ -2533,25 +2553,6 @@ void PandaLeptonicAnalyzer::Run() {
 	    hDWWN0JET_QCDPart[i]->Fill(2.0,wwWeight*TMath::Abs(1+gt->scale[i])/maxQCDscale);
           }
 	}
-      }
-
-      for (int iG : targetsN) {
-        auto& part(event.genParticles.at(iG));
-        TLorentzVector neutrino;
-        neutrino.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
-
-        // check there is no further copy:
-        bool isLastCopy=true;
-        for (int kG : targetsN) {
-          if (event.genParticles.at(kG).parent.isValid() && event.genParticles.at(kG).parent.get() == &part) {
-            isLastCopy=false;
-            break;
-          }
-        }
-        if (!isLastCopy)
-          continue;
-	
-	the_rhoP4 = the_rhoP4 + neutrino;
       }
 
       TLorentzVector theZBosons(0,0,0,0);
