@@ -258,22 +258,25 @@ void PandaAnalyzer::JetHbbBasics(const panda::Jet& jet)
   float csv = (fabs(jet.eta())<2.5) ? jet.csv : -1;
   float cmva = (fabs(jet.eta())<2.5) ? jet.cmva : -1;
   int N = cleanedJets.size()-1;
-  if(isData) { 
+  if(!isData) { 
     gt->jetPt[N] = jet.ptSmear;
     gt->jetPtUp[N] = jet.ptSmear*jet.ptCorrUp/jet.pt();
     gt->jetPtDown[N] = jet.ptSmear*jet.ptCorrDown/jet.pt();
     gt->jetPtSmearUp[N] = jet.ptSmearUp;
     gt->jetPtSmearDown[N] = jet.ptSmearDown;
+    TLorentzVector smearedJetP4; 
+    smearedJetP4.SetPtEtaPhiM(jet.ptSmear, jet.eta(), jet.phi(), jet.m());
+    gt->jetE[N]=smearedJetP4.E();
   } else {
     gt->jetPt[N] = jet.pt();
     gt->jetPtUp[N] = jet.ptCorrUp;
     gt->jetPtDown[N] = jet.ptCorrDown;
     gt->jetPtSmearUp[N] = jet.pt();
     gt->jetPtSmearDown[N] = jet.pt();
+    gt->jetE[N]=jet.e();
   }
   gt->jetEta[N]=jet.eta();
   gt->jetPhi[N]=jet.phi();
-  gt->jetE[N]=jet.e();
   gt->jetCSV[N]=csv;
   gt->jetCMVA[N]=cmva;
   gt->jetQGL[N]=jet.qgl;
@@ -500,6 +503,14 @@ void PandaAnalyzer::JetVBFSystem()
 // Responsible: B. Maier, D.Hsu
 void PandaAnalyzer::JetHbbReco() 
 {
+  if(gt->nLooseLep>0) {
+    TVector2 leptonV2, metV2, WV2;
+    leptonV2.SetMagPhi(looseLeps[0]->pt(),looseLeps[0]->phi());
+    metV2.SetMagPhi(gt->pfmet, gt->pfmetphi);
+    WV2 = leptonV2 + metV2;
+    gt->topWBosonPt  = WV2.Mod();
+    gt->topWBosonPhi = WV2.Phi();
+  }
   if (centralJets.size() > 1) {
     vector<const Jet*> btagSortedJets = centralJets;
     sort(
@@ -689,12 +700,6 @@ void PandaAnalyzer::JetHbbReco()
       }
       tr->TriggerSubEvent("Top(bW) reco");
     } else {
-      TVector2 leptonV2, metV2, WV2;
-      leptonV2.SetMagPhi(looseLeps[0]->pt(),looseLeps[0]->phi());
-      metP4.SetMagPhi(gt->pfmet, gt->pfmetphi);
-      WV2 = leptonV2 + metV2;
-      gt->topWBosonPt  = WV2.Mod();
-      gt->topWBosonPhi = WV2.Phi();
     }
   }
   
