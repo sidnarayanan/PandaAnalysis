@@ -2202,7 +2202,7 @@ void PandaLeptonicAnalyzer::Run() {
 	mJJGen = dijet.M();
       }
 
-      TLorentzVector the_rhoP4(0,0,0,0),lepNegGen(0,0,0,0);
+      TLorentzVector the_rhoP4(0,0,0,0),lepNegGen(0,0,0,0); double theLeptonHT = 0.0;
       double bosonPtMin = 1000000000;
       for (int iG : targetsLepton) {
         auto& part(event.genParticles.at(iG));
@@ -2221,6 +2221,7 @@ void PandaLeptonicAnalyzer::Run() {
 //           continue;
 	
 	the_rhoP4 = the_rhoP4 + dressedLepton;
+        theLeptonHT = theLeptonHT + dressedLepton.Pt();
 
         if(part.pdgid == 13 || part.pdgid == 11) lepNegGen = dressedLepton;
 
@@ -2480,8 +2481,8 @@ void PandaLeptonicAnalyzer::Run() {
 
       // Filling WW EWK corr
       double theEWKCorr = 1.0;
-      double the_rho = 0.0; if(the_rhoP4.P() > 0) the_rho = the_rhoP4.Pt()/the_rhoP4.P();
-      if(lepNegGen.Pt() > 0 && the_rho <= 0.3){
+      double the_rhoWW = 0.0; if(theLeptonHT > 0) the_rhoWW = the_rhoP4.Pt()/theLeptonHT;
+      if(lepNegGen.Pt() > 0 && the_rhoWW <= 0.3){
         theEWKCorr = weightWWEWKCorr(h1Corrs[cWWEWKCorr], lepNegGen.Pt());
       }
        hDWWEWKNorm->Fill(0.5,event.weight*theEWKCorr);
