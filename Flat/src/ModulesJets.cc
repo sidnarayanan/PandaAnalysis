@@ -57,7 +57,8 @@ void PandaAnalyzer::JetBasics()
   for (auto& jet : *jets) {
 
     // only do eta-phi checks here
-    if (abs(jet.eta()) > maxJetEta)
+    float abseta = abs(jet.eta());
+    if (abseta > maxJetEta)
       continue;
     // NOTE:
     // For VBF we require nTightLep>0, but in monotop looseLep1IsTight
@@ -71,6 +72,31 @@ void PandaAnalyzer::JetBasics()
       continue;
 
     float pt = isData? jet.pt() : jet.ptSmear;
+    // Apply the jet pileup ID (hardcoded now, make it nice for Sid later)
+    bool passLoosePUID=false;
+    if        (abseta<2.50) {
+      if      (pt<10) passLoosePUID = jet.puid > -0.97;
+      else if (pt<20) passLoosePUID = jet.puid > -0.97;
+      else if (pt<30) passLoosePUID = jet.puid > -0.97;
+      else            passLoosePUID = jet.puid > -0.89;
+    } else if (abseta<2.75) {
+      if      (pt<10) passLoosePUID = jet.puid > -0.68;
+      else if (pt<20) passLoosePUID = jet.puid > -0.68;
+      else if (pt<30) passLoosePUID = jet.puid > -0.68;
+      else            passLoosePUID = jet.puid > -0.52;
+    } else if (abseta<3.00) {
+      if      (pt<10) passLoosePUID = jet.puid > -0.53;
+      else if (pt<20) passLoosePUID = jet.puid > -0.53;
+      else if (pt<30) passLoosePUID = jet.puid > -0.53;
+      else            passLoosePUID = jet.puid > -0.38;
+    } else if (abseta<5.00) {
+      if      (pt<10) passLoosePUID = jet.puid > -0.47;
+      else if (pt<20) passLoosePUID = jet.puid > -0.47;
+      else if (pt<30) passLoosePUID = jet.puid > -0.47;
+      else            passLoosePUID = jet.puid > -0.30;
+    }
+    if (analysis->hbb && !passLoosePUID) continue;
+    
     if (pt>jetPtThreshold || pt>bJetPtThreshold) { // nominal or b jets
 
       // get jet flavor

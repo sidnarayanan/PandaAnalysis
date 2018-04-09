@@ -237,7 +237,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
 
   // Custom jet pt threshold
   if (analysis->hbb) {
-    jetPtThreshold = 20;
+    jetPtThreshold = analysis->ZllHbb? 20:25;
     genFatJetMinPt = 200;
   }
   if (analysis->vbf || analysis->hbb || analysis->complicatedLeptons) 
@@ -545,7 +545,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
     bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",&bjetreg_vars[9]);
 
     gSystem->Exec(
-        Form("wget -O -q %s/trainings/bjet_regression_v0.weights.xml http://t3serv001.mit.edu/~snarayan/pandadata/trainings/bjet_regression_v0.weights.xml",dirPath.Data())
+        Form("wget -q -O %s/trainings/bjet_regression_v0.weights.xml http://t3serv001.mit.edu/~snarayan/pandadata/trainings/bjet_regression_v0.weights.xml",dirPath.Data())
       );
     bjetregReader->BookMVA( "BDT method", dirPath+"trainings/bjet_regression_v0.weights.xml" );
 

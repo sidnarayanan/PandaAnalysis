@@ -179,6 +179,7 @@ public:
   bool firstGen = true;
   bool genOnly = false;
   bool hbb = false;
+  bool ZllHbb = false;
   bool hfCounting = false;
   bool jetFlavorPartons = true;
   bool jetFlavorJets = false;
