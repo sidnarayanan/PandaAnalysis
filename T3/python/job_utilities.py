@@ -305,26 +305,26 @@ def record_inputs(outfilename,processed):
 
 
 # classify a sample based on its name
+_classification = [
+            (root.kSignal , ['Vector_', 'Scalar_']),
+            (root.kTop    , ['ST_', 'ZprimeToTT']),
+            (root.ZEWK    , 'EWKZ2Jets'),
+            (root.WEWK    , 'EWKW'),
+            (root.kZ      , ['ZJets', 'DY']),
+            (root.kW      , 'WJets'),
+            (root.kA      , 'GJets'),
+            (root.kTT     , ['TTJets', 'TT_']),
+            (root.kH      , 'HTo'),
+        ]
 def classify_sample(full_path, isData):
     if not isData:
-        if any([x in full_path for x in ['Vector_','Scalar_']]):
-            return root.kSignal
-        elif any([x in full_path for x in ['ST_','ZprimeToTT']]):
-            return root.kTop
-        elif 'EWKZ2Jets' in full_path:
-            return root.kZEWK
-        elif 'EWKW' in full_path:
-            return root.kWEWK
-        elif 'ZJets' in full_path or 'DY' in full_path:
-            return root.kZ
-        elif 'WJets' in full_path:
-            return root.kW
-        elif 'GJets' in full_path:
-            return root.kA
-        elif 'TTJets' in full_path or 'TT_' in full_path:
-            return root.kTT
-        elif 'HTo' in full_path:
-            return root.kH
+        for e,pattern in _classification:
+            if type(pattern) == str:
+                if pattern in full_path:
+                    return e 
+            else:
+                if any([x in full_path for x in pattern]):
+                    return e
     return root.kNoProcess
 
 
