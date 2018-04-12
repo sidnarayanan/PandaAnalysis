@@ -536,8 +536,8 @@ void PandaAnalyzer::Run()
       if (analysis->hfCounting)
         HeavyFlavorCounting();
 
-      TopPTReweight();
-      VJetsReweight();
+       TopPTReweight();
+       VJetsReweight();
     }
 
     

@@ -80,7 +80,6 @@ deepgen = lambda v=False : _analysis(
         ak8 = True,
         btagSFs = False,
         deepGen = True,
-        hfCounting = True,
         genOnly = True,
     )
 

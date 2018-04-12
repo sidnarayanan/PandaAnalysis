@@ -66,17 +66,17 @@ void PandaAnalyzer::TopPTReweight()
         TLorentzVector vTT = vT+vTbar;
         gt->genTTPt = vTT.Pt(); gt->genTTEta = vTT.Eta();
         gt->sf_tt8TeV       = TMath::Sqrt(TMath::Exp(0.156-0.00137*TMath::Min((float)400.,pt_t)) *
-                         TMath::Exp(0.156-0.00137*TMath::Min((float)400.,pt_tbar)));
+                                          TMath::Exp(0.156-0.00137*TMath::Min((float)400.,pt_tbar)));
         gt->sf_tt           = TMath::Sqrt(TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_t)) *
-                         TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_tbar)));
+                                          TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_tbar)));
         gt->sf_tt8TeV_ext   = TMath::Sqrt(TMath::Exp(0.156-0.00137*pt_t) *
-                         TMath::Exp(0.156-0.00137*pt_tbar));
+                                          TMath::Exp(0.156-0.00137*pt_tbar));
         gt->sf_tt_ext       = TMath::Sqrt(TMath::Exp(0.0615-0.0005*pt_t) *
-                         TMath::Exp(0.0615-0.0005*pt_tbar));
+                                          TMath::Exp(0.0615-0.0005*pt_tbar));
         gt->sf_tt8TeV_bound = TMath::Sqrt(((pt_t>400) ? 1 : TMath::Exp(0.156-0.00137*pt_t)) *
-                         ((pt_tbar>400) ? 1 : TMath::Exp(0.156-0.00137*pt_tbar)));
+                                          ((pt_tbar>400) ? 1 : TMath::Exp(0.156-0.00137*pt_tbar)));
         gt->sf_tt_bound     = TMath::Sqrt(((pt_t>400) ? 1 : TMath::Exp(0.0615-0.0005*pt_t)) *
-                         ((pt_tbar>400) ? 1 : TMath::Exp(0.0615-0.0005*pt_tbar)));
+                                          ((pt_tbar>400) ? 1 : TMath::Exp(0.0615-0.0005*pt_tbar)));
       }
 
       if (pt_t>0)
@@ -91,7 +91,14 @@ void PandaAnalyzer::TopPTReweight()
 // reweight the V+jets kinematic distributions
 // Responsible: S. Narayanan
 void PandaAnalyzer::VJetsReweight() 
-{
+{   
+      if (analysis->processType != kZ && 
+          analysis->processType != kZEWK &&
+          analysis->processType != kW &&
+          analysis->processType != kWEWK && 
+          analysis->processType != kA)
+        return;
+
       // calculate the mjj 
       TLorentzVector vGenJet;
       if (analysis->vbf) {
