@@ -350,11 +350,13 @@ void PandaAnalyzer::FatjetBasics()
           double smear=1, smearUp=1, smearDown=1;
           ak8JERReader->getStochasticSmear(pt,eta,event.rho,smear,smearUp,smearDown);
           gt->fj1PtSmeared = smear*gt->fj1Pt;
-          gt->fj1Pt = gt->fj1PtSmeared; // redundancy >:(
           gt->fj1PtSmearedUp = smearUp*gt->fj1Pt;
           gt->fj1PtSmearedDown = smearDown*gt->fj1Pt;
           gt->fj1MSDSmeared = smear*gt->fj1MSD;
-          gt->fj1MSD = gt->fj1MSDSmeared; // redundancy >:(
+          if (analysis->hbb) { // "In the Higgs group, we do measurements." ~A. Rizzi
+            gt->fj1Pt = gt->fj1PtSmeared; 
+            gt->fj1MSD = gt->fj1MSDSmeared;
+          }
           gt->fj1MSDSmearedUp = smearUp*gt->fj1MSD;
           gt->fj1MSDSmearedDown = smearDown*gt->fj1MSD;
         }

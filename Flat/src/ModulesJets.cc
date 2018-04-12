@@ -70,8 +70,11 @@ void PandaAnalyzer::JetBasics()
       continue;
     if ((analysis->vbf || analysis->hbb) && !jet.loose)
       continue;
-
-    float pt = isData? jet.pt() : jet.ptSmear;
+    
+    float pt;
+    if (!isData && analysis->hbb) pt = jt.ptSmear;
+    else pt = jet.pt();
+    
     // Apply the jet pileup ID (hardcoded now, make it nice for Sid later)
     bool passLoosePUID=false;
     if        (abseta<2.50) {
@@ -284,7 +287,7 @@ void PandaAnalyzer::JetHbbBasics(const panda::Jet& jet)
   float csv = (fabs(jet.eta())<2.5) ? jet.csv : -1;
   float cmva = (fabs(jet.eta())<2.5) ? jet.cmva : -1;
   int N = cleanedJets.size()-1;
-  if(!isData) { 
+  if (!isData && analysis->hbb) { 
     gt->jetPt[N] = jet.ptSmear;
     gt->jetPtUp[N] = jet.ptSmear*jet.ptCorrUp/jet.pt();
     gt->jetPtDown[N] = jet.ptSmear*jet.ptCorrDown/jet.pt();
@@ -400,10 +403,10 @@ void PandaAnalyzer::IsoJet(const panda::Jet& jet)
     if (csv>0.5426)
       ++gt->isojetNBtags;
     if (isoJets.size()==1) {
-      gt->isojet1Pt = isData? jet.pt() : jet.ptSmear;
+      gt->isojet1Pt = (!isData && analysis->hbb)? jet.ptSmear : jet.pt();
       gt->isojet1CSV = jet.csv;
     } else if (isoJets.size()==2) {
-      gt->isojet2Pt = isData? jet.pt() : jet.ptSmear;
+      gt->isojet2Pt = (!isData && analysis->hbb)? jet.ptSmear : jet.pt();
       gt->isojet2CSV = jet.csv;
     }
       gt->jetIso[cleanedJets.size()-1]=1;
