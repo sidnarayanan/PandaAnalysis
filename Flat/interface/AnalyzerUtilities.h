@@ -329,6 +329,7 @@ bool MuonIP(double dxy, double dz);
 double TTNLOToNNLO(double pt);
 bool IsMatched(std::vector<panda::Particle*>*objects,
                double deltaR2, double eta, double phi);
+bool JetPUID(double pt, double eta, double puid);
 
 ////////////////////////////////////////////////////////////////////////////////////
 

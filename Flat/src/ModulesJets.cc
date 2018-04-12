@@ -72,33 +72,11 @@ void PandaAnalyzer::JetBasics()
       continue;
     
     float pt;
-    if (!isData && analysis->hbb) pt = jt.ptSmear;
+    if (!isData && analysis->hbb) pt = jet.ptSmear;
     else pt = jet.pt();
     
-    // Apply the jet pileup ID (hardcoded now, make it nice for Sid later)
-    bool passLoosePUID=false;
-    if        (abseta<2.50) {
-      if      (pt<10) passLoosePUID = jet.puid > -0.97;
-      else if (pt<20) passLoosePUID = jet.puid > -0.97;
-      else if (pt<30) passLoosePUID = jet.puid > -0.97;
-      else            passLoosePUID = jet.puid > -0.89;
-    } else if (abseta<2.75) {
-      if      (pt<10) passLoosePUID = jet.puid > -0.68;
-      else if (pt<20) passLoosePUID = jet.puid > -0.68;
-      else if (pt<30) passLoosePUID = jet.puid > -0.68;
-      else            passLoosePUID = jet.puid > -0.52;
-    } else if (abseta<3.00) {
-      if      (pt<10) passLoosePUID = jet.puid > -0.53;
-      else if (pt<20) passLoosePUID = jet.puid > -0.53;
-      else if (pt<30) passLoosePUID = jet.puid > -0.53;
-      else            passLoosePUID = jet.puid > -0.38;
-    } else if (abseta<5.00) {
-      if      (pt<10) passLoosePUID = jet.puid > -0.47;
-      else if (pt<20) passLoosePUID = jet.puid > -0.47;
-      else if (pt<30) passLoosePUID = jet.puid > -0.47;
-      else            passLoosePUID = jet.puid > -0.30;
-    }
-    if (analysis->hbb && !passLoosePUID) continue;
+    // Apply the loose jet pileup ID
+    if (analysis->hbb && !JetPUID(pt, jet.eta(), jet.puid)) continue;
     
     if (pt>jetPtThreshold || pt>bJetPtThreshold) { // nominal or b jets
 
@@ -280,7 +258,7 @@ void PandaAnalyzer::JetBasics()
 
 }
 
-// basic jet info for more jtes
+// basic jet info for more jets
 // Responsible: B. Maier
 void PandaAnalyzer::JetHbbBasics(const panda::Jet& jet)
 {
