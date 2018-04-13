@@ -186,7 +186,10 @@ void PandaAnalyzer::JetCMVAWeights()
   jetFlavors.reserve(nJ);
   for (unsigned int iJ=0; iJ!=nJ; ++iJ) {
     const panda::Jet *jet = bCandJets.at(iJ);
-    jetPts.push_back(jet->ptSmear);
+    if (analysis->hbb) 
+      jetPts.push_back(jet->ptSmear);
+    else 
+      jetPts.push_back(jet->pt());
     jetEtas.push_back(jet->eta());
     jetCSVs.push_back(jet->csv);
     jetCMVAs.push_back(jet->cmva);
