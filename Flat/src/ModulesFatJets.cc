@@ -353,7 +353,7 @@ void PandaAnalyzer::FatjetBasics()
           gt->fj1PtSmearedUp = smearUp*gt->fj1Pt;
           gt->fj1PtSmearedDown = smearDown*gt->fj1Pt;
           gt->fj1MSDSmeared = smear*gt->fj1MSD;
-          if (analysis->hbb) { // "In the Higgs group, we do measurements." ~A. Rizzi
+          if (analysis->hbb) { // Use the smeared jets by default for certain measurements
             gt->fj1Pt = gt->fj1PtSmeared; 
             gt->fj1MSD = gt->fj1MSDSmeared;
           }

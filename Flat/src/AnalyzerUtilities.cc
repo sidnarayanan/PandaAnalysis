@@ -215,32 +215,5 @@ bool IsMatched(vector<panda::Particle*>*objects,
   }
   return false;
 }
-bool JetPUID(double pt, double eta, double puid)
-{
-  // Only loose PUID cuts for now
-  bool pass=false;
-  double abseta = fabs(eta);
-  if        (abseta<2.50) {
-    if      (pt<10) pass = (puid > -0.97);
-    else if (pt<20) pass = (puid > -0.97);
-    else if (pt<30) pass = (puid > -0.97);
-    else            pass = (puid > -0.89);
-  } else if (abseta<2.75) {
-    if      (pt<10) pass = (puid > -0.68);
-    else if (pt<20) pass = (puid > -0.68);
-    else if (pt<30) pass = (puid > -0.68);
-    else            pass = (puid > -0.52);
-  } else if (abseta<3.00) {
-    if      (pt<10) pass = (puid > -0.53);
-    else if (pt<20) pass = (puid > -0.53);
-    else if (pt<30) pass = (puid > -0.53);
-    else            pass = (puid > -0.38);
-  } else if (abseta<5.00) {
-    if      (pt<10) pass = (puid > -0.47);
-    else if (pt<20) pass = (puid > -0.47);
-    else if (pt<30) pass = (puid > -0.47);
-    else            pass = (puid > -0.30);
-  }
-  return pass;
-}
+
 

@@ -76,7 +76,10 @@ void PandaAnalyzer::JetBasics()
     else pt = jet.pt();
     
     // Apply the loose jet pileup ID
-    if (analysis->hbb && !JetPUID(pt, jet.eta(), jet.puid)) continue;
+    if (analysis->hbb) {
+      if (jet.puid < GetCorr(cJetLoosePUID, abseta, min(pt, 39.99f)))
+        continue;
+    }
     
     if (pt>jetPtThreshold || pt>bJetPtThreshold) { // nominal or b jets
 
@@ -265,10 +268,11 @@ void PandaAnalyzer::JetHbbBasics(const panda::Jet& jet)
   float csv = (fabs(jet.eta())<2.5) ? jet.csv : -1;
   float cmva = (fabs(jet.eta())<2.5) ? jet.cmva : -1;
   int N = cleanedJets.size()-1;
-  if (!isData && analysis->hbb) { 
+  if (!isData && analysis->hbb) {
+    float smearFactor = jet.ptSmear/jet.pt();
     gt->jetPt[N] = jet.ptSmear;
-    gt->jetPtUp[N] = jet.ptSmear*jet.ptCorrUp/jet.pt();
-    gt->jetPtDown[N] = jet.ptSmear*jet.ptCorrDown/jet.pt();
+    gt->jetPtUp[N] = smearFactor*jet.ptCorrUp;
+    gt->jetPtDown[N] = smearFactor*jet.ptCorrDown;
     gt->jetPtSmearUp[N] = jet.ptSmearUp;
     gt->jetPtSmearDown[N] = jet.ptSmearDown;
     TLorentzVector smearedJetP4; 
@@ -706,7 +710,6 @@ void PandaAnalyzer::JetHbbReco()
         gt->topMassLep1Met_jesDown = topP4.M();
       }
       tr->TriggerSubEvent("Top(bW) reco");
-    } else {
     }
   }
   

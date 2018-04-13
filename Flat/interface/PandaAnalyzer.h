@@ -147,6 +147,7 @@ private:
         cVBF_TrigMET, //!< MET trigger eff as a f'n of mjj/met 
         cVBF_TrigMETZmm,
         cBadECALJets,  //!< bad ECAL clusters to filter jets
+        cJetLoosePUID,
         cN
     };
 

@@ -392,6 +392,11 @@ void PandaAnalyzer::SetDataDir(const char *s)
                    "SignalWeight_nloEWK_down_rebin",1);
   }
 
+  if (analysis->hbb) {
+    OpenCorrection(cJetLoosePUID,
+                   dirPath+"higgs/puid_loose.root",
+                   "puid_loose",2);
+  }
   // photons
   OpenCorrection(cPho,
                  dirPath+"moriond17/scalefactors_80x_medium_photon_37ifb.root",
