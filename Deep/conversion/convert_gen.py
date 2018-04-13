@@ -5,6 +5,7 @@ import numpy as np
 from os import getenv, system
 from PandaCore.Tools.Misc import PInfo, PDebug 
 import PandaAnalysis.Deep.job_deepgen_utilities as deep_utils
+import re
 from glob import glob 
 
 deep_utils.NORM = True
@@ -106,7 +107,7 @@ def dump(idx, partition):
 
     # singletons
     singletons = data['singleton_branches']
-    d = np.vstack([xform(data[x][idx], data['pt'], x) for x in singletons]).T 
+    d = np.vstack([xform(data[x][idx], data['pt'][idx], x) for x in singletons]).T 
     np.save(outpath%'singletons', d)
 
     # particles
