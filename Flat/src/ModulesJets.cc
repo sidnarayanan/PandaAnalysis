@@ -39,6 +39,7 @@ void PandaAnalyzer::SetupJES()
 // Responsible: S. Narayanan
 void PandaAnalyzer::JetBasics() 
 {
+  // TODO HERE
   gt->barrelJet12Pt = 0;
   gt->barrelHT = 0;
   jot1=0; jot2=0;
@@ -54,6 +55,7 @@ void PandaAnalyzer::JetBasics()
   unsigned nJetDPhi = (analysis->vbf) ? 4 : 5;
 
   gt->badECALFilter = 1;
+
   for (auto& jet : *jets) {
 
     // only do eta-phi checks here
@@ -376,81 +378,26 @@ void PandaAnalyzer::IsoJet(const panda::Jet& jet)
 
 // vary jet energy scales for jet
 // Responsible: S. Narayanan, D. Hsu
-void PandaAnalyzer::JetVaryJES(const panda::Jet& jet)
+void PandaAnalyzer::JetVaryJES()
 {
-  // do jes variation OUTSIDE of nominal jet check 
-  if (jet.ptCorrUp>jetPtThreshold) { // Vary the pT up
-    // forward and central jets:
-    if (jet.ptCorrUp > gt->jot1PtUp) {
-      if (jotUp1) {
-        jotUp2 = jotUp1;
-        gt->jot2PtUp = gt->jot1PtUp;
-        gt->jot2EtaUp = gt->jot1EtaUp;
-        gt->jot2PhiUp = gt->jot1PhiUp;
+  // always do the nominal shift
+  orderedJets[shiftjes::kNominal].resize(jets->size());
+  for (auto &j : *jets) { 
+    orderedJets[shiftjes::kNominal].all.push_back(ShiftJet<shiftjes::kNominal>(j));
+  } 
+
+  // add variations on-demand
+  if (analysis->varyJES) {
+    for (shiftjes jes = 1; jes != shiftjes::N; ++jes) {
+      for (auto &j : *jets) {
+        orderedJets[jes].all.push_back(ShiftJet<jes>(j));
       }
-      jotUp1 = &jet;
-      gt->jot1PtUp = jet.ptCorrUp;
-      gt->jot1EtaUp = jet.eta();
-    } else if (jet.ptCorrUp > gt->jot2PtUp) {
-      jotUp2 = &jet;
-      gt->jot2PtUp = jet.ptCorrUp;
-      gt->jot2EtaUp = jet.eta();
-      gt->jot2PhiUp = jet.phi();
-    }
-    // central only jets:
-    if (fabs(jet.eta()) < 2.4) {
-      if (jet.ptCorrUp > gt->jet1PtUp) {
-        if (jetUp1) {
-          jetUp2 = jetUp1;
-          gt->jet2PtUp = gt->jet1PtUp;
-          gt->jet2EtaUp = gt->jet1EtaUp;
-        }
-        jetUp1 = &jet;
-        gt->jet1PtUp = jet.ptCorrUp;
-        gt->jet1EtaUp = jet.eta();
-      } else if (jet.ptCorrUp > gt->jet2PtUp) {
-        jetUp2 = &jet;
-        gt->jet2PtUp = jet.ptCorrUp;
-        gt->jet2EtaUp = jet.eta();
-      }
+      // reorder from biggest to smallest shifted jets
+      std::sort(orderedJets[jes].all.begin(), orderedJets[jes].all.end(),
+               [](JetWrapper x, JetWrapper y) { return x.pt > y.pt; });
     }
   }
-  if (jet.ptCorrDown>jetPtThreshold) { // Vary the pT down:
-    // forward and central jets:
-    if (jet.ptCorrDown > gt->jot1PtDown) {
-      if (jotDown1) {
-        jotDown2 = jotDown1;
-        gt->jot2PtDown = gt->jot1PtDown;
-        gt->jot2EtaDown = gt->jot1EtaDown;
-        gt->jot2PhiDown = gt->jot1PhiDown;
-      }
-      jotDown1 = &jet;
-      gt->jot1PtDown = jet.ptCorrDown;
-      gt->jot1EtaDown = jet.eta();
-    } else if (jet.ptCorrDown > gt->jot2PtDown) {
-      jotDown2 = &jet;
-      gt->jot2PtDown = jet.ptCorrDown;
-      gt->jot2EtaDown = jet.eta();
-      gt->jot2PhiDown = jet.phi();
-    }
-    // central only jets:
-    if (fabs(jet.eta()) < 2.4) {
-      if (jet.ptCorrDown > gt->jet1PtDown) {
-        if (jetDown1) {
-          jetDown2 = jetDown1;
-          gt->jet2PtDown = gt->jet1PtDown;
-          gt->jet2EtaDown = gt->jet1EtaDown;
-        }
-        jetDown1 = &jet;
-        gt->jet1PtDown = jet.ptCorrDown;
-        gt->jet1EtaDown = jet.eta();
-      } else if (jet.ptCorrDown > gt->jet2PtDown) {
-        jetDown2 = &jet;
-        gt->jet2PtDown = jet.ptCorrDown;
-        gt->jet2EtaDown = jet.eta();
-      }
-    }
-  }
+
   tr->TriggerSubEvent("vary jet JES");
 }
 

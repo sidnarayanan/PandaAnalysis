@@ -446,4 +446,23 @@ void PandaAnalyzer::FillGenTree()
   tr->TriggerEvent("fill gen tree");
 }
 
+template<>
+PandaAnalyzer::JetWrapper PandaAnalyzer::ShiftJet<shiftjes::kNominal>(const panda::Jet& base)
+{
+  JetWrapper jw(base.pt(), base);
+  return jw;
+}
+template<>
+PandaAnalyzer::JetWrapper PandaAnalyzer::ShiftJet<shiftjes::kUp>(const panda::Jet& base)
+{
+  JetWrapper jw(base.ptCorrUp, base);
+  return jw;
+}
+template<>
+PandaAnalyzer::JetWrapper PandaAnalyzer::ShiftJet<shiftjes::kDown>(const panda::Jet& base)
+{
+  JetWrapper jw(base.ptCorrDown, base);
+  return jw;
+}
+
 #endif

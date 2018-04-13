@@ -207,6 +207,24 @@ private:
       int child_idx;
     };
 
+    struct JetWrapper {
+        float pt; 
+        const panda::Jet* base;
+        JetWrapper(float pt_, const panda::Jet& j): pt(pt_), base(&j) { }
+    };
+
+    struct JetOrdering {
+        std::vector<JetWrapper> all; // all jets 
+        std::vector<const JetWrapper*> cleaned;
+        std::vector<const JetWrapper*> iso;     // cleaned that do not overlap with fj
+        std::vector<const JetWrapper*> central; // cleaned that are central
+        std::vector<const JetWrapper*> bCand;   // all that are b candidates
+        void clear() { all.clear(); cleaned.clear(); iso.clear();
+                       central.clear(); bCand.clear(); }
+        void reserve(int N) { all.reserve(N); cleaned.reserve(N); iso.reserve(N);
+                              central.reserve(N); bCand.reserve(N); }
+    };
+
     //////////////////////////////////////////////////////////////////////////////////////
 
     bool PassGoodLumis(int run, int lumi);
@@ -215,7 +233,9 @@ private:
     double GetCorr(CorrectionType ct,double x, double y=0);
     double GetError(CorrectionType ct,double x, double y=0);
     void RegisterTriggers(); 
-    void GetMETSignificance(); 
+    float GetMSDCorr(float, float); 
+    template <shiftjes I> JetWrapper ShiftJet(const panda::Jet&);
+    
 
     // these are functions used for analysis-specific tasks inside Run.
     // ideally the return type is void (e.g. they are stateful functions),
@@ -236,7 +256,7 @@ private:
     void GenFatJet();
     void GenJetsNu();
     void GenStudyEWK();
-    float GetMSDCorr(float, float); 
+    void GetMETSignificance(); 
     void HeavyFlavorCounting();
     void IsoJet(const panda::Jet&);
     void JetBRegressionInfo(const panda::Jet&);
@@ -248,7 +268,7 @@ private:
     void JetHbbSoftActivity();
     void JetVBFBasics(const panda::Jet&);
     void JetVBFSystem();
-    void JetVaryJES(const panda::Jet&);
+    void JetVaryJES();
     void LeptonSFs();
     bool PFChargedPhotonMatch(const panda::Photon& photon);
     void PhotonSFs();
@@ -390,18 +410,13 @@ private:
 
     const panda::FatJet *fj1 = 0;
     panda::FatJetCollection *fatjets = 0;
-    std::vector<const panda::Jet*> cleanedJets, isoJets, centralJets, bCandJets;
-    TLorentzVector vJet, vBarrelJets;
-    panda::JetCollection *jets = 0;
-    const panda::Jet *jot1 = 0, *jot2 = 0;
-    const panda::Jet *jotUp1 = 0, *jotUp2 = 0;
-    const panda::Jet *jotDown1 = 0, *jotDown2 = 0;
-    const panda::Jet *jetUp1 = 0, *jetUp2 = 0;
-    const panda::Jet *jetDown1 = 0, *jetDown2 = 0;
+
     float jetPtThreshold=30;
     float bJetPtThreshold=30;
+    panda::JetCollection *jets = 0;
     std::map<const panda::Jet*,int> bCandJetGenFlavor;
     std::map<const panda::Jet*,float> bCandJetGenPt;
+    std::vector<JetOrdering> orderedJets(shiftjes::N); 
 
     std::vector<panda::GenJet> genJetsNu;
     float genBosonPtMin, genBosonPtMax;
