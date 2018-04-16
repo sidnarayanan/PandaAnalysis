@@ -58,6 +58,7 @@ wjets         = Process('W+jets [QCD]',root.kWjets)
 zjets_ewk     = Process('Z+jets [EWK]',root.kExtra3)
 wjets_ewk     = Process('W+jets [EWK]',root.kExtra2)
 vbf           = Process('VBF H(inv)',root.kSignal)
+ggf           = Process('ggF H(inv)',root.kSignal2)
 
 ### ASSIGN FILES TO PROCESSES ###
 zjets.add_file(baseDir+'ZtoNuNu.root')
@@ -65,8 +66,9 @@ zjets_ewk.add_file(baseDir+'ZtoNuNu_EWK.root')
 wjets.add_file(baseDir+'WJets.root')
 wjets_ewk.add_file(baseDir+'WJets_EWK.root')
 vbf.add_file(baseDir+'vbfHinv_m125.root')
+ggf.add_file(baseDir+'ggFHinv_m125.root')
 
-processes = [zjets, wjets, zjets_ewk, wjets_ewk, vbf]
+processes = [zjets, wjets, zjets_ewk, wjets_ewk, ggf, vbf]
 
 for p in processes:
     plot.add_process(p)

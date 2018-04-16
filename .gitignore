@@ -5,3 +5,5 @@
 test*root
 *.txt
 *.jdl
+*.npz
+*.npy

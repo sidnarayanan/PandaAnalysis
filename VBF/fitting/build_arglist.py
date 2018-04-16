@@ -12,8 +12,10 @@ pt1 = [80+20*x for x in range(5)]
 pt2 = [40+10*x for x in range(9)]
 
 datacards = {
-        'cnc' : 'vbf_onebin_stat_noggf.txt',
-        'mjj' : 'vbf_mjj_noggf.txt',
+        'cnc' : 'cnc_opt.txt',
+        'mjj' : 'mjj_opt.txt',
+        'deta' : 'deta_opt.txt',
+        'dphi' : 'dphi_opt.txt',
         }
 
 cuts = []
@@ -21,6 +23,11 @@ if which == 'cnc':
     cuts += ['deta>%.2f&&fabs(dphi)<%.2f&&mjj>%i'%(x,y,z) for x in deta for y in dphi for z in mjj]
 elif which == 'mjj':
     cuts += ['deta>%.2f&&fabs(dphi)<%.2f'%(x,y) for x in deta for y in dphi]
+elif which == 'deta':
+    cuts += ['fabs(dphi)<%.2f&&mjj>%i'%(y,z) for y in dphi for z in mjj]
+elif which == 'dphi':
+    cuts += ['deta>%.2f&&mjj>%i'%(x,z) for x in deta for z in mjj]
+
 #cuts += ['deta>%.2f&&mjj>%i'%(e,m) for e in deta for m in mjj]
 #cuts += ['jot1Pt>%.2f&&jot2Pt>%.2f'%(x,y) for x in pt1 for y in pt2]
 #cuts += ['deta>%.2f&&jot1Pt>%.2f'%(x,y) for x in deta for y in pt1]

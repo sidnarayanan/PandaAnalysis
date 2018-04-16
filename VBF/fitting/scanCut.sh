@@ -41,9 +41,9 @@ cd datacardsHiggs
 combine -M Asymptotic $datacard -n $label --run=blind --noFitAsimov 
 ls higgs*root
 mkdir -p $outdir
-ret=$(cp higgs*root $outdir )
+ret=$( cp higgs*root $outdir )
 
 cd $WD
-rm -rf CMSSW_7_4_7
+rm -rf MonoX 
 
 exit $ret

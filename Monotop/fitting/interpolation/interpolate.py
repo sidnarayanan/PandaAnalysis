@@ -48,7 +48,7 @@ def interpolate():
         m_V,m_DM = [int(x) for x in args.mass_interp.split('_')]
         offshell = (2*m_DM >= m_V)
         frescos = map(lambda x : x.split('/')[-1].replace('.root','').replace('fittingForest_signal_vector_',''),
-                      glob(basedir+'/signals_2/fittingForest_signal_vector*root'))
+                      glob(basedir+'/signals_3/fittingForest_signal_vector*root'))
         frescos = map(lambda x : tuple(map(lambda y : int(y), x.split('_'))),
                       frescos)
         m_V_recos = [x[0] for x in frescos]
@@ -64,7 +64,7 @@ def interpolate():
 
     PInfo(sname, 'We have chosen as the reconstructed point %s'%args.mass_reco)
 
-    f_reco_path = basedir+'/signals_2/fittingForest_signal_vector_%s.root'%(args.mass_reco)
+    f_reco_path = basedir+'/signals_3/fittingForest_signal_vector_%s.root'%(args.mass_reco)
     f_reco = root.TFile.Open(f_reco_path)
     t_reco = f_reco.Get('%s_signal'%(args.mass_reco))
     f_reco_gen_path = basedir+'/interpolate/hists/%s.root'%(args.mass_reco)
@@ -72,31 +72,33 @@ def interpolate():
 
     system('mkdir -p %s/interpolate/interpolated/'%basedir)
     t_out = t_reco.Clone()
+
+    f_out = root.TFile('%s/interpolate/interpolated/interp_%s.root'%(basedir,args.mass_interp),'RECREATE')
     metname = 'min(met,999.9999)'
-    branches = [metname]
     for g in couplings:
+        branches = [metname]
         h_interp = f_interp.Get('h_%s'%g)
-        h_reco_gen = f_reco_gen.Get('h_%s'%g)
+        g_reco = 'nominal' # = g
+        PInfo(sname,'Interpolating %s with %s'%(g,g_reco))
+        h_reco_gen = f_reco_gen.Get('h_%s'%g_reco)
         h_ratio = h_interp.Clone(); h_ratio.Divide(h_reco_gen)
         ba.newBranchName = 'interp_%s'%g
         ba.AddBranchFromHistogram(t_reco,h_ratio)
-        if g=='nominal':
+        if g_reco == 'nominal':
             weightname = 'weight*interp_%s'%g
         else:
             weightname = 'weight*%s*interp_%s'%(g.replace('_nlo','').replace('rw_',''),g)
         branches.append(weightname)
         for s in systs:
             branches.append(weightname.replace('weight',s))
-    xarr = {}
-    xarr['tight'] = read_tree(t_reco,branches,'top_ecf_bdt>0.45 && met>250')
-    xarr['loose'] = read_tree(t_reco,branches,'top_ecf_bdt>0.1 && top_ecf_bdt<0.45 && met>250')
-
-    f_out = root.TFile('%s/interpolate/interpolated/interp_%s.root'%(basedir,args.mass_interp),'RECREATE')
-    for g in couplings:
+        xarr = {}
+        xarr['tight'] = read_tree(t_reco,branches,'top_ecf_bdt>0.45 && met>250')
+        xarr['loose'] = read_tree(t_reco,branches,'top_ecf_bdt>0.1 && top_ecf_bdt<0.45 && met>250')
+#    for g in couplings:
         f_out.cd()
         folder = f_out.mkdir(g)
         h_templates = {}
-        if g=='nominal':
+        if g_reco=='nominal':
             weightname = 'weight*interp_%s'%g
         else:
             weightname = 'weight*%s*interp_%s'%(g.replace('_nlo','').replace('rw_',''),g)

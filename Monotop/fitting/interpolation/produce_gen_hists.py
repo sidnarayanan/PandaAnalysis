@@ -6,7 +6,7 @@ from sys import argv,exit
 from os import environ,system,path
 from array import array
 
-sname = argv[0]
+sname = argv[0].split('/')[-1]
 m_V = int(argv[1])
 m_DM = int(argv[2])
 argv=[]
@@ -28,24 +28,46 @@ Load('Normalizer')
         - Delete the merged file and stageout the file with histograms
 '''
 
-## first copy files locally
-list_dir = '/home/snarayan/MonoTop/interpolation/'
+#CONFIG = 'couplings' # or finer or normal
+CONFIG = 'normal'
 
+list_dir = '/home/bmaier/cms/MonoTop/interpolation/'
+xsec_path = 'non-resonant'
+outdir = 'hists'
+if CONFIG == 'couplings':
+    list_dir += 'coupling_'
+    xsec_path = 'non-resonant-couplings'
+    outdir = 'hists_couplings'
+elif CONFIG == 'fine':
+    list_dir += 'fine_'
+    xsec_path = 'non-resonant-fine'
+    outdir = 'hists_fine'
+
+
+## first copy files locally
 def stage_in_file(source,target):
     source = 'root://xrootd.cmsaf.mit.edu/' + source
+    source = source.replace('/mnt/hadoop/cms','')
     cmd = 'xrdcp %s %s'%(source,target)
     PInfo(sname+'.stage_in_file', cmd)
     system(cmd)
 
 # copy slowly to keep Max happy
+event_cutoff = 5e5
 def stage_in_list():
     system('mkdir -p unmerged')
     flist = open(list_dir+'%i_%i.txt'%(m_V,m_DM))
     PInfo(sname+'.stage_in_list','Reading '+list_dir+'%i_%i.txt'%(m_V,m_DM))
+    total_events = 0 
     for l in flist:
         in_name = l.strip()
         out_name = 'unmerged/'+in_name.split('/')[-1]
         stage_in_file(in_name,out_name)
+        f_out = root.TFile(out_name)
+        t_out = f_out.Get('events')
+        total_events += t_out.GetEntries()
+        if total_events >= event_cutoff:
+            break
 
 # do a recursive copy and make Max angry
 def stage_in_files():
@@ -69,7 +91,7 @@ def remove(pattern):
 
 ## normalize the merged file
 def get_xsec():
-    params = read_nr_model(m_V,m_DM)
+    params = read_nr_model(m_V,m_DM, path=xsec_path)
     if params:
         xsec = params.sigma
     else:
@@ -92,7 +114,10 @@ def normalize(xsec):
     f.Close()
 
 ## draw histograms
-fweights = open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/Monotop/fitting/signal_weights.dat')
+fweights = open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/Monotop/fitting/signal_weights_all.dat')
+if CONFIG == 'couplings':
+    fweights = open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/Monotop/fitting/signal_weights_couplings_all.dat')
+
 weights = [x.strip() for x in fweights]
 fweights.close()
 bins = array('f', [175, 225, 275, 325, 375, 425, 475, 600, 800, 1200])
@@ -106,26 +131,39 @@ def draw_all():
         if idx==0:
             weight_str = 'normalizedWeight'
         else:
-            weight_str = 'normalizedWeight*weights[%i]'%(idx-1)
+            weight_str = 'normalizedWeight*fabs(weights[%i])'%(idx-1)
         weight_strs.append(weight_str)
-    xarr = read_tree(t_in, ['genBosonPt']+weight_strs)
-    
-    for idx in xrange(len(weights)):
-        h = hbase.Clone()
-        weight_str = weight_strs[idx]
-        weight_name = weights[idx]
-        draw_hist(h, xarr, ['genBosonPt'], weight_str)
-        f_out.WriteTObject(h,'h_'+weight_name)
+
+    n_weights = len(weight_strs)
+    n_per = 50
+    nominal_arr = None
+    for iw in xrange(0, n_weights, n_per): 
+        PInfo(sname,'Extracting %i -> %i'%(iw,iw+n_per))
+
+        xarr = read_tree(t_in, ['genBosonPt'] + weight_strs[iw:iw + n_per])
+
+        for idx in xrange(iw, iw + n_per):
+            if idx == n_weights:
+                break
+            h = hbase.Clone()
+            weight_str = weight_strs[idx]
+            weight_name = weights[idx]
+            draw_hist(h, xarr, ['genBosonPt'], weight_str)
+            f_out.WriteTObject(h,'h_'+weight_name)
 
     f_out.Close()
     f_in.Close()
 
 ## stage out
 def stageout():
-    cmd = 'mv hists.root %s/interpolate/hists/%i_%i.root'%(getenv('PANDA_FITTING'),m_V,m_DM)
+    cmd = 'mkdir -p %s/interpolate/%s'%(getenv('PANDA_FITTING'),outdir)
+    system(cmd)
+    cmd = 'mv hists.root %s/interpolate/%s/%i_%i.root'%(getenv('PANDA_FITTING'),outdir,m_V,m_DM)
+    PInfo(sname+'.stageout',cmd)
     system(cmd)
 
 xsec = get_xsec() # do this first in case it's missing
+#stage_in_files()
 stage_in_list()
 hadd()
 remove('unmerged')

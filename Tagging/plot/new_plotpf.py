@@ -124,7 +124,7 @@ for p in processes:
 plot.add_distribution(FDistribution('fj1MSD',50,550,20,'fatjet m_{SD} [GeV]',ylabel))
 plot.add_distribution(FDistribution('fj1Pt',200,1000,20,'fatjet p_{T} [GeV]',ylabel))
 plot.add_distribution(FDistribution('top_ecf_bdt',-1,1,20,'Top BDT',ylabel))
-plot.add_distribution(FDistribution('top_ecfAll_bdt',-1,1,20,'Top 50ECF BDT',ylabel))
+#plot.add_distribution(FDistribution('top_ecfAll_bdt',-1,1,20,'Top 50ECF BDT',ylabel))
 plot.add_distribution(FDistribution('fj1MaxCSV',0,1,20,'fatjet max CSV',ylabel))
 plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
@@ -175,8 +175,8 @@ ratios = [
             Ratio((2,4,2),(1,3,2),2,0,5,10),
         ]
 
-for r in ratios:
-    plot.add_distribution(FDistribution(r.formula(),r.lo,r.hi,20,r.label(),ylabel,filename=r.filename()))
+#for r in ratios:
+#    plot.add_distribution(FDistribution(r.formula(),r.lo,r.hi,20,r.label(),ylabel,filename=r.filename()))
 
 ### DRAW AND CATALOGUE ###
 plot.draw_all(args.outdir+'/'+region+'_')

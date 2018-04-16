@@ -12,7 +12,8 @@
 #include <vector>
 #include "PandaCore/Tools/interface/Common.h"
 
-static int treeCounter=0; // used to give distinct names to trees
+// used to give distinct names to trees
+static int treeCounter=0; // shut up with your -Wunused-variable, g++. this is used elsewhere
 
 class xformula {
 	public:

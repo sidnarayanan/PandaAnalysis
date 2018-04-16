@@ -1,2 +1,3 @@
-{1 JetEta 3 Rho JetPt JetA 1 Correction L1FastJet}
--5.191     5.191         6           0         200          10        3000           0          10
+version https://git-lfs.github.com/spec/v1
+oid sha256:442895854ea8dee84735d12c403c10972fa87ef1e447cd8bb58259743bf62e3b
+size 150

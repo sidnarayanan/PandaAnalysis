@@ -155,7 +155,9 @@ for iP in [3,2,1]:
 '''
 
 model = {}
-nsigtotal = root.RooFormulaVar('nsigtotal','norm30+norm31',root.RooArgList(norm[(3,0)],norm[(3,1)]))
+# nsigtotal = root.RooFormulaVar('nsigtotal','norm30+norm31',root.RooArgList(norm[(3,0)],norm[(3,1)]))
+nsigtotal_ = mcnorms[(3,0)]+mcnorms[(3,1)]
+nsigtotal = root.RooRealVar('nsigtotal','nsigtotal',nsigtotal_,0.5*nsigtotal_,2*nsigtotal_)
 # eff_ = norm[(3,1)].getVal()/(norm[(3,1)].getVal()+norm[(3,0)].getVal())
 
 def calcEffAndErr(p,perr,f,ferr):
@@ -222,6 +224,9 @@ labels = {
   3:'Matched top',
 }
 
+eff_val = eff.getVal()
+nsigtotal_val = nsigtotal.getVal()
+
 for iC in [0,1]:
   for iP in [3,2,1]:
     cat = (iP,iC)
@@ -229,7 +234,15 @@ for iC in [0,1]:
     h.SetLineWidth(3)
     h.SetLineStyle(1)
     h.SetLineColor(colors[iP])
-    h.Scale(norm[cat].getVal()/h.Integral())
+    if iP!=3:
+      h.Scale(norm[cat].getVal()/h.Integral())
+    else:
+      if iC==0:
+        scale = (1-eff_val)*nsigtotal_val
+      else:
+        scale = eff_val*nsigtotal_val
+      h.Scale(scale/h.Integral())
+
     plot[iC].AddAdditional(h,'hist',labels[iP])
     
   hprefit = hprong[(1,0)].Clone('prefit')
@@ -260,7 +273,10 @@ for iC in [0,1]:
   hmodel.SetLineColor(root.kBlue+10)
   hmodel.GetXaxis().SetTitle('fatjet m_{SD} %s [GeV]'%postfix)
   hmodel.GetYaxis().SetTitle('Events/10 GeV')
-  hmodel.Scale(sum([norm[(x,iC)].getVal() for x in [1,2,3]])/hmodel.Integral())
+
+  signorm_val = (eff_val if iC==1 else 1-eff_val)*nsigtotal_val
+  hmodel.Scale((sum([norm[(x,iC)].getVal() for x in [1,2]])+signorm_val)/hmodel.Integral())
+  # hmodel.Scale(sum([norm[(x,iC)].getVal() for x in [1,2,3]])/hmodel.Integral())
   hmodel.SetFillStyle(0)
   plot[iC].AddHistogram(hmodel,'Post-fit',root.kExtra5)
   plot[iC].AddAdditional(hmodel,'hist')

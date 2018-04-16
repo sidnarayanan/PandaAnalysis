@@ -9,7 +9,7 @@ argv = []
 import PandaCore.Tools.Load as Load
 import ROOT as root
 
-Load.Load('Tools','DuplicateRemover')
+Load.Load('DuplicateRemover')
 
 dr = root.DuplicateRemover()
 dr.Merge(f1,f2,f3)

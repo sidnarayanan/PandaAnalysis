@@ -1,2 +1,3 @@
-{1         JetEta              1          JetPt               1     Correction     L3Absolute}
--5.191          5.191              2              1           10000              
+version https://git-lfs.github.com/spec/v1
+oid sha256:a63a46a71db8ce3366ee2249f48852040a7a9e2c1a02ec7665e89f792df84a1a
+size 177

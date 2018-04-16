@@ -51,6 +51,7 @@ plot.SetLumi(lumi/1000)
 plot.AddLumiLabel(True)
 plot.do_overflow = True
 plot.do_underflow = True
+plot.SetNormFactor(True)
 
 lf = 'jet1Flav==0 && jet2Flav==0 && isojet1Flav==0 && isojet2Flav==0'
 #lf = 'nHF==0'
@@ -63,11 +64,16 @@ plot.mc_weight = weight
 #PInfo('cut',plot.cut)
 #PInfo('weight',plot.mc_weight)
 
-plot.add_systematic('HF uncertainty','0.964*(%s) + 1.2*(%s)'%(lf,hf),'1.036*(%s) + 0.8*(%s)'%(lf,hf),root.kRed+2)
+if args.region=='dimuon':
+    plot.add_systematic('HF uncertainty','0.964*(%s) + 1.2*(%s)'%(lf,hf),'1.036*(%s) + 0.8*(%s)'%(lf,hf),root.kRed+2)
 plot.add_systematic('b-tag SF unc',{'sf_sjbtag0':'sf_sjbtag0BUp','sf_sjbtag1':'sf_sjbtag1BUp'},
                                    {'sf_sjbtag0':'sf_sjbtag0BDown','sf_sjbtag1':'sf_sjbtag1BDown'},root.kBlue+2)
 plot.add_systematic('mis-tag SF unc',{'sf_sjbtag0':'sf_sjbtag0MUp','sf_sjbtag1':'sf_sjbtag1MUp'},
                                      {'sf_sjbtag0':'sf_sjbtag0MDown','sf_sjbtag1':'sf_sjbtag1MDown'},root.kGreen+2)
+# plot.add_systematic('b-tag SF unc',{'sf_sjbtag0':'sf_sjbtag0BUp','sf_sjbtag1':'sf_sjbtag1BUp'},
+#                                    {'sf_sjbtag0':'sf_sjbtag0BDown','sf_sjbtag1':'sf_sjbtag1BDown'},root.kBlue+2)
+# plot.add_systematic('mis-tag SF unc',{'sf_sjbtag0':'sf_sjbtag0MUp','sf_sjbtag1':'sf_sjbtag1MUp'},
+#                                      {'sf_sjbtag0':'sf_sjbtag0MDown','sf_sjbtag1':'sf_sjbtag1MDown'},root.kGreen+2)
 
 #plot.add_systematic('PDF','pdfUp','pdfDown',root.kBlue+2)
 
@@ -94,9 +100,9 @@ for z in [zlf,zhf]:
     if 'signal' in args.region:
         z.add_file(baseDir+'ZtoNuNu.root')
     else:
-        z.add_file(baseDir+'ZJets_hf.root')
+        z.add_file(baseDir+'ZJets.root')
 for w in [wlf,whf]:
-    w.add_file(baseDir+'WJets_hf.root')
+    w.add_file(baseDir+'WJets.root')
 diboson.add_file(baseDir+'Diboson.root')
 ttbar.add_file(baseDir+'TTbar%s.root'%(args.tt));
 singletop.add_file(baseDir+'SingleTop.root')
@@ -138,39 +144,39 @@ recoilBins = [250,280,310,350,400,450,600,1000]
 nRecoilBins = len(recoilBins)-1
 
 ### CHOOSE DISTRIBUTIONS, LABELS ###
-if 'signal' in region or 'qcd' in region:
-    recoil=VDistribution("pfmet",recoilBins,"PF MET [GeV]","Events/GeV")
-elif any([x in region for x in ['singlemuonw','singleelectronw','singlemuontop','singleelectrontop','singlemuon','singleelectron']]):
-    recoil=VDistribution("pfUWmag",recoilBins,"PF U(%s) [GeV]"%(lep),"Events/GeV")
-    plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
-    plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
-elif any([x in region for x in ['dielectron','dimuon']]):
-    recoil=VDistribution("pfUZmag",recoilBins,"PF U(%s%s) [GeV]"%(lep,lep),"Events/GeV")
-    plot.add_distribution(FDistribution('diLepMass',60,120,20,'m_{ll} [GeV]','Events/3 GeV'))
-    plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
-    plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
-    plot.add_distribution(FDistribution('looseLep2Pt',0,1000,20,'Subleading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
-    plot.add_distribution(FDistribution('looseLep2Eta',-2.5,2.5,20,'Subleading %s #eta'%lep,'Events/bin'))
-elif region=='photon':
-    recoil=VDistribution("pfUAmag",recoilBins,"PF U(#gamma) [GeV]","Events/GeV")
-    plot.add_distribution(FDistribution('loosePho1Pt',0,1000,20,'Leading #gamma p_{T} [GeV]','Events/40 GeV'))
-    plot.add_distribution(FDistribution('loosePho1Eta',-2.5,2.5,20,'Leading #gamma #eta','Events/bin'))
-
-#recoil.calc_chi2 = True
-plot.add_distribution(recoil)
+# if 'signal' in region or 'qcd' in region:
+#     recoil=VDistribution("pfmet",recoilBins,"PF MET [GeV]","a.u./GeV")
+# elif any([x in region for x in ['singlemuonw','singleelectronw','singlemuontop','singleelectrontop','singlemuon','singleelectron']]):
+#     recoil=VDistribution("pfUWmag",recoilBins,"PF U(%s) [GeV]"%(lep),"a.u./GeV")
+#     plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'a.u./40 GeV'))
+#     plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'a.u./bin'))
+# elif any([x in region for x in ['dielectron','dimuon']]):
+#     recoil=VDistribution("pfUZmag",recoilBins,"PF U(%s%s) [GeV]"%(lep,lep),"a.u./GeV")
+#     plot.add_distribution(FDistribution('diLepMass',60,120,20,'m_{ll} [GeV]','a.u./3 GeV'))
+#     plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'a.u./40 GeV'))
+#     plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'a.u./bin'))
+#     plot.add_distribution(FDistribution('looseLep2Pt',0,1000,20,'Subleading %s p_{T} [GeV]'%lep,'a.u./40 GeV'))
+#     plot.add_distribution(FDistribution('looseLep2Eta',-2.5,2.5,20,'Subleading %s #eta'%lep,'a.u./bin'))
+# elif region=='photon':
+#     recoil=VDistribution("pfUAmag",recoilBins,"PF U(#gamma) [GeV]","a.u./GeV")
+#     plot.add_distribution(FDistribution('loosePho1Pt',0,1000,20,'Leading #gamma p_{T} [GeV]','a.u./40 GeV'))
+#     plot.add_distribution(FDistribution('loosePho1Eta',-2.5,2.5,20,'Leading #gamma #eta','a.u./bin'))
+# 
+# #recoil.calc_chi2 = True
+# plot.add_distribution(recoil)
 
 btagbins = [0,0.54,1]
 
-plot.add_distribution(VDistribution('fj1MaxCSV',btagbins,'fatjet max CSV','Events'))
-plot.add_distribution(VDistribution('jet1CSV',btagbins,'jet 1 CSV','Events',filename='jet1CSV'))
-plot.add_distribution(VDistribution('isojet1CSV',btagbins,'isojet 1 CSV','Events',filename='isojet1CSV'))
-plot.add_distribution(FDistribution('jetNBtags',-0.5,1.5,2,'N_{b-tag} jets','Events'))
-plot.add_distribution(FDistribution('isojetNBtags',-0.5,1.5,2,'N_{b-tag} isojets','Events'))
+plot.add_distribution(VDistribution('fj1MaxCSV',btagbins,'fatjet max CSV','a.u.'))
+plot.add_distribution(VDistribution('jet1CSV',btagbins,'jet 1 CSV','a.u.',filename='jet1CSV'))
+plot.add_distribution(VDistribution('isojet1CSV',btagbins,'isojet 1 CSV','a.u.',filename='isojet1CSV'))
+plot.add_distribution(FDistribution('jetNBtags',-0.5,1.5,2,'N_{b-tag} jets','a.u.'))
+plot.add_distribution(FDistribution('isojetNBtags',-0.5,1.5,2,'N_{b-tag} isojets','a.u.'))
 
-plot.add_distribution(FDistribution('fj1Pt',200,1000,20,'fatjet p_{T} [GeV]','Events'))
-# plot.add_distribution(FDistribution('fj1MaxCSV',0,1,20,'fatjet max CSV','Events'))
-# plot.add_distribution(FDistribution('jet1CSV',0,1,20,'jet 1 CSV','Events',filename='jet1CSV'))
-# plot.add_distribution(FDistribution('isojet1CSV',0,1,20,'isojet 1 CSV','Events',filename='isojet1CSV'))
+# plot.add_distribution(FDistribution('fj1Pt',200,1000,20,'fatjet p_{T} [GeV]','a.u.'))
+# plot.add_distribution(FDistribution('fj1MaxCSV',0,1,20,'fatjet max CSV','a.u.'))
+# plot.add_distribution(FDistribution('jet1CSV',0,1,20,'jet 1 CSV','a.u.',filename='jet1CSV'))
+# plot.add_distribution(FDistribution('isojet1CSV',0,1,20,'isojet 1 CSV','a.u.',filename='isojet1CSV'))
 plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###

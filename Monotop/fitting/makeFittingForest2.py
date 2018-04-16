@@ -77,7 +77,7 @@ weights = {'nominal' : sel.weights[region]%lumi}
 
 if masses:
     if out_region=='signal_vector':
-        with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/Monotop/fitting/signal_weights.dat') as fweights:
+        with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/Monotop/fitting/signal_weights_all.dat') as fweights:
             for line in fweights:
                 l = line.strip()
                 if l!='nominal':
@@ -106,7 +106,8 @@ elif region=='photon':
     factory.add_process(f('SinglePhoton'),'Data',is_data=True,extra_cut=sel.triggers['pho'])
     factory.add_process(f('SinglePhoton'),'QCD',is_data=True,
                         extra_weights='sf_phoPurity',extra_cut=sel.triggers['pho'])
-elif out_region not in ['signal_scalar','signal_vector','signal_thq','signal_stdm']:
+#elif out_region not in ['signal_scalar','signal_vector','signal_thq','signal_stdm']:
+elif not any([x in out_region for x in ['scalar','vector','thq','stdm']]):
     factory.add_process(f('ZtoNuNu'),'Zvv')
     factory.add_process(f('ZJets'),'Zll')
     factory.add_process(f('WJets'),'Wlv')
@@ -118,7 +119,7 @@ elif out_region not in ['signal_scalar','signal_vector','signal_thq','signal_std
         factory.add_process(f('SingleElectron'),'Data',is_data=True,extra_cut=sel.triggers['ele'])
     else:
         factory.add_process(f('MET'),'Data',is_data=True,extra_cut=sel.triggers['met'])
-elif out_region=='signal_vector':
+elif 'vector' in out_region:
     signal_files = glob(basedir+'/Vector*root')
     for f in signal_files:
         fname = f.split('/')[-1].replace('.root','')
@@ -136,7 +137,7 @@ elif out_region=='signal_vector':
             masses = signame
         PDebug(sname,"Opening "+f)
         factory.add_process(f,signame)
-elif out_region=='signal_scalar':
+elif 'scalar' in out_region:
     signal_files = glob(basedir+'/Scalar*root')
     for f in signal_files:
         fname = f.split('/')[-1].replace('.root','')
@@ -153,16 +154,19 @@ elif out_region=='signal_scalar':
                 continue
             masses = signame
         factory.add_process(f,'scalar_'+signame)
-elif out_region=='signal_thq':
+elif 'thq' in out_region:
     factory.add_process(f('thq'),'thq')
-elif out_region=='signal_stdm':
+elif 'stdm' in out_region:
     for m in [300,500,1000]:
         factory.add_process(f('ST_tch_DM-scalar_LO-%i_1-13_TeV'%m),'stdm_%i'%m)
+        factory.add_process(f('TT_DM-scalar_LO-%i_1-13_TeV'%m),'ttdm_%i'%m)
 
 
 if is_test:
     out_region = 'test'
 if masses:
     out_region += '_'+masses
-factory.run(basedir+'/fitting/fittingForest_%s.root'%out_region)
+    factory.run(basedir+'/fitting/signals_3/fittingForest_%s.root'%out_region)
+else:
+    factory.run(basedir+'/fitting/fittingForest_%s.root'%out_region)
 

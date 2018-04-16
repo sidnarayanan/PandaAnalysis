@@ -14,10 +14,11 @@ parser.add_argument('--cut',metavar='cut',type=str,default='1==1')
 parser.add_argument('--region',metavar='region',type=str,default=None)
 parser.add_argument('--cat',type=str,default='loose')
 args = parser.parse_args()
-lumi = 35800.
+lumi = 36000.
 blind=True
 region = args.region
 sname = argv[0]
+do_jec = True
 
 argv=[]
 import ROOT as root
@@ -25,6 +26,7 @@ root.gROOT.SetBatch()
 from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
 import PandaAnalysis.VBF.PandaSelection as sel
+#import PandaAnalysis.VBF.TriggerSelection as sel
 from PandaCore.Drawers.plot_utility import *
 
 ### DEFINE REGIONS ###
@@ -40,13 +42,8 @@ plot = PlotUtility()
 plot.Stack(True)
 if not(BLIND and 'signal' in region):
     plot.Ratio(True)
-    plot.FixRatio(0.4)
-else:
-    plot.SetLumi(lumi/15000)
-    plot.eventmod = 15
-    plot.Ratio(True)
-    plot.FixRatio(0.4)
-plot.SetTDRStyle()
+    plot.FixRatio(1)
+plot.SetTDRStyle("vbf")
 plot.InitLegend()
 plot.DrawMCErrors(True)
 plot.AddCMSLabel()
@@ -57,11 +54,17 @@ plot.AddLumiLabel(True)
 plot.do_overflow = True
 plot.do_underflow = True
 
-weight = sel.weights[region]%lumi
+if args.cat == 'cnc':
+    weight = sel.weights_cnc[region]%lumi
+else:
+    weight = sel.weights[region]%lumi
 plot.mc_weight = weight
 
 ### DEFINE PROCESSES ###
-zjets         = Process('Z+jets [QCD]',root.kZjets)
+if 'signal' in args.region:
+    zjets         = Process('Z+jets [QCD]',root.kZjets)
+else:
+    zjets         = Process('Z+jets [QCD]',root.kExtra1)
 wjets         = Process('W+jets [QCD]',root.kWjets)
 zjets_ewk     = Process('Z+jets [EWK]',root.kExtra3)
 wjets_ewk     = Process('W+jets [EWK]',root.kExtra2)
@@ -100,7 +103,7 @@ elif 'di' in region:
     processes = [qcd,diboson,wjets,wjets_ewk,top,zjets_ewk,zjets,data]
 else:
     processes = [qcd,diboson,top,wjets_ewk,zjets_ewk,wjets,zjets,vbf]
-    if not BLIND or True:
+    if not BLIND:
         processes.append(data)
 
 for p in processes:
@@ -122,7 +125,7 @@ elif 'single' in region:
     recoil=VDistribution("pfUWmag",recoilBins,"PF U(%s) [GeV]"%(lep),"Events/GeV")
     plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
     plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
-    plot.add_distribution(FDistribution('dphipfUW',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
+#    plot.add_distribution(FDistribution('dphipfUW',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
 elif any([x in region for x in ['dielectron','dimuon']]):
     recoil=VDistribution("pfUZmag",recoilBins,"PF U(%s%s) [GeV]"%(lep,lep),"Events/GeV")
     plot.add_distribution(FDistribution('diLepMass',60,120,20,'m_{ll} [GeV]','Events/3 GeV'))
@@ -130,10 +133,12 @@ elif any([x in region for x in ['dielectron','dimuon']]):
     plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
     plot.add_distribution(FDistribution('looseLep2Pt',0,1000,20,'Subleading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
     plot.add_distribution(FDistribution('looseLep2Eta',-2.5,2.5,20,'Subleading %s #eta'%lep,'Events/bin'))
-    plot.add_distribution(FDistribution('dphipfUZ',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
+#    plot.add_distribution(FDistribution('dphipfUZ',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
 
 plot.add_distribution(recoil)
 
+#plot.add_distribution(FDistribution('barrelHT',0,1000,20,'Barrel H_{T} [GeV]','Events/50 GeV'))
+#plot.add_distribution(FDistribution('barrelJet1Pt',0,1000,20,'Barrel jet 1 p_{T} [GeV]','Events/50 GeV'))
 plot.add_distribution(FDistribution('jot12Mass',0,4000,20,'m_{jj} [GeV]','Events/200 GeV'))
 plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','Events'))
 plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","Events",filename='jot12DPhi'))
