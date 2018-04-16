@@ -1,0 +1,48 @@
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst topPt
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst smeared
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst scale --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst scale --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst merge --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst merge --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst btag --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst btag --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst smearedSJ
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst scaleSJ --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat pass --wp loose --syst scaleSJ --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst topPt
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst smeared
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst scale --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst scale --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst merge --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst merge --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst btag --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst btag --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst smearedSJ
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst scaleSJ --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/loose/ --region tag --cat fail --wp loose --syst scaleSJ --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst topPt
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst smeared
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst scale --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst scale --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst merge --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst merge --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst btag --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst btag --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst smearedSJ
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst scaleSJ --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat pass --wp tight --syst scaleSJ --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst topPt
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst smeared
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst scale --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst scale --var Down 
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst merge --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst merge --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst btag --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst btag --var Down
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst smearedSJ
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst scaleSJ --var Up
+--outdir ~/public_html/figs/toptagging/v8/sf_v3/tight/ --region tag --cat fail --wp tight --syst scaleSJ --var Down 

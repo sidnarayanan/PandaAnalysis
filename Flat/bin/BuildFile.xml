@@ -1,4 +1,0 @@
-<use name="PandaAnalysis/Flat"/>
-<environment>
-  <bin file="pana.cc"></bin>
-</environment>
