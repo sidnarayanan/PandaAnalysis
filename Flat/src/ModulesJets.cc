@@ -305,22 +305,15 @@ void PandaAnalyzer::JetBRegressionInfo(const panda::Jet& jet)
   gt->jetLeadingLepPt[N] = 0;
   gt->jetLeadingTrkPt[N] = 0;
   gt->jetNLep[N] = 0;
-  for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
-    if (!c_iter.isValid())
-      continue;
-    auto *pf = c_iter.get();
-    if (pf->q() != 0) {
-      float pt = pf->pt();
-      gt->jetLeadingTrkPt[N] = max(pt, gt->jetLeadingTrkPt[N]);
-      int pdgid = abs(pf->pdgId());
-      if (pdgid == 11 || pdgid == 13) {
-        gt->jetNLep[N]++;
-        if (pt > gt->jetLeadingLepPt[N]) {
-          gt->jetLeadingLepPt[N] = pt;
-          gt->jetLeadingLepPtRel[N] = pf->p4().Perp(jet.p4().Vect());
-          gt->jetLeadingLepDeltaR[N] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
-        }
-      }
+  for (unsigned iLep=0; iLep<looseLeps.size(); iLep++) {
+    float dR2 = DeltaR2(looseLeps[iLep]->eta(), looseLeps[iLep]->phi(), jet.eta(), jet.phi());
+    if (dR2 > 0.16) continue;
+    float pt = looseLeps[iLep]->pt();
+    gt->jetNLep[N]++;
+    if (pt > gt->jetLeadingLepPt[N]) {
+      gt->jetLeadingLepPt[N] = pt;
+      gt->jetLeadingLepPtRel[N] = looseLeps[iLep]->p4().Perp((jet.p4()-looseLeps[iLep]->p4()).Vect());
+      gt->jetLeadingLepDeltaR[N] = sqrt(dR2);
     }
   }
 
