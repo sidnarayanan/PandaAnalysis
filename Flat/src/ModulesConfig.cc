@@ -394,8 +394,8 @@ void PandaAnalyzer::SetDataDir(const char *s)
 
   if (analysis->hbb) {
     OpenCorrection(cJetLoosePUID,
-                   dirPath+"higgs/puid_loose.root",
-                   "puid",2);
+                   dirPath+"higgs/puid.root",
+                   "puid_76x_loose",2);
   }
   // photons
   OpenCorrection(cPho,
