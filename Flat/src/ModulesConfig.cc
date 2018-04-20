@@ -78,11 +78,12 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
                  "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet", 
                  "recoil","metFilters","trkMet"};
 
-    if (analysis->ak8)
+    if (analysis->ak8) {
       readlist += {jetname+"AK8Jets", "subjets", jetname+"AK8Subjets","Subjets"};
-    else if (analysis->fatjet) 
+    }
+    else if (analysis->fatjet) {
       readlist += {jetname+"CA15Jets", "subjets", jetname+"CA15Subjets","Subjets"};
-    
+    }
     if (analysis->recluster || analysis->bjetRegression || 
         analysis->deep || analysis->hbb || analysis->complicatedPhotons) {
       readlist.push_back("pfCandidates");
@@ -100,6 +101,8 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
 
     if (!isData) {
       readlist += {"genParticles","genReweight","ak4GenJets","genMet"};
+      if (analysis->hbb)
+        readlist.push_back("partons"); 
     }
   }
 
@@ -196,10 +199,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
     if (analysis->deepGen) {
       ecfcalc = new pandaecf::Calculator();
       if (analysis->deepGenGrid) {
-        // grid = new ParticleGridder(250,157,5); // 0.02x0.02
-        // grid = new ParticleGridder(1000,628,5); // 0.005x0.005
         grid = new ParticleGridder(2500,1570,5); // 0.002x0.002
-        // grid->_on = false;
         grid->_etaphi = false;
       }
     }
@@ -233,7 +233,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
 
   // Custom jet pt threshold
   if (analysis->hbb) {
-    jetPtThreshold = 20;
+    jetPtThreshold = analysis->ZllHbb ? 20 : 25;
     genFatJetMinPt = 200;
   }
   if (analysis->vbf || analysis->hbb || analysis->complicatedLeptons) 
@@ -388,6 +388,12 @@ void PandaAnalyzer::SetDataDir(const char *s)
                    "SignalWeight_nloEWK_down_rebin",1);
   }
 
+  if (analysis->hbb) {
+    OpenCorrection(cJetLoosePUID,
+                   dirPath+"higgs/puid.root",
+                   "puid_76x_loose",2);
+  }
+
   // photons
   OpenCorrection(cPho,
                  dirPath+"moriond17/scalefactors_80x_medium_photon_37ifb.root",
@@ -526,24 +532,43 @@ void PandaAnalyzer::SetDataDir(const char *s)
 
   // bjet regression
   if (analysis->bjetRegression) {
-    bjetreg_vars = new float[10];
+    bjetreg_vars = new float[15];
     bjetregReader = new TMVA::Reader("!Color:!Silent");
-
-    bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",&bjetreg_vars[0]);
-    bjetregReader->AddVariable("nJot",&bjetreg_vars[1]);
-    bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",&bjetreg_vars[2]);
-    bjetregReader->AddVariable("jetE[hbbjtidx[0]]",&bjetreg_vars[3]);
-    bjetregReader->AddVariable("npv",&bjetreg_vars[4]);
-    bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",&bjetreg_vars[5]);
-    bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",&bjetreg_vars[6]);
-    bjetregReader->AddVariable("jetNLep[hbbjtidx[0]]",&bjetreg_vars[7]);
-    bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",&bjetreg_vars[8]);
-    bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",&bjetreg_vars[9]);
+    bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
+                               &bjetreg_vars[ 0] );
+    bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
+                               &bjetreg_vars[ 1] );
+    bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
+                               &bjetreg_vars[ 2] );
+    bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
+                               &bjetreg_vars[ 3] );
+    bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
+                               &bjetreg_vars[ 4] );
+    bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
+                               &bjetreg_vars[ 5] );
+    bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
+                               &bjetreg_vars[ 6] );
+    bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
+                               &bjetreg_vars[ 7] );
+    bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
+                               &bjetreg_vars[ 8] );
+    bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
+                               &bjetreg_vars[ 9] );
+    bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
+                               &bjetreg_vars[10] );
+    bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
+                               &bjetreg_vars[11] );
+    bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
+                               &bjetreg_vars[12] );
+    bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                               &bjetreg_vars[13] );
+    bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                               &bjetreg_vars[14] );
 
     gSystem->Exec(
-        Form("wget -O %s/trainings/bjet_regression_v0.weights.xml http://t3serv001.mit.edu/~snarayan/pandadata/trainings/bjet_regression_v0.weights.xml",dirPath.Data())
+        Form("wget -nv -O %s/trainings/bjet_regression_v1_fromBenedikt.weights.xml http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",dirPath.Data())
       );
-    bjetregReader->BookMVA( "BDT method", dirPath+"trainings/bjet_regression_v0.weights.xml" );
+    bjetregReader->BookMVA( "BDT method", dirPath+"trainings/bjet_regression_v1_fromBenedikt.weights.xml" );
 
     if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded bjet regression weights");
   }

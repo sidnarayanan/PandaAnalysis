@@ -53,6 +53,8 @@ GeneralTree::GeneralTree() {
     jetPt[iJ] = -1;
     jetPtUp[iJ] = -1;
     jetPtDown[iJ] = -1;
+    jetPtSmearUp[iJ] = -1;
+    jetPtSmearDown[iJ] = -1;
     jetEta[iJ] = -1;
     jetPhi[iJ] = -1;
     jetE[iJ] = -1;
@@ -123,6 +125,8 @@ void GeneralTree::Reset() {
     jetPt[iJ] = -99;
     jetPtUp[iJ] = -99;
     jetPtDown[iJ] = -99;
+    jetPtSmearUp[iJ] = -99;
+    jetPtSmearDown[iJ] = -99;
     jetEta[iJ] = -99;
     jetPhi[iJ] = -99;
     jetE[iJ] = -99;
@@ -211,6 +215,7 @@ void GeneralTree::Reset() {
   }
 
 //ENDCUSTOMRESET
+    lheHT = -1;
     isData = 0;
     jot1PhiUp = -1;
     jot1PhiDown = -1;
@@ -343,6 +348,7 @@ void GeneralTree::Reset() {
     jot12DPhi = -1;
     isGS = 0;
     fj1SubMaxCSV = -1;
+    fj1GenNumB = -1;
     runNumber = 0;
     lumiNumber = 0;
     eventNumber = 0;
@@ -613,6 +619,8 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("jetPt",jetPt,"jetPt[nJot]/F");
     Book("jetPtUp",jetPtUp,"jetPtUp[nJot]/F");
     Book("jetPtDown",jetPtDown,"jetPtDown[nJot]/F");
+    Book("jetPtSmearUp",jetPtSmearUp,"jetPtSmearUp[nJot]/F");
+    Book("jetPtSmearDown",jetPtSmearDown,"jetPtSmearDown[nJot]/F");
     Book("jetEta",jetEta,"jetEta[nJot]/F");
     Book("jetPhi",jetPhi,"jetPhi[nJot]/F");
     Book("jetE",jetE,"jetE[nJot]/F");
@@ -869,6 +877,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("fj1PtSmearedUp_sj",&fj1PtSmearedUp_sj,"fj1PtSmearedUp_sj/F");
     Book("fj1PtSmearedDown_sj",&fj1PtSmearedDown_sj,"fj1PtSmearedDown_sj/F");
     Book("fj1SubMaxCSV",&fj1SubMaxCSV,"fj1SubMaxCSV/F");
+    Book("fj1GenNumB",&fj1GenNumB,"fj1GenNumB/I"); 
     Book("isojet1Pt",&isojet1Pt,"isojet1Pt/F");
     Book("isojet1CSV",&isojet1CSV,"isojet1CSV/F");
     Book("isojet1Flav",&isojet1Flav,"isojet1Flav/I");
@@ -896,6 +905,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("looseGenPho1PdgId",&looseGenPho1PdgId,"looseGenPho1PdgId/I");
   }
 //ENDCUSTOMWRITE
+    Book("lheHT",&lheHT,"lheHT/F");
     Book("isData",&isData,"isData/I");
 
   Book("genFatJetNProngs",&genFatJetNProngs,"genFatJetNProngs/I");

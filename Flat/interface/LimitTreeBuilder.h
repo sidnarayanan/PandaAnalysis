@@ -13,7 +13,7 @@
 #include "PandaCore/Tools/interface/Common.h"
 
 // used to give distinct names to trees
-extern int treeCounter; 
+extern int treeCounter;
 
 class xformula {
 	public:

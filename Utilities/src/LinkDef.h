@@ -1,6 +1,7 @@
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
+#include "PandaAnalysis/Utilities/interface/PackingHelperStandalone.h"
 
 #ifdef __CLING__
 #pragma link off all globals;

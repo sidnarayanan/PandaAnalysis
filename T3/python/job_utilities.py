@@ -321,7 +321,7 @@ def classify_sample(full_path, isData):
             return root.kW
         elif 'GJets' in full_path:
             return root.kA
-        elif 'TTJets' in full_path or 'TT_' in full_path:
+        elif 'TTJets' in full_path or 'TT_' in full_path or 'TTTo' in full_path:
             return root.kTT
         elif 'HTo' in full_path:
             return root.kH

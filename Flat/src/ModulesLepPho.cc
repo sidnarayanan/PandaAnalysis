@@ -129,6 +129,26 @@ void PandaAnalyzer::SimpleLeptons()
   tr->TriggerEvent("leptons");
 }
 
+void PandaAnalyzer::InclusiveLeptons()
+{
+  // "Inclusive very loose selection"
+  // https://github.com/vhbb/cmssw/blob/vhbbHeppy80X/PhysicsTools/Heppy/python/analyzers/objects/LeptonAnalyzer.py
+  for (auto& ele : event.electrons) {
+    float pt = ele.pt(); float eta = ele.eta(); float aeta = fabs(eta);
+    if(pt<5 || aeta>2.5) continue;
+    if(fabs(ele.dxy)>0.5 || fabs(ele.dz)>1.0) continue;
+    if(ele.nMissingHits>1) continue;
+    inclusiveLeps.push_back(&ele);
+  }
+  for (auto& mu : event.muons) {
+    if(!mu.loose) continue;
+    float pt = mu.pt(); float eta = mu.eta(); float aeta = fabs(eta);
+    if(pt<3 || aeta>2.4) continue;
+    if(fabs(mu.dxy)>0.5 || fabs(mu.dz)>1.0) continue;
+    inclusiveLeps.push_back(&mu);
+  }
+}
+
 // Store more complicated leptons for, e.g. WH, Z(ll), etc. Take care of
 // combinatorics in cases of nLep>2, save MVA inputs, ...
 // Responsible: D. Hsu
