@@ -460,7 +460,10 @@ void PandaAnalyzer::Run()
       } else {
         SimpleLeptons();
       }
-      
+      if (analysis->hbb) {
+        InclusiveLeptons();
+      }
+   
       // photons
       if (analysis->complicatedPhotons) {
         ComplicatedPhotons();
@@ -521,6 +524,7 @@ void PandaAnalyzer::Run()
       }
 
       QCDUncs();
+      LHEInfo();
       SignalReweights();
 
       if (analysis->vbf)

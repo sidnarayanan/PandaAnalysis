@@ -305,14 +305,23 @@ void PandaAnalyzer::JetBRegressionInfo(const panda::Jet& jet)
   gt->jetLeadingLepPt[N] = 0;
   gt->jetLeadingTrkPt[N] = 0;
   gt->jetNLep[N] = 0;
-  for (unsigned iLep=0; iLep<looseLeps.size(); iLep++) {
-    float dR2 = DeltaR2(looseLeps[iLep]->eta(), looseLeps[iLep]->phi(), jet.eta(), jet.phi());
+  for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
+    if (!c_iter.isValid())
+      continue;
+    auto *pf = c_iter.get();
+    if (pf->q() != 0) {
+      gt->jetLeadingTrkPt[N] = max(float(pf->pt()), gt->jetLeadingTrkPt[N]);
+    }
+  }
+  for (unsigned iLep=0; iLep<inclusiveLeps.size(); iLep++) {
+    Lepton* lep = inclusiveLeps[iLep];
+    float dR2 = DeltaR2(lep->eta(), lep->phi(), jet.eta(), jet.phi());
     if (dR2 > 0.16) continue;
-    float pt = looseLeps[iLep]->pt();
+    float pt = lep->pt();
     gt->jetNLep[N]++;
     if (pt > gt->jetLeadingLepPt[N]) {
       gt->jetLeadingLepPt[N] = pt;
-      gt->jetLeadingLepPtRel[N] = looseLeps[iLep]->p4().Perp((jet.p4()-looseLeps[iLep]->p4()).Vect());
+      gt->jetLeadingLepPtRel[N] = lep->p4().Perp((jet.p4()-lep->p4()).Vect());
       gt->jetLeadingLepDeltaR[N] = sqrt(dR2);
     }
   }
@@ -572,21 +581,27 @@ void PandaAnalyzer::JetHbbReco()
       
       for (int i = 0; i<2; i++) {
         // Central value for the jet energies to perform the b-jet regression
-        bjetreg_vars[0] = gt->jetPt[gt->hbbjtidx[i]];
-        bjetreg_vars[1] = gt->nJot;
-        bjetreg_vars[2] = gt->jetEta[gt->hbbjtidx[i]];
-        bjetreg_vars[3] = gt->jetE[gt->hbbjtidx[i]];
-        bjetreg_vars[4] = gt->npv;
-        bjetreg_vars[5] = gt->jetLeadingTrkPt[gt->hbbjtidx[i]];
-        bjetreg_vars[6] = gt->jetLeadingLepPt[gt->hbbjtidx[i]];
-        bjetreg_vars[7] = gt->jetNLep[gt->hbbjtidx[i]];
-        bjetreg_vars[8] = gt->jetEMFrac[gt->hbbjtidx[i]];
-        bjetreg_vars[9] = gt->jetHadFrac[gt->hbbjtidx[i]];
+        //bjetreg_vars[ 0] = gt->jetPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 1] = gt->jetEta[gt->hbbjtidx[i]];
+        bjetreg_vars[ 2] = gt->jetLeadingTrkPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 3] = gt->jetLeadingLepPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 4] = gt->jetEMFrac[gt->hbbjtidx[i]];
+        bjetreg_vars[ 5] = gt->jetHadFrac[gt->hbbjtidx[i]];
+        bjetreg_vars[ 6] = gt->jetLeadingLepDeltaR[gt->hbbjtidx[i]];
+        //bjetreg_vars[ 7] = gt->jetLeadingLepPtRel[gt->hbbjtidx[i]];
+        bjetreg_vars[ 8] = gt->jetvtxPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 9] = gt->jetvtxMass[gt->hbbjtidx[i]];
+        bjetreg_vars[10] = gt->jetvtx3Dval[gt->hbbjtidx[i]];
+        bjetreg_vars[11] = gt->jetvtx3Derr[gt->hbbjtidx[i]];
+        bjetreg_vars[12] = gt->jetvtxNtrk[gt->hbbjtidx[i]];
+        //bjetreg_vars[13] = (i==0)? hbbdaughter1.Et() : hbbdaughter2.Et();
+        //bjetreg_vars[14] = (i==0)? hbbdaughter1.Mt() : hbbdaughter2.Mt();
         
         // B-jet regression with jet energy varied up
-        // Don't propagate the JES uncertainty to the hardest track/lepton or the EM fraction for now
-        bjetreg_vars[0] = gt->jetPtUp[gt->hbbjtidx[i]];
-        bjetreg_vars[3] = gt->jetE[gt->hbbjtidx[i]] * gt->jetPtUp[gt->hbbjtidx[i]] / gt->jetPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 0] = gt->jetPtUp[gt->hbbjtidx[i]];
+        bjetreg_vars[ 7] = gt->jetLeadingLepPtRel[gt->hbbjtidx[i]]*gt->jetPt[gt->hbbjtidx[i]]/gt->jetPtUp[gt->hbbjtidx[i]];
+        bjetreg_vars[13] = (i==0)? hbbdaughter1_jesUp.Et() : hbbdaughter2_jesUp.Et();
+        bjetreg_vars[14] = (i==0)? hbbdaughter1_jesUp.Mt() : hbbdaughter2_jesUp.Mt();
         gt->jetRegFac[i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
         hbbdaughters_corr_jesUp[i].SetPtEtaPhiM(
           gt->jetRegFac[i]*gt->jetPtUp[gt->hbbjtidx[i]],
@@ -595,8 +610,10 @@ void PandaAnalyzer::JetHbbReco()
           btagSortedJets.at(i)->m()
         );
         // B-jet regression with jet energy varied down
-        bjetreg_vars[0] = gt->jetPtDown[gt->hbbjtidx[i]];
-        bjetreg_vars[3] = gt->jetE[gt->hbbjtidx[i]] * gt->jetPtDown[gt->hbbjtidx[i]] / gt->jetPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 0] = gt->jetPtDown[gt->hbbjtidx[i]];
+        bjetreg_vars[ 7] = gt->jetLeadingLepPtRel[gt->hbbjtidx[i]]*gt->jetPt[gt->hbbjtidx[i]]/gt->jetPtDown[gt->hbbjtidx[i]];
+        bjetreg_vars[13] = (i==0)? hbbdaughter1_jesDown.Et() : hbbdaughter2_jesDown.Et();
+        bjetreg_vars[14] = (i==0)? hbbdaughter1_jesDown.Mt() : hbbdaughter2_jesDown.Mt();
         gt->jetRegFac[i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
         hbbdaughters_corr_jesDown[i].SetPtEtaPhiM(
           gt->jetRegFac[i]*gt->jetPtDown[gt->hbbjtidx[i]],
@@ -606,8 +623,10 @@ void PandaAnalyzer::JetHbbReco()
         );
         // B-jet regression with central value for jet energy
         // Call this last so that the central value for jetRegFac[i] is stored in gt
-        bjetreg_vars[0] = gt->jetPt[gt->hbbjtidx[i]];
-        bjetreg_vars[3] = gt->jetE[gt->hbbjtidx[i]];
+        bjetreg_vars[ 0] = gt->jetPt[gt->hbbjtidx[i]];
+        bjetreg_vars[ 7] = gt->jetLeadingLepPtRel[gt->hbbjtidx[i]];
+        bjetreg_vars[13] = (i==0)? hbbdaughter1.Et() : hbbdaughter2.Et();
+        bjetreg_vars[14] = (i==0)? hbbdaughter1.Mt() : hbbdaughter2.Mt();
         gt->jetRegFac[i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
         hbbdaughters_corr[i].SetPtEtaPhiM(
           gt->jetRegFac[i]*gt->jetPt[gt->hbbjtidx[i]],

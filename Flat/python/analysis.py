@@ -106,7 +106,7 @@ wlnhbb = lambda v=False : _analysis(
         jetFlavorJets = True,
     )
 zllhbb = lambda v=False : _analysis(
-        name = 'wlnhbb',
+        name = 'zllhbb',
         verbose = v,
         ak8 = True,
         hbb = True,
