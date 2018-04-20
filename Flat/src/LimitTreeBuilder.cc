@@ -2,6 +2,8 @@
 #include "../interface/LimitTreeBuilder.h"
 #include "PandaCore/Tools/interface/TreeTools.h"
 
+int treeCounter = 0;
+
 Process::Process(TString n, TTree *in, VariableMap *vPtr, TString sel, TString w) {
 	name = n;
 	inputTree = in;

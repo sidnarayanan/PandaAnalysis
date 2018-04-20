@@ -13,7 +13,7 @@
 #include "PandaCore/Tools/interface/Common.h"
 
 // used to give distinct names to trees
-static int treeCounter=0; // shut up with your -Wunused-variable, g++. this is used elsewhere
+extern int treeCounter; 
 
 class xformula {
 	public:

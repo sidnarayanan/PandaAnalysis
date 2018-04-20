@@ -28,14 +28,14 @@ a = deepgen()
 #a.deepGenGrid = True
 #a.deepAntiKtSort = True
 a.deepExC = True
-a.processType=root.kTT
+#a.processType=root.kTT
 a.dump()
 skimmer.SetAnalysis(a)
 skimmer.AddPresel(root.GenFatJetSel())
 #skimmer.SetPreselectionBit(root.PandaAnalyzer.kGenFatJet)
 
 skimmer.firstEvent=0
-skimmer.lastEvent=1000
+skimmer.lastEvent=10
 skimmer.isData=False
 if skimmer.isData:
     with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
