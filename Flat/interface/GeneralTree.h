@@ -408,6 +408,7 @@ class GeneralTree : public genericTree {
   float fjPartonM;
   float fjPartonPt;
   float fjPartonEta;
+  int fjGenNumB;
   int nHF;
   int nB;
   int nBGenJets;
@@ -519,6 +520,7 @@ class GeneralTree : public genericTree {
   float pdfUp;
   float pdfDown;
   float scale[6];
+  float lheHT;
   int isGS;
 };
 #endif

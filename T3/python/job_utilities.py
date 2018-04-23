@@ -313,7 +313,7 @@ _classification = [
             (root.kZ      , ['ZJets', 'DY']),
             (root.kW      , 'WJets'),
             (root.kA      , 'GJets'),
-            (root.kTT     , ['TTJets', 'TT_']),
+            (root.kTT     , ['TTJets', 'TT_', 'TTTo']),
             (root.kH      , 'HTo'),
         ]
 def classify_sample(full_path, isData):

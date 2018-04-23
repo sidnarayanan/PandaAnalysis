@@ -179,6 +179,7 @@ public:
   bool firstGen = true;
   bool genOnly = false;
   bool hbb = false;
+  bool ZllHbb = false;
   bool hfCounting = false;
   bool jetFlavorPartons = true;
   bool jetFlavorJets = false;
@@ -328,6 +329,7 @@ bool MuonIP(double dxy, double dz);
 double TTNLOToNNLO(double pt);
 bool IsMatched(std::vector<panda::Particle*>*objects,
                double deltaR2, double eta, double phi);
+bool JetPUID(double pt, double eta, double puid);
 
 ////////////////////////////////////////////////////////////////////////////////////
 

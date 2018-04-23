@@ -11,7 +11,7 @@ rm -rf ${SUBMIT_NPY}/cache
 mkdir ${SUBMIT_NPY}/cache
 
 #for f in ZpWW ZpTT ZpA0h QCD; do
-#for f in Top_lo QCD; do
-for f in VBFHbb ZvvHbb ggZvvHbb; do
+for f in Top_lo QCD; do
+#for f in VBFHbb ZvvHbb ggZvvHbb; do
     submit --exec $executable --arglist ${SUBMIT_NPY}/partitions/${f}.txt --cache $(readlink -f ${SUBMIT_NPY}/cache/$f) 
 done

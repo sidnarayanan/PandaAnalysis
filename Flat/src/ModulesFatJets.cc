@@ -329,7 +329,7 @@ void PandaAnalyzer::FatjetBasics()
       if (fatjet_counter==0)
         gt->fjIsClean = 1;
       else
-        gt->fjIsClean = 0;
+      gt->fjIsClean = 0;
       gt->fjPt = pt;
       gt->fjEta = eta;
       gt->fjPhi = phi;
@@ -395,6 +395,10 @@ void PandaAnalyzer::FatjetBasics()
         }
       }
     }
+    if (!isData && fj.matchedGenJet.isValid())
+      gt->fjGenNumB = fj.matchedGenJet.get()->numB;
+    else 
+      gt->fjGenNumB = 0;
   }
   tr->TriggerSubEvent("fatjet basics");
 }

@@ -25,7 +25,7 @@ bool LeptonSel::do_accept() const
     return true;
   if (gt->nLooseMuon >= 2 && gt->muonPt[0] > 20 && gt->muonPt[1] > 20)
     return true;
-  if (gt->muonPt[0] > 20 && gt->muonPt[1] > 20)
+  if (gt->nLooseMuon >= 1 && gt->nLooseElectron >= 1 && gt->muonPt[0] > 20 && gt->electronPt[0] > 20)
     return true;
   return false;
 }

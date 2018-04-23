@@ -47,7 +47,7 @@ void PandaAnalyzer::TopPTReweight()
       }
       if (pt_t>0 && pt_tbar>0) {
         gt->sf_tt           = TMath::Sqrt(TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_t)) *
-                         TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_tbar)));
+                                          TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_tbar)));
       }
 
       if (pt_t>0)
@@ -62,7 +62,14 @@ void PandaAnalyzer::TopPTReweight()
 // reweight the V+jets kinematic distributions
 // Responsible: S. Narayanan
 void PandaAnalyzer::VJetsReweight() 
-{
+{   
+      if (analysis->processType != kZ && 
+          analysis->processType != kZEWK &&
+          analysis->processType != kW &&
+          analysis->processType != kWEWK && 
+          analysis->processType != kA)
+        return;
+
       // calculate the mjj 
       TLorentzVector vGenJet;
       if (analysis->vbf) {
@@ -762,4 +769,13 @@ void PandaAnalyzer::GenStudyEWK() {
   tr->TriggerSubEvent("boson corrections");
 
   tr->TriggerEvent("EWK gen study");
+}
+// Responsible: D. Hsu
+void PandaAnalyzer::LHEInfo() {
+  gt->lheHT=0;
+  for (auto& parton : event.partons) {
+    if (abs(parton.pdgid)>6 && parton.pdgid!=21) continue;
+    gt->lheHT += parton.pt();
+  }
+  tr->TriggerEvent("LHE info");
 }

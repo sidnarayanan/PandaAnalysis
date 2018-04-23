@@ -394,15 +394,20 @@ void PandaAnalyzer::JetHbbReco(int shift)
       int idx = gt->hbbjtidx[i][shift];
       // Shifted values for the jet energies to perform the b-jet regression
       bjetreg_vars[0] = gt->jotPt[idx][shift];
-      bjetreg_vars[1] = gt->nJot[shift];
-      bjetreg_vars[2] = gt->jotEta[idx][shift];
-      bjetreg_vars[3] = gt->jotE[idx][shift] * bjets[i]->scale();
-      bjetreg_vars[4] = gt->npv;
-      bjetreg_vars[5] = gt->jotTrk1Pt[idx][shift];
-      bjetreg_vars[6] = gt->jotLep1Pt[idx][shift];
-      bjetreg_vars[7] = gt->jotNLep[idx][shift];
-      bjetreg_vars[8] = gt->jotEMF[idx][shift];
-      bjetreg_vars[9] = gt->jotHF[idx][shift];
+      bjetreg_vars[1] = gt->jotEta[idx][shift];
+      bjetreg_vars[2] = gt->jotTrk1Pt[idx][shift];
+      bjetreg_vars[3] = gt->jotLep1Pt[idx][shift];
+      bjetreg_vars[4] = gt->jotEMF[idx][shift];
+      bjetreg_vars[5] = gt->jotHF[idx][shift];
+      bjetreg_vars[6] = gt->jotLep1DeltaR[idx][shift];
+      bjetreg_vars[7] = gt->jotLep1PtRel[idx][shift];
+      bjetreg_vars[8] = gt->jotVtxPt[idx][shift];
+      bjetreg_vars[9] = gt->jotVtxMass[idx][shift];
+      bjetreg_vars[10]= gt->jotVtx3DVal[idx][shift];
+      bjetreg_vars[11]= gt->jotVtx3DErr[idx][shift];
+      bjetreg_vars[12]= gt->jotVtxNtrk[idx][shift];
+      bjetreg_vars[13]= hbbd[i].Et();
+      bjetreg_vars[14]= hbbd[i].Mt();
 
       gt->hbbjtRegFac[i][shift] = (bjetregReader->EvaluateRegression("BDT method"))[0];
       hbbd_corr[i].SetPtEtaPhiM(

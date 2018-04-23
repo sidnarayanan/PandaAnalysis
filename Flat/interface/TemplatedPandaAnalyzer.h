@@ -26,14 +26,24 @@ void PandaAnalyzer::RemoveGenDups(const panda::Collection<T>& genParticles)
 {
   for (auto& g : genParticles) {
     bool foundDup = false;
-    float ptThreshold = g.pt() * 0.01;
-    for (auto* pPtr : validGenP) {
-      const T* gPtr = dynamic_cast<const T*>(pPtr);
-      if ((g.pdgid == gPtr->pdgid) &&
-          (fabs(g.pt() - gPtr->pt()) < ptThreshold) &&
-          (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
-        foundDup = true;
-        break;
+    if (g.finalState) {
+      float ptThreshold = g.pt() * 0.01;
+      for (auto* pPtr : validGenP) {
+        const T* gPtr = static_cast<const T*>(pPtr);
+        if (!gPtr->finalState)
+          continue;
+        if ((g.pdgid == gPtr->pdgid) &&
+            (fabs(g.pt() - gPtr->pt()) < ptThreshold) &&
+            (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
+          foundDup = true;
+          if (DEBUG > 8) {
+            PDebug("Found duplicate",
+                   Form("p1(%8.3f,%5.1f,%5.1f,%5i,%i) <-> p2(%8.3f,%5.1f,%5.1f,%5i,%i)",
+                        g.pt(), g.eta(), g.phi(), g.pdgid, g.finalState ? 1 : 0,
+                        gPtr->pt(), gPtr->eta(), gPtr->phi(), gPtr->pdgid, gPtr->finalState ? 1 : 0));
+          }
+          break;
+        }
       }
     }
     if (!foundDup) {

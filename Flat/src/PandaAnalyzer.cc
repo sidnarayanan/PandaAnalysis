@@ -478,7 +478,10 @@ void PandaAnalyzer::Run()
       } else {
         SimpleLeptons();
       }
-      
+      if (analysis->hbb) {
+        InclusiveLeptons();
+      }
+   
       // photons
       if (analysis->complicatedPhotons) {
         ComplicatedPhotons();
@@ -534,6 +537,8 @@ void PandaAnalyzer::Run()
       }
 
       QCDUncs();
+      if (analysis->hbb)
+        LHEInfo();
       SignalReweights();
 
       if (analysis->vbf)
@@ -549,16 +554,17 @@ void PandaAnalyzer::Run()
       if (analysis->hfCounting)
         HeavyFlavorCounting();
 
-      TopPTReweight();
-      VJetsReweight();
+       TopPTReweight();
+       VJetsReweight();
     }
 
     
     if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
 
-    if (analysis->deep) {
+    if (analysis->deep || analysis->hbb)
       FatjetPartons();
+    if (analysis->deep) {
       FillPFTree();
       tAux->Fill();
       if (tAux->GetEntriesFast() == 2500)
