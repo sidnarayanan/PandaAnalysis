@@ -45,6 +45,9 @@
 // TMVA
 #include "TMVA/Reader.h"
 
+// macros
+#define JESLOOP for (int shift = 0; shift != maxshift; ++shift)
+
 /////////////////////////////////////////////////////////////////////////////
 // PandaAnalyzer definition
 class PandaAnalyzer {
@@ -69,6 +72,23 @@ public :
      pTrkVeto   =(1<<5)
     };
 
+    struct JetWrapper {
+        float pt; 
+        int flavor{0};
+        float genpt{0};
+        bool iso{false};
+        const panda::Jet* base;
+
+        JetWrapper(float pt_, const panda::Jet& j): pt(pt_), base(&j) { }
+
+        const panda::Jet& get_base() const { return *base; }
+        float scale() const { return pt / base->pt(); }
+        TLorentzVector p4() const { 
+            TLorentzVector v; 
+            v.SetPtEtaPhiM(pt, base->eta(), base->phi(), base->m()); 
+            return v;
+        }
+    };
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -207,22 +227,29 @@ private:
       int child_idx;
     };
 
-    struct JetWrapper {
-        float pt; 
-        const panda::Jet* base;
-        JetWrapper(float pt_, const panda::Jet& j): pt(pt_), base(&j) { }
-    };
-
-    struct JetOrdering {
+    struct JESHandler {
         std::vector<JetWrapper> all; // all jets 
         std::vector<const JetWrapper*> cleaned;
         std::vector<const JetWrapper*> iso;     // cleaned that do not overlap with fj
         std::vector<const JetWrapper*> central; // cleaned that are central
-        std::vector<const JetWrapper*> bCand;   // all that are b candidates
-        void clear() { all.clear(); cleaned.clear(); iso.clear();
-                       central.clear(); bCand.clear(); }
+        std::vector<const JetWrapper*> bcand;   // all that are b candidates
+
+        TLorentzVector vpfMET, vpuppiMET;
+        TVector2 vpfMETNoMu;
+        TLorentzVector vpfUW, vpfUZ, vpfUA;
+        TLorentzVector vpuppiUW, vpuppiUZ, vpuppiUA;
+
+        void clear() { 
+                all.clear(); cleaned.clear(); iso.clear();
+                central.clear(); bcand.clear(); 
+                vpfMETNoMu.SetMagPhi(0,0);
+                for (TLorentzVector* v_ : {&vpfMET, &vpuppiMET, 
+                                           &vpfUW, &vpfUZ, &vpfUA,
+                                           &vpuppiUW, &vpuppiUZ, &vpuppiUA})
+                    v_->SetPtEtaPhiM(0,0,0,0);
+            }
         void reserve(int N) { all.reserve(N); cleaned.reserve(N); iso.reserve(N);
-                              central.reserve(N); bCand.reserve(N); }
+                              central.reserve(N); bcand.reserve(N); }
     };
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -233,9 +260,13 @@ private:
     double GetCorr(CorrectionType ct,double x, double y=0);
     double GetError(CorrectionType ct,double x, double y=0);
     void RegisterTriggers(); 
-    float GetMSDCorr(float, float); 
-    template <shiftjes I> JetWrapper ShiftJet(const panda::Jet&);
     
+    // miscellaneous helper functions
+    float getMSDCorr(float, float); 
+    void jetPartonFlavor(const panda::Jet&, int& flavor, float& genpt);
+    void jetClusteredFlavor(const panda::Jet&, int& flavor, float& genpt);
+    int jes2i(shiftjes i) { return static_cast<int>(i); }
+    shiftjes i2jes(int i) { return static_cast<shiftjes>(i); }
 
     // these are functions used for analysis-specific tasks inside Run.
     // ideally the return type is void (e.g. they are stateful functions),
@@ -258,16 +289,16 @@ private:
     void GenStudyEWK();
     void GetMETSignificance(); 
     void HeavyFlavorCounting();
-    void IsoJet(const panda::Jet&);
-    void JetBRegressionInfo(const panda::Jet&);
+    void IsoJet(JetWrapper&, JESHandler&);
+    void JetBRegressionInfo(const panda::Jet&, int, int);
     void JetBasics();
     void JetBtagSFs();
     void JetCMVAWeights();
     void JetHbbBasics(const panda::Jet&);
-    void JetHbbReco();
+    void JetHbbReco(int);
     void JetHbbSoftActivity();
     void JetVBFBasics(const panda::Jet&);
-    void JetVBFSystem();
+    void JetVBFSystem(int);
     void JetVaryJES();
     void LeptonSFs();
     bool PFChargedPhotonMatch(const panda::Photon& photon);
@@ -401,22 +432,15 @@ private:
     std::vector<panda::Photon*> loosePhos;
     int looseLep1PdgId, looseLep2PdgId, looseLep3PdgId, looseLep4PdgId;
 
-    TLorentzVector vPFMET, vPuppiMET;
-    TVector2 vMETNoMu;
-    TLorentzVector vpfUW, vpfUZ, vpfUA, vpfU;
-    TLorentzVector vpuppiUW, vpuppiUZ, vpuppiUA, vpuppiU;
-
     std::vector<const panda::Particle*> validGenP;
 
     const panda::FatJet *fj1 = 0;
     panda::FatJetCollection *fatjets = 0;
 
-    float jetPtThreshold=30;
-    float bJetPtThreshold=30;
-    panda::JetCollection *jets = 0;
-    std::map<const panda::Jet*,int> bCandJetGenFlavor;
-    std::map<const panda::Jet*,float> bCandJetGenPt;
-    std::vector<JetOrdering> orderedJets(shiftjes::N); 
+    float minJetPt=30;
+    float minBJetPt=30;
+    panda::JetCollection *ak4jets = 0;
+    std::vector<JESHandler> jesShifts = std::vector<JESHandler>(jes2i(shiftjes::N)); 
 
     std::vector<panda::GenJet> genJetsNu;
     float genBosonPtMin, genBosonPtMax;
@@ -431,9 +455,11 @@ private:
 
     GenJetInfo genJetInfo;
     int NGENPROPS = 8; 
-    float genFatJetMinPt = 450;
+    float minGenFatJetPt = 450;
     
     float minSoftTrackPt=0.3; // 300 MeV
+
+    int maxshift = 1; 
 };
 
 

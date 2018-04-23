@@ -19,12 +19,12 @@ void PandaAnalyzer::SetOutputFile(TString fOutName)
 
   fOut->WriteTObject(hDTotalMCWeight);    
 
-  gt->monohiggs      = (analysis->monoh || analysis->hbb);
-  gt->vbf            = analysis->vbf;
-  gt->fatjet         = (analysis->fatjet || analysis->deepGen);
-  gt->leptonic       = analysis->complicatedLeptons;
-  gt->photonic       = analysis->complicatedPhotons;
-  gt->hfCounting     = analysis->hfCounting;
+  gt->is_monohiggs      = (analysis->monoh || analysis->hbb);
+  gt->is_vbf            = analysis->vbf;
+  gt->is_fatjet         = (analysis->fatjet || analysis->deepGen);
+  gt->is_leptonic       = analysis->complicatedLeptons;
+  gt->is_photonic       = analysis->complicatedPhotons;
+  gt->is_monotop        = !(analysis->monoh || analysis->hbb || analysis->vbf);
   gt->btagWeights    = analysis->btagWeights;
   gt->useCMVA        = analysis->useCMVA;
 
@@ -233,11 +233,13 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
 
   // Custom jet pt threshold
   if (analysis->hbb) {
-    jetPtThreshold = 20;
-    genFatJetMinPt = 200;
+    minJetPt = 20;
+    minGenFatJetPt = 200;
   }
   if (analysis->vbf || analysis->hbb || analysis->complicatedLeptons) 
-    bJetPtThreshold = 20;
+    minBJetPt = 20;
+
+  maxshift = analysis->varyJES ? jes2i(shiftjes::N) : 1;
 
   if (DEBUG) PDebug("PandaAnalyzer::Init","Finished configuration");
 

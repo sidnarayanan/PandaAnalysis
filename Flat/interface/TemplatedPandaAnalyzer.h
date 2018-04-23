@@ -4,14 +4,17 @@
 template <typename T> 
 void PandaAnalyzer::MatchGenJets(T& genJets) 
 {
-  unsigned N = cleanedJets.size();
-  for (unsigned i = 0; i != N; ++i) {
-    const panda::Jet *reco = cleanedJets.at(i);
-    for (auto &gen : genJets) {
-      if (DeltaR2(gen.eta(), gen.phi(), reco->eta(), reco->phi()) < 0.09) {
-        gt->jetGenPt[i] = gen.pt();
-        gt->jetGenFlavor[i] = gen.pdgid;
-        break;
+  JESLOOP {
+    auto& jets = jesShifts[shift];
+    unsigned N = jets.cleaned.size();
+    for (unsigned i = 0; i != N; ++i) {
+      const panda::Jet& reco = jets.cleaned[i]->get_base();
+      for (auto &gen : genJets) {
+        if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
+          gt->jotGenPt[i][shift] = gen.pt();
+          gt->jotFlav[i][shift] = gen.pdgid;
+          break;
+        }
       }
     }
   }
@@ -240,7 +243,7 @@ void PandaAnalyzer::FillGenTree()
 
   fastjet::PseudoJet* fullJet = NULL;
   for (auto& testJet : allJets) {
-    if (testJet.perp() < genFatJetMinPt)
+    if (testJet.perp() < minGenFatJetPt)
       break;
     bool jetOverlapsLepton = false;
     for (auto& c : testJet.constituents()) {
@@ -299,10 +302,10 @@ void PandaAnalyzer::FillGenTree()
   genJetInfo.tau1sd = tauN->getTau(1, sdConstituents);
   genJetInfo.tau2sd = tauN->getTau(2, sdConstituents);
   genJetInfo.tau3sd = tauN->getTau(3, sdConstituents);
-  gt->fj1Tau32 = genJetInfo.tau3/genJetInfo.tau2;
-  gt->fj1Tau21 = genJetInfo.tau2/genJetInfo.tau1;
-  gt->fj1Tau32SD = genJetInfo.tau3sd/genJetInfo.tau2sd;
-  gt->fj1Tau21SD = genJetInfo.tau2sd/genJetInfo.tau1sd;
+  gt->fjTau32 = genJetInfo.tau3/genJetInfo.tau2;
+  gt->fjTau21 = genJetInfo.tau2/genJetInfo.tau1;
+  gt->fjTau32SD = genJetInfo.tau3sd/genJetInfo.tau2sd;
+  gt->fjTau21SD = genJetInfo.tau2sd/genJetInfo.tau1sd;
 
   tr->TriggerSubEvent("sd and tau");
 
@@ -321,7 +324,7 @@ void PandaAnalyzer::FillGenTree()
     // PDebug("",Form("io=%i, iN=%i, ibeta=%i, ecf=%g", o, N, beta, ecf));
     genJetInfo.ecfs[o][N][beta] = ecf;
     ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
-    gt->fj1ECFNs[ep] = ecf;
+    gt->fjECFNs[ep] = ecf;
   }
   
   tr->TriggerSubEvent("ecfs");
@@ -446,23 +449,5 @@ void PandaAnalyzer::FillGenTree()
   tr->TriggerEvent("fill gen tree");
 }
 
-template<>
-PandaAnalyzer::JetWrapper PandaAnalyzer::ShiftJet<shiftjes::kNominal>(const panda::Jet& base)
-{
-  JetWrapper jw(base.pt(), base);
-  return jw;
-}
-template<>
-PandaAnalyzer::JetWrapper PandaAnalyzer::ShiftJet<shiftjes::kUp>(const panda::Jet& base)
-{
-  JetWrapper jw(base.ptCorrUp, base);
-  return jw;
-}
-template<>
-PandaAnalyzer::JetWrapper PandaAnalyzer::ShiftJet<shiftjes::kDown>(const panda::Jet& base)
-{
-  JetWrapper jw(base.ptCorrDown, base);
-  return jw;
-}
 
 #endif

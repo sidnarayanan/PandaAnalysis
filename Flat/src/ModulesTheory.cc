@@ -15,7 +15,6 @@ void PandaAnalyzer::TopPTReweight()
       if (analysis->processType != kTT)
         return;
 
-      gt->genWPlusPt = -1; gt->genWMinusPt = -1;
       for (auto* genptr : validGenP) {
         auto& gen = pToGRef(genptr);
         if (abs(gen.pdgid)!=24)
@@ -24,19 +23,7 @@ void PandaAnalyzer::TopPTReweight()
           if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
             continue; // must be first copy
         }
-        if (gen.pdgid>0) {
-         gt->genWPlusPt = gen.pt();
-         gt->genWPlusEta = gen.eta();
-        } else {
-         gt->genWMinusPt = gen.pt();
-         gt->genWMinusEta = gen.eta();
-        }
-        if (analysis->firstGen) {
-          if (gt->genWPlusPt>0 && gt->genWMinusPt>0)
-            break;
-        }
       }
-      TLorentzVector vT,vTbar;
       float pt_t=0, pt_tbar=0;
       for (auto* genptr : validGenP) {
         auto& gen = pToGRef(genptr);
@@ -49,13 +36,9 @@ void PandaAnalyzer::TopPTReweight()
         if (gen.pdgid>0) {
          pt_t = gen.pt();
          gt->genTopPt = gen.pt();
-         gt->genTopEta = gen.eta();
-         vT.SetPtEtaPhiM(gen.pt(),gen.eta(),gen.phi(),gen.m());
         } else {
          pt_tbar = gen.pt();
          gt->genAntiTopPt = gen.pt();
-         gt->genAntiTopEta = gen.eta();
-         vTbar.SetPtEtaPhiM(gen.pt(),gen.eta(),gen.phi(),gen.m());
         }
         if (analysis->firstGen) {
           if (pt_t>0 && pt_tbar>0)
@@ -63,20 +46,8 @@ void PandaAnalyzer::TopPTReweight()
         }
       }
       if (pt_t>0 && pt_tbar>0) {
-        TLorentzVector vTT = vT+vTbar;
-        gt->genTTPt = vTT.Pt(); gt->genTTEta = vTT.Eta();
-        gt->sf_tt8TeV       = TMath::Sqrt(TMath::Exp(0.156-0.00137*TMath::Min((float)400.,pt_t)) *
-                         TMath::Exp(0.156-0.00137*TMath::Min((float)400.,pt_tbar)));
         gt->sf_tt           = TMath::Sqrt(TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_t)) *
                          TMath::Exp(0.0615-0.0005*TMath::Min((float)400.,pt_tbar)));
-        gt->sf_tt8TeV_ext   = TMath::Sqrt(TMath::Exp(0.156-0.00137*pt_t) *
-                         TMath::Exp(0.156-0.00137*pt_tbar));
-        gt->sf_tt_ext       = TMath::Sqrt(TMath::Exp(0.0615-0.0005*pt_t) *
-                         TMath::Exp(0.0615-0.0005*pt_tbar));
-        gt->sf_tt8TeV_bound = TMath::Sqrt(((pt_t>400) ? 1 : TMath::Exp(0.156-0.00137*pt_t)) *
-                         ((pt_tbar>400) ? 1 : TMath::Exp(0.156-0.00137*pt_tbar)));
-        gt->sf_tt_bound     = TMath::Sqrt(((pt_t>400) ? 1 : TMath::Exp(0.0615-0.0005*pt_t)) *
-                         ((pt_tbar>400) ? 1 : TMath::Exp(0.0615-0.0005*pt_tbar)));
       }
 
       if (pt_t>0)

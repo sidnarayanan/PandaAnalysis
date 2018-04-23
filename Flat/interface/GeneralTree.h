@@ -34,14 +34,6 @@ class GeneralTree : public genericTree {
     const std::vector<int>& get_Ns() const { return Ns; }
     const std::vector<int>& get_orders() const { return orders; }
 
-    // public config
-    bool is_monohiggs=false, is_vbf=false, is_fatjet=true, is_leptonic=false, is_photonic=false, is_monotop=true;
-    bool btagWeights=false, useCMVA=false;
-    std::map<ECFParams,float> fj1ECFNs;
-    std::map<BTagParams,float> sf_btags;
-    std::map<BTagParams,float> sf_alt_btags;
-    std::map<TString,float> signal_weights;
-    std::map<csvShift,float> sf_csvWeights;
 
     // public objects
     struct ECFParams {
@@ -141,6 +133,17 @@ class GeneralTree : public genericTree {
       csvCErr2down
     };
     virtual void SetAuxTree(TTree *t);
+
+    // public config
+    bool is_monohiggs=false, is_vbf=false, is_fatjet=true, 
+         is_leptonic=false, is_photonic=false, is_monotop=true,
+         is_hbb=false;
+    bool btagWeights=false, useCMVA=false;
+    std::map<ECFParams,float> fjECFNs;
+    std::map<BTagParams,float> sf_btags;
+    std::map<BTagParams,float> sf_alt_btags;
+    std::map<TString,float> signal_weights;
+    std::map<csvShift,float> sf_csvWeights;
 // ENDCUSTOM
   private:
 // STARTCUSTOM PRIVATE
@@ -157,7 +160,7 @@ class GeneralTree : public genericTree {
       TString s = "sf_";
       if (p.jet==bSubJet)
         s += "sj";
-        s += "btag";
+      s += "btag";
       switch (p.tag) {
         case b0:
           s += "0"; break;
@@ -253,37 +256,39 @@ class GeneralTree : public genericTree {
   float sumETRaw;
   float pfmetRaw;
   float pfmet[3];
-  float pfmetphi;
-  float pfmetnomu;
-  float puppimet;
-  float puppimetphi;
+  float pfmetphi[3];
+  float pfmetnomu[3];
+  float puppimet[3];
+  float puppimetphi[3];
   float calomet;
   float calometphi;
   float pfcalobalance;
   float sumET;
   float trkmet;
   float trkmetphi;
+  float pfmetsig;
+  float puppimetsig;
   int whichRecoil;
   float puppiUWmag[3];
   float puppiUZmag[3];
   float puppiUAmag[3];
   float puppiUperp[3];
   float puppiUpara[3];
+  float puppiUmag[3];
   float pfUWmag[3];
   float pfUZmag[3];
-  float puppiUmag[3];
   float pfUAmag[3];
   float pfUperp[3];
   float pfUpara[3];
   float pfUmag[3];
-  float puppiUWphi;
-  float puppiUZphi;
-  float puppiUAphi;
-  float puppiUphi;
-  float pfUWphi;
-  float pfUZphi;
-  float pfUAphi;
-  float pfUphi;
+  float puppiUWphi[3];
+  float puppiUZphi[3];
+  float puppiUAphi[3];
+  float puppiUphi[3];
+  float pfUWphi[3];
+  float pfUZphi[3];
+  float pfUAphi[3];
+  float pfUphi[3];
   float dphipfmet[3];
   float dphipuppimet[3];
   float dphipuppiUW[3];
@@ -310,11 +315,14 @@ class GeneralTree : public genericTree {
   float genJet1Eta;
   float genJet2Eta;
   float genMjj;
+  float genTopPt;
+  float genAntiTopPt;
   int nJet[3];
   int nJot[3];
+  int nJotMax;
   int nIsoJet[3];
   float jetPt[2];
-  float jetPEta[2];
+  float jetEta[2];
   float jetPhi[2];
   float jetGenPt[2];
   float jetCSV[2];
@@ -323,29 +331,30 @@ class GeneralTree : public genericTree {
   int jetIsIso[2];
   float jotPt[3][20];
   float jotE[3][20];
-  float jotEta[20];
-  float jotPhi[20];
-  float jotCSV[20];
-  int jotVBFID[20];
-  float jotCMVA[20];
-  int jotIso[20];
-  float jotQGL[20];
-  float jotLep1Pt[20];
-  float jotLep1PtRel[20];
-  float jotLep1DeltaR[20];
-  float jotTrk1Pt[20];
-  float jotVtxPt[20];
-  float jotVtxMass[20];
-  float jotVtx3DVal[20];
-  float jotVtx3DErr[20];
-  int jotVtxNtrk[20];
-  float jotEMF[20];
-  float jotHF[20];
-  int jotNLep[20];
-  float jotGenPt[20];
-  int jotFlav[20];
-  int hbbjtidx[2];
-  float jotRegFac[2];
+  float jotEta[3][20];
+  float jotPhi[3][20];
+  float jotCSV[3][20];
+  int jotVBFID[3][20];
+  float jotM[3][20];
+  float jotCMVA[3][20];
+  int jotIso[3][20];
+  float jotQGL[3][20];
+  float jotLep1Pt[3][20];
+  float jotLep1PtRel[3][20];
+  float jotLep1DeltaR[3][20];
+  float jotTrk1Pt[3][20];
+  float jotVtxPt[3][20];
+  float jotVtxMass[3][20];
+  float jotVtx3DVal[3][20];
+  float jotVtx3DErr[3][20];
+  int jotVtxNtrk[3][20];
+  float jotEMF[3][20];
+  float jotHF[3][20];
+  int jotNLep[3][20];
+  float jotGenPt[3][20];
+  int jotFlav[3][20];
+  int hbbjtidx[3][2];
+  float hbbjtRegFac[3][2];
   float barrelJet1Pt;
   float barrelJet1Eta;
   float barrelHT;
@@ -354,9 +363,9 @@ class GeneralTree : public genericTree {
   float jot12Mass[3];
   float jot12DEta[3];
   float jot12DPhi[3];
-  int jetNBtags;
-  int jetNMBtags;
-  int isojetNBtags;
+  int jetNBtags[3];
+  int jetNMBtags[3];
+  int isojetNBtags[3];
   int nFatjet;
   float fjTau32;
   float fjTau21;
@@ -477,25 +486,30 @@ class GeneralTree : public genericTree {
   float genLep4Eta;
   float genLep4Phi;
   int genLep4PdgId;
+  float genWPlusPt;
+  float genWMinusPt;
+  float genWPlusEta;
+  float genWMinusEta;
   int looseGenLep1PdgId;
   int looseGenLep2PdgId;
   int looseGenLep3PdgId;
   int looseGenLep4PdgId;
   float diLepMass;
   int nTau;
-  float mT;
+  float mT[3];
   float hbbpt[3];
-  float hbbeta;
-  float hbbphi;
+  float hbbeta[3];
+  float hbbphi[3];
   float hbbm[3];
   float hbbm_reg[3];
+  float hbbpt_reg[3];
   int nSoft2;
   int nSoft5;
   int nSoft10;
-  float hbbCosThetaJJ;
-  float hbbCosThetaCSJ1;
+  float hbbCosThetaJJ[3];
+  float hbbCosThetaCSJ1[3];
   float topMassLep1Met[3];
-  float topWBosonCosThetaCS;
+  float topWBosonCosThetaCS[3];
   float topWBosonPt;
   float topWBosonEta;
   float topWBosonPhi;

@@ -38,22 +38,11 @@ void PandaAnalyzer::ResetBranches()
   looseLeps.clear();
   tightLeps.clear();
   loosePhos.clear();
-  cleanedJets.clear();
-  isoJets.clear();
-  centralJets.clear();
-  bCandJets.clear();
-  bCandJetGenFlavor.clear();
-  bCandJetGenPt.clear();
   genJetsNu.clear();
   validGenP.clear();
+  for (int i = 0; i != jes2i(shiftjes::N); ++i) 
+    jesShifts[i].clear();
   fj1 = 0;
-  for (TLorentzVector v_ : {vPFMET, vPuppiMET, vpfUW, vpfUZ, vpfUA, vpfU,
-                            vpuppiUW, vpuppiUZ, vpuppiUA, vpuppiU,
-                            vJet, vBarrelJets})
-  {
-    v_.SetPtEtaPhiM(0,0,0,0);
-  }
-  vMETNoMu.SetMagPhi(0,0);
   gt->Reset();
   if (DEBUG) PDebug("PandaAnalyzer::ResetBranches","Reset");
 }
@@ -120,6 +109,32 @@ void PandaAnalyzer::Terminate()
   if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
 }
 
+void shiftMET(const panda::RecoMet& met, TLorentzVector& v, shiftjes shift) 
+{
+  float pt;
+  float phi;
+  switch (shift) {
+    case shiftjes::kNominal:
+      pt = met.pt;
+      phi = met.phi;
+      break;
+    case shiftjes::kJESUp:
+      pt = met.ptCorrUp;
+      phi = met.phiCorrUp;
+      break;
+    case shiftjes::kJESDown:
+      pt = met.ptCorrDown;
+      phi = met.phiCorrDown;
+      break;
+    default:
+      PError("shiftMET", "Unknown JES type!");
+      exit(1);
+  }
+
+  v.SetPtEtaPhiM(pt, 0, phi, 0);
+
+}
+
 
 // run
 void PandaAnalyzer::Run() 
@@ -160,7 +175,7 @@ void PandaAnalyzer::Run()
       fatjets = &event.chsCA15Jets;
   }
 
-  jets = &event.chsAK4Jets;
+  ak4jets = &event.chsAK4Jets;
 
   // these are bins of b-tagging eff in pT and eta, derived in 8024 TT MC
   // TODO: don't hardcode these 
@@ -385,8 +400,6 @@ void PandaAnalyzer::Run()
     } else { // !isData
       gt->sf_npv = GetCorr(cNPV,gt->npv);
       gt->sf_pu = GetCorr(cPU,gt->pu);
-      gt->sf_puUp = GetCorr(cPUUp,gt->pu);
-      gt->sf_puDown = GetCorr(cPUDown,gt->pu);
     }
 
     // save triggers
@@ -409,21 +422,26 @@ void PandaAnalyzer::Run()
 
     // met
     gt->pfmetRaw = event.rawMet.pt;
-    gt->pfmet = event.pfMet.pt;
-    gt->pfmetphi = event.pfMet.phi;
     gt->calomet = event.caloMet.pt;
     gt->sumETRaw = event.pfMet.sumETRaw;
-    gt->puppimet = event.puppiMet.pt;
-    gt->puppimetphi = event.puppiMet.phi;
     gt->trkmet = event.trkMet.pt;
     gt->trkmetphi = event.trkMet.phi;
-    vPFMET.SetPtEtaPhiM(gt->pfmet,0,gt->pfmetphi,0);
-    vPuppiMET.SetPtEtaPhiM(gt->puppimet,0,gt->puppimetphi,0);
-    vMETNoMu.SetMagPhi(gt->pfmet,gt->pfmetphi); //       for trigger eff
-    if (analysis->varyJES) {
-      gt->pfmetUp = event.pfMet.ptCorrUp;
-      gt->pfmetDown = event.pfMet.ptCorrDown;
+
+    JESLOOP {
+      auto& jets = jesShifts[shift];
+      // PF 
+      shiftMET(event.pfMet, jets.vpfMET, i2jes(shift));
+      gt->pfmet[shift] = jets.vpfMET.Pt();
+      gt->pfmetphi[shift] = jets.vpfMET.Phi();
+
+      // Puppi
+      shiftMET(event.puppiMet, jets.vpuppiMET, i2jes(shift));
+      gt->puppimet[shift] = jets.vpuppiMET.Pt();
+      gt->puppimetphi[shift] = jets.vpuppiMET.Phi();
+
+      jets.vpfMETNoMu.SetMagPhi(gt->pfmet[shift], gt->pfmetphi[shift]);
     }
+
 
     tr->TriggerEvent("met");
 
@@ -480,13 +498,8 @@ void PandaAnalyzer::Run()
         tr->TriggerEvent("fatjet");
       }
 
-      // first identify interesting jets
+      // interesting jets
       JetBasics();
-
-      if (analysis->hbb) {
-        // Higgs reconstruction for resolved analysis - highest pt pair of b jets
-        JetHbbReco();
-      }
 
       Taus();
 

@@ -13,7 +13,7 @@ using namespace std;
 // Responsible: S. Narayanan
 void PandaAnalyzer::FatjetPartons() 
 {
-  gt->fj1NPartons = 0;
+  gt->fjNPartons = 0;
   if (fj1) {
     double threshold = 0.2 * fj1->rawPt;
 
@@ -91,7 +91,7 @@ void PandaAnalyzer::FatjetPartons()
       }
     }
 
-    gt->fj1NPartons = partons.size();
+    gt->fjNPartons = partons.size();
 
     TLorentzVector vPartonSum;
     TLorentzVector vTmp;
@@ -102,13 +102,13 @@ void PandaAnalyzer::FatjetPartons()
       int digit3 = (p->pdgid%1000 - p->pdgid%100) / 100;
       int digit4 = (p->pdgid%10000 - p->pdgid%1000) / 1000;
       if (p->pdgid == 5 || digit3 == 5 || digit4 == 5)
-        gt->fj1NBPartons++;
+        gt->fjNBPartons++;
       if (p->pdgid == 4 || digit3 == 4 || digit4 == 4)
-        gt->fj1NCPartons++;
+        gt->fjNCPartons++;
     }
-    gt->fj1PartonM = vPartonSum.M();
-    gt->fj1PartonPt = vPartonSum.Pt();
-    gt->fj1PartonEta = vPartonSum.Eta();
+    gt->fjPartonM = vPartonSum.M();
+    gt->fjPartonPt = vPartonSum.Pt();
+    gt->fjPartonEta = vPartonSum.Eta();
   }
 
 }
@@ -149,10 +149,10 @@ void PandaAnalyzer::FillPFTree()
   fjphi = fj1->phi();
   fjrawpt = fj1->rawPt;
 
-  gt->fj1Rho = TMath::Log(TMath::Power(fjmsd,2) / fjpt);
-  gt->fj1RawRho = TMath::Log(TMath::Power(fjmsd,2) / fjrawpt);
-  gt->fj1Rho2 = TMath::Log(TMath::Power(fjmsd,2) / TMath::Power(fjpt,2));
-  gt->fj1RawRho2 = TMath::Log(TMath::Power(fjmsd,2) / TMath::Power(fjrawpt,2));
+  gt->fjRho = TMath::Log(TMath::Power(fjmsd,2) / fjpt);
+  gt->fjRawRho = TMath::Log(TMath::Power(fjmsd,2) / fjrawpt);
+  gt->fjRho2 = TMath::Log(TMath::Power(fjmsd,2) / TMath::Power(fjpt,2));
+  gt->fjRawRho2 = TMath::Log(TMath::Power(fjmsd,2) / TMath::Power(fjrawpt,2));
 
   // secondary vertices come first so we can link to tracks later
   std::map<const SecondaryVertex*, std::unordered_set<const PFCand*>> svTracks;
@@ -268,7 +268,7 @@ void PandaAnalyzer::FillPFTree()
 
 // Correct the SD mass of 2-prong puppi jets
 // Responsible: B. Maier
-float PandaAnalyzer::GetMSDCorr(float puppipt, float puppieta) 
+float PandaAnalyzer::getMSDCorr(float puppipt, float puppieta) 
 {
 
   float genCorr  = 1.;
@@ -327,111 +327,43 @@ void PandaAnalyzer::FatjetBasics()
     if (gt->nFatjet==1) {
       fj1 = &fj;
       if (fatjet_counter==0)
-        gt->fj1IsClean = 1;
+        gt->fjIsClean = 1;
       else
-        gt->fj1IsClean = 0;
-      gt->fj1Pt = pt;
-      gt->fj1Eta = eta;
-      gt->fj1Phi = phi;
-      gt->fj1M = mass;
-      gt->fj1MSD = fj.mSD;
-      gt->fj1RawPt = rawpt;
+        gt->fjIsClean = 0;
+      gt->fjPt = pt;
+      gt->fjEta = eta;
+      gt->fjPhi = phi;
+      gt->fjM = mass;
+      gt->fjMSD = fj.mSD;
+      gt->fjRawPt = rawpt;
 
-      // do a bit of jet energy scaling
-      if (analysis->rerunJES) {
-        double scaleUnc = (fj.ptCorrUp - gt->fj1Pt) / gt->fj1Pt; 
-        gt->fj1PtScaleUp   = gt->fj1Pt  * (1 + 2*scaleUnc);
-        gt->fj1PtScaleDown  = gt->fj1Pt  * (1 - 2*scaleUnc);
-        gt->fj1MSDScaleUp  = gt->fj1MSD * (1 + 2*scaleUnc);
-        gt->fj1MSDScaleDown = gt->fj1MSD * (1 - 2*scaleUnc);
-
-        // do some jet energy smearing
-        if (isData) {
-          gt->fj1PtSmeared = gt->fj1Pt;
-          gt->fj1PtSmearedUp = gt->fj1Pt;
-          gt->fj1PtSmearedDown = gt->fj1Pt;
-          gt->fj1MSDSmeared = gt->fj1MSD;
-          gt->fj1MSDSmearedUp = gt->fj1MSD;
-          gt->fj1MSDSmearedDown = gt->fj1MSD;
-        } else {
-          double smear=1, smearUp=1, smearDown=1;
-          ak8JERReader->getStochasticSmear(pt,eta,event.rho,smear,smearUp,smearDown);
-
-          gt->fj1PtSmeared = smear*gt->fj1Pt;
-          gt->fj1PtSmearedUp = smearUp*gt->fj1Pt;
-          gt->fj1PtSmearedDown = smearDown*gt->fj1Pt;
-
-          gt->fj1MSDSmeared = smear*gt->fj1MSD;
-          gt->fj1MSDSmearedUp = smearUp*gt->fj1MSD;
-          gt->fj1MSDSmearedDown = smearDown*gt->fj1MSD;
-        }
-
-        // now have to do this mess with the subjets...
-        TLorentzVector sjSum, sjSumUp, sjSumDown, sjSumSmear;
-        for (int iSJ=0; iSJ!=(int)fj.subjets.size(); ++iSJ) {
-          auto& subjet = fj.subjets.objAt(iSJ);
-          // now correct...
-          double factor=1;
-          if (fabs(subjet.eta())<5.191) {
-            scaleReaderAK4->setJetPt(subjet.pt());
-            scaleReaderAK4->setJetEta(subjet.eta());
-            scaleReaderAK4->setJetPhi(subjet.phi());
-            scaleReaderAK4->setJetE(subjet.e());
-            scaleReaderAK4->setRho(event.rho);
-            scaleReaderAK4->setJetA(0);
-            scaleReaderAK4->setJetEMF(-99.0);
-            factor = scaleReaderAK4->getCorrection();
-          }
-          TLorentzVector vCorr = factor * subjet.p4();
-          sjSum += vCorr;
-          double corr_pt = vCorr.Pt();
-
-          // now vary
-          uncReaderAK4->setJetEta(subjet.eta()); uncReaderAK4->setJetPt(corr_pt);
-          double scaleUnc = uncReaderAK4->getUncertainty(true);
-          sjSumUp += (1 + 2*scaleUnc) * vCorr;
-          sjSumDown += (1 - 2*scaleUnc) * vCorr;
-
-          // now smear...
-          double smear=1, smearUp=1, smearDown=1;
-          ak4JERReader->getStochasticSmear(corr_pt,subjet.eta(),event.rho,smear,smearUp,smearDown);
-          sjSumSmear += smear * vCorr;
-        }
-        gt->fj1PtScaleUp_sj = gt->fj1Pt * (sjSumUp.Pt()/sjSum.Pt());
-        gt->fj1PtScaleDown_sj = gt->fj1Pt * (sjSumDown.Pt()/sjSum.Pt());
-        gt->fj1PtSmeared_sj = gt->fj1Pt * (sjSumSmear.Pt()/sjSum.Pt());
-        gt->fj1MSDScaleUp_sj = gt->fj1MSD * (sjSumUp.Pt()/sjSum.Pt());
-        gt->fj1MSDScaleDown_sj = gt->fj1MSD * (sjSumDown.Pt()/sjSum.Pt());
-        gt->fj1MSDSmeared_sj = gt->fj1MSD * (sjSumSmear.Pt()/sjSum.Pt());
-      }
-       
       if (analysis->monoh || analysis->hbb) {
         // mSD correction
         float corrweight=1.;
-        corrweight = GetMSDCorr(pt,eta);
-        gt->fj1MSD_corr = corrweight*gt->fj1MSD;
+        corrweight = getMSDCorr(pt,eta);
+        gt->fjMSD_corr = corrweight*gt->fjMSD;
       }
 
       // now we do substructure
-      gt->fj1Tau32 = clean(fj.tau3/fj.tau2);
-      gt->fj1Tau32SD = clean(fj.tau3SD/fj.tau2SD);
-      gt->fj1Tau21 = clean(fj.tau2/fj.tau1);
-      gt->fj1Tau21SD = clean(fj.tau2SD/fj.tau1SD);
+      gt->fjTau32 = clean(fj.tau3/fj.tau2);
+      gt->fjTau32SD = clean(fj.tau3SD/fj.tau2SD);
+      gt->fjTau21 = clean(fj.tau2/fj.tau1);
+      gt->fjTau21SD = clean(fj.tau2SD/fj.tau1SD);
 
       for (auto ibeta : ibetas) {
         for (auto N : Ns) {
           for (auto order : orders) {
             GeneralTree::ECFParams p;
             p.order = order; p.N = N; p.ibeta = ibeta;
-            if (gt->fj1IsClean || true)
-              gt->fj1ECFNs[p] = fj.get_ecf(order,N,ibeta);
+            if (gt->fjIsClean || true)
+              gt->fjECFNs[p] = fj.get_ecf(order,N,ibeta);
             else
-              gt->fj1ECFNs[p] = fj.get_ecf(order,N,ibeta);
+              gt->fjECFNs[p] = fj.get_ecf(order,N,ibeta);
           }
         }
       } //loop over betas
-      gt->fj1HTTMass = fj.htt_mass;
-      gt->fj1HTTFRec = fj.htt_frec;
+      gt->fjHTTMass = fj.htt_mass;
+      gt->fjHTTFRec = fj.htt_frec;
 
       std::vector<panda::MicroJet const*> subjets;
       for (int iS(0); iS != fj.subjets.size(); ++iS)
@@ -443,23 +375,23 @@ void PandaAnalyzer::FatjetBasics()
 
       std::sort(subjets.begin(),subjets.end(),csvsort);
       if (subjets.size()>0) {
-        gt->fj1MaxCSV = subjets.at(0)->csv;
-        gt->fj1MinCSV = subjets.back()->csv;
+        gt->fjMaxCSV = subjets.at(0)->csv;
+        gt->fjMinCSV = subjets.back()->csv;
         if (subjets.size()>1) {
-          gt->fj1SubMaxCSV = subjets.at(1)->csv;
+          gt->fjSubMaxCSV = subjets.at(1)->csv;
         }
       }
 
-      gt->fj1DoubleCSV = fj.double_sub;
+      gt->fjDoubleCSV = fj.double_sub;
       if (analysis->monoh) {
         for (int iSJ=0; iSJ!=fj.subjets.size(); ++iSJ) {
           auto& subjet = fj.subjets.objAt(iSJ);
-          gt->fj1sjPt[iSJ]=subjet.pt();
-          gt->fj1sjEta[iSJ]=subjet.eta();
-          gt->fj1sjPhi[iSJ]=subjet.phi();
-          gt->fj1sjM[iSJ]=subjet.m();
-          gt->fj1sjCSV[iSJ]=subjet.csv;
-          gt->fj1sjQGL[iSJ]=subjet.qgl;
+          gt->fjsjPt[iSJ]=subjet.pt();
+          gt->fjsjEta[iSJ]=subjet.eta();
+          gt->fjsjPhi[iSJ]=subjet.phi();
+          gt->fjsjM[iSJ]=subjet.m();
+          gt->fjsjCSV[iSJ]=subjet.csv;
+          gt->fjsjQGL[iSJ]=subjet.qgl;
         }
       }
     }
@@ -487,28 +419,24 @@ void PandaAnalyzer::FatjetRecluster()
     if (pj1) {
       VPseudoJet constituents = fastjet::sorted_by_pt(pj1->constituents());
 
-      gt->fj1NConst = constituents.size();
       double eTot=0, eTrunc=0;
-      for (int iC=0; iC!=gt->fj1NConst; ++iC) {
+      for (unsigned iC=0; iC!=constituents.size(); ++iC) {
         double e = constituents.at(iC).E();
         eTot += e;
         if (iC<100)
           eTrunc += e;
       }
-      gt->fj1EFrac100 = eTrunc/eTot;
 
 
       fastjet::PseudoJet sdJet = (*softDrop)(*pj1);
       VPseudoJet sdConstituents = fastjet::sorted_by_pt(sdJet.constituents());
-      gt->fj1NSDConst = sdConstituents.size();
       eTot=0; eTrunc=0;
-      for (int iC=0; iC!=gt->fj1NSDConst; ++iC) {
+      for (unsigned iC=0; iC!=sdConstituents.size(); ++iC) {
         double e = sdConstituents.at(iC).E();
         eTot += e;
         if (iC<100)
           eTrunc += e;
       }
-      gt->fj1SDEFrac100 = eTrunc/eTot;
 
     }
     tr->TriggerSubEvent("fatjet reclustering");
@@ -667,20 +595,20 @@ void PandaAnalyzer::FatjetMatching()
     // first see if jet is matched
     auto* matched = MatchToGen(fj1->eta(),fj1->phi(),1.5,pdgidTarget);
     if (matched!=nullptr) {
-      gt->fj1IsMatched = 1;
-      gt->fj1GenPt = matched->pt();
-      gt->fj1GenSize = genObjects[matched];
+      gt->fjIsMatched = 1;
+      gt->fjGenPt = matched->pt();
+      gt->fjGenSize = genObjects[matched];
     } else {
-      gt->fj1IsMatched = 0;
+      gt->fjIsMatched = 0;
     }
     if (pdgidTarget==6) { // matched to top; try for W
       auto* matchedW = MatchToGen(fj1->eta(),fj1->phi(),1.5,24);
       if (matchedW!=nullptr) {
-        gt->fj1IsWMatched = 1;
-        gt->fj1GenWPt = matchedW->pt();
-        gt->fj1GenWSize = genObjects[matchedW];
+        gt->fjIsWMatched = 1;
+        gt->fjGenWPt = matchedW->pt();
+        gt->fjGenWSize = genObjects[matchedW];
       } else {
-        gt->fj1IsWMatched = 0;
+        gt->fjIsWMatched = 0;
       }
     }
 
@@ -693,10 +621,10 @@ void PandaAnalyzer::FatjetMatching()
       auto& gen = pToGRef(genptr);
       float pt = gen.pt();
       int pdgid = gen.pdgid;
-      if (pt>(gt->fj1HighestPtGenPt)
+      if (pt>(gt->fjHighestPtGenPt)
           && DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<FATJETMATCHDR2) {
-        gt->fj1HighestPtGenPt = pt;
-        gt->fj1HighestPtGen = pdgid;
+        gt->fjHighestPtGenPt = pt;
+        gt->fjHighestPtGen = pdgid;
       }
 
       if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
@@ -708,7 +636,7 @@ void PandaAnalyzer::FatjetMatching()
         continue;
 
       if (DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<FATJETMATCHDR2) {
-        gt->fj1NHF++;
+        gt->fjNHF++;
         if (apdgid==5) {
           if (gen.parent.isValid() && gen.parent->pdgid==21 && gen.parent->pt()>20) {
             if (!found_b_from_g) {
@@ -728,8 +656,8 @@ void PandaAnalyzer::FatjetMatching()
       }
     }
 
-    gt->fj1Nbs=bs_inside_cone;
-    gt->fj1gbb=has_gluon_splitting;
+    gt->fjNbs=bs_inside_cone;
+    gt->fjgbb=has_gluon_splitting;
 
     if (analysis->btagSFs) {
       // now get the subjet btag SFs

@@ -201,24 +201,24 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
   tAux->Branch("rawpt",&fjrawpt,"rawpt/F");
   tAux->Branch("eta",&fjeta,"eta/F");
   tAux->Branch("phi",&fjphi,"phi/F");
-  tAux->Branch("rho",&(gt->fj1Rho),"rho/f");
-  tAux->Branch("rawrho",&(gt->fj1RawRho),"rawrho/f");
-  tAux->Branch("rho2",&(gt->fj1Rho2),"rho2/f");
-  tAux->Branch("rawrho2",&(gt->fj1RawRho2),"rawrho2/f");
-  tAux->Branch("nPartons",&(gt->fj1NPartons),"nPartons/I");
-  tAux->Branch("nBPartons",&(gt->fj1NBPartons),"nBPartons/I");
-  tAux->Branch("nCPartons",&(gt->fj1NCPartons),"nCPartons/I");
-  tAux->Branch("partonM",&(gt->fj1PartonM),"partonM/f");
-  tAux->Branch("partonPt",&(gt->fj1PartonPt),"partonPt/f");
-  tAux->Branch("partonEta",&(gt->fj1PartonEta),"partonEta/f");
-  tAux->Branch("tau32",&(gt->fj1Tau32),"tau32/f");
-  tAux->Branch("tau32SD",&(gt->fj1Tau32SD),"tau32SD/f");
-  tAux->Branch("tau21",&(gt->fj1Tau21),"tau21/f");
-  tAux->Branch("tau21SD",&(gt->fj1Tau21SD),"tau21SD/f");
+  tAux->Branch("rho",&(gt->fjRho),"rho/f");
+  tAux->Branch("rawrho",&(gt->fjRawRho),"rawrho/f");
+  tAux->Branch("rho2",&(gt->fjRho2),"rho2/f");
+  tAux->Branch("rawrho2",&(gt->fjRawRho2),"rawrho2/f");
+  tAux->Branch("nPartons",&(gt->fjNPartons),"nPartons/I");
+  tAux->Branch("nBPartons",&(gt->fjNBPartons),"nBPartons/I");
+  tAux->Branch("nCPartons",&(gt->fjNCPartons),"nCPartons/I");
+  tAux->Branch("partonM",&(gt->fjPartonM),"partonM/f");
+  tAux->Branch("partonPt",&(gt->fjPartonPt),"partonPt/f");
+  tAux->Branch("partonEta",&(gt->fjPartonEta),"partonEta/f");
+  tAux->Branch("tau32",&(gt->fjTau32),"tau32/f");
+  tAux->Branch("tau32SD",&(gt->fjTau32SD),"tau32SD/f");
+  tAux->Branch("tau21",&(gt->fjTau21),"tau21/f");
+  tAux->Branch("tau21SD",&(gt->fjTau21SD),"tau21SD/f");
   tAux->Branch("eventNumber",&(gt->eventNumber),"eventNumber/l");
-  tAux->Branch("maxcsv",&(gt->fj1MaxCSV),"maxcsv/f");
-  tAux->Branch("mincsv",&(gt->fj1MinCSV),"mincsv/f");
-  tAux->Branch("doubleb",&(gt->fj1DoubleCSV),"doubleb/f");
+  tAux->Branch("maxcsv",&(gt->fjMaxCSV),"maxcsv/f");
+  tAux->Branch("mincsv",&(gt->fjMinCSV),"mincsv/f");
+  tAux->Branch("doubleb",&(gt->fjDoubleCSV),"doubleb/f");
 
   gt->SetAuxTree(tAux);
 
@@ -234,8 +234,8 @@ void PandaAnalyzer::TriggerEffs()
 {
 
     // trigger efficiencies
-    gt->sf_metTrig = GetCorr(cTrigMET,gt->pfmetnomu);
-    gt->sf_metTrigZmm = GetCorr(cTrigMETZmm,gt->pfmetnomu);
+    gt->sf_metTrig = GetCorr(cTrigMET,gt->pfmetnomu[jes2i(shiftjes::kNominal)]);
+    gt->sf_metTrigZmm = GetCorr(cTrigMETZmm,gt->pfmetnomu[jes2i(shiftjes::kNominal)]);
 
     if (gt->nLooseElectron>0) {
       panda::Electron *ele1=0, *ele2=0;
@@ -284,9 +284,6 @@ void PandaAnalyzer::TriggerEffs()
 // Responsible: S. Narayanan
 void PandaAnalyzer::Recoil()
 {
-    TLorentzVector vpfUp; vpfUp.SetPtEtaPhiM(gt->pfmetUp,0,gt->pfmetphi,0);
-    TLorentzVector vpfDown; vpfDown.SetPtEtaPhiM(gt->pfmetDown,0,gt->pfmetphi,0);
-    TLorentzVector vpfUWUp, vpfUWDown;
     TLorentzVector vObj1, vObj2;
     gt->whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
     if (gt->nLooseLep>0) {
@@ -294,12 +291,16 @@ void PandaAnalyzer::Recoil()
       vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
 
       // one lep => W
-      vpuppiUW = vPuppiMET+vObj1; gt->puppiUWmag=vpuppiUW.Pt(); gt->puppiUWphi=vpuppiUW.Phi();
-      vpfUW = vPFMET+vObj1; gt->pfUWmag=vpfUW.Pt(); gt->pfUWphi=vpfUW.Phi();
-      
-      if (analysis->varyJES) {
-        vpfUWUp = vpfUp+vObj1; gt->pfUWmagUp = vpfUWUp.Pt();
-        vpfUWDown = vpfDown+vObj1; gt->pfUWmagDown = vpfUWDown.Pt();
+      JESLOOP {
+        auto& jets = jesShifts[shift]; 
+
+        jets.vpuppiUW = jets.vpuppiMET + vObj1;
+        gt->puppiUWmag[shift] = jets.vpuppiUW.Pt(); 
+        gt->puppiUWphi[shift] = jets.vpuppiUW.Phi(); 
+
+        jets.vpfUW = jets.vpfMET + vObj1;
+        gt->pfUWmag[shift] = jets.vpfUW.Pt(); 
+        gt->pfUWphi[shift] = jets.vpfUW.Phi(); 
       }
 
       if (gt->nLooseLep>1 && looseLep1PdgId+looseLep2PdgId==0) {
@@ -307,18 +308,20 @@ void PandaAnalyzer::Recoil()
         panda::Lepton *lep2 = looseLeps.at(1);
         vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
 
-        vpuppiUZ=vpuppiUW+vObj2; gt->puppiUZmag=vpuppiUZ.Pt(); gt->puppiUZphi=vpuppiUZ.Phi();
-        vpfUZ=vpfUW+vObj2; gt->pfUZmag=vpfUZ.Pt(); gt->pfUZphi=vpfUZ.Phi();
+        JESLOOP {
+          auto& jets = jesShifts[shift]; 
 
-        if (analysis->varyJES) {
-          TLorentzVector vpfUZUp = vpfUWUp+vObj2; gt->pfUZmagUp = vpfUZUp.Pt();
-          TLorentzVector vpfUZDown = vpfUWDown+vObj2; gt->pfUZmagDown = vpfUZDown.Pt();
+          jets.vpuppiUZ = jets.vpuppiUW + vObj2;
+          gt->puppiUZmag[shift] = jets.vpuppiUZ.Pt(); 
+          gt->puppiUZphi[shift] = jets.vpuppiUZ.Phi(); 
+
+          jets.vpfUZ = jets.vpfUW + vObj2;
+          gt->pfUZmag[shift] = jets.vpfUZ.Pt(); 
+          gt->pfUZphi[shift] = jets.vpfUZ.Phi(); 
         }
 
-        vpuppiU = vpuppiUZ; vpfU = vpfUZ;
         gt->whichRecoil = 2;
       } else {
-        vpuppiU = vpuppiUW; vpfU = vpfUW;
         gt->whichRecoil = 1;
       }
     }
@@ -326,28 +329,25 @@ void PandaAnalyzer::Recoil()
       panda::Photon *pho = loosePhos.at(0);
       vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
 
-      vpuppiUA=vPuppiMET+vObj1; gt->puppiUAmag=vpuppiUA.Pt(); gt->puppiUAphi=vpuppiUA.Phi();
-      vpfUA=vPFMET+vObj1; gt->pfUAmag=vpfUA.Pt(); gt->pfUAphi=vpfUA.Phi();
+      JESLOOP {
+        auto& jets = jesShifts[shift]; 
 
-      if (analysis->varyJES) {
-        TLorentzVector vpfUAUp = vpfUp+vObj1; gt->pfUAmagUp = vpfUAUp.Pt();
-        TLorentzVector vpfUADown = vpfDown+vObj1; gt->pfUAmagDown = vpfUADown.Pt();
+        jets.vpuppiUA = jets.vpuppiMET + vObj1;
+        gt->puppiUAmag[shift] = jets.vpuppiUA.Pt(); 
+        gt->puppiUAphi[shift] = jets.vpuppiUA.Phi(); 
+
+        jets.vpfUA = jets.vpfMET + vObj1;
+        gt->pfUAmag[shift] = jets.vpfUA.Pt(); 
+        gt->pfUAphi[shift] = jets.vpfUA.Phi(); 
       }
 
       if (gt->nLooseLep==0) {
-        vpuppiU = vpuppiUA; vpfU = vpfUA;
         gt->whichRecoil = -1;
       }
     }
     if (gt->nLooseLep==0 && gt->nLoosePhoton==0) {
-      vpuppiU = vPuppiMET;
-      vpfU = vPFMET;
       gt->whichRecoil = 0;
     }
-    gt->puppiUmag = vpuppiU.Pt();
-    gt->puppiUphi = vpuppiU.Phi();
-    gt->pfUmag = vpfU.Pt();
-    gt->pfUphi = vpfU.Phi();
 
     tr->TriggerEvent("recoils");
 }

@@ -13,6 +13,7 @@ using namespace std;
 // Responsible: S. Narayanan
 void PandaAnalyzer::SimpleLeptons() 
 {
+
   looseLep1PdgId=-1; looseLep2PdgId=-1;
   //electrons
   for (auto& ele : event.electrons) {
@@ -76,12 +77,16 @@ void PandaAnalyzer::SimpleLeptons()
     looseLeps.push_back(&mu);
     matchLeps.push_back(&mu);
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
-    vMETNoMu += vMu;
+    JESLOOP {
+      jesShifts[shift].vpfMETNoMu += vMu;
+    }
     gt->nLooseMuon++;
     if (gt->nLooseMuon>=2) 
       break;
   }
-  gt->pfmetnomu = vMETNoMu.Mod();
+  JESLOOP {
+    gt->pfmetnomu[shift] = jesShifts[shift].vpfMETNoMu.Mod();
+  }
 
   // now consider all leptons
   gt->nLooseLep = looseLeps.size();
@@ -98,7 +103,9 @@ void PandaAnalyzer::SimpleLeptons()
   Muon *mu1=0, *mu2=0; Electron *ele1=0, *ele2=0;
   if (gt->nLooseLep>0) {
     Lepton* lep1 = looseLeps[0];
-    gt->mT = MT(lep1->pt(),lep1->phi(),gt->pfmet,gt->pfmetphi);
+    JESLOOP {
+      gt->mT[shift] = MT(lep1->pt(),lep1->phi(),gt->pfmet[shift],gt->pfmetphi[shift]);
+    }
 
     mu1 = dynamic_cast<Muon*>(looseLeps[0]); 
     ele1 = dynamic_cast<Electron*>(looseLeps[0]); 
@@ -290,13 +297,17 @@ void PandaAnalyzer::ComplicatedLeptons()
     looseLeps.push_back(&mu);
     matchLeps.push_back(&mu);
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
-    vMETNoMu += vMu;
+    JESLOOP {
+      jesShifts[shift].vpfMETNoMu += vMu;
+    }
     // WARNING: The definition of "loose" here may not match your analysis definition of a loose muon for lepton multiplicity or jet cleaning considerations.
     // It is the user's responsibility to make sure he is cutting on the correct multiplicity. Enough information is provided to do this downstream.
     gt->nLooseMuon++;
     if (gt->nLooseMuon>=NLEP) break;
   }
-  gt->pfmetnomu = vMETNoMu.Mod();
+  JESLOOP {
+    gt->pfmetnomu[shift] = jesShifts[shift].vpfMETNoMu.Mod();
+  }
 
   // now consider all leptons
   gt->nLooseLep = looseLeps.size();
@@ -310,7 +321,9 @@ void PandaAnalyzer::ComplicatedLeptons()
   gt->nTightLep = gt->nTightElectron + gt->nTightMuon;
   if (gt->nLooseLep>0) {
     Lepton* lep1 = looseLeps[0];
-    gt->mT = MT(lep1->pt(),lep1->phi(),gt->pfmet,gt->pfmetphi);
+    JESLOOP {
+      gt->mT[shift] = MT(lep1->pt(),lep1->phi(),gt->pfmet[shift],gt->pfmetphi[shift]);
+    }
   }
   Muon *mu1=0, *mu2=0, *mu3=0, *mu4=0; Electron *ele1=0, *ele2=0, *ele3=0, *ele4=0;
   if (gt->nLooseLep>0) { mu1 = dynamic_cast<Muon*>(looseLeps[0]); ele1 = dynamic_cast<Electron*>(looseLeps[0]); };

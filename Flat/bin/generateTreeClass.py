@@ -150,7 +150,7 @@ class Branch(object):
             s += '[iS]'
         if self.array:
             s += '[iA]'
-        s += ' = %s'%(str(self.default))
+        s += ' = %s;'%(str(self.default))
         return s 
     def write_write(self):
         final_s = []
@@ -309,7 +309,7 @@ if __name__ == '__main__':
     src_out.append('  Reset();')
     src_out.append('}')
 
-    src_out.append('~{n}::{n}() {{'.format(n=class_name))
+    src_out.append('{n}::~{n}() {{'.format(n=class_name))
     src_out.extend(get_custom(custom, 'DESTRUCTOR'))
     src_out.append('}')
 

@@ -72,13 +72,13 @@ public:
 class FatjetSel: public LambdaSel {
 public:
   FatjetSel():
-    LambdaSel(Selection::sReco, "Fatjet", __LAMBDA(gt->fj1Pt > 250)) { }
+    LambdaSel(Selection::sReco, "Fatjet", __LAMBDA(gt->fjPt > 250)) { }
 };
 
 class Fatjet450Sel: public LambdaSel {
 public:
   Fatjet450Sel():
-    LambdaSel(Selection::sReco, "Fatjet450", __LAMBDA(gt->fj1Pt > 450)) { }
+    LambdaSel(Selection::sReco, "Fatjet450", __LAMBDA(gt->fjPt > 450)) { }
 };
 
 class GenFatJetSel: public LambdaSel {

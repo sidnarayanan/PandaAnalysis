@@ -111,18 +111,26 @@ void PandaAnalyzer::JetBtagSFs()
       vector<btagcand> btagcands;
       vector<double> sf_cent, sf_bUp, sf_bDown, sf_mUp, sf_mDown;
 
-      unsigned int nJ = bCandJets.size();
+      auto& bcands = jesShifts[0].bcand;
+      auto& isojets = jesShifts[0].iso;
+      unsigned int nJ = bcands.size();
+
       for (unsigned int iJ=0; iJ!=nJ; ++iJ) {
-        const panda::Jet *jet = bCandJets.at(iJ);
-        bool isIsoJet=false;
-        if (!analysis->fatjet || // if we do not consider fatjets, everything is an isojet 
-            std::find(isoJets.begin(), isoJets.end(), jet) != isoJets.end()) // otherwise, explicitly check isojet
+        const JetWrapper *jw = bcands[iJ];
+        const panda::Jet &jet = jw->get_base();
+
+        bool isIsoJet = false;
+        if (!analysis->fatjet || 
+            // if we do not consider fatjets, everything is an isojet 
+            // otherwise, explicitly check isojet
+            std::find(isojets.begin(), isojets.end(), jw) != isojets.end()) 
           isIsoJet = true;
-        int flavor = bCandJetGenFlavor[jet];
-        // float genpt = bCandJetGenPt[jet]; // not needed right now but it's here if it becomes needed
-        float pt = jet->pt();
+
+        int flavor = jw->flavor;
+        float pt = jw->pt;
+        float eta = jet.eta();
+
         float btagUncFactor = 1;
-        float eta = jet->eta();
         double eff(1),sf(1),sfUp(1),sfDown(1);
         unsigned int binpt = btagpt.bin(pt);
         unsigned int bineta = btageta.bin(fabs(eta));
@@ -133,12 +141,6 @@ void PandaAnalyzer::JetBtagSFs()
         else
           eff = lfeff[bineta][binpt];
         if (isIsoJet) {
-          if (analysis->fatjet) {
-            if (jet==isoJets.at(0))
-              gt->isojet1Flav = flavor;
-            else if (jet==isoJets.at(1))
-              gt->isojet2Flav = flavor;
-          }
 
           CalcBJetSFs(bJetL,flavor,eta,pt,eff,btagUncFactor,sf,sfUp,sfDown);
           btagcands.emplace_back(iJ,flavor,eff,sf,sfUp,sfDown);
@@ -162,46 +164,58 @@ void PandaAnalyzer::JetBtagSFs()
       EvalBTagSF(btagcands,sf_mUp,GeneralTree::bMUp,GeneralTree::bJet);
       EvalBTagSF(btagcands,sf_mDown,GeneralTree::bMDown,GeneralTree::bJet);
 
-    tr->TriggerEvent("ak4 gen-matching");
+    tr->TriggerEvent("ak4 CSV SFs");
 }
 
 // Calculate all CMVA reweightings relevant to an event
 // Responsible: D. Hsu
 void PandaAnalyzer::JetCMVAWeights() 
 {
-  for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
-    GeneralTree::csvShift shift = gt->csvShifts[iShift];
-    gt->sf_csvWeights[shift] = 1;
-  }
-  if (bCandJets.size() < 1) return;
+  auto& bcands = jesShifts[0].bcand;
+  if (bcands.size() < 1) 
+    return;
 
   //get vectors of jet properties
   std::vector<double> jetPts, jetEtas, jetCSVs, jetCMVAs;
   std::vector<int> jetFlavors;
-  unsigned int nJ = bCandJets.size();
+  unsigned int nJ = bcands.size();
   jetPts.reserve(nJ);
   jetEtas.reserve(nJ);
   jetCSVs.reserve(nJ);
   jetCMVAs.reserve(nJ);
   jetFlavors.reserve(nJ);
   for (unsigned int iJ=0; iJ!=nJ; ++iJ) {
-    const panda::Jet *jet = bCandJets.at(iJ);
-    jetPts.push_back(jet->pt());
-    jetEtas.push_back(jet->eta());
-    jetCSVs.push_back(jet->csv);
-    jetCMVAs.push_back(jet->cmva);
-    int flavor = bCandJetGenFlavor[jet];
-    jetFlavors.push_back(flavor);
+    auto* jw = bcands[iJ];
+    auto& jet = jw->get_base();
+    jetPts.push_back(jw->pt);
+    jetEtas.push_back(jet.eta());
+    jetCSVs.push_back(jet.csv);
+    jetCMVAs.push_back(jet.cmva);
+    jetFlavors.push_back(jw->flavor);
   }
   // throwaway addresses
   double csvWgtHF, csvWgtLF, csvWgtCF, cmvaWgtHF, cmvaWgtLF, cmvaWgtCF;
   for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
     GeneralTree::csvShift shift = gt->csvShifts[iShift];
     if (analysis->useCMVA) {
-      gt->sf_csvWeights[shift] = cmvaReweighter->getCSVWeight(jetPts,jetEtas,jetCMVAs,jetFlavors, shift, cmvaWgtHF, cmvaWgtLF, cmvaWgtCF);
+      gt->sf_csvWeights[shift] = cmvaReweighter->getCSVWeight(jetPts,
+                                                              jetEtas,
+                                                              jetCMVAs,
+                                                              jetFlavors, 
+                                                              shift, 
+                                                              cmvaWgtHF, 
+                                                              cmvaWgtLF, 
+                                                              cmvaWgtCF);
     }
     else 
-      gt->sf_csvWeights[shift] = csvReweighter->getCSVWeight(jetPts,jetEtas,jetCSVs,jetFlavors, shift, csvWgtHF, csvWgtLF, csvWgtCF);
+      gt->sf_csvWeights[shift] = csvReweighter->getCSVWeight(jetPts,
+                                                             jetEtas,
+                                                             jetCSVs,
+                                                             jetFlavors, 
+                                                             shift, 
+                                                             csvWgtHF, 
+                                                             csvWgtLF, 
+                                                             csvWgtCF);
   }
 
 }
