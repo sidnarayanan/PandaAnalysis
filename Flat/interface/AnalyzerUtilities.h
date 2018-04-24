@@ -151,7 +151,7 @@ enum ProcessType {
     kTop, // used for non-ttbar top
     kV, // used for non V+jets W or Z
     kH,
-    kSignal,
+    kSignal
 };
 
 class Analysis {

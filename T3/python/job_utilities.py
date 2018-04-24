@@ -305,18 +305,18 @@ def record_inputs(outfilename,processed):
 
 
 # classify a sample based on its name
-_classification = [
-            (root.kSignal , ['Vector_', 'Scalar_']),
-            (root.kTop    , ['ST_', 'ZprimeToTT']),
-            (root.ZEWK    , 'EWKZ2Jets'),
-            (root.WEWK    , 'EWKW'),
-            (root.kZ      , ['ZJets', 'DY']),
-            (root.kW      , 'WJets'),
-            (root.kA      , 'GJets'),
-            (root.kTT     , ['TTJets', 'TT_', 'TTTo']),
-            (root.kH      , 'HTo'),
-        ]
 def classify_sample(full_path, isData):
+    _classification = [
+                (root.kSignal , ['Vector_', 'Scalar_']),
+                (root.kTop    , ['ST_', 'ZprimeToTT']),
+                (root.ZEWK    , 'EWKZ2Jets'),
+                (root.WEWK    , 'EWKW'),
+                (root.kZ      , ['ZJets', 'DY']),
+                (root.kW      , 'WJets'),
+                (root.kA      , 'GJets'),
+                (root.kTT     , ['TTJets', 'TT_', 'TTTo']),
+                (root.kH      , 'HTo'),
+            ]
     if not isData:
         for e,pattern in _classification:
             if type(pattern) == str:
