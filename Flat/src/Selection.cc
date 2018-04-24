@@ -71,8 +71,8 @@ bool VHbbSel::do_accept() const
   float bestMet = -1, bestJet1 = -1, bestJet2 = -1;
   for (int shift = 0; shift != maxshift; ++ shift) {
     bestMet = std::max(bestMet, gt->pfmet[shift]);
-    bestJet1 = std::max(bestJet1, gt->jotPt[0][shift]);
-    bestJet2 = std::max(bestJet2, gt->jotPt[1][shift]);
+    bestJet1 = std::max(bestJet1, gt->jotPt[shift][0]);
+    bestJet2 = std::max(bestJet2, gt->jotPt[shift][1]);
   }
 
   // ZnnHbb

@@ -116,10 +116,9 @@ void PandaAnalyzer::JetBasics()
   int nJetDPhi = analysis->vbf ? 4 : 5;
   float minMinJetPt = min(minJetPt, minBJetPt);
 
-  int maxshift = analysis->varyJES ? jes2i(shiftjes::N) : 1;
   TLorentzVector vBarrelJets;
 
-  for (int shift = jes2i(shiftjes::kNominal); shift != maxshift; ++shift) {
+  JESLOOP {
     JESHandler& jets = jesShifts[shift];
     for (auto& jw : jets.all) {
       auto& jet = jw.get_base();
@@ -196,13 +195,13 @@ void PandaAnalyzer::JetBasics()
 
         int njet = jets.cleaned.size();
         if (njet < 2 || ((analysis->hbb || analysis->monoh) && njet < NJET)) {
-          gt->jotPt[njet][shift] = pt;
-          gt->jotEta[njet][shift] = jet.eta();
-          gt->jotPhi[njet][shift] = jet.phi();
-          gt->jotE[njet][shift] = jet.e() * jw.scale();
-          gt->jotCSV[njet][shift] = csv;
-          gt->jotCMVA[njet][shift] = cmva;
-          gt->jotVBFID[njet][shift] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
+          gt->jotPt[shift][njet] = pt;
+          gt->jotEta[shift][njet] = jet.eta();
+          gt->jotPhi[shift][njet] = jet.phi();
+          gt->jotE[shift][njet] = jet.e() * jw.scale();
+          gt->jotCSV[shift][njet] = csv;
+          gt->jotCMVA[shift][njet] = cmva;
+          gt->jotVBFID[shift][njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
 
           if (analysis->bjetRegression) {
             JetBRegressionInfo(jet, njet, shift);
@@ -226,6 +225,8 @@ void PandaAnalyzer::JetBasics()
     }
 
     gt->nJot[shift] = jets.cleaned.size();
+    gt->nJotMax = std::max(gt->nJotMax, gt->nJot[shift]);
+
     switch (gt->whichRecoil) {
       case 0: // MET
         gt->dphipuppiU[shift] = gt->dphipuppimet[shift];
@@ -265,25 +266,25 @@ void PandaAnalyzer::JetBasics()
 // Responsible: B. Maier, D. Hsu
 void PandaAnalyzer::JetBRegressionInfo(const panda::Jet& jet, int N, int shift)
 {
-  gt->jotEMF[N][shift] = jet.cef + jet.nef;
-  gt->jotHF[N][shift] = jet.chf + jet.nhf;
-  gt->jotLep1Pt[N][shift] = 0;
-  gt->jotTrk1Pt[N][shift] = 0;
-  gt->jotNLep[N][shift] = 0;
+  gt->jotEMF[shift][N] = jet.cef + jet.nef;
+  gt->jotHF[shift][N] = jet.chf + jet.nhf;
+  gt->jotLep1Pt[shift][N] = 0;
+  gt->jotTrk1Pt[shift][N] = 0;
+  gt->jotNLep[shift][N] = 0;
   for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
     if (!c_iter.isValid())
       continue;
     auto *pf = c_iter.get();
     if (pf->q() != 0) {
       float pt = pf->pt();
-      gt->jotTrk1Pt[N][shift] = max(pt, gt->jotTrk1Pt[N][shift]);
+      gt->jotTrk1Pt[shift][N] = max(pt, gt->jotTrk1Pt[shift][N]);
       int pdgid = abs(pf->pdgId());
       if (pdgid == 11 || pdgid == 13) {
-        gt->jotNLep[N][shift]++;
-        if (pt > gt->jotLep1Pt[N][shift]) {
-          gt->jotLep1Pt[N][shift] = pt;
-          gt->jotLep1PtRel[N][shift] = pf->p4().Perp(jet.p4().Vect());
-          gt->jotLep1DeltaR[N][shift] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
+        gt->jotNLep[shift][N]++;
+        if (pt > gt->jotLep1Pt[shift][N]) {
+          gt->jotLep1Pt[shift][N] = pt;
+          gt->jotLep1PtRel[shift][N] = pf->p4().Perp(jet.p4().Vect());
+          gt->jotLep1DeltaR[shift][N] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
         }
       }
     }
@@ -291,11 +292,11 @@ void PandaAnalyzer::JetBRegressionInfo(const panda::Jet& jet, int N, int shift)
 
   auto& vert = jet.secondaryVertex;
   if (vert.isValid()) {
-    gt->jotVtxPt[N][shift] = vert->pt();
-    gt->jotVtxMass[N][shift] = vert->m();
-    gt->jotVtx3DVal[N][shift] = vert->vtx3DVal;
-    gt->jotVtx3DErr[N][shift] = vert->vtx3DeVal;
-    gt->jotVtxNtrk[N][shift] = vert->ntrk;
+    gt->jotVtxPt[shift][N] = vert->pt();
+    gt->jotVtxMass[shift][N] = vert->m();
+    gt->jotVtx3DVal[shift][N] = vert->vtx3DVal;
+    gt->jotVtx3DErr[shift][N] = vert->vtx3DeVal;
+    gt->jotVtxNtrk[shift][N] = vert->ntrk;
   }
 
   tr->TriggerSubEvent("b-jet reg info");
@@ -375,8 +376,8 @@ void PandaAnalyzer::JetHbbReco(int shift)
 
   const JetWrapper* bjets[2] = {btagsorted[0], btagsorted[1]};
 
-  gt->hbbjtidx[0][shift] = order[bjets[0]];
-  gt->hbbjtidx[1][shift] = order[bjets[1]];
+  gt->hbbjtidx[shift][0] = order[bjets[0]];
+  gt->hbbjtidx[shift][1] = order[bjets[1]];
 
   TLorentzVector hbbd[2] = { bjets[0]->p4(), bjets[1]->p4() };
   TLorentzVector hbbsystem = hbbd[0] + hbbd[1];
@@ -391,30 +392,30 @@ void PandaAnalyzer::JetHbbReco(int shift)
   TLorentzVector hbbd_corr[2];
   if (analysis->bjetRegression && gt->hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
-      int idx = gt->hbbjtidx[i][shift];
+      int idx = gt->hbbjtidx[shift][i];
       // Shifted values for the jet energies to perform the b-jet regression
-      bjetreg_vars[0] = gt->jotPt[idx][shift];
-      bjetreg_vars[1] = gt->jotEta[idx][shift];
-      bjetreg_vars[2] = gt->jotTrk1Pt[idx][shift];
-      bjetreg_vars[3] = gt->jotLep1Pt[idx][shift];
-      bjetreg_vars[4] = gt->jotEMF[idx][shift];
-      bjetreg_vars[5] = gt->jotHF[idx][shift];
-      bjetreg_vars[6] = gt->jotLep1DeltaR[idx][shift];
-      bjetreg_vars[7] = gt->jotLep1PtRel[idx][shift];
-      bjetreg_vars[8] = gt->jotVtxPt[idx][shift];
-      bjetreg_vars[9] = gt->jotVtxMass[idx][shift];
-      bjetreg_vars[10]= gt->jotVtx3DVal[idx][shift];
-      bjetreg_vars[11]= gt->jotVtx3DErr[idx][shift];
-      bjetreg_vars[12]= gt->jotVtxNtrk[idx][shift];
+      bjetreg_vars[0] = gt->jotPt[shift][idx];
+      bjetreg_vars[1] = gt->jotEta[shift][idx];
+      bjetreg_vars[2] = gt->jotTrk1Pt[shift][idx];
+      bjetreg_vars[3] = gt->jotLep1Pt[shift][idx];
+      bjetreg_vars[4] = gt->jotEMF[shift][idx];
+      bjetreg_vars[5] = gt->jotHF[shift][idx];
+      bjetreg_vars[6] = gt->jotLep1DeltaR[shift][idx];
+      bjetreg_vars[7] = gt->jotLep1PtRel[shift][idx];
+      bjetreg_vars[8] = gt->jotVtxPt[shift][idx];
+      bjetreg_vars[9] = gt->jotVtxMass[shift][idx];
+      bjetreg_vars[10]= gt->jotVtx3DVal[shift][idx];
+      bjetreg_vars[11]= gt->jotVtx3DErr[shift][idx];
+      bjetreg_vars[12]= gt->jotVtxNtrk[shift][idx];
       bjetreg_vars[13]= hbbd[i].Et();
       bjetreg_vars[14]= hbbd[i].Mt();
 
-      gt->hbbjtRegFac[i][shift] = (bjetregReader->EvaluateRegression("BDT method"))[0];
+      gt->hbbjtRegFac[shift][i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
       hbbd_corr[i].SetPtEtaPhiM(
-            gt->hbbjtRegFac[i][shift] * gt->jotPt[idx][shift],
-            gt->jotEta[idx][shift],
-            gt->jotPhi[idx][shift],
-            gt->jotM[idx][shift]
+            gt->hbbjtRegFac[shift][i] * gt->jotPt[shift][idx],
+            gt->jotEta[shift][idx],
+            gt->jotPhi[shift][idx],
+            gt->jotM[shift][idx]
           );
     }
 

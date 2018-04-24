@@ -11,8 +11,8 @@ void PandaAnalyzer::MatchGenJets(T& genJets)
       const panda::Jet& reco = jets.cleaned[i]->get_base();
       for (auto &gen : genJets) {
         if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
-          gt->jotGenPt[i][shift] = gen.pt();
-          gt->jotFlav[i][shift] = gen.pdgid;
+          gt->jotGenPt[shift][i] = gen.pt();
+          gt->jotFlav[shift][i] = gen.pdgid;
           break;
         }
       }

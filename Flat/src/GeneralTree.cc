@@ -597,6 +597,7 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("nJot",&(nJot[0]),"nJot/I");
   Book("nJot_JESUp",&(nJot[1]),"nJot_JESUp/I");
   Book("nJot_JESDown",&(nJot[2]),"nJot_JESDown/I");
+  Book("nJotMax",&nJotMax,"nJotMax/I");
   Book("nIsoJet",&(nIsoJet[0]),"nIsoJet/I");
   Book("nIsoJet_JESUp",&(nIsoJet[1]),"nIsoJet_JESUp/I");
   Book("nIsoJet_JESDown",&(nIsoJet[2]),"nIsoJet_JESDown/I");
@@ -738,7 +739,6 @@ void GeneralTree::WriteTree(TTree *t) {
   if (is_monohiggs||is_hbb) {
     Book("pfmetsig",&pfmetsig,"pfmetsig/F");
     Book("puppimetsig",&puppimetsig,"puppimetsig/F");
-    Book("nJotMax",&nJotMax,"nJotMax/I");
     Book("jotM",jotM[0],"jotM["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotM_JESUp",jotM[1],"jotM_JESUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotM_JESDown",jotM[2],"jotM_JESDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
