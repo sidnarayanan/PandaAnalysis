@@ -231,13 +231,13 @@ public:
 
 template <typename T>
 class TCorr {
-public:
-  TCorr(TObject* o): base(o) { } 
-  virtual ~TCorr() {}
-  virtual double Eval(double x)=0; 
-protected:
-  T *h=nullptr;
-  const TObject *base=nullptr;
+  public:
+    TCorr(TObject* o): base(o) { } 
+    virtual ~TCorr() {}
+    virtual double Eval(double x)=0; 
+  protected:
+    T *h=nullptr;
+    const TObject *base=nullptr;
 };
 
 
@@ -258,65 +258,65 @@ public:
 
 template <typename T>
 class THCorr : public TCorr<T> {
-public:
-  // wrapper around TH[12] to do corrections
-  THCorr(TObject *h_):
-    TCorr<T>(h_)
-  {
-    this->h = new T();
-    h_->Copy(*(this->h));  // easiest way to cast e.g. TH1F->TH1D
-    dim = this->h->GetDimension();
-    TAxis *thurn = this->h->GetXaxis(); 
-    lo1 = thurn->GetBinCenter(1);
-    hi1 = thurn->GetBinCenter(thurn->GetNbins());
-    if (dim>1) {
-      TAxis *taxis = this->h->GetYaxis();
-      lo2 = taxis->GetBinCenter(1);
-      hi2 = taxis->GetBinCenter(taxis->GetNbins());
+  public:
+    // wrapper around TH[12] to do corrections
+    THCorr(TObject *h_):
+      TCorr<T>(h_)
+    {
+      this->h = new T();
+      h_->Copy(*(this->h));  // easiest way to cast e.g. TH1F->TH1D
+      dim = this->h->GetDimension();
+      TAxis *thurn = this->h->GetXaxis(); 
+      lo1 = thurn->GetBinCenter(1);
+      hi1 = thurn->GetBinCenter(thurn->GetNbins());
+      if (dim>1) {
+        TAxis *taxis = this->h->GetYaxis();
+        lo2 = taxis->GetBinCenter(1);
+        hi2 = taxis->GetBinCenter(taxis->GetNbins());
+      }
     }
-  }
-  ~THCorr() { delete this->h; } // this is a clone, not a pointer to the original hist
-  double Eval(double x) {
-    if (dim!=1) {
-      PError("THCorr1::Eval",
-        TString::Format("Trying to access a non-1D histogram (%s)!",this->h->GetName()));
-      return -1;
+    ~THCorr() { delete this->h; } // this is a clone, not a pointer to the original hist
+    double Eval(double x) {
+      if (dim!=1) {
+        PError("THCorr1::Eval",
+          TString::Format("Trying to access a non-1D histogram (%s)!",this->h->GetName()));
+        return -1;
+      }
+      return getVal(this->h,bound(x,lo1,hi1));
     }
-    return getVal(this->h,bound(x,lo1,hi1));
-  }
 
-  double Eval(double x, double y) {
-    if (dim!=2) {
-      PError("THCorr1::Error",
-       TString::Format("Trying to access a non-2D histogram (%s)!",this->h->GetName()));
-      return -1;
+    double Eval(double x, double y) {
+      if (dim!=2) {
+        PError("THCorr1::Error",
+         TString::Format("Trying to access a non-2D histogram (%s)!",this->h->GetName()));
+        return -1;
+      }
+      return getVal(this->h,bound(x,lo1,hi1),bound(y,lo2,hi2));
     }
-    return getVal(this->h,bound(x,lo1,hi1),bound(y,lo2,hi2));
-  }
 
-  double Error(double x) {
-    if (dim!=1) {
-      PError("THCorr1::Error",
-        TString::Format("Trying to access a non-1D histogram (%s)!",this->h->GetName()));
-      return -1;
+    double Error(double x) {
+      if (dim!=1) {
+        PError("THCorr1::Error",
+          TString::Format("Trying to access a non-1D histogram (%s)!",this->h->GetName()));
+        return -1;
+      }
+      return getError(this->h,bound(x,lo1,hi1));
     }
-    return getError(this->h,bound(x,lo1,hi1));
-  }
 
-  double Error(double x, double y) {
-    if (dim!=2) {
-      PError("THCorr1::Eval",
-       TString::Format("Trying to access a non-2D histogram (%s)!",this->h->GetName()));
-      return -1;
+    double Error(double x, double y) {
+      if (dim!=2) {
+        PError("THCorr1::Eval",
+         TString::Format("Trying to access a non-2D histogram (%s)!",this->h->GetName()));
+        return -1;
+      }
+      return getError(this->h,bound(x,lo1,hi1),bound(y,lo2,hi2));
     }
-    return getError(this->h,bound(x,lo1,hi1),bound(y,lo2,hi2));
-  }
 
-  T *GetHist() { return this->h; }
+    T *GetHist() { return this->h; }
 
-private:
-  int dim;
-  double lo1, lo2, hi1, hi2;
+  private:
+    int dim;
+    double lo1, lo2, hi1, hi2;
 };
 
 typedef THCorr<TH1D> THCorr1;

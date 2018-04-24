@@ -46,51 +46,15 @@
 #include "TMVA/Reader.h"
 
 // macros
-#define JESLOOP for (int shift = 0; shift != maxshift; ++shift)
+#define JESLOOP for (int shift = 0; shift != cfg.maxshiftJES; ++shift)
+
+inline int jes2i(shiftjes i) { return static_cast<int>(i); }
+inline shiftjes i2jes(int i) { return static_cast<shiftjes>(i); }
 
 /////////////////////////////////////////////////////////////////////////////
 // PandaAnalyzer definition
 class PandaAnalyzer {
 public :
-    
-    enum LepSelectionBit {
-     kLoose     =(1<<0),
-     kFake      =(1<<1),
-     kMedium    =(1<<2),
-     kTight     =(1<<3),
-     kDxyz      =(1<<4),
-     kEleMvaWP90=(1<<5),
-     kEleMvaWP80=(1<<6)
-    };
-
-    enum PhoSelectionBit {
-     pMedium    =(1<<0),
-     pTight     =(1<<1),
-     pHighPt    =(1<<2),
-     pCsafeVeto =(1<<3),
-     pPixelVeto =(1<<4),
-     pTrkVeto   =(1<<5)
-    };
-
-    struct JetWrapper {
-        float pt; 
-        int flavor{0};
-        float genpt{0};
-        bool iso{false};
-        const panda::Jet* base;
-
-        JetWrapper(float pt_, const panda::Jet& j): pt(pt_), base(&j) { }
-
-        const panda::Jet& get_base() const { return *base; }
-        float scale() const { return pt / base->pt(); }
-        TLorentzVector p4() const { 
-            TLorentzVector v; 
-            v.SetPtEtaPhiM(pt, base->eta(), base->phi(), base->m()); 
-            return v;
-        }
-    };
-
-    //////////////////////////////////////////////////////////////////////////////////////
 
     PandaAnalyzer(int debug_=0);
     ~PandaAnalyzer();
@@ -105,154 +69,8 @@ public :
 
     // public configuration
     void SetAnalysis(Analysis *a) { analysis = a; }
-    bool isData=false;              // to do gen matching, etc
-    int firstEvent=-1;
-    int lastEvent=-1;               // max events to process; -1=>all
 
 private:
-    enum CorrectionType { //!< enum listing relevant corrections applied to MC
-        cNPV=0,       //!< npv weight
-        cPU,          //!< true pu weight
-        cPUUp,        //!< true pu weight
-        cPUDown,      //!< true pu weight
-        cEleVeto,     //!< monojet SF, Veto ID for e
-        cEleLoose,    //!< monojet SF, Tight ID for e
-        cEleMedium,   //!< monojet SF, Tight ID for e
-        cEleTight,    //!< monojet SF, Tight ID for e
-        cEleMvaWP90,
-        cEleMvaWP80,
-        cEleReco,     //!< monojet SF, tracking for e
-        cWmHEwkCorr,     //!< W(l-V)H Ewk Corr weight  
-        cWmHEwkCorrUp,   //!< W(l-V)H Ewk Corr weight Up  
-        cWmHEwkCorrDown, //!< W(l-V)H Ewk Corr weight Down  
-        cWpHEwkCorr,     //!< W(l+v)H Ewk Corr weight  
-        cWpHEwkCorrUp,   //!< W(l+v)H Ewk Corr weight Up  
-        cWpHEwkCorrDown, //!< W(l+v)H Ewk Corr weight Down  
-        cZnnHEwkCorr,     //!< Z(vv)H Ewk Corr weight  
-        cZnnHEwkCorrUp,   //!< Z(vv)H Ewk Corr weight Up  
-        cZnnHEwkCorrDown, //!< Z(vv)H Ewk Corr weight Down  
-        cZllHEwkCorr,     //!< Z(ll)H Ewk Corr weight  
-        cZllHEwkCorrUp,   //!< Z(ll)H Ewk Corr weight Up  
-        cZllHEwkCorrDown, //!< Z(ll)H Ewk Corr weight Down  
-        cWZEwkCorr,
-        cqqZZQcdCorr,
-        cMuLooseID,   //!< MUO POG SF, Loose ID for mu 
-        cMuMediumID,  //!< MUO POG SF, Tight ID for mu 
-        cMuTightID,   //!< MUO POG SF, Tight ID for mu 
-        cMuLooseIso,  //!< MUO POG SF, Loose Iso for mu 
-        cMuMediumIso, //!< MUO POG SF, Loose Iso for mu 
-        cMuTightIso,  //!< MUO POG SF, Tight Iso for mu 
-        cMuReco,      //!< MUO POG SF, tracking for mu
-        cPho,         //!< EGM POG SF, contains ID for gamma
-        cTrigMET,     //!< MET trigger eff        
-        cTrigMETZmm,  //!< Zmumu MET trigger eff
-        cTrigEle,     //!< Ele trigger eff        
-        cTrigMu,      //!< Mu trigger eff        
-        cTrigPho,     //!< Pho trigger eff        
-        cZNLO,        //!< NLO weights for QCD Z,W,A,A+2j
-        cWNLO,
-        cANLO,
-        cANLO2j,
-        cZEWK,        //!< EWK weights for QCD Z,W,A,A+2j
-        cWEWK,
-        cAEWK,
-        cVBF_ZNLO,    //!< NLO weights for QCD Z,W in VBF phase space
-        cVBF_ZllNLO,  
-        cVBF_WNLO,
-        cVBFTight_ZNLO,    //!< NLO weights for QCD Z,W in tight VBF phase space
-        cVBFTight_ZllNLO,  
-        cVBFTight_WNLO,
-        cVBF_EWKZ,    //!< k-factors for EWK Z,W in VBF phase space
-        cVBF_EWKW,
-        cVBF_TrigMET, //!< MET trigger eff as a f'n of mjj/met 
-        cVBF_TrigMETZmm,
-        cBadECALJets,  //!< bad ECAL clusters to filter jets
-        cJetLoosePUID,
-        cN
-    };
-
-    enum BTagType {
-        bJetL=0,
-        bSubJetL,
-        bJetM,
-        bSubJetM,
-        bN
-    };
-
-    class btagcand {
-        public:
-            btagcand(unsigned int i, int f,double e,double cent,double up,double down) {
-                idx = i;
-                flav = f;
-                eff = e;
-                sf = cent;
-                sfup = up;
-                sfdown = down;
-            }
-            ~btagcand() { }
-            int flav, idx;
-            double eff, sf, sfup, sfdown;
-    };
-
-    struct GenJetInfo {
-    public:
-      float pt=-1, eta=-1, phi=-1, m=-1;
-      float msd=-1;
-      float tau3=-1, tau2=-1, tau1=-1;
-      float tau3sd=-1, tau2sd=-1, tau1sd=-1;
-      int nprongs=-1;
-      float partonpt=-1, partonm=-1;
-      std::vector<std::vector<float>> particles;
-      std::vector<std::vector<std::vector<float>>> ecfs; // uh
-      void reset() {
-        pt=-1; eta=-1; phi=-1; m=-1;
-        msd=-1;
-        tau3=-1; tau2=-1; tau1=-1;
-        tau3sd=-1; tau2sd=-1; tau1sd=-1;
-        nprongs=-1;
-        partonpt=-1; partonm=-1;
-        for (auto& v : particles) {
-          std::fill(v.begin(), v.end(), 0);
-        }
-        for (auto& v : ecfs) {
-          for (auto& vv : v) {
-            std::fill(vv.begin(), vv.end(), -1);
-          }
-        }
-      }
-
-    };
-
-    struct JetHistory {
-      int user_idx;
-      int child_idx;
-    };
-
-    struct JESHandler {
-        std::vector<JetWrapper> all; // all jets 
-        std::vector<const JetWrapper*> cleaned;
-        std::vector<const JetWrapper*> iso;     // cleaned that do not overlap with fj
-        std::vector<const JetWrapper*> central; // cleaned that are central
-        std::vector<const JetWrapper*> bcand;   // all that are b candidates
-
-        TLorentzVector vpfMET, vpuppiMET;
-        TVector2 vpfMETNoMu;
-        TLorentzVector vpfUW, vpfUZ, vpfUA;
-        TLorentzVector vpuppiUW, vpuppiUZ, vpuppiUA;
-
-        void clear() { 
-                all.clear(); cleaned.clear(); iso.clear();
-                central.clear(); bcand.clear(); 
-                vpfMETNoMu.SetMagPhi(0,0);
-                for (TLorentzVector* v_ : {&vpfMET, &vpuppiMET, 
-                                           &vpfUW, &vpfUZ, &vpfUA,
-                                           &vpuppiUW, &vpuppiUZ, &vpuppiUA})
-                    v_->SetPtEtaPhiM(0,0,0,0);
-            }
-        void reserve(int N) { all.reserve(N); cleaned.reserve(N); iso.reserve(N);
-                              central.reserve(N); bcand.reserve(N); }
-    };
-
     //////////////////////////////////////////////////////////////////////////////////////
 
     bool PassGoodLumis(int run, int lumi);
@@ -266,12 +84,12 @@ private:
     float getMSDCorr(float, float); 
     void jetPartonFlavor(const panda::Jet&, int& flavor, float& genpt);
     void jetClusteredFlavor(const panda::Jet&, int& flavor, float& genpt);
-    int jes2i(shiftjes i) { return static_cast<int>(i); }
-    shiftjes i2jes(int i) { return static_cast<shiftjes>(i); }
+    JetWrapper shiftJet(const panda::Jet&, shiftjes);
+    double weightEWKCorr(float pt, int type);
+    double weightZHEWKCorr(float baseCorr);
 
     // these are functions used for analysis-specific tasks inside Run.
     // ideally the return type is void (e.g. they are stateful functions),
-    // but that is not always possible 
     void CalcBJetSFs(BTagType bt, int flavor, double eta, double pt, 
                      double eff, double uncFactor, double &sf, double &sfUp, double &sfDown);
     void ComplicatedLeptons();
@@ -304,7 +122,7 @@ private:
     void JetVaryJES();
     void LeptonSFs();
     void LHEInfo();
-    bool PFChargedPhotonMatch(const panda::Photon& photon);
+    bool PFChargedPhotonMatch(const panda::Photon&);
     void PhotonSFs();
     void QCDUncs();
     void Recoil();
@@ -318,8 +136,6 @@ private:
     void TopPTReweight();
     void TriggerEffs();
     void VJetsReweight();
-    double WeightEWKCorr(float pt, int type);
-    double WeightZHEWKCorr(float baseCorr);
 
     // templated functions
     // T = gen particle type
@@ -333,8 +149,6 @@ private:
 
     int DEBUG = 0; //!< debug verbosity level
     Analysis *analysis = 0; //!< configure what to run
-    TimeReporter *tr = 0; //!< profile time usage
-    float FATJETMATCHDR2 = 2.25;
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -345,43 +159,9 @@ private:
         //!< private function to match a jet; returns NULL if not found
     std::map<int,std::vector<LumiRange>> goodLumis;
     std::vector<panda::Particle*> matchPhos, matchEles, matchLeps;
-    std::map<int, int> pdgToQ; 
-    
-    // fastjet reclustering
-    fastjet::JetDefinition *jetDef=0;
-    fastjet::JetDefinition *jetDefKt=0;
-    fastjet::contrib::SoftDrop *softDrop=0;
-    fastjet::contrib::Njettiness *tauN=0;
-    fastjet::AreaDefinition *areaDef=0;
-    fastjet::GhostedAreaSpec *activeArea=0;
-    fastjet::JetDefinition *jetDefGen=0;
-    fastjet::JetDefinition *softTrackJetDefinition=0;
 
     //////////////////////////////////////////////////////////////////////////////////////
 
-    // CMSSW-provided utilities
-    BTagCalibration *btagCalib=0;
-    BTagCalibration *sj_btagCalib=0;
-    std::vector<BTagCalibrationReader*> btagReaders = std::vector<BTagCalibrationReader*>(bN,0); 
-      //!< maps BTagType to a reader 
-
-    Binner btagpt = Binner({});
-    Binner btageta = Binner({});
-    std::vector<std::vector<double>> lfeff, ceff, beff;
-    TMVA::Reader *bjetregReader=0; 
-
-    std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
-    JERReader *ak8JERReader{0}; //!< fatjet jet energy resolution reader
-    std::map<TString,JetCorrectionUncertainty*> ak4UncReader; //!< calculate JES unc on the fly
-    std::map<TString,FactorizedJetCorrector*> ak4ScaleReader; //!< calculate JES on the fly
-    JERReader *ak4JERReader{0}; //!< fatjet jet energy resolution reader
-    JetCorrectionUncertainty *uncReader=0;           
-    JetCorrectionUncertainty *uncReaderAK4=0;        
-    FactorizedJetCorrector *scaleReaderAK4=0;        
-
-    EraHandler eras = EraHandler(2016); //!< determining data-taking era, to be used for era-dependent JEC
-    ParticleGridder *grid = 0;
-    pandaecf::Calculator *ecfcalc = 0;
     std::vector<Selection*> selections;
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -424,7 +204,6 @@ private:
     //////////////////////////////////////////////////////////////////////////////////////
 
     // stuff that gets passed between modules
-    //
     // NB: ensure that any global vectors/maps that are per-event
     // are reset properly in ResetBranches(), or you can really
     // mess up behavior
@@ -444,6 +223,7 @@ private:
     float minBJetPt=30;
     panda::JetCollection *ak4jets = 0;
     std::vector<JESHandler> jesShifts = std::vector<JESHandler>(jes2i(shiftjes::N)); 
+    int maxshift = 1; // max JES shift
 
     std::vector<panda::GenJet> genJetsNu;
     float genBosonPtMin, genBosonPtMax;
@@ -460,9 +240,8 @@ private:
     int NGENPROPS = 8; 
     float minGenFatJetPt = 450;
     
-    float minSoftTrackPt=0.3; // 300 MeV
+    float minSoftTrackPt = 0.3; // 300 MeV
 
-    int maxshift = 1; 
 };
 
 

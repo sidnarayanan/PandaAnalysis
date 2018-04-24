@@ -344,7 +344,7 @@ void PandaAnalyzer::SignalReweights()
 
 // PROVIDE DESCRIPTION
 // Responsible: D. Hsu, G. Gomez-Ceballos
-double PandaAnalyzer::WeightEWKCorr(float pt, int type) {
+double PandaAnalyzer::weightEWKCorr(float pt, int type) {
   double parWZ08[2] = { 2.85714,-0.05714};
   double parZZ08[2] = {-4.57143,-0.06857};
   double parWZ14[3] = {3.69800,-0.0726117,0.0000318044};
@@ -368,7 +368,7 @@ double PandaAnalyzer::WeightEWKCorr(float pt, int type) {
 
 // PROVIDE DESCRIPTION
 // Responsible: D. Hsu, G. Gomez-Ceballos
-double PandaAnalyzer::WeightZHEWKCorr(float baseCorr) {
+double PandaAnalyzer::weightZHEWKCorr(float baseCorr) {
   return (baseCorr+0.31+0.11)/((1-0.053)+0.31+0.11);
 }
 
@@ -708,7 +708,7 @@ void PandaAnalyzer::GenStudyEWK() {
   if (nZBosons >= 2) {
     double rho = 0.0; if (rhoP4.P() > 0) rho = rhoP4.Pt()/rhoP4.P();
     double ZZCorr[2] {1,1};
-    ZZCorr[0] = WeightEWKCorr(bosonPtMin,1);
+    ZZCorr[0] = weightEWKCorr(bosonPtMin,1);
     float GENmZZ = zBosons.M();
     ZZCorr[1] = GetCorr(cqqZZQcdCorr,2,GENmZZ); // final state = 2 is fixed
     gt->sf_zz = ZZCorr[0]*ZZCorr[1];
@@ -727,32 +727,32 @@ void PandaAnalyzer::GenStudyEWK() {
   }
   if (analysis->processType==kH) { 
     if (nZBosons == 1 && gt->genLep2PdgId!=0) {
-      gt->sf_vh     = WeightZHEWKCorr(GetCorr(cZllHEwkCorr,bound(zBosons.Pt(),0,499.999)));
-      gt->sf_vhUp   = WeightZHEWKCorr(GetCorr(cZllHEwkCorrUp,bound(zBosons.Pt(),0,499.999)));
-      gt->sf_vhDown = WeightZHEWKCorr(GetCorr(cZllHEwkCorrDown,bound(zBosons.Pt(),0,499.999)));
+      gt->sf_vh     = weightZHEWKCorr(GetCorr(cZllHEwkCorr,bound(zBosons.Pt(),0,499.999)));
+      gt->sf_vhUp   = weightZHEWKCorr(GetCorr(cZllHEwkCorrUp,bound(zBosons.Pt(),0,499.999)));
+      gt->sf_vhDown = weightZHEWKCorr(GetCorr(cZllHEwkCorrDown,bound(zBosons.Pt(),0,499.999)));
       gt->genBosonMass = zBosons.M();
       gt->genBosonEta  = zBosons.Eta();
       gt->genBosonPt   = zBosons.Pt();
       gt->trueGenBosonPt = higgsBosons.Pt();
     } else if (nZBosons==1 && nNeutrinos>0) {
-      gt->sf_vh     = WeightZHEWKCorr(GetCorr(cZnnHEwkCorr,bound(zBosons.Pt(),0,499.999)));
-      gt->sf_vhUp   = WeightZHEWKCorr(GetCorr(cZnnHEwkCorrUp,bound(zBosons.Pt(),0,499.999)));
-      gt->sf_vhDown = WeightZHEWKCorr(GetCorr(cZnnHEwkCorrDown,bound(zBosons.Pt(),0,499.999)));
+      gt->sf_vh     = weightZHEWKCorr(GetCorr(cZnnHEwkCorr,bound(zBosons.Pt(),0,499.999)));
+      gt->sf_vhUp   = weightZHEWKCorr(GetCorr(cZnnHEwkCorrUp,bound(zBosons.Pt(),0,499.999)));
+      gt->sf_vhDown = weightZHEWKCorr(GetCorr(cZnnHEwkCorrDown,bound(zBosons.Pt(),0,499.999)));
       gt->genBosonMass = zBosons.M();
       gt->genBosonEta  = zBosons.Eta();
       gt->genBosonPt   = zBosons.Pt();
       gt->trueGenBosonPt = higgsBosons.Pt();
     } else if (nWBosons==1 && gt->genLep1PdgId!=0 && nNeutrinos>0) {
       if (wBosonQ[0]>0) {
-        gt->sf_vh     = WeightZHEWKCorr(GetCorr(cWpHEwkCorr,bound(wBosons.Pt(),0,499.999)));
-        gt->sf_vhUp   = WeightZHEWKCorr(GetCorr(cWpHEwkCorrUp,bound(wBosons.Pt(),0,499.999)));
-        gt->sf_vhDown = WeightZHEWKCorr(GetCorr(cWpHEwkCorrDown,bound(wBosons.Pt(),0,499.999)));
+        gt->sf_vh     = weightZHEWKCorr(GetCorr(cWpHEwkCorr,bound(wBosons.Pt(),0,499.999)));
+        gt->sf_vhUp   = weightZHEWKCorr(GetCorr(cWpHEwkCorrUp,bound(wBosons.Pt(),0,499.999)));
+        gt->sf_vhDown = weightZHEWKCorr(GetCorr(cWpHEwkCorrDown,bound(wBosons.Pt(),0,499.999)));
         gt->genWPlusPt = wBosons.Pt();
         gt->genWPlusEta = wBosons.Eta();
       } else {
-        gt->sf_vh     = WeightZHEWKCorr(GetCorr(cWmHEwkCorr,bound(wBosons.Pt(),0,499.999)));
-        gt->sf_vhUp   = WeightZHEWKCorr(GetCorr(cWmHEwkCorrUp,bound(wBosons.Pt(),0,499.999)));
-        gt->sf_vhDown = WeightZHEWKCorr(GetCorr(cWmHEwkCorrDown,bound(wBosons.Pt(),0,499.999)));
+        gt->sf_vh     = weightZHEWKCorr(GetCorr(cWmHEwkCorr,bound(wBosons.Pt(),0,499.999)));
+        gt->sf_vhUp   = weightZHEWKCorr(GetCorr(cWmHEwkCorrUp,bound(wBosons.Pt(),0,499.999)));
+        gt->sf_vhDown = weightZHEWKCorr(GetCorr(cWmHEwkCorrDown,bound(wBosons.Pt(),0,499.999)));
         gt->genWMinusPt = wBosons.Pt();
         gt->genWMinusEta = wBosons.Eta();
       }

@@ -25,7 +25,7 @@ bool csvMed(float csv)
   return csv > 0.8484;
 }
 
-PandaAnalyzer::JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift) 
+PandaAnalyzer::JetWrapper PandaAnalyzer::shiftJet(const Jet& jet, shiftjes shift) 
 {
   float pt;
   switch (shift) {
@@ -42,7 +42,10 @@ PandaAnalyzer::JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift)
       PError("shiftJet", "Unknown JES type!");
       exit(1);
   }
-  return PandaAnalyzer::JetWrapper(pt, jet);
+  if (analysis->hbb) {
+    pt *= jet.ptSmear / jet.pt();
+  }
+  return JetWrapper(pt, jet);
 }
 
 // set up JES readers

@@ -7,7 +7,7 @@
 #ifndef PANDA_SELECTION
 #define PANDA_SELECTION
 
-#define __LAMBDA(x) [](const GeneralTree* gt) { return x; }
+#define __ACCPFUNC(x) [](const GeneralTree* gt) { return x; }
 
 class Selection {
 public:
@@ -59,38 +59,38 @@ class TriggerSel: public LambdaSel {
 public:
   TriggerSel():
     LambdaSel(Selection::sReco, "Trigger", 
-              __LAMBDA((gt->isData==0) || (gt->trigger!=0)), 
+              __ACCPFUNC((gt->isData==0) || (gt->trigger!=0)), 
               true) { }
 };
 
 class GenBosonPtSel: public LambdaSel {
 public:
   GenBosonPtSel():
-    LambdaSel(Selection::sGen, "GenBosonPt", __LAMBDA(gt->trueGenBosonPt > 100)) { }
+    LambdaSel(Selection::sGen, "GenBosonPt", __ACCPFUNC(gt->trueGenBosonPt > 100)) { }
 };
 
 class FatjetSel: public LambdaSel {
 public:
   FatjetSel():
-    LambdaSel(Selection::sReco, "Fatjet", __LAMBDA(gt->fjPt > 250)) { }
+    LambdaSel(Selection::sReco, "Fatjet", __ACCPFUNC(gt->fjPt > 250)) { }
 };
 
 class Fatjet450Sel: public LambdaSel {
 public:
   Fatjet450Sel():
-    LambdaSel(Selection::sReco, "Fatjet450", __LAMBDA(gt->fjPt > 450)) { }
+    LambdaSel(Selection::sReco, "Fatjet450", __ACCPFUNC(gt->fjPt > 450)) { }
 };
 
 class GenFatJetSel: public LambdaSel {
 public:
   GenFatJetSel():
-    LambdaSel(Selection::sGen, "GenFatJet", __LAMBDA(gt->genFatJetPt > 450)) { }
+    LambdaSel(Selection::sGen, "GenFatJet", __ACCPFUNC(gt->genFatJetPt > 450)) { }
 };
 
 class GenFatJet200Sel: public LambdaSel {
 public:
   GenFatJet200Sel():
-    LambdaSel(Selection::sGen, "GenFatJet200", __LAMBDA(gt->genFatJetPt > 200)) { }
+    LambdaSel(Selection::sGen, "GenFatJet200", __ACCPFUNC(gt->genFatJetPt > 200)) { }
 };
 
 

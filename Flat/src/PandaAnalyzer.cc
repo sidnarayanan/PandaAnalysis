@@ -60,52 +60,6 @@ void PandaAnalyzer::Terminate()
   if (analysis->deepGen)
     IncrementGenAuxFile(true);
 
-  for (unsigned i = 0; i != cN; ++i) {
-    delete h1Corrs[i];
-    h1Corrs[i] = 0;
-  }
-  for (unsigned i = 0; i != cN; ++i) {
-    delete h2Corrs[i];
-    h2Corrs[i] = 0;
-  }
-  for (auto *f : fCorrs)
-    if (f)
-      f->Close();
-
-  delete btagCalib;
-  delete sj_btagCalib;
-  for (auto *reader : btagReaders)
-    delete reader;
-
-  for (auto& iter : ak8UncReader)
-    delete iter.second;
-
-  delete ak8JERReader;
-
-  for (auto& iter : ak4UncReader)
-    delete iter.second;
-
-  for (auto& iter : ak4ScaleReader) {
-    delete iter.second;
-  }
-
-  delete ak4JERReader;
-
-  delete activeArea;
-  delete areaDef;
-  delete jetDef;
-  delete jetDefKt;
-  delete jetDefGen;
-  delete softDrop;
-
-  delete hDTotalMCWeight;
-  
-  delete bjetregReader;
-  delete rochesterCorrection;
-
-  delete ecfcalc;
-  delete grid;
-
   if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
 }
 
