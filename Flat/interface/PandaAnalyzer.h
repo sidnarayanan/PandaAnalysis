@@ -21,26 +21,6 @@
 #include "GeneralTree.h"
 #include "Selection.h"
 
-// fastjet
-#include "fastjet/contrib/SoftDrop.hh"
-#include "fastjet/contrib/Njettiness.hh"
-#include "fastjet/contrib/MeasureDefinition.hh"
-
-// btag
-#include "CondFormats/BTauObjects/interface/BTagEntry.h"
-#include "CondFormats/BTauObjects/interface/BTagCalibration.h"
-#include "CondTools/BTau/interface/BTagCalibrationReader.h"
-//#include "BTagCalibrationStandalone.h"
-
-// JEC
-#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
-#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
-#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-
-// Utils
-#include "PandaAnalysis/Utilities/interface/RoccoR.h"
-#include "PandaAnalysis/Utilities/interface/CSVHelper.h"
-#include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 
 // TMVA
 #include "TMVA/Reader.h"
@@ -149,6 +129,7 @@ private:
 
     int DEBUG = 0; //!< debug verbosity level
     Analysis *analysis = 0; //!< configure what to run
+    Registry registry;
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -167,16 +148,6 @@ private:
     //////////////////////////////////////////////////////////////////////////////////////
 
     // files and histograms containing weights
-    std::vector<TFile*>   fCorrs  = std::vector<TFile*>  (cN,0); //!< files containing corrections
-    std::vector<THCorr1*> h1Corrs = std::vector<THCorr1*>(cN,0); //!< histograms for binned corrections
-    std::vector<THCorr2*> h2Corrs = std::vector<THCorr2*>(cN,0); //!< histograms for binned corrections
-    std::vector<TF1Corr*> f1Corrs = std::vector<TF1Corr*>(cN,0); //!< TF1s for continuous corrections
-    TFile *MSDcorr=0;
-    TF1* puppisd_corrGEN=0;
-    TF1* puppisd_corrRECO_cen=0;
-    TF1* puppisd_corrRECO_for=0;
-    RoccoR *rochesterCorrection=0;
-    CSVHelper *csvReweighter=0, *cmvaReweighter=0;
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -184,24 +155,20 @@ private:
     TString fOutPath;
     TFile *fOut=0;     // output file is owned by PandaAnalyzer
     TTree *tOut=0;
-    GeneralTree *gt=0; // essentially a wrapper around tOut
+    GeneralTree gt; // essentially a wrapper around tOut
+
     TString auxFilePath="";
     unsigned auxCounter=0;
     TFile *fAux=0; // auxillary file
     TTree *tAux=0;
     TH1D *hDTotalMCWeight=0;
+
     TTree *tIn=0;    // input tree to read
-    unsigned int preselBits=0;
+
     panda::EventAnalysis event;
 
     //////////////////////////////////////////////////////////////////////////////////////
 
-    // configuration read from output tree
-    std::vector<int> ibetas;
-    std::vector<int> Ns; 
-    std::vector<int> orders;
-
-    //////////////////////////////////////////////////////////////////////////////////////
 
     // stuff that gets passed between modules
     // NB: ensure that any global vectors/maps that are per-event

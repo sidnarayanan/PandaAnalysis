@@ -1,6 +1,26 @@
 #include "TString.h"
 #include "vector"
 #include "map"
+// fastjet
+#include "fastjet/contrib/SoftDrop.hh"
+#include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/MeasureDefinition.hh"
+
+// btag
+#include "CondFormats/BTauObjects/interface/BTagEntry.h"
+#include "CondFormats/BTauObjects/interface/BTagCalibration.h"
+#include "CondTools/BTau/interface/BTagCalibrationReader.h"
+//#include "BTagCalibrationStandalone.h"
+
+// JEC
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+
+// Utils
+#include "PandaAnalysis/Utilities/interface/RoccoR.h"
+#include "PandaAnalysis/Utilities/interface/CSVHelper.h"
+#include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 
 namespace pa {
   enum CorrectionType { //!< enum listing relevant corrections applied to MC
@@ -90,6 +110,21 @@ namespace pa {
       bSubJetM,
       bN
   };
+
+  enum TriggerBits {
+      kMETTrig       = 0,
+      kSingleEleTrig,
+      kSinglePhoTrig,
+      kSingleMuTrig,
+      kDoubleMuTrig,
+      kDoubleEleTrig,
+      kEMuTrig,
+      kJetHTTrig,
+      kMuFakeTrig,
+      kEleFakeTrig,
+      kNTrig
+  };
+
 
   class btagcand {
       public:
@@ -184,10 +219,12 @@ namespace pa {
 
   class Config {
     public:
-      Config(Analysis* a_, int DEBUG_ = 0) :
+      Config(const Analysis& a_, int DEBUG_ = 0) : 
         DEBUG(DEBUG_),
-        analysis(*a_),
-        tr("PandaAnalyzer::Run",DEBUG+1) { }
+        analysis(a_),
+        tr("PandaAnalyzer::Run", DEBUG+1)
+        { }
+
 
       const int DEBUG;
       const Analysis& analysis;
@@ -202,11 +239,15 @@ namespace pa {
       float minSoftTrackPt{0.3};
 
       bool isData{false};              // to do gen matching, etc
-      int firstEvent{-1};
-      int lastEvent{-1};               // max events to process; -1=>all
 
       int NPFPROPS{9}, NSVPROPS{13}, NMAXPF{100}, NMAXSV{10}, NGENPROPS{8};
       float FATJETMATCHDR2{2.25};
+
+
+      // configuration read from output tree
+      std::vector<int> ibetas;
+      std::vector<int> Ns; 
+      std::vector<int> orders;
   };
 
   class Utils {
@@ -214,48 +255,56 @@ namespace pa {
       Utils() { }
       ~Utils(); 
 
-      double GetCorr(CorrectionType ct, double x, double y=0);
-      double GetError(CorrectionType ct, double x, double y=0);
-      void OpenCorrection(CorrectionType, TString, TString, int);
+      double getCorr(CorrectionType ct, double x, double y=0);
+      double getError(CorrectionType ct, double x, double y=0);
+      void openCorr(CorrectionType, TString, TString, int);
 
       std::map<int, int> pdgToQ; 
       
       // fastjet reclustering
-      fastjet::JetDefinition *jetDef{nullptr};
-      fastjet::JetDefinition *jetDefKt{nullptr};
-      fastjet::contrib::SoftDrop *softDrop{nullptr};
-      fastjet::contrib::Njettiness *tauN{nullptr};
-      fastjet::AreaDefinition *areaDef{nullptr};
-      fastjet::GhostedAreaSpec *activeArea{nullptr};
-      fastjet::JetDefinition *jetDefGen{nullptr};
-      fastjet::JetDefinition *softTrackJetDefinition{nullptr};
+      fastjet::JetDefinition       *jetDef                {nullptr};
+      fastjet::JetDefinition       *jetDefKt              {nullptr};
+      fastjet::contrib::SoftDrop   *softDrop              {nullptr};
+      fastjet::contrib::Njettiness *tauN                  {nullptr};
+      fastjet::AreaDefinition      *areaDef               {nullptr};
+      fastjet::GhostedAreaSpec     *activeArea            {nullptr};
+      fastjet::JetDefinition       *jetDefGen             {nullptr};
+      fastjet::JetDefinition       *softTrackJetDefinition{nullptr};
 
       // CMSSW-provided utilities
-      BTagCalibration *btagCalib{nullptr};
+      BTagCalibration *btagCalib   {nullptr};
       BTagCalibration *sj_btagCalib{nullptr};
       std::vector<BTagCalibrationReader*> btagReaders = std::vector<BTagCalibrationReader*>(bN,0); 
         //!< maps BTagType to a reader 
 
-      Binner btagpt = Binner({});
+      Binner btagpt  = Binner({});
       Binner btageta = Binner({});
       std::vector<std::vector<double>> lfeff, ceff, beff;
       TMVA::Reader *bjetregReader{nullptr}; 
 
       std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
       JERReader *ak8JERReader{nullptr}; //!< fatjet jet energy resolution reader
-      std::map<TString,JetCorrectionUncertainty*> ak4UncReader; //!< calculate JES unc on the fly
       std::map<TString,FactorizedJetCorrector*> ak4ScaleReader; //!< calculate JES on the fly
+      std::map<TString,JetCorrectionUncertainty*> ak4UncReader; //!< calculate JES unc on the fly
       JERReader *ak4JERReader{nullptr}; //!< fatjet jet energy resolution reader
-      JetCorrectionUncertainty *uncReader{nullptr};           
-      JetCorrectionUncertainty *uncReaderAK4{nullptr};        
-      FactorizedJetCorrector *scaleReaderAK4{nullptr};        
+
+      JetCorrectionUncertainty *uncReader     {nullptr};           
+      JetCorrectionUncertainty *uncReaderAK4  {nullptr};        
+      FactorizedJetCorrector   *scaleReaderAK4{nullptr};        
 
       EraHandler eras = EraHandler(2016); //!< determining data-taking era, to be used for era-dependent JEC
-      ParticleGridder *grid{nullptr};
-      pandaecf::Calculator *ecfcalc{nullptr};
+      ParticleGridder   *grid   {nullptr};
+      pa::ECFCalculator *ecfcalc{nullptr};
 
       std::vector<TFile*>   fCorrs = std::vector<TFile*>  (cN,nullptr);
       std::vector<TCorr*>   tCorrs = std::vector<TCorr*>  (cN,nullptr);
+
+      TFile     *fMSDcorr             {nullptr};
+      TF1       *puppisd_corrGEN      {nullptr};
+      TF1       *puppisd_corrRECO_cen {nullptr};
+      TF1       *puppisd_corrRECO_for {nullptr};
+      RoccoR    *rochesterCorrection  {nullptr};
+      CSVHelper *csvReweighter        {nullptr},   *cmvaReweighter  {nullptr};
 
   };
 

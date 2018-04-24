@@ -1,7 +1,7 @@
 #include "../interface/Config.h"
 
 using namespace pa;
-
+using namespace std;
 
 Utils::~Utils() 
 {
@@ -45,9 +45,15 @@ Utils::~Utils()
 
   delete ecfcalc;
   delete grid;
+
+  delete rochesterCorrection;
+  delete csvReweighter;
+  delete cmvaReweighter;
+  if (fMSDCorr)
+    fMSDCorr->Close();
 }
 
-double Utils::GetCorr(CorrectionType ct, double x, double y)
+double Utils::getCorr(CorrectionType ct, double x, double y)
 {
   TCorr *base = tCorr[ct];
   
@@ -67,7 +73,7 @@ double Utils::GetCorr(CorrectionType ct, double x, double y)
   }
 }
 
-double Utils::GetError(CorrectionType ct, double x, double y)
+double Utils::getError(CorrectionType ct, double x, double y)
 {
   TCorr *base = tCorr[ct];
   
@@ -82,7 +88,7 @@ double Utils::GetError(CorrectionType ct, double x, double y)
   }
 }
 
-void Utils::OpenCorrection(CorrectionType ct, TString fpath, TString hname, int dim)
+void Utils::openCorr(CorrectionType ct, TString fpath, TString hname, int dim)
 {
   fCorrs[ct] = TFile::Open(fpath);
   if (dim==1) 
@@ -92,3 +98,4 @@ void Utils::OpenCorrection(CorrectionType ct, TString fpath, TString hname, int 
   else 
     f1Corrs[ct] = new TF1Corr((TF1*)fCorrs[ct]->Get(hname)); 
 }
+

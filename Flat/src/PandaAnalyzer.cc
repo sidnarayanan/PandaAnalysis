@@ -14,11 +14,6 @@ PandaAnalyzer::PandaAnalyzer(int debug_/*=0*/)
   DEBUG = debug_;
 
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
-  gt = new GeneralTree();
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Built GeneralTree");
-  ibetas = gt->get_ibetas();
-  Ns = gt->get_Ns();
-  orders = gt->get_orders();
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Called constructor");
 }
 

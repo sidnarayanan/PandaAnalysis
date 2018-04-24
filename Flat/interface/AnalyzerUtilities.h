@@ -22,20 +22,6 @@
 #include <stdexcept>
 
 ////////////////////////////////////////////////////////////////////////////////////
-enum TriggerBits {
-    kMETTrig       = 0,
-    kSingleEleTrig,
-    kSinglePhoTrig,
-    kSingleMuTrig,
-    kDoubleMuTrig,
-    kDoubleEleTrig,
-    kEMuTrig,
-    kJetHTTrig,
-    kMuFakeTrig,
-    kEleFakeTrig,
-    kNTrig
-};
-
 ////////////////////////////////////////////////////////////////////////////////////
 
 // semi-temporary measure to deal with v009 gen duplication issue
