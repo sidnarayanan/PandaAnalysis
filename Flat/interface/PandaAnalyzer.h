@@ -130,6 +130,7 @@ private:
     int DEBUG = 0; //!< debug verbosity level
     Analysis *analysis = 0; //!< configure what to run
     Registry registry;
+    std::vector<BaseModule*> mods; 
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -175,7 +176,6 @@ private:
     // are reset properly in ResetBranches(), or you can really
     // mess up behavior
     std::vector<TString> wIDs;
-    std::vector<TriggerHandler> triggerHandlers = std::vector<TriggerHandler>(kNTrig);
 
     std::vector<panda::Lepton*> looseLeps, tightLeps, inclusiveLeps;
     std::vector<panda::Photon*> loosePhos;

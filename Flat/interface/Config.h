@@ -281,23 +281,21 @@ namespace pa {
       Binner btageta = Binner({});
       std::vector<std::vector<double>> lfeff, ceff, beff;
       TMVA::Reader *bjetregReader{nullptr}; 
+      float *bjetreg_vars{nullptr};
 
       std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
       JERReader *ak8JERReader{nullptr}; //!< fatjet jet energy resolution reader
-      std::map<TString,FactorizedJetCorrector*> ak4ScaleReader; //!< calculate JES on the fly
-      std::map<TString,JetCorrectionUncertainty*> ak4UncReader; //!< calculate JES unc on the fly
-      JERReader *ak4JERReader{nullptr}; //!< fatjet jet energy resolution reader
 
       JetCorrectionUncertainty *uncReader     {nullptr};           
-      JetCorrectionUncertainty *uncReaderAK4  {nullptr};        
-      FactorizedJetCorrector   *scaleReaderAK4{nullptr};        
 
       EraHandler eras = EraHandler(2016); //!< determining data-taking era, to be used for era-dependent JEC
       ParticleGridder   *grid   {nullptr};
       pa::ECFCalculator *ecfcalc{nullptr};
 
-      std::vector<TFile*>   fCorrs = std::vector<TFile*>  (cN,nullptr);
-      std::vector<TCorr*>   tCorrs = std::vector<TCorr*>  (cN,nullptr);
+      auto   fCorrs = std::vector<TFile*>    (cN,nullptr);
+      auto  f1Corrs = std::vector<TF1Corr*>  (cN,nullptr);
+      auto  h1Corrs = std::vector<TH1Corr*>  (cN,nullptr);
+      auto  h2Corrs = std::vector<TH2Corr*>  (cN,nullptr);
 
       TFile     *fMSDcorr             {nullptr};
       TF1       *puppisd_corrGEN      {nullptr};

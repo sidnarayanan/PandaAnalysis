@@ -60,15 +60,11 @@ void PandaAnalyzer::SetupJES()
           continue;
         if (iter.first.Contains(thisEra)) {
           uncReader = iter.second;
-          uncReaderAK4 = ak4UncReader[iter.first];
-          scaleReaderAK4 = ak4ScaleReader[iter.first];
           break;
         }
       }
     } else {
       uncReader = ak8UncReader["MC"];
-      uncReaderAK4 = ak4UncReader["MC"];
-      scaleReaderAK4 = ak4ScaleReader["MC"];
     }
   }
 }

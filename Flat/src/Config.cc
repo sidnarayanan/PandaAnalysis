@@ -5,13 +5,10 @@ using namespace std;
 
 Utils::~Utils() 
 {
-  for (auto* f : fCorrs)
-    if (f)
-      f->Close();
-
-  for (auto* t : tCorrs)
-    if (t)
-      delete t; 
+  for (auto* t : f1Corrs) { if (t != nullptr) delete t; }
+  for (auto* t : h1Corrs) { if (t != nullptr) delete t; }
+  for (auto* t : h2Corrs) { if (t != nullptr) delete t; }
+  for (auto* f : fCorrs)  { if (f != nullptr) f->Close(); }
 
   delete btagCalib;
   delete sj_btagCalib;
@@ -41,6 +38,7 @@ Utils::~Utils()
   delete hDTotalMCWeight;
   
   delete bjetregReader;
+  delete bjetreg_vars;
   delete rochesterCorrection;
 
   delete ecfcalc;
@@ -55,36 +53,32 @@ Utils::~Utils()
 
 double Utils::getCorr(CorrectionType ct, double x, double y)
 {
-  TCorr *base = tCorr[ct];
-  
-  auto* fc = dynamic_cast<TFCorr*>(base);
-  if (fc != nullptr) {
-    return fc->Eval(x);
+  if (f1Corrs[ct] != nullptr) {
+    return f1Corrs[ct]->Eval(x);
   }
 
-  auto* h1c = dynamic_cast<THCorr1*>(base);
-  if (h1c != nullptr) {
-    return h1c->Eval(x);
+  if (h1Corrs[ct] != nullptr) {
+    return h1Corrs[ct]->Eval(x);
   }
 
-  auto* h2c = dynamic_cast<THCorr2*>(base);
-  if (h2c != nullptr) {
-    return h2c->Eval(x, y);
+  if (h2Corrs[ct] != nullptr) {
+    return h2Corrs[ct]->Eval(x,y);
   }
+
 }
 
 double Utils::getError(CorrectionType ct, double x, double y)
 {
-  TCorr *base = tCorr[ct];
-  
-  auto* h1c = dynamic_cast<THCorr1*>(base);
-  if (h1c != nullptr) {
-    return h1c->Error(x);
+  if (f1Corrs[ct] != nullptr) {
+    return f1Corrs[ct]->Error(x);
   }
 
-  auto* h2c = dynamic_cast<THCorr2*>(base);
-  if (h2c != nullptr) {
-    return h2c->Error(x, y);
+  if (h1Corrs[ct] != nullptr) {
+    return h1Corrs[ct]->Error(x);
+  }
+
+  if (h2Corrs[ct] != nullptr) {
+    return h2Corrs[ct]->Error(x,y);
   }
 }
 

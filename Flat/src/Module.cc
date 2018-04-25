@@ -6,33 +6,31 @@ using namespace std;
 
 ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
   analysis(a_),
-  cfg(analysis, DEBUG_)
+  cfg(analysis, DEBUG_),
+  bl({"runNumber", "lumiNumber", "eventNumber","weight"})
 {
 
   cfg.isData = analysis.isData;
 
-  // remaining configuraiton of objects
+  // configuration of objects
   if ((analysis.fatjet || analysis.ak8) || 
       (analysis.recluster || analysis.deep || analysis.deepGen)) {
     double radius = 1.5;
     double sdZcut = 0.15;
     double sdBeta = 1.;
+    auto algo = fastjet::cambridge_algorithm;
     if (analysis.ak8) {
       radius = 0.8;
       sdZcut = 0.1;
       sdBeta = 0.;
-      utils.jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm,radius);
-      utils.jetDefKt = new fastjet::JetDefinition(fastjet::kt_algorithm,radius);
-    } else {
-      radius = 1.5;
-      sdZcut = 0.15;
-      sdBeta = 1.;
-      utils.jetDef = new fastjet::JetDefinition(fastjet::cambridge_algorithm,radius);
-      utils.jetDefKt = new fastjet::JetDefinition(fastjet::kt_algorithm,radius);
-    }
+      algo = fastjet::antikt_algorithm;
+    } 
+    utils.jetDef = new fastjet::JetDefinition(algo,radius);
+    utils.jetDefKt = new fastjet::JetDefinition(fastjet::kt_algorithm,radius);
     utils.softDrop = new fastjet::contrib::SoftDrop(sdBeta,sdZcut,radius);
     utils.tauN = new fastjet::contrib::Njettiness(fastjet::contrib::OnePass_KT_Axes(), 
-                                                   fastjet::contrib::NormalizedMeasure(1., radius));
+                                                  fastjet::contrib::NormalizedMeasure(1., radius));
+    FATJETMATCHDR2 = radius * radius;
 
     if (analysis.deepGen) {
       utils.ecfcalc = new ECFCalculator();
@@ -43,7 +41,8 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
     }
   }
 
-  if (analysis.recluster || analysis.reclusterGen || analysis.deep || analysis.deepGen || analysis.hbb) {
+  if (analysis.recluster || analysis.reclusterGen || 
+      analysis.deep || analysis.deepGen || analysis.hbb) {
     int activeAreaRepeats = 1;
     double ghostArea = 0.01;
     double ghostEtaMax = 7.0;
@@ -62,10 +61,8 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
     cfg.NGENPROPS = 5;
   }
 
-  if (analysis.reclusterGen || analysis.deepExC) {
-    double radius = 0.4;
-    utils.jetDefGen = new fastjet::JetDefinition(fastjet::antikt_algorithm,radius);
-  }
+  if (analysis.reclusterGen || analysis.deepExC) 
+    utils.jetDefGen = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
   if (analysis.hbb)
     utils.softTrackJetDefinition = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
 
@@ -79,13 +76,90 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
 
   cfg.maxshiftJES = analysis.varyJES ? jes2i(shiftjes::N) : 1; 
 
-  cfg.ibetas = gt->get_ibetas();
-  cfg.Ns = gt->get_Ns();
-  cfg.orders = gt->get_orders();
+  cfg.ibetas = gt.get_ibetas();
+  cfg.Ns = gt.get_Ns();
+  cfg.orders = gt.get_orders();
+
+  set_inputBranches();
+  set_outputBranches(gt);
 }
 
+void ConfigMod::set_inputBranches()
+{
+  bl.setVerbosity(0);
+  TString jetname = analysis.puppiJets ? "puppi" : "chs";
 
-void ConfigMod::SetDataDir(TString dirPath)
+  if (analysis.genOnly) {
+    bl += {"genParticles","genReweight","ak4GenJets","genMet","genParticlesU","electrons"};
+  } else { 
+    bl += {"runNumber", "lumiNumber", "eventNumber", "rho", 
+           "isData", "npv", "npvTrue", "weight", "chsAK4Jets", 
+           "electrons", "muons", "taus", "photons", 
+           "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet", 
+           "recoil","metFilters","trkMet"};
+
+    if (analysis.ak8) {
+      bl += {jetname+"AK8Jets", "subjets", jetname+"AK8Subjets","Subjets"};
+      if (analysis.hbb)
+        bl.push_back("ak8GenJets");
+    } else if (analysis.fatjet) {
+      bl += {jetname+"CA15Jets", "subjets", jetname+"CA15Subjets","Subjets"};
+      if (analysis.hbb)
+        bl.push_back("ca15GenJets");
+    }
+    if (analysis.recluster || analysis.bjetRegression || 
+        analysis.deep || analysis.hbb || analysis.complicatedPhotons) {
+      bl.push_back("pfCandidates");
+    }
+    if (analysis.deepTracks || analysis.bjetRegression || analysis.hbb) {
+      bl += {"tracks","vertices"};
+    }
+
+    if (analysis.bjetRegression || analysis.deepSVs)
+      bl.push_back("secondaryVertices");
+
+    if (cfg.isData || analysis.applyMCTriggers) {
+      bl.push_back("triggers");
+    }
+
+    if (!cfg.isData) {
+      bl += {"genParticles","genReweight","ak4GenJets","genMet"};
+      if (analysis.hbb)
+        bl.push_back("partons"); 
+    }
+  }
+}
+
+void ConfigMod::set_outputBranches(GeneralTree& gt)
+{
+  // manipulate the output tree
+  if (cfg.isData) {
+    std::vector<TString> droppable = {"mcWeight","scale","scaleUp",
+                                      "trueGenBosonPt",
+                                      "scaleDown","pdf.*","gen.*","sf_.*"};
+    gt.RemoveBranches(droppable,{"sf_phoPurity"});
+  }
+  if (analysis.genOnly) {
+    std::vector<TString> keepable = {"mcWeight","scale","scaleUp",
+                                     "scaleDown","pdf.*","gen.*",
+                                     "sf_tt.*","sf_qcdTT.*",
+                                     "trueGenBosonPt","sf_qcd.*","sf_ewk.*",
+                                     "nHF.*", "nB.*"};
+    if (analysis.deepGen) {
+      keepable.push_back("fjECFN.*");
+      keepable.push_back("fjTau.*");
+    }
+    gt.RemoveBranches({".*"},keepable);
+  }
+  if (!analysis.fatjet && !analysis.ak8) {
+    gt.RemoveBranches({"fj.*"});
+  }
+  if (analysis.complicatedLeptons) {
+    gt.RemoveBranches({"genJet.*","puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*"});
+  }
+}
+
+void ConfigMod::readData(TString dirPath)
 {
   dirPath += "/";
 
@@ -245,32 +319,30 @@ void ConfigMod::SetDataDir(TString dirPath)
   if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded scale factors");
 
   // kfactors
-  TFile *fKFactor = 0;
-  if (analysis.vbf)
-    fKFactor = new TFile(dirPath+"vbf16/kqcd/kfactor_24bins.root"); 
-  else
-    fKFactor = new TFile(dirPath+"kfactors.root"); 
-  fCorrs[cZNLO] = fKFactor; // just for garbage collection
+  TFile *fKFactor = analysis.vbf ?
+                    new TFile(dirPath+"vbf16/kqcd/kfactor_24bins.root") :
+                    new TFile(dirPath+"kfactors.root"); 
+  utils.fCorrs[cZNLO] = fKFactor; // just for garbage collection
 
   TH1F *hZLO    = (TH1F*)fKFactor->Get("ZJets_LO/inv_pt");
   TH1F *hWLO    = (TH1F*)fKFactor->Get("WJets_LO/inv_pt");
   TH1F *hALO    = (TH1F*)fKFactor->Get("GJets_LO/inv_pt_G");
 
-  h1Corrs[cZNLO] = new THCorr1(fKFactor->Get("ZJets_012j_NLO/nominal"));
-  h1Corrs[cWNLO] = new THCorr1(fKFactor->Get("WJets_012j_NLO/nominal"));
-  h1Corrs[cANLO] = new THCorr1(fKFactor->Get("GJets_1j_NLO/nominal_G"));
+  utils.h1Corrs[cZNLO] = new THCorr1(fKFactor->Get("ZJets_012j_NLO/nominal"));
+  utils.h1Corrs[cWNLO] = new THCorr1(fKFactor->Get("WJets_012j_NLO/nominal"));
+  utils.h1Corrs[cANLO] = new THCorr1(fKFactor->Get("GJets_1j_NLO/nominal_G"));
 
-  h1Corrs[cZEWK] = new THCorr1(fKFactor->Get("EWKcorr/Z"));
-  h1Corrs[cWEWK] = new THCorr1(fKFactor->Get("EWKcorr/W"));
-  h1Corrs[cAEWK] = new THCorr1(fKFactor->Get("EWKcorr/photon"));
+  utils.h1Corrs[cZEWK] = new THCorr1(fKFactor->Get("EWKcorr/Z"));
+  utils.h1Corrs[cWEWK] = new THCorr1(fKFactor->Get("EWKcorr/W"));
+  utils.h1Corrs[cAEWK] = new THCorr1(fKFactor->Get("EWKcorr/photon"));
 
-  h1Corrs[cZEWK]->GetHist()->Divide(h1Corrs[cZNLO]->GetHist());     
-  h1Corrs[cWEWK]->GetHist()->Divide(h1Corrs[cWNLO]->GetHist());     
-  h1Corrs[cAEWK]->GetHist()->Divide(h1Corrs[cANLO]->GetHist());
+  utils.h1Corrs[cZEWK]->GetHist()->Divide(utils.h1Corrs[cZNLO]->GetHist());     
+  utils.h1Corrs[cWEWK]->GetHist()->Divide(utils.h1Corrs[cWNLO]->GetHist());     
+  utils.h1Corrs[cAEWK]->GetHist()->Divide(utils.h1Corrs[cANLO]->GetHist());
 
-  h1Corrs[cZNLO]->GetHist()->Divide(hZLO);    
-  h1Corrs[cWNLO]->GetHist()->Divide(hWLO);    
-  h1Corrs[cANLO]->GetHist()->Divide(hALO);
+  utils.h1Corrs[cZNLO]->GetHist()->Divide(hZLO);    
+  utils.h1Corrs[cWNLO]->GetHist()->Divide(hWLO);    
+  utils.h1Corrs[cANLO]->GetHist()->Divide(hALO);
 
   utils.openCorr(cANLO2j,dirPath+"moriond17/histo_photons_2jet.root","Func",1);
 
@@ -318,39 +390,41 @@ void ConfigMod::SetDataDir(TString dirPath)
 
   if (analysis.btagSFs) {
     // btag SFs
-    btagCalib = new BTagCalibration("csvv2",(dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data());
-    btagReaders[bJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
-    btagReaders[bJetL]->load(*btagCalib,BTagEntry::FLAV_B,"comb");
-    btagReaders[bJetL]->load(*btagCalib,BTagEntry::FLAV_C,"comb");
-    btagReaders[bJetL]->load(*btagCalib,BTagEntry::FLAV_UDSG,"incl");
+    utils.btagCalib = new BTagCalibration("csvv2",
+                                          (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data());
+    utils.btagReaders[bJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
+    utils.btagReaders[bJetL]->load(*(utils.btagCalib),BTagEntry::FLAV_B,"comb");
+    utils.btagReaders[bJetL]->load(*(utils.btagCalib),BTagEntry::FLAV_C,"comb");
+    utils.btagReaders[bJetL]->load(*(utils.btagCalib),BTagEntry::FLAV_UDSG,"incl");
 
-    sj_btagCalib = new BTagCalibration("csvv2",(dirPath+"moriond17/subjet_CSVv2_Moriond17_B_H.csv").Data());
-    btagReaders[bSubJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
-    btagReaders[bSubJetL]->load(*sj_btagCalib,BTagEntry::FLAV_B,"lt");
-    btagReaders[bSubJetL]->load(*sj_btagCalib,BTagEntry::FLAV_C,"lt");
-    btagReaders[bSubJetL]->load(*sj_btagCalib,BTagEntry::FLAV_UDSG,"incl");
+    utils.sj_btagCalib = new BTagCalibration("csvv2",
+                                             (dirPath+"moriond17/subjet_CSVv2_Moriond17_B_H.csv").Data());
+    utils.btagReaders[bSubJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
+    utils.btagReaders[bSubJetL]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_B,"lt");
+    utils.btagReaders[bSubJetL]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_C,"lt");
+    utils.btagReaders[bSubJetL]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_UDSG,"incl");
 
-    btagReaders[bJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-    btagReaders[bJetM]->load(*btagCalib,BTagEntry::FLAV_B,"comb");
-    btagReaders[bJetM]->load(*btagCalib,BTagEntry::FLAV_C,"comb");
-    btagReaders[bJetM]->load(*btagCalib,BTagEntry::FLAV_UDSG,"incl");
+    utils.btagReaders[bJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
+    utils.btagReaders[bJetM]->load(*(utils.btagCalib),BTagEntry::FLAV_B,"comb");
+    utils.btagReaders[bJetM]->load(*(utils.btagCalib),BTagEntry::FLAV_C,"comb");
+    utils.btagReaders[bJetM]->load(*(utils.btagCalib),BTagEntry::FLAV_UDSG,"incl");
     
-    btagReaders[bSubJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-    btagReaders[bSubJetM]->load(*sj_btagCalib,BTagEntry::FLAV_B,"lt");
-    btagReaders[bSubJetM]->load(*sj_btagCalib,BTagEntry::FLAV_C,"lt");
-    btagReaders[bSubJetM]->load(*sj_btagCalib,BTagEntry::FLAV_UDSG,"incl");
+    utils.btagReaders[bSubJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
+    utils.btagReaders[bSubJetM]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_B,"lt");
+    utils.btagReaders[bSubJetM]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_C,"lt");
+    utils.btagReaders[bSubJetM]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_UDSG,"incl");
 
     if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded btag SFs");
   } 
   if (analysis.btagWeights) {
     if (analysis.useCMVA) 
-      cmvaReweighter = new CSVHelper(
+      utils.cmvaReweighter = new CSVHelper(
             "PandaAnalysis/data/csvweights/cmva_rwt_fit_hf_v0_final_2017_3_29.root", 
             "PandaAnalysis/data/csvweights/cmva_rwt_fit_lf_v0_final_2017_3_29.root", 
             5
           );
     else
-      csvReweighter  = new CSVHelper(
+      utils.csvReweighter  = new CSVHelper(
             "PandaAnalysis/data/csvweights/csv_rwt_fit_hf_v2_final_2017_3_29test.root", 
             "PandaAnalysis/data/csvweights/csv_rwt_fit_lf_v2_final_2017_3_29test.root", 
             5
@@ -359,43 +433,44 @@ void ConfigMod::SetDataDir(TString dirPath)
 
   // bjet regression
   if (analysis.bjetRegression) {
-    bjetreg_vars = new float[15];
-    bjetregReader = new TMVA::Reader("!Color:!Silent");
-    bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
-                               &bjetreg_vars[ 0] );
-    bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
-                               &bjetreg_vars[ 1] );
-    bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
-                               &bjetreg_vars[ 2] );
-    bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
-                               &bjetreg_vars[ 3] );
-    bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
-                               &bjetreg_vars[ 4] );
-    bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
-                               &bjetreg_vars[ 5] );
-    bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
-                               &bjetreg_vars[ 6] );
-    bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
-                               &bjetreg_vars[ 7] );
-    bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
-                               &bjetreg_vars[ 8] );
-    bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
-                               &bjetreg_vars[ 9] );
-    bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
-                               &bjetreg_vars[10] );
-    bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
-                               &bjetreg_vars[11] );
-    bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
-                               &bjetreg_vars[12] );
-    bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
-                               &bjetreg_vars[13] );
-    bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
-                               &bjetreg_vars[14] );
+    utils.bjetreg_vars = new float[15];
+    utils.bjetregReader = new TMVA::Reader("!Color:!Silent");
+    utils.bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 0]) );
+    utils.bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 1]) );
+    utils.bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 2]) );
+    utils.bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 3]) );
+    utils.bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 4]) );
+    utils.bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 5]) );
+    utils.bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 6]) );
+    utils.bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 7]) );
+    utils.bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 8]) );
+    utils.bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[ 9]) );
+    utils.bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[10]) );
+    utils.bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[11]) );
+    utils.bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
+                                     &(utils.bjetreg_vars[12]) );
+    utils.bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                                     &(utils.bjetreg_vars[13]) );
+    utils.bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                                     &(utils.bjetreg_vars[14]) );
 
     gSystem->Exec(
         Form("wget -nv -O %s/trainings/bjet_regression_v1_fromBenedikt.weights.xml http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",dirPath.Data())
       );
-    bjetregReader->BookMVA( "BDT method", dirPath+"trainings/bjet_regression_v1_fromBenedikt.weights.xml" );
+    utils.bjetregReader->BookMVA("BDT method", 
+                                 dirPath+"trainings/bjet_regression_v1_fromBenedikt.weights.xml" );
 
     if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded bjet regression weights");
   }
@@ -403,10 +478,10 @@ void ConfigMod::SetDataDir(TString dirPath)
 
   if (analysis.monoh || analysis.hbb) {
     // mSD corr
-    MSDcorr = new TFile(dirPath+"/puppiCorr.root");
-    puppisd_corrGEN = (TF1*)MSDcorr->Get("puppiJECcorr_gen");;
-    puppisd_corrRECO_cen = (TF1*)MSDcorr->Get("puppiJECcorr_reco_0eta1v3");
-    puppisd_corrRECO_for = (TF1*)MSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
+    utils.fMSDcorr = new TFile(dirPath+"/puppiCorr.root");
+    utils.puppisd_corrGEN = (TF1*)fMSDcorr->Get("puppiJECcorr_gen");;
+    utils.puppisd_corrRECO_cen = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_0eta1v3");
+    utils.puppisd_corrRECO_for = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
 
     if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded mSD correction");
   }
@@ -414,73 +489,30 @@ void ConfigMod::SetDataDir(TString dirPath)
   if (analysis.rerunJES) {
     TString jecV = "V4", jecReco = "23Sep2016"; 
     TString jecVFull = jecReco+jecV;
-    ak8UncReader["MC"] = new JetCorrectionUncertainty(
+    utils.ak8UncReader["MC"] = new JetCorrectionUncertainty(
          (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK8PFPuppi.txt").Data()
       );
     std::vector<TString> eraGroups = {"BCD","EF","G","H"};
     for (auto e : eraGroups) {
-      ak8UncReader["data"+e] = new JetCorrectionUncertainty(
+      utils.ak8UncReader["data"+e] = new JetCorrectionUncertainty(
            (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK8PFPuppi.txt").Data()
         );
     }
 
-    ak8JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK8PFPuppi.txt",
+    utils.ak8JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK8PFPuppi.txt",
                                  dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK8PFPuppi.txt");
-
-
-    ak4UncReader["MC"] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK4PFPuppi.txt").Data()
-      );
-    for (auto e : eraGroups) {
-      ak4UncReader["data"+e] = new JetCorrectionUncertainty(
-           (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK4PFPuppi.txt").Data()
-        );
-    }
-
-    ak4JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK4PFPuppi.txt",
-                                 dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK4PFPuppi.txt");
-
-    std::vector<JetCorrectorParameters> params = {
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L1FastJet_AK4PFPuppi.txt").Data()),
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2Relative_AK4PFPuppi.txt").Data()),
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L3Absolute_AK4PFPuppi.txt").Data()),
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2L3Residual_AK4PFPuppi.txt").Data())
-    };
-    ak4ScaleReader["MC"] = new FactorizedJetCorrector(params);
-    if (DEBUG>1) PDebug("PandaAnalyzer::SetDataDir","Loaded JES for AK4 MC");
-    for (auto e : eraGroups) {
-      params = {
-        JetCorrectorParameters(
-          (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L1FastJet_AK4PFPuppi.txt").Data()),
-        JetCorrectorParameters(
-          (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2Relative_AK4PFPuppi.txt").Data()),
-        JetCorrectorParameters(
-          (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L3Absolute_AK4PFPuppi.txt").Data()),
-        JetCorrectorParameters(
-          (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2L3Residual_AK4PFPuppi.txt").Data())
-      };
-      ak4ScaleReader["data"+e] = new FactorizedJetCorrector(params);
-      if (DEBUG>1) PDebug("PandaAnalyzer::SetDataDir","Loaded JES for AK4 "+e);
-    }
-
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded JES/R");
   }
-
 
   if (analysis.deepGen) {
     TFile *fcharges = TFile::Open((dirPath + "/deep/charges.root").Data());
     TTree *tcharges = (TTree*)(fcharges->Get("charges"));
-    pdgToQ.clear();
+    utils.pdgToQ.clear();
     int pdg = 0; float q = 0;
     tcharges->SetBranchAddress("pdgid",&pdg);
     tcharges->SetBranchAddress("q",&q);
     for (unsigned i = 0; i != tcharges->GetEntriesFast(); ++i) {
       tcharges->GetEntry(i);
-      pdgToQ[pdg] = q;
+      utils.pdgToQ[pdg] = q;
     }
     fcharges->Close();
   }

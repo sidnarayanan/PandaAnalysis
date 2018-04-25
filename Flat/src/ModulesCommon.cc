@@ -10,22 +10,6 @@ using namespace std;
 
 /***** miscellaneous helper functions *****/
 
-// Register triggers
-// Responsible: S. Narayanan
-void PandaAnalyzer::RegisterTriggers() 
-{
-  for (auto &th : triggerHandlers) {
-    unsigned N = th.paths.size();
-    for (unsigned i = 0; i != N; i++) {
-      unsigned panda_idx = event.registerTrigger(th.paths.at(i));
-      th.indices[i] = panda_idx;
-      if (DEBUG) PDebug("PandaAnalyzer::RegisterTriggers",
-        Form("Got index %d for trigger path %s", panda_idx, th.paths.at(i).Data())
-      );
-    }
-  }
-}
-
 // Match an object at arbitrary eta,phi to a gen particle with specific pdgid
 // Responsible: S. Narayanan
 panda::GenParticle const *PandaAnalyzer::MatchToGen(double eta, double phi, double radius, int pdgid) 
