@@ -35,7 +35,7 @@ namespace pa {
         void publishConst(TString name, const T* ptr) { _objs[name] = new ConstContainer(ptr); }
       template <typename T>
         T* access(TString name) { 
-          return dynamic_cast<Container<T>*>(_objs.at(name)->ptr); 
+          return dynamic_cast<Container<T>*>(_objs.at(name))->ptr; 
         }
       template <typename T>
         const T* accessConst(TString name) { 
