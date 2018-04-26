@@ -1,16 +1,19 @@
+#ifndef CONFIG
+#define CONFIG
+
 #include "TString.h"
 #include "vector"
 #include "map"
+
+#include "AnalyzerUtilities.h"
+
 // fastjet
-#include "fastjet/contrib/SoftDrop.hh"
-#include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/MeasureDefinition.hh"
 
 // btag
 #include "CondFormats/BTauObjects/interface/BTagEntry.h"
 #include "CondFormats/BTauObjects/interface/BTagCalibration.h"
 #include "CondTools/BTau/interface/BTagCalibrationReader.h"
-//#include "BTagCalibrationStandalone.h"
 
 // JEC
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -20,7 +23,6 @@
 // Utils
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
-#include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 
 namespace pa {
   enum CorrectionType { //!< enum listing relevant corrections applied to MC
@@ -57,6 +59,7 @@ namespace pa {
       cMuTightIso,  //!< MUO POG SF, Tight Iso for mu 
       cMuReco,      //!< MUO POG SF, tracking for mu
       cPho,         //!< EGM POG SF, contains ID for gamma
+      cPhoFake,     //!< jet-faking-photon rate 
       cTrigMET,     //!< MET trigger eff        
       cTrigMETZmm,  //!< Zmumu MET trigger eff
       cTrigEle,     //!< Ele trigger eff        
@@ -222,7 +225,8 @@ namespace pa {
       Config(const Analysis& a_, int DEBUG_ = 0) : 
         DEBUG(DEBUG_),
         analysis(a_),
-        tr("PandaAnalyzer::Run", DEBUG+1)
+        tr("PandaAnalyzer::Run", DEBUG+1),
+        isData(analysis.isData)
         { }
 
 
@@ -238,7 +242,7 @@ namespace pa {
       float minGenFatJetPt{450};
       float minSoftTrackPt{0.3};
 
-      bool isData{false};              // to do gen matching, etc
+      bool isData;              // to do gen matching, etc
 
       int NPFPROPS{9}, NSVPROPS{13}, NMAXPF{100}, NMAXSV{10}, NGENPROPS{8};
       float FATJETMATCHDR2{2.25};
@@ -262,14 +266,9 @@ namespace pa {
       std::map<int, int> pdgToQ; 
       
       // fastjet reclustering
-      fastjet::JetDefinition       *jetDef                {nullptr};
-      fastjet::JetDefinition       *jetDefKt              {nullptr};
-      fastjet::contrib::SoftDrop   *softDrop              {nullptr};
-      fastjet::contrib::Njettiness *tauN                  {nullptr};
       fastjet::AreaDefinition      *areaDef               {nullptr};
       fastjet::GhostedAreaSpec     *activeArea            {nullptr};
-      fastjet::JetDefinition       *jetDefGen             {nullptr};
-      fastjet::JetDefinition       *softTrackJetDefinition{nullptr};
+      fastjet::JetDefinition       *jetDefSoftTrack       {nullptr};
 
       // CMSSW-provided utilities
       BTagCalibration *btagCalib   {nullptr};
@@ -285,12 +284,9 @@ namespace pa {
 
       std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
       JERReader *ak8JERReader{nullptr}; //!< fatjet jet energy resolution reader
-
       JetCorrectionUncertainty *uncReader     {nullptr};           
 
       EraHandler eras = EraHandler(2016); //!< determining data-taking era, to be used for era-dependent JEC
-      ParticleGridder   *grid   {nullptr};
-      pa::ECFCalculator *ecfcalc{nullptr};
 
       auto   fCorrs = std::vector<TFile*>    (cN,nullptr);
       auto  f1Corrs = std::vector<TF1Corr*>  (cN,nullptr);
@@ -301,10 +297,10 @@ namespace pa {
       TF1       *puppisd_corrGEN      {nullptr};
       TF1       *puppisd_corrRECO_cen {nullptr};
       TF1       *puppisd_corrRECO_for {nullptr};
-      RoccoR    *rochesterCorrection  {nullptr};
       CSVHelper *csvReweighter        {nullptr},   *cmvaReweighter  {nullptr};
 
   };
 
 }
 
+#endif

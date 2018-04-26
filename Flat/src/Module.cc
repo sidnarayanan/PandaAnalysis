@@ -13,32 +13,10 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
   cfg.isData = analysis.isData;
 
   // configuration of objects
+  if (analysis.ak8)
+    cfg.FATJETMATCHDR2 = 0.8*0.8;
   if ((analysis.fatjet || analysis.ak8) || 
       (analysis.recluster || analysis.deep || analysis.deepGen)) {
-    double radius = 1.5;
-    double sdZcut = 0.15;
-    double sdBeta = 1.;
-    auto algo = fastjet::cambridge_algorithm;
-    if (analysis.ak8) {
-      radius = 0.8;
-      sdZcut = 0.1;
-      sdBeta = 0.;
-      algo = fastjet::antikt_algorithm;
-    } 
-    utils.jetDef = new fastjet::JetDefinition(algo,radius);
-    utils.jetDefKt = new fastjet::JetDefinition(fastjet::kt_algorithm,radius);
-    utils.softDrop = new fastjet::contrib::SoftDrop(sdBeta,sdZcut,radius);
-    utils.tauN = new fastjet::contrib::Njettiness(fastjet::contrib::OnePass_KT_Axes(), 
-                                                  fastjet::contrib::NormalizedMeasure(1., radius));
-    FATJETMATCHDR2 = radius * radius;
-
-    if (analysis.deepGen) {
-      utils.ecfcalc = new ECFCalculator();
-      if (analysis.deepGenGrid) {
-        utils.grid = new ParticleGridder(2500,1570,5); // 0.002x0.002
-        utils.grid->_etaphi = false;
-      }
-    }
   }
 
   if (analysis.recluster || analysis.reclusterGen || 
@@ -221,9 +199,6 @@ void ConfigMod::readData(TString dirPath)
                    dirPath+"leptonic/data.root","hEWKWZCorr",1);
     utils.openCorr(cqqZZQcdCorr,
                    dirPath+"leptonic/data.root","hqqZZKfactor",2);
-
-    // TO DO: Hard coded to 2016 rochester corrections for now, need to do this in a better way later
-    utils.rochesterCorrection = new RoccoR(Form("%s/rcdata.2016.v3",dirPath.Data()));
   } else {
     utils.openCorr(cEleVeto,
                    dirPath+"moriond17/scaleFactor_electron_summer16.root",
@@ -299,6 +274,9 @@ void ConfigMod::readData(TString dirPath)
   utils.openCorr(cPho,
                  dirPath+"moriond17/scalefactors_80x_medium_photon_37ifb.root",
                  "EGamma_SF2D",2);
+  utils.openCorr(cPhoFake,
+                 dirPath+"moriond17/photonFake.root",
+                 "sf",1);
 
   // triggers
   utils.openCorr(cTrigMET,
@@ -516,4 +494,40 @@ void ConfigMod::readData(TString dirPath)
     }
     fcharges->Close();
   }
+}
+
+
+void AnalysisMod::initalize(Registry& registry)
+{
+  do_initalize(registry);
+  for (auto* mod: subMods)
+    mod->initalize(registry);
+}
+
+void AnalysisMod::readData(TString path)
+{
+  do_readData(path+"/");
+  for (auto* mod: subMods)
+    mod->readData(path);
+}
+
+void AnalysisMod::execute()
+{
+  do_execute();
+  for (auto* mod : subMods)
+    mod->execute();
+}
+
+void AnalysisMod::reset()
+{
+  do_reset();
+  for (auto* mod : subMods)
+    mod->reset();
+}
+
+void AnalysisMod::terminate()
+{
+  do_terminate();
+  for (auto* mod : subMods)
+    mod->terminate();
 }

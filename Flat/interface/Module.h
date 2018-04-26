@@ -1,3 +1,6 @@
+#ifndef MODULE
+#define MODULE
+
 #include "TString.h"
 #include "vector"
 #include "map"
@@ -51,10 +54,7 @@ namespace pa {
       BaseModule(TString name_): name(name_) { }
       virtual ~BaseModule() { }
 
-      void readData(TString path);
-
     private:
-      virtual void do_readData(TString path) { }
       TString name;
   };
 
@@ -98,8 +98,10 @@ namespace pa {
       
       // cascading calls to protected functions
       void initialize(Registry& registry);
+      void readData(TString path);
       void execute();
       void reset();
+      void terminate(); 
 
     protected:
       panda::EventAnalysis& event;
@@ -111,10 +113,13 @@ namespace pa {
 
       // here, the module can publish and access data
       virtual void do_init(Registry& registry) { }
+      virtual void do_readData(TString path) { }
       // this is where the actual execution is done
       virtual void do_execute() = 0;
       // reset objects between events, if needed
       virtual void do_reset() { }
+      virtual void do_terminate() { }
   };
 }
 
+#endif

@@ -4,6 +4,74 @@ using namespace pa;
 using namespace std;
 using namespace panda;
 
+void RecoilMod::do_execute()
+{
+  TLorentzVector vObj1, vObj2;
+  gt.whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
+  if (gt.nLooseLep>0) {
+    panda::Lepton *lep1 = looseLeps->at(0);
+    vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
+
+    // one lep => W
+    JESLOOP {
+      auto& jets = jesShifts[shift]; 
+
+      jets.vpuppiUW = jets.vpuppiMET + vObj1;
+      gt.puppiUWmag[shift] = jets.vpuppiUW.Pt(); 
+      gt.puppiUWphi[shift] = jets.vpuppiUW.Phi(); 
+
+      jets.vpfUW = jets.vpfMET + vObj1;
+      gt.pfUWmag[shift] = jets.vpfUW.Pt(); 
+      gt.pfUWphi[shift] = jets.vpfUW.Phi(); 
+    }
+
+    if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
+      // two OS lep => Z
+      panda::Lepton *lep2 = looseLeps->at(1);
+      vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
+
+      JESLOOP {
+        auto& jets = jesShifts[shift]; 
+
+        jets.vpuppiUZ = jets.vpuppiUW + vObj2;
+        gt.puppiUZmag[shift] = jets.vpuppiUZ.Pt(); 
+        gt.puppiUZphi[shift] = jets.vpuppiUZ.Phi(); 
+
+        jets.vpfUZ = jets.vpfUW + vObj2;
+        gt.pfUZmag[shift] = jets.vpfUZ.Pt(); 
+        gt.pfUZphi[shift] = jets.vpfUZ.Phi(); 
+      }
+
+      gt.whichRecoil = 2;
+    } else {
+      gt.whichRecoil = 1;
+    }
+  }
+  if (gt.nLoosePhoton>0) {
+    panda::Photon *pho = loosePhos->(0);
+    vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
+
+    JESLOOP {
+      auto& jets = jesShifts[shift]; 
+
+      jets.vpuppiUA = jets.vpuppiMET + vObj1;
+      gt.puppiUAmag[shift] = jets.vpuppiUA.Pt(); 
+      gt.puppiUAphi[shift] = jets.vpuppiUA.Phi(); 
+
+      jets.vpfUA = jets.vpfMET + vObj1;
+      gt.pfUAmag[shift] = jets.vpfUA.Pt(); 
+      gt.pfUAphi[shift] = jets.vpfUA.Phi(); 
+    }
+
+    if (gt.nLooseLep==0) {
+      gt.whichRecoil = -1;
+    }
+  }
+  if (gt.nLooseLep==0 && gt.nLoosePhoton==0) {
+    gt.whichRecoil = 0;
+  }
+}
+
 void TriggerMod::do_init(Registry& registry) 
 {
   vector<TString> paths; 
@@ -157,14 +225,9 @@ void TriggerMod::do_execute()
   }
 }
 
-void GlobalMod::do_init(Registry& registry)
-{
-  registry.publish("jesShifts", &jesShifts);
-}
-
 void GlobalMod::do_execute()
 {
-  if (DEBUG > 5) {
+  if (cfg.DEBUG > 5) {
     PDebug("PandaAnalyzer::Run::Dump","");
     event.print(std::cout, 2);
     std::cout << std::endl;
@@ -207,24 +270,36 @@ void GlobalMod::do_execute()
     gt.sf_pu = utils.getCorr(cPU, gt.pu);
   }
 
-  gt->pfmetRaw = event.rawMet.pt;
-  gt->calomet = event.caloMet.pt;
-  gt->sumETRaw = event.pfMet.sumETRaw;
-  gt->trkmet = event.trkMet.pt;
-  gt->trkmetphi = event.trkMet.phi;
+  gt.pfmetRaw = event.rawMet.pt;
+  gt.calomet = event.caloMet.pt;
+  gt.sumETRaw = event.pfMet.sumETRaw;
+  gt.trkmet = event.trkMet.pt;
+  gt.trkmetphi = event.trkMet.phi;
   
   JESLOOP {
     auto& jets = jesShifts[shift];
     // PF 
     shiftMET(event.pfMet, jets.vpfMET, i2jes(shift));
-    gt->pfmet[shift] = jets.vpfMET.Pt();
-    gt->pfmetphi[shift] = jets.vpfMET.Phi();
+    gt.pfmet[shift] = jets.vpfMET.Pt();
+    gt.pfmetphi[shift] = jets.vpfMET.Phi();
 
     // Puppi
     shiftMET(event.puppiMet, jets.vpuppiMET, i2jes(shift));
-    gt->puppimet[shift] = jets.vpuppiMET.Pt();
-    gt->puppimetphi[shift] = jets.vpuppiMET.Phi();
+    gt.puppimet[shift] = jets.vpuppiMET.Pt();
+    gt.puppimetphi[shift] = jets.vpuppiMET.Phi();
 
-    jets.vpfMETNoMu.SetMagPhi(gt->pfmet[shift], gt->pfmetphi[shift]);
+    jets.vpfMETNoMu.SetMagPhi(gt.pfmet[shift], gt.pfmetphi[shift]);
   }
 }
+
+void GenPMod::do_execute()
+{
+  if (analysis.isData)
+    return;
+  if (event.genParticles.size() > 0) {
+    merge_particles(event.genParticles);
+  } else {
+    merge_particles(event.genParticlesU);
+  }
+}
+

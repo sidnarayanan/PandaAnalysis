@@ -1,3 +1,6 @@
+#ifndef JETSMODS
+#define JETSMODS
+
 #include "Module.h"
 
 namespace pa {
@@ -31,3 +34,5 @@ namespace pa {
     void setupJES();
   };
 }
+
+#endif

@@ -177,11 +177,7 @@ private:
     // mess up behavior
     std::vector<TString> wIDs;
 
-    std::vector<panda::Lepton*> looseLeps, tightLeps, inclusiveLeps;
     std::vector<panda::Photon*> loosePhos;
-    int looseLep1PdgId, looseLep2PdgId, looseLep3PdgId, looseLep4PdgId;
-
-    std::vector<const panda::Particle*> validGenP;
 
     const panda::FatJet *fj1 = 0;
     panda::FatJetCollection *fatjets = 0;

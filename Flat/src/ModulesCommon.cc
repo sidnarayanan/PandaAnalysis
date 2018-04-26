@@ -32,35 +32,6 @@ panda::GenParticle const *PandaAnalyzer::MatchToGen(double eta, double phi, doub
 }
 
 
-double PandaAnalyzer::GetCorr(CorrectionType ct, double x, double y) 
-{
-  if (h1Corrs[ct]!=0) {
-    return h1Corrs[ct]->Eval(x); 
-  } else if (h2Corrs[ct]!=0) {
-    return h2Corrs[ct]->Eval(x,y);
-  } else if (f1Corrs[ct]!=0) {
-    return f1Corrs[ct]->Eval(x);
-  } else {
-    PError("PandaAnalyzer::GetCorr",
-       TString::Format("No correction is defined for CorrectionType=%u",ct));
-    return 1;
-  }
-}
-
-double PandaAnalyzer::GetError(CorrectionType ct, double x, double y) 
-{
-  if (h1Corrs[ct]!=0) {
-    return h1Corrs[ct]->Error(x); 
-  } else if (h2Corrs[ct]!=0) {
-    return h2Corrs[ct]->Error(x,y);
-  } else {
-    PError("PandaAnalyzer::GetError",
-       TString::Format("No correction is defined for CorrectionType=%u",ct));
-    return 1;
-  }
-}
-
-
 bool PandaAnalyzer::PassPresel(Selection::Stage stage) 
 {
   if (selections.size() == 0)
@@ -87,70 +58,6 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 
 
 /***** common physics methods *****/
-
-// Create a new auxillary file for gen info
-// Responsible: S. Narayanan
-void PandaAnalyzer::IncrementGenAuxFile(bool close)
-{
-  if (fAux) {
-    fAux->WriteTObject(tAux, "inputs", "Overwrite");
-    TString path = TString::Format(auxFilePath.Data(),auxCounter);
-    if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Closing "+path);
-    fAux->Close();
-  }
-  if (close)
-    return;
-
-  TString path = TString::Format(auxFilePath.Data(),auxCounter++);
-  fAux = TFile::Open(path.Data(), "RECREATE");
-  if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
-  tAux = new TTree("inputs","inputs");
-  
-  genJetInfo.particles.resize(NMAXPF);
-  for (int i = 0; i != NMAXPF; ++i) {
-    genJetInfo.particles[i].resize(NGENPROPS);
-  }
-
-  genJetInfo.ecfs.resize(3);
-  for (int o = 0; o != 3; ++o) {
-    genJetInfo.ecfs.at(o).resize(4);
-    for (int N = 0; N != 4; ++N) {
-      genJetInfo.ecfs.at(o).at(N).resize(4);
-    }
-  }
-
-  tAux->Branch("eventNumber",&(gt->eventNumber),"eventNumber/l");
-  if (!analysis->deepExC) {
-    tAux->Branch("nprongs",&(genJetInfo.nprongs),"nprongs/I");
-    tAux->Branch("partonpt",&(genJetInfo.partonpt),"partonpt/F");
-    tAux->Branch("partonm",&(genJetInfo.partonm),"partonm/F");
-    tAux->Branch("pt",&(genJetInfo.pt),"pt/F");
-    tAux->Branch("msd",&(genJetInfo.msd),"msd/F");
-    tAux->Branch("eta",&(genJetInfo.eta),"eta/F");
-    tAux->Branch("phi",&(genJetInfo.phi),"phi/F");
-    tAux->Branch("m",&(genJetInfo.m),"m/F");
-    tAux->Branch("tau3",&(genJetInfo.tau3),"tau3/F");
-    tAux->Branch("tau2",&(genJetInfo.tau2),"tau2/F");
-    tAux->Branch("tau1",&(genJetInfo.tau1),"tau1/F");
-    tAux->Branch("tau3sd",&(genJetInfo.tau3sd),"tau3sd/F");
-    tAux->Branch("tau2sd",&(genJetInfo.tau2sd),"tau2sd/F");
-    tAux->Branch("tau1sd",&(genJetInfo.tau1sd),"tau1sd/F");
-    for (int o = 1; o != 4; ++o) {
-      for (int N = 1; N != 5; ++N) {
-        for (int beta = 1; beta != 3; ++beta) {
-          TString bname = Form("%i_%i_%i",o,N,beta);
-          tAux->Branch(bname,&(genJetInfo.ecfs[o-1][N-1][beta-1]),bname+"/F");
-        }
-      }
-    }
-  }
-  tAux->Branch("kinematics",&(genJetInfo.particles));
-
-  fOut->cd();
-
-  if (tr)
-    tr->TriggerEvent("increment aux file");
-}
 
 // Create a new auxillary file for reco info
 // Responsible: S. Narayanan
@@ -268,70 +175,6 @@ void PandaAnalyzer::TriggerEffs()
 // Responsible: S. Narayanan
 void PandaAnalyzer::Recoil()
 {
-    TLorentzVector vObj1, vObj2;
-    gt->whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
-    if (gt->nLooseLep>0) {
-      panda::Lepton *lep1 = looseLeps.at(0);
-      vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
-
-      // one lep => W
-      JESLOOP {
-        auto& jets = jesShifts[shift]; 
-
-        jets.vpuppiUW = jets.vpuppiMET + vObj1;
-        gt->puppiUWmag[shift] = jets.vpuppiUW.Pt(); 
-        gt->puppiUWphi[shift] = jets.vpuppiUW.Phi(); 
-
-        jets.vpfUW = jets.vpfMET + vObj1;
-        gt->pfUWmag[shift] = jets.vpfUW.Pt(); 
-        gt->pfUWphi[shift] = jets.vpfUW.Phi(); 
-      }
-
-      if (gt->nLooseLep>1 && looseLep1PdgId+looseLep2PdgId==0) {
-        // two OS lep => Z
-        panda::Lepton *lep2 = looseLeps.at(1);
-        vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-
-        JESLOOP {
-          auto& jets = jesShifts[shift]; 
-
-          jets.vpuppiUZ = jets.vpuppiUW + vObj2;
-          gt->puppiUZmag[shift] = jets.vpuppiUZ.Pt(); 
-          gt->puppiUZphi[shift] = jets.vpuppiUZ.Phi(); 
-
-          jets.vpfUZ = jets.vpfUW + vObj2;
-          gt->pfUZmag[shift] = jets.vpfUZ.Pt(); 
-          gt->pfUZphi[shift] = jets.vpfUZ.Phi(); 
-        }
-
-        gt->whichRecoil = 2;
-      } else {
-        gt->whichRecoil = 1;
-      }
-    }
-    if (gt->nLoosePhoton>0) {
-      panda::Photon *pho = loosePhos.at(0);
-      vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
-
-      JESLOOP {
-        auto& jets = jesShifts[shift]; 
-
-        jets.vpuppiUA = jets.vpuppiMET + vObj1;
-        gt->puppiUAmag[shift] = jets.vpuppiUA.Pt(); 
-        gt->puppiUAphi[shift] = jets.vpuppiUA.Phi(); 
-
-        jets.vpfUA = jets.vpfMET + vObj1;
-        gt->pfUAmag[shift] = jets.vpfUA.Pt(); 
-        gt->pfUAphi[shift] = jets.vpfUA.Phi(); 
-      }
-
-      if (gt->nLooseLep==0) {
-        gt->whichRecoil = -1;
-      }
-    }
-    if (gt->nLooseLep==0 && gt->nLoosePhoton==0) {
-      gt->whichRecoil = 0;
-    }
 
     tr->TriggerEvent("recoils");
 }

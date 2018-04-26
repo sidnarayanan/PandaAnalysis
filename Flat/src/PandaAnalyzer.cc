@@ -173,48 +173,17 @@ void PandaAnalyzer::Run()
 
 
     if (!isData) {
-      // take care of bug in panda version <= 009
-      // replace duplicate gen particles with preferred version.
-      // template type could be inferred but let's be explicit
-      // so we can read it.
-      if (event.genParticles.size() > 0) {
-        RemoveGenDups<GenParticle>(event.genParticles);
-      } else {
-        RemoveGenDups<UnpackedGenParticle>(event.genParticlesU);
-      }
+      // GenPMod
 
-      // do this up here before the preselection
-      if (analysis->deepGen) {
-        if (event.genParticles.size() > 0) 
-          FillGenTree<GenParticle>();
-        else
-          FillGenTree<UnpackedGenParticle>();
-        if (gt->genFatJetPt > 400 || analysis->deepExC) 
-          tAux->Fill();
-        if (tAux->GetEntriesFast() == 2500)
-          IncrementGenAuxFile();
-        tr->TriggerEvent("fill gen aux");
-      }
+      // DeepGenMod<>
     }
 
 
     if (!analysis->genOnly) {
-      // electrons and muons
-      if (analysis->complicatedLeptons) {
-        ComplicatedLeptons();
-      } else {
-        SimpleLeptons();
-      }
-      if (analysis->hbb) {
-        InclusiveLeptons();
-      }
-   
-      // photons
-      if (analysis->complicatedPhotons) {
-        ComplicatedPhotons();
-      } else {
-        SimplePhotons();
-      }
+      // SimpleLepMod, ComplicatedLepMod
+      // InclusiveLepMod
+      //
+      // SimplePhoMod, ComplicatedPhoMod
 
       // recoil!
       if (analysis->recoil)
