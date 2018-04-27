@@ -7,38 +7,44 @@
 namespace pa {
   class RecoilMod : public AnalysisMod {
   public:
-    RecoilMod(const panda::EventAnalysis& event_, 
+    RecoilMod(panda::EventAnalysis& event_, 
               const Config& cfg_,                 
               const Utils& utils_,                
               GeneralTree& gt_) :                 
       AnalysisMod("recoil", event_, cfg_, utils_, gt_) { }
     ~RecoilMod () { }
 
+    bool on() { return !analysis.genOnly && analysis.recoil; }
+
   protected:
-    void do_initalize(Registry& registry) {
+    void do_initialize(Registry& registry) {
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       loosePhos = registry.accessConst<std::vector<panda::Photon*>>("loosePhos");
       lepPdgId = registry.accessConst<std::array<int,4>>("lepPdgId");
+      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
     }
     void do_execute();
 
   private:
     const std::vector<panda::Lepton*> *looseLeps{nullptr};
     const std::vector<panda::Photon*> *loosePhos{nullptr};
-    const std::array<int,4> lepPdgId *{nullptr};
+    const std::array<int,4> *lepPdgId {nullptr};
+    const std::vector<JESHandler> *jesShifts{nullptr};
   };
 
   class TriggerMod : public AnalysisMod {
   public:
-    TriggerMod(const panda::EventAnalysis& event_, 
+    TriggerMod(panda::EventAnalysis& event_, 
                const Config& cfg_,                 
                const Utils& utils_,                
                GeneralTree& gt_) :                 
       AnalysisMod("trigger", event_, cfg_, utils_, gt_) { }
     ~TriggerMod () { }
 
+    bool on() { return !analysis.genOnly && (analysis.isData || analysis.mcTriggers); }
+
   protected:
-    void do_initalize(Registry& registry);
+    void do_initialize(Registry& registry);
     void do_execute();
 
   private:
@@ -47,7 +53,7 @@ namespace pa {
 
   class GlobalMod : public AnalysisMod {
   public:
-    GlobalMod(const panda::EventAnalysis& event_, 
+    GlobalMod(panda::EventAnalysis& event_, 
                const Config& cfg_,                 
                const Utils& utils_,                
                GeneralTree& gt_) :                 
@@ -67,12 +73,14 @@ namespace pa {
 
   class GenPMod : public AnalysisMod {
   public:
-    GenPMod(const panda::EventAnalysis& event_, 
+    GenPMod(panda::EventAnalysis& event_, 
             const Config& cfg_,                 
             const Utils& utils_,                
             GeneralTree& gt_) :                 
       AnalysisMod("gendup", event_, cfg_, utils_, gt_) { }
     ~GenPMod () { }
+
+    bool on() { return !analysis.isData; }
     
   protected:
     void do_init(Registry& registry) {

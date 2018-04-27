@@ -7,12 +7,14 @@
 namespace pa {
   class SimpleLeptonMod : public AnalysisMod {
   public: 
-    SimpleLeptonMod(const panda::EventAnalysis& event_, 
+    SimpleLeptonMod(panda::EventAnalysis& event_, 
                     const Config& cfg_,
                     const Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("simplep", event_, cfg_, utils_, gt_) { }
     virtual ~SimpleLeptonMod () { }
+
+    virtual bool on() { return !analysis.genOnly && !analysis.complicatedLeptons; }
     
   protected:
     virtual void do_initialize(Registry& registry) {
@@ -37,12 +39,14 @@ namespace pa {
 
   class ComplicatedLeptonMod : public SimpleLeptonMod {
   public: 
-    ComplicatedLeptonMod(const panda::EventAnalysis& event_, 
+    ComplicatedLeptonMod(panda::EventAnalysis& event_, 
                          const Config& cfg_,
                          const Utils& utils_,
                          GeneralTree& gt_) : 
       AnalysisMod("complep", event_, cfg_, utils_, gt_) { }
     ~ComplicatedLeptonMod () { delete rochesterCorrection; }
+
+    virtual bool on() { return !analysis.genOnly && analysis.complicatedLeptons; }
     
   protected:
     void do_readData(TString dirPath);
@@ -53,12 +57,14 @@ namespace pa {
 
   class InclusiveLeptonMod : public AnalysisMod {
   public: 
-    InclusiveLeptonMod(const panda::EventAnalysis& event_, 
+    InclusiveLeptonMod(panda::EventAnalysis& event_, 
                        const Config& cfg_,
                        const Utils& utils_,
                        GeneralTree& gt_) : 
       AnalysisMod("inclep", event_, cfg_, utils_, gt_) { }
     virtual ~InclusiveLeptonMod () { }
+
+    virtual bool on() { return !analysis.genOnly && analysis.hbb; }
     
   protected:
     virtual void do_initialize(Registry& registry) {
@@ -75,12 +81,14 @@ namespace pa {
 
   class SimplePhotonMod : public AnalysisMod {
   public: 
-    SimplePhotonMod(const panda::EventAnalysis& event_, 
+    SimplePhotonMod(panda::EventAnalysis& event_, 
                     const Config& cfg_,
                     const Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("simplepho", event_, cfg_, utils_, gt_) { }
     virtual ~SimplePhotonMod () { }
+
+    virtual bool on() { return !analysis.genOnly && !analysis.complicatedPhotons; }
     
   protected:
     virtual void do_initialize(Registry& registry) {
@@ -97,15 +105,17 @@ namespace pa {
 
   class ComplicatedPhotonMod : public SimplePhotonMod {
   public: 
-    ComplicatedPhotonMod(const panda::EventAnalysis& event_, 
+    ComplicatedPhotonMod(panda::EventAnalysis& event_, 
                          const Config& cfg_,
                          const Utils& utils_,
                          GeneralTree& gt_) : 
       AnalysisMod("comppho", event_, cfg_, utils_, gt_) { }
     ~ComplicatedPhotonMod () { }
+
+    virtual bool on() { return !analysis.genOnly && analysis.complicatedPhotons; }
     
   protected:
-    void do_initalize(Registry& registry) {
+    void do_initialize(Registry& registry) {
       SimplePhotonMod::do_initialize(registry);
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
@@ -118,15 +128,17 @@ namespace pa {
 
   class TauMod : public AnalysisMod {
   public: 
-    TauMod(const panda::EventAnalysis& event_, 
+    TauMod(panda::EventAnalysis& event_, 
            const Config& cfg_,
            const Utils& utils_,
            GeneralTree& gt_) : 
       AnalysisMod("tau", event_, cfg_, utils_, gt_) { }
     ~TauMod () { }
+
+    virtual bool on() { return !analysis.genOnly; }
     
   protected:
-    void do_initalize(Registry& registry) {
+    void do_initialize(Registry& registry) {
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
     void do_execute(); 
@@ -136,12 +148,14 @@ namespace pa {
 
   class GenLepMod : public AnalysisMod {
   public: 
-    GenLepMod(const panda::EventAnalysis& event_, 
+    GenLepMod(panda::EventAnalysis& event_, 
               const Config& cfg_,
               const Utils& utils_,
               GeneralTree& gt_) : 
       AnalysisMod("genlep", event_, cfg_, utils_, gt_) { }
     ~GenLepMod () { }
+
+    virtual bool on() { return analysis.vbf; }
     
   protected:
     void do_execute(); 

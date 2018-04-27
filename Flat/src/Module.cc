@@ -454,72 +454,60 @@ void ConfigMod::readData(TString dirPath)
   }
 
 
-  if (analysis.monoh || analysis.hbb) {
-    // mSD corr
-    utils.fMSDcorr = new TFile(dirPath+"/puppiCorr.root");
-    utils.puppisd_corrGEN = (TF1*)fMSDcorr->Get("puppiJECcorr_gen");;
-    utils.puppisd_corrRECO_cen = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_0eta1v3");
-    utils.puppisd_corrRECO_for = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
+  // TODO move these into a getCorr-accessible correction
+  // mSD corr
+  utils.fMSDcorr = new TFile(dirPath+"/puppiCorr.root");
+  utils.puppisd_corrGEN = (TF1*)fMSDcorr->Get("puppiJECcorr_gen");;
+  utils.puppisd_corrRECO_cen = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_0eta1v3");
+  utils.puppisd_corrRECO_for = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded mSD correction");
+
+  TFile *fcharges = TFile::Open((dirPath + "/deep/charges.root").Data());
+  TTree *tcharges = (TTree*)(fcharges->Get("charges"));
+  utils.pdgToQ.clear();
+  int pdg = 0; float q = 0;
+  tcharges->SetBranchAddress("pdgid",&pdg);
+  tcharges->SetBranchAddress("q",&q);
+  for (unsigned i = 0; i != tcharges->GetEntriesFast(); ++i) {
+    tcharges->GetEntry(i);
+    utils.pdgToQ[pdg] = q;
   }
-
-  if (analysis.rerunJES) {
-    TString jecV = "V4", jecReco = "23Sep2016"; 
-    TString jecVFull = jecReco+jecV;
-    utils.ak8UncReader["MC"] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK8PFPuppi.txt").Data()
-      );
-    std::vector<TString> eraGroups = {"BCD","EF","G","H"};
-    for (auto e : eraGroups) {
-      utils.ak8UncReader["data"+e] = new JetCorrectionUncertainty(
-           (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK8PFPuppi.txt").Data()
-        );
-    }
-
-    utils.ak8JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK8PFPuppi.txt",
-                                 dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK8PFPuppi.txt");
-  }
-
-  if (analysis.deepGen) {
-    TFile *fcharges = TFile::Open((dirPath + "/deep/charges.root").Data());
-    TTree *tcharges = (TTree*)(fcharges->Get("charges"));
-    utils.pdgToQ.clear();
-    int pdg = 0; float q = 0;
-    tcharges->SetBranchAddress("pdgid",&pdg);
-    tcharges->SetBranchAddress("q",&q);
-    for (unsigned i = 0; i != tcharges->GetEntriesFast(); ++i) {
-      tcharges->GetEntry(i);
-      utils.pdgToQ[pdg] = q;
-    }
-    fcharges->Close();
-  }
+  fcharges->Close();
 }
 
 
-void AnalysisMod::initalize(Registry& registry)
+void AnalysisMod::initialize(Registry& registry)
 {
-  do_initalize(registry);
+  if (!on())
+    return;
+  do_init(registry);
   for (auto* mod: subMods)
-    mod->initalize(registry);
+    mod->initialize(registry);
 }
 
 void AnalysisMod::readData(TString path)
 {
+  if (!on())
+    return;
   do_readData(path+"/");
   for (auto* mod: subMods)
     mod->readData(path);
 }
 
+// execute DOES NOT cascade down child modules -
+// calling subMod execution is left up to the caller
+// to allow for more flexibility
 void AnalysisMod::execute()
 {
+  if (!on())
+    return;
   do_execute();
-  for (auto* mod : subMods)
-    mod->execute();
 }
 
 void AnalysisMod::reset()
 {
+  if (!on())
+    return;
   do_reset();
   for (auto* mod : subMods)
     mod->reset();
@@ -527,6 +515,8 @@ void AnalysisMod::reset()
 
 void AnalysisMod::terminate()
 {
+  if (!on())
+    return;
   do_terminate();
   for (auto* mod : subMods)
     mod->terminate();

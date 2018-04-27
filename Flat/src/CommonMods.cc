@@ -4,72 +4,29 @@ using namespace pa;
 using namespace std;
 using namespace panda;
 
-void RecoilMod::do_execute()
+void shiftMET(const panda::RecoMet& met, TLorentzVector& v, shiftjes shift) 
 {
-  TLorentzVector vObj1, vObj2;
-  gt.whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
-  if (gt.nLooseLep>0) {
-    panda::Lepton *lep1 = looseLeps->at(0);
-    vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
-
-    // one lep => W
-    JESLOOP {
-      auto& jets = jesShifts[shift]; 
-
-      jets.vpuppiUW = jets.vpuppiMET + vObj1;
-      gt.puppiUWmag[shift] = jets.vpuppiUW.Pt(); 
-      gt.puppiUWphi[shift] = jets.vpuppiUW.Phi(); 
-
-      jets.vpfUW = jets.vpfMET + vObj1;
-      gt.pfUWmag[shift] = jets.vpfUW.Pt(); 
-      gt.pfUWphi[shift] = jets.vpfUW.Phi(); 
-    }
-
-    if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
-      // two OS lep => Z
-      panda::Lepton *lep2 = looseLeps->at(1);
-      vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-
-      JESLOOP {
-        auto& jets = jesShifts[shift]; 
-
-        jets.vpuppiUZ = jets.vpuppiUW + vObj2;
-        gt.puppiUZmag[shift] = jets.vpuppiUZ.Pt(); 
-        gt.puppiUZphi[shift] = jets.vpuppiUZ.Phi(); 
-
-        jets.vpfUZ = jets.vpfUW + vObj2;
-        gt.pfUZmag[shift] = jets.vpfUZ.Pt(); 
-        gt.pfUZphi[shift] = jets.vpfUZ.Phi(); 
-      }
-
-      gt.whichRecoil = 2;
-    } else {
-      gt.whichRecoil = 1;
-    }
+  float pt;
+  float phi;
+  switch (shift) {
+    case shiftjes::kNominal:
+      pt = met.pt;
+      phi = met.phi;
+      break;
+    case shiftjes::kJESUp:
+      pt = met.ptCorrUp;
+      phi = met.phiCorrUp;
+      break;
+    case shiftjes::kJESDown:
+      pt = met.ptCorrDown;
+      phi = met.phiCorrDown;
+      break;
+    default:
+      PError("shiftMET", "Unknown JES type!");
+      exit(1);
   }
-  if (gt.nLoosePhoton>0) {
-    panda::Photon *pho = loosePhos->(0);
-    vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
 
-    JESLOOP {
-      auto& jets = jesShifts[shift]; 
-
-      jets.vpuppiUA = jets.vpuppiMET + vObj1;
-      gt.puppiUAmag[shift] = jets.vpuppiUA.Pt(); 
-      gt.puppiUAphi[shift] = jets.vpuppiUA.Phi(); 
-
-      jets.vpfUA = jets.vpfMET + vObj1;
-      gt.pfUAmag[shift] = jets.vpfUA.Pt(); 
-      gt.pfUAphi[shift] = jets.vpfUA.Phi(); 
-    }
-
-    if (gt.nLooseLep==0) {
-      gt.whichRecoil = -1;
-    }
-  }
-  if (gt.nLooseLep==0 && gt.nLoosePhoton==0) {
-    gt.whichRecoil = 0;
-  }
+  v.SetPtEtaPhiM(pt, 0, phi, 0);
 }
 
 void TriggerMod::do_init(Registry& registry) 
@@ -212,14 +169,12 @@ void TriggerMod::do_init(Registry& registry)
 
 void TriggerMod::do_execute()
 {
-  if (analysis.isData || analysis.applyMCTriggers) {
-    for (unsigned iT = 0; iT != kNTrig; ++iT) {
-      auto &th = triggerHandlers.at(iT);
-      for (auto iP : th.indices) {
-        if (event.triggerFired(iP)) {
-            gt.trigger |= (1 << iT);
-            break;
-        }
+  for (unsigned iT = 0; iT != kNTrig; ++iT) {
+    auto &th = triggerHandlers.at(iT);
+    for (auto iP : th.indices) {
+      if (event.triggerFired(iP)) {
+          gt.trigger |= (1 << iT);
+          break;
       }
     }
   }
@@ -294,12 +249,78 @@ void GlobalMod::do_execute()
 
 void GenPMod::do_execute()
 {
-  if (analysis.isData)
-    return;
   if (event.genParticles.size() > 0) {
     merge_particles(event.genParticles);
   } else {
     merge_particles(event.genParticlesU);
+  }
+}
+
+void RecoilMod::do_execute()
+{
+  TLorentzVector vObj1, vObj2;
+  gt.whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
+  if (gt.nLooseLep>0) {
+    panda::Lepton *lep1 = looseLeps->at(0);
+    vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
+
+    // one lep => W
+    JESLOOP {
+      auto& jets = (*jesShifts)[shift]; 
+
+      jets.vpuppiUW = jets.vpuppiMET + vObj1;
+      gt.puppiUWmag[shift] = jets.vpuppiUW.Pt(); 
+      gt.puppiUWphi[shift] = jets.vpuppiUW.Phi(); 
+
+      jets.vpfUW = jets.vpfMET + vObj1;
+      gt.pfUWmag[shift] = jets.vpfUW.Pt(); 
+      gt.pfUWphi[shift] = jets.vpfUW.Phi(); 
+    }
+
+    if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
+      // two OS lep => Z
+      panda::Lepton *lep2 = looseLeps->at(1);
+      vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
+
+      JESLOOP {
+        auto& jets = (*jesShifts)[shift]; 
+
+        jets.vpuppiUZ = jets.vpuppiUW + vObj2;
+        gt.puppiUZmag[shift] = jets.vpuppiUZ.Pt(); 
+        gt.puppiUZphi[shift] = jets.vpuppiUZ.Phi(); 
+
+        jets.vpfUZ = jets.vpfUW + vObj2;
+        gt.pfUZmag[shift] = jets.vpfUZ.Pt(); 
+        gt.pfUZphi[shift] = jets.vpfUZ.Phi(); 
+      }
+
+      gt.whichRecoil = 2;
+    } else {
+      gt.whichRecoil = 1;
+    }
+  }
+  if (gt.nLoosePhoton>0) {
+    panda::Photon *pho = loosePhos->(0);
+    vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
+
+    JESLOOP {
+      auto& jets = (*jesShifts)[shift]; 
+
+      jets.vpuppiUA = jets.vpuppiMET + vObj1;
+      gt.puppiUAmag[shift] = jets.vpuppiUA.Pt(); 
+      gt.puppiUAphi[shift] = jets.vpuppiUA.Phi(); 
+
+      jets.vpfUA = jets.vpfMET + vObj1;
+      gt.pfUAmag[shift] = jets.vpfUA.Pt(); 
+      gt.pfUAphi[shift] = jets.vpfUA.Phi(); 
+    }
+
+    if (gt.nLooseLep==0) {
+      gt.whichRecoil = -1;
+    }
+  }
+  if (gt.nLooseLep==0 && gt.nLoosePhoton==0) {
+    gt.whichRecoil = 0;
   }
 }
 

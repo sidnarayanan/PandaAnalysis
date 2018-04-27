@@ -58,32 +58,6 @@ void PandaAnalyzer::Terminate()
   if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
 }
 
-void shiftMET(const panda::RecoMet& met, TLorentzVector& v, shiftjes shift) 
-{
-  float pt;
-  float phi;
-  switch (shift) {
-    case shiftjes::kNominal:
-      pt = met.pt;
-      phi = met.phi;
-      break;
-    case shiftjes::kJESUp:
-      pt = met.ptCorrUp;
-      phi = met.phiCorrUp;
-      break;
-    case shiftjes::kJESDown:
-      pt = met.ptCorrDown;
-      phi = met.phiCorrDown;
-      break;
-    default:
-      PError("shiftMET", "Unknown JES type!");
-      exit(1);
-  }
-
-  v.SetPtEtaPhiM(pt, 0, phi, 0);
-
-}
-
 
 // run
 void PandaAnalyzer::Run() 
@@ -184,18 +158,13 @@ void PandaAnalyzer::Run()
       // InclusiveLepMod
       //
       // SimplePhoMod, ComplicatedPhoMod
-
-      // recoil!
-      if (analysis->recoil)
-        Recoil();
-
-      // fatjets
-      if (analysis->fatjet) {
-        FatjetBasics();
-        if (analysis->recluster)
-          FatjetRecluster();
-        tr->TriggerEvent("fatjet");
-      }
+      //
+      // RecoilMod
+      //
+      // FatJetMod 
+      //   -> FatJetReclusterMod
+      //
+      // 
 
       // interesting jets
       JetBasics();

@@ -39,9 +39,6 @@ void SimpleLeptonMod::scaleFactors()
 
 void SimpleLeptonMod::do_execute() 
 {
-  if (analysis.genOnly || analysis.complicatedLeptons)
-    return;
-
   //electrons
   for (auto& ele : event.electrons) {
     float pt = ele.pt(); float eta = ele.eta(); float aeta = fabs(eta);
@@ -159,9 +156,6 @@ void ComplicatedLeptonMod::do_readData(TString dirPath)
 
 void ComplicatedLeptonMod::do_execute()
 {
-  if (analysis.genOnly || !analysis.complicatedLeptons)
-    return;
-
   for (auto& ele : event.electrons) {
     float pt = ele.smearedPt; float eta = ele.eta(); float aeta = fabs(eta);
     if (analysis->hbb) {
@@ -358,9 +352,6 @@ void ComplicatedLeptonMod::do_execute()
 
 void InclusiveLepMod::do_execute()
 {
-  if (analysis.genOnly || !analysis.hbb)
-    return;
-
   // "Inclusive very loose selection"
   // https://github.com/vhbb/cmssw/blob/vhbbHeppy80X/PhysicsTools/Heppy/python/analyzers/objects/LeptonAnalyzer.py
   for (auto& ele : event.electrons) {
@@ -399,8 +390,6 @@ void SimplePhotonMod::scaleFactors()
 
 void SimplePhotonMod::do_execute()
 {
-  if (analysis.genOnly || analysis.complicatedPhotons)
-    return;
   for (auto& pho : event.photons) {
     if (!pho.loose || !pho.csafeVeto)
       continue;
@@ -432,9 +421,6 @@ void SimplePhotonMod::do_execute()
 
 void ComplicatedPhotonMod::do_execute()
 {
-  if (!analysis.complicatedPhotons || analysis.genOnly)
-    return;
-
   for (auto& pho : event.photons) {
     if (!pho.medium)
       continue;
@@ -495,9 +481,6 @@ void ComplicatedPhotonMod::pfChargedPhotonMatch(const Photon& photon)
 
 void TauMod::do_execute()
 {
-  if (analysis.genOnly)
-    return;
-
   for (auto& tau : event.taus) {
     if (analysis.vbf) {
       if (!tau.decayMode || !tau.decayModeNew)
@@ -520,9 +503,6 @@ void TauMod::do_execute()
 
 void GenLepMod::do_execute()
 {
-  if (!analysis.vbf)
-    return;
-
   gt.genTauPt = -1;
   gt.genElectronPt = -1;
   gt.genMuonPt = -1;

@@ -9,12 +9,15 @@ typedef DeepGenMod<GenParticle> DeepPGenMod;
 typedef DeepGenMod<UnpackedGenParticle> DeepUGenMod;
 
 template <typename GENP>
-DeepGenMod<GENP>::DeepGenMod(const panda::EventAnalysis& event_, 
+DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_, 
            const Config& cfg_,
            const Utils& utils_,
            GeneralTree& gt_) :
   AnalysisMod("deepgen", event_, cfg_, utils_, gt_) 
 { 
+  if (!on())
+    return;
+
   double radius = 1.5;
   double sdZcut = 0.15;
   double sdBeta = 1.;
@@ -39,9 +42,6 @@ DeepGenMod<GENP>::DeepGenMod(const panda::EventAnalysis& event_,
 template <typename GENP>
 void DeepGenMod<GENP>::do_execute() 
 {
-  if (analysis.isData)
-    return;
-
   gt.genFatJetPt = 0;
   gt.genFatJetNProngs = -1;
 

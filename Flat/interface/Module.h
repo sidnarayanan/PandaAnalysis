@@ -84,7 +84,7 @@ namespace pa {
   class AnalysisMod : public BaseModule {
     public:
       AnalysisMod(TString name, 
-                  const panda::EventAnalysis& event_, 
+                  panda::EventAnalysis& event_, 
                   const Config& cfg_, 
                   const Utils& utils_,
                   GeneralTree& gt_) : 
@@ -99,9 +99,14 @@ namespace pa {
       // cascading calls to protected functions
       void initialize(Registry& registry);
       void readData(TString path);
+      // execute DOES NOT cascade down child modules -
+      // calling subMod execution is left up to the caller
+      // to allow for more flexibility
       void execute();
       void reset();
       void terminate(); 
+
+      virtual bool on() { return true; }
 
     protected:
       panda::EventAnalysis& event;

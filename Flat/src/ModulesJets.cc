@@ -10,65 +10,6 @@
 using namespace panda;
 using namespace std;
 
-float centralOnly(float x, float aeta, float def = -1) 
-{
-  return  aeta < 2.4 ? x : -1;
-}
-
-bool csvLoose(float csv) 
-{
-  return csv > 0.5426;
-}
-
-bool csvMed(float csv) 
-{
-  return csv > 0.8484;
-}
-
-PandaAnalyzer::JetWrapper PandaAnalyzer::shiftJet(const Jet& jet, shiftjes shift) 
-{
-  float pt;
-  switch (shift) {
-    case shiftjes::kNominal:
-      pt = jet.pt();
-      break;
-    case shiftjes::kJESUp:
-      pt = jet.ptCorrUp;
-      break;
-    case shiftjes::kJESDown:
-      pt = jet.ptCorrDown;
-      break;
-    default:
-      PError("shiftJet", "Unknown JES type!");
-      exit(1);
-  }
-  if (analysis->hbb) {
-    pt *= jet.ptSmear / jet.pt();
-  }
-  return JetWrapper(pt, jet);
-}
-
-// set up JES readers
-// Responsible: S. Narayanan
-void PandaAnalyzer::SetupJES()
-{
-  if (uncReader==0) {
-    if (isData) {
-      TString thisEra = eras.getEra(gt->runNumber);
-      for (auto &iter : ak8UncReader) {
-        if (! iter.first.Contains("data"))
-          continue;
-        if (iter.first.Contains(thisEra)) {
-          uncReader = iter.second;
-          break;
-        }
-      }
-    } else {
-      uncReader = ak8UncReader["MC"];
-    }
-  }
-}
-
 void PandaAnalyzer::jetPartonFlavor(const Jet& jet, int& flavor, float& genpt) {
   // here we try to match to hard partons
   flavor=0; genpt=0; // defaults
@@ -318,24 +259,6 @@ void PandaAnalyzer::IsoJet(JetWrapper& jw, JESHandler& jets)
     jets.iso.push_back(&jw);
 
   tr->TriggerSubEvent("iso jets");
-}
-
-// vary jet energy scales for jet
-// Responsible: S. Narayanan
-void PandaAnalyzer::JetVaryJES()
-{
-  JESLOOP {
-    auto& jets = jesShifts[shift];
-    jets.reserve(ak4jets->size());
-    for (auto &j : *ak4jets) {
-      jets.all.push_back(shiftJet(j, i2jes(shift)));
-    }
-    if (shift != jes2i(shiftjes::kNominal)) {
-      std::sort(jets.all.begin(), jets.all.end(),
-                [](JetWrapper x, JetWrapper y) { return x.pt > y.pt; });
-    }
-  }
-  tr->TriggerSubEvent("vary jet JES");
 }
 
 // variables of the entire VBF system

@@ -11,7 +11,7 @@ namespace pa {
   template <typename GENP>
   class DeepGenMod : public AnalysisMod {
   public: 
-    DeepGenMod(const panda::EventAnalysis& event_, 
+    DeepGenMod(panda::EventAnalysis& event_, 
                const Config& cfg_,
                const Utils& utils_,
                GeneralTree& gt_);
@@ -19,6 +19,8 @@ namespace pa {
       delete jetDef; delete softDrop; delete tauN;
       delete ecfcalc; delete grid;
     }
+
+    virtual bool on() { return !analysis.isData && analysis.deepGen; }
     
   protected:
     void do_init(Registry& registry) {
