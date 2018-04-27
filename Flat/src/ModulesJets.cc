@@ -310,8 +310,8 @@ void PandaAnalyzer::IsoJet(JetWrapper& jw, JESHandler& jets)
   float maxIsoEta = (analysis->monoh) ? 4.5 : 2.5;
   bool isIsoJet = ( 
         gt->nFatjet == 0 || 
-        fabs(jet.eta() < maxIsoEta && 
-        DeltaR2(gt->fjEta,gt->fjPhi,jet.eta(),jet.phi()) > FATJETMATCHDR2) 
+        (fabs(jet.eta()) < maxIsoEta && 
+          DeltaR2(gt->fjEta,gt->fjPhi,jet.eta(),jet.phi()) > FATJETMATCHDR2) 
       ); 
 
   jw.iso = isIsoJet; 

@@ -277,7 +277,7 @@ void PandaAnalyzer::FillGenTree()
   }
 
   gt->genFatJetPt = fullJet->perp();
-  if (gt->genFatJetPt < 200) {
+  if (gt->genFatJetPt < 450) {
     tr->TriggerEvent("fill gen tree");
     return;
   }
