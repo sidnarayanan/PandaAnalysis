@@ -206,6 +206,7 @@ namespace pa {
       TVector2 vpfMETNoMu;
       TLorentzVector vpfUW, vpfUZ, vpfUA;
       TLorentzVector vpuppiUW, vpuppiUZ, vpuppiUA;
+      int shift_idx{-1};
 
       void clear() { 
               all.clear(); cleaned.clear(); iso.clear();
@@ -279,8 +280,6 @@ namespace pa {
       Binner btagpt  = Binner({});
       Binner btageta = Binner({});
       std::vector<std::vector<double>> lfeff, ceff, beff;
-      TMVA::Reader *bjetregReader{nullptr}; 
-      float *bjetreg_vars{nullptr};
 
       std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
       JERReader *ak8JERReader{nullptr}; //!< fatjet jet energy resolution reader

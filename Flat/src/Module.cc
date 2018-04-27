@@ -409,50 +409,6 @@ void ConfigMod::readData(TString dirPath)
           );
   }
 
-  // bjet regression
-  if (analysis.bjetRegression) {
-    utils.bjetreg_vars = new float[15];
-    utils.bjetregReader = new TMVA::Reader("!Color:!Silent");
-    utils.bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 0]) );
-    utils.bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 1]) );
-    utils.bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 2]) );
-    utils.bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 3]) );
-    utils.bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 4]) );
-    utils.bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 5]) );
-    utils.bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 6]) );
-    utils.bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 7]) );
-    utils.bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 8]) );
-    utils.bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[ 9]) );
-    utils.bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[10]) );
-    utils.bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[11]) );
-    utils.bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
-                                     &(utils.bjetreg_vars[12]) );
-    utils.bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
-                                     &(utils.bjetreg_vars[13]) );
-    utils.bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
-                                     &(utils.bjetreg_vars[14]) );
-
-    gSystem->Exec(
-        Form("wget -nv -O %s/trainings/bjet_regression_v1_fromBenedikt.weights.xml http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",dirPath.Data())
-      );
-    utils.bjetregReader->BookMVA("BDT method", 
-                                 dirPath+"trainings/bjet_regression_v1_fromBenedikt.weights.xml" );
-
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded bjet regression weights");
-  }
-
 
   // TODO move these into a getCorr-accessible correction
   // mSD corr

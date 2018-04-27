@@ -144,23 +144,22 @@ void JetMod::do_execute()
 
   JESLOOP {
     JESHandler& jets = (*jesShifts)[shift];
+    currentJES = &jets;
     for (auto& jw : jets.all) {
+      currentJet = &jw;
       auto& jet = jw.get_base();
       float aeta = abs(jet.eta());
       float pt = jw.pt;
       if (aeta > maxJetEta || pt < minMinJetPt) 
         continue;
-      if (IsMatched(matchLeps,0.16,jet.eta(),jet.phi()))
+      if (isMatched(matchLeps,0.16,jet.eta(),jet.phi()))
         continue;
-      if (!analysis.hbb && IsMatched(matchPhos,0.16,jet.eta(),jet.phi()))
+      if (!analysis.hbb && isMatched(matchPhos,0.16,jet.eta(),jet.phi()))
         continue;
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
-      if (analysis.jetFlavorPartons)
-        jetPartonFlavor(jet, jw.flavor, jw.genpt);
-      else if (analysis.jetFlavorJets)
-        jetClusteredFlavor(jet, jw.flavor, jw.genpt);
+      flavor->execute();
 
       float csv = centralOnly(jet.csv, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
@@ -178,18 +177,18 @@ void JetMod::do_execute()
 
 
       if (pt > minJetPt) {
-        if ((analysis.hbb || analysis.monoh) && jets.cleaned.size() >= NJET)
+        if ((analysis.hbb || analysis.monoh) && jets.cleaned.size() >= cfg.NJET)
           continue;
 
         jets.cleaned.push_back(&jw);
         
         if (jets.cleaned.size() < 3) {      
-          if (GetCorr(cBadECALJets, jet.eta(), jet.phi()) > 0)
+          if (utils.getCorr(cBadECALJets, jet.eta(), jet.phi()) > 0)
             gt.badECALFilter = 0;
         }
 
         if (analysis.fatjet) {
-          IsoJet(jw, jets);
+          isojet->execute();
           if (jw.iso && csvLoose(csv))
             ++(gt.isojetNBtags[shift]);
         }
@@ -218,18 +217,16 @@ void JetMod::do_execute()
         }
 
         int njet = jets.cleaned.size();
-        if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < NJET)) {
-          gt.jotPt[njet][shift] = pt;
-          gt.jotEta[njet][shift] = jet.eta();
-          gt.jotPhi[njet][shift] = jet.phi();
-          gt.jotE[njet][shift] = jet.e() * jw.scale();
-          gt.jotCSV[njet][shift] = csv;
-          gt.jotCMVA[njet][shift] = cmva;
-          gt.jotVBFID[njet][shift] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
+        if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJET)) {
+          gt.jotPt[shift][njet] = pt;
+          gt.jotEta[shift][njet] = jet.eta();
+          gt.jotPhi[shift][njet] = jet.phi();
+          gt.jotE[shift][njet] = jet.e() * jw.scale();
+          gt.jotCSV[shift][njet] = csv;
+          gt.jotCMVA[shift][njet] = cmva;
+          gt.jotVBFID[shift][njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
 
-          if (analysis.bjetRegression) {
-            JetBRegressionInfo(jet, njet, shift);
-          }
+          bjetreg->execute();
         }
 
         TLorentzVector vJet; vJet.SetPtEtaPhiM(pt, jet.eta(), jet.phi(), jet.m());
@@ -280,4 +277,293 @@ void JetMod::do_execute()
 
   gt.barrelHTMiss = vBarrelJets.Pt();
   
+}
+
+
+void JetFlavorMod::partonFlavor()
+{
+  auto& jw = **currentJet;
+  auto& jet = jw.get_base();
+  jw.flavor=0; jw.genpt=0;
+  for (auto* genptr : *genP) {
+    auto& gen = pToGRef(genptr);
+    int apdgid = abs(gen.pdgid);
+    if (apdgid==0 || (apdgid>5 && apdgid!=21)) // light quark or gluon
+      continue;
+    double dr2 = DeltaR2(jet.eta(),jet.phi(),gen.eta(),gen.phi());
+    if (dr2<0.09) {
+      jw.genpt = gen.pt();
+      if (apdgid==4 || apdgid==5) {
+        jw.flavor=apdgid;
+        return;
+      } else {
+        jw.flavor=0;
+      }
+    }
+  }
+}
+
+void JetFlavorMod::clusteredFlavor()
+{
+  auto& jw = **currentJet;
+  auto& jet = jw.get_base();
+  for (auto &gen : event.ak4GenJets) {
+    if (DeltaR2(gen.eta(), gen.phi(), jet.eta(), jet.phi()) < 0.09) {
+      int apdgid = abs(gen.pdgid);
+      jw.genpt = gen.pt();
+      if (apdgid == 4 || apdgid == 5) {
+        jw.flavor = apdgid;
+        return;
+      } else {
+        jw.flavor = 0;
+      }
+    }
+  }
+}
+
+
+void JetFlavorMod::do_execute()
+{
+  if (analysis.jetFlavorPartons)
+    partonFlavor();
+  else
+    clusteredFlavor();
+}
+
+
+void IsoJetMod::do_execute()
+{
+  auto& jw = **currentJet;
+  auto& jets = **currentJES;
+  auto& jet = jw.get_base();
+  float maxIsoEta = analysis.monoh ? 4.5 : 2.5;
+  bool isIsoJet = ( 
+        gt.nFatjet == 0 || 
+        (fabs(jet.eta()) < maxIsoEta && 
+         DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > FATJETMATCHDR2) 
+      ); 
+
+  jw.iso = isIsoJet; 
+
+  if (isIsoJet) 
+    jets.iso.push_back(&jw);
+}
+
+void BJetRegMod::do_execute()
+{
+  auto& jw = **currentJet;
+  auto& jet = jw.get_base();
+  auto& jets = **currentJES; 
+
+  int N = jets.cleaned.size();
+  int shift = jets.shift_idx;
+
+  gt.jotEMF[shift][N] = jet.cef + jet.nef;
+  gt.jotHF[shift][N] = jet.chf + jet.nhf;
+  gt.jotLep1Pt[shift][N] = 0;
+  gt.jotTrk1Pt[shift][N] = 0;
+  gt.jotNLep[shift][N] = 0;
+  for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
+    if (!c_iter.isValid())
+      continue;
+    auto *pf = c_iter.get();
+    if (pf->q() != 0) {
+      float pt = pf->pt();
+      gt.jotTrk1Pt[shift][N] = max(pt, gt.jotTrk1Pt[shift][N]);
+      int pdgid = abs(pf->pdgId());
+      if (pdgid == 11 || pdgid == 13) {
+        gt.jotNLep[shift][N]++;
+        if (pt > gt.jotLep1Pt[shift][N]) {
+          gt.jotLep1Pt[shift][N] = pt;
+          gt.jotLep1PtRel[shift][N] = pf->p4().Perp(jet.p4().Vect());
+          gt.jotLep1DeltaR[shift][N] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
+        }
+      }
+    }
+  }
+
+  auto& vert = jet.secondaryVertex;
+  if (vert.isValid()) {
+    gt.jotVtxPt[shift][N] = vert->pt();
+    gt.jotVtxMass[shift][N] = vert->m();
+    gt.jotVtx3DVal[shift][N] = vert->vtx3DVal;
+    gt.jotVtx3DErr[shift][N] = vert->vtx3DeVal;
+    gt.jotVtxNtrk[shift][N] = vert->ntrk;
+  }
+}
+
+void VBFSystemMod::do_execute()
+{
+  auto& jets = **currentJES; 
+
+  int shift = jets.shift_idx;
+
+  if (jets.cleaned.size() > 1) {
+    TLorentzVector v0 = jets.cleaned[0]->p4();
+    TLorentzVector v1 = jets.cleaned[1]->p4();
+    gt.jot12Mass[shift] = (v0 + v1).M();
+    gt.jot12DPhi[shift] = v0.DeltaPhi(v1);
+    gt.jot12DEta[shift] = fabs(v0.Eta() - v1.Eta());
+  }
+}
+
+void HbbSystemMod::do_readData(TString dirPath)
+{
+  delete bjetreg_vars; 
+  delete bjetregReader; // we're going to recreate these guys 
+
+  bjetreg_vars = new float[15];
+  bjetregReader = new TMVA::Reader("!Color:!Silent");
+  bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 0]) );
+  bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 1]) );
+  bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
+                              &(bjetreg_vars[ 2]) );
+  bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 3]) );
+  bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 4]) );
+  bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 5]) );
+  bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 6]) );
+  bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 7]) );
+  bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 8]) );
+  bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 9]) );
+  bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
+                             &(bjetreg_vars[10]) );
+  bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
+                             &(bjetreg_vars[11]) );
+  bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
+                             &(bjetreg_vars[12]) );
+  bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                             &(bjetreg_vars[13]) );
+  bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                             &(bjetreg_vars[14]) );
+
+  gSystem->Exec(
+      Form("wget -nv -O %s/trainings/bjetregression.weights.xml http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",dirPath.Data())
+    );
+  bjetregReader->BookMVA("BDT method", 
+                         dirPath+"trainings/bjetregression.weights.xml" );
+
+}
+
+void HbbSystemMod::do_execute()
+{
+  auto& jets = **currentJES; 
+  int shift = jets.shift_idx;
+
+  if (jets.cleaned.size() < 2)
+    return;
+
+  btagsorted = jets.central; // copy
+  sort(btagsorted.begin(), btagsorted.end(),
+       analysis.useCMVA ? 
+        [](const JetWrapper *x, const JetWrapper *y) { return x->base->cmva > y->base->cmva; } :   
+        [](const JetWrapper *x, const JetWrapper *y) { return x->base->csv > y->base->csv; }
+      );
+  map<const JetWrapper*, int> order; // needed for output indexing
+  for (int i = 0; i != (int)jets.cleaned.size(); ++i) 
+    order[jets.cleaned[i]] = i;
+ 
+  const JetWrapper* bjets[2] = {btagsorted[0], btagsorted[1]};
+
+  gt.hbbjtidx[shift][0] = order[bjets[0]];
+  gt.hbbjtidx[shift][1] = order[bjets[1]];
+
+  const vector<TLorentzVector> hbbd = { bjets[0]->p4(), bjets[1]->p4() };
+  TLorentzVector hbbsystem = hbbd[0] + hbbd[1];
+
+  gt.hbbpt[shift] = hbbsystem.Pt();
+  gt.hbbeta[shift] = hbbsystem.Eta();
+  gt.hbbphi[shift] = hbbsystem.Phi();
+  gt.hbbm[shift] = hbbsystem.M();
+
+  TLorentzVector hbbd_corr[2];
+  if (analysis.bjetRegression && gt.hbbm[shift] > 0) {
+    for (int i = 0; i<2; i++) {
+      int idx = gt.hbbjtidx[shift][i];
+      // Shifted values for the jet energies to perform the b-jet regression
+      bjetreg_vars[0] = gt.jotPt[shift][idx];
+      bjetreg_vars[1] = gt.jotEta[shift][idx];
+      bjetreg_vars[2] = gt.jotTrk1Pt[shift][idx];
+      bjetreg_vars[3] = gt.jotLep1Pt[shift][idx];
+      bjetreg_vars[4] = gt.jotEMF[shift][idx];
+      bjetreg_vars[5] = gt.jotHF[shift][idx];
+      bjetreg_vars[6] = gt.jotLep1DeltaR[shift][idx];
+      bjetreg_vars[7] = gt.jotLep1PtRel[shift][idx];
+      bjetreg_vars[8] = gt.jotVtxPt[shift][idx];
+      bjetreg_vars[9] = gt.jotVtxMass[shift][idx];
+      bjetreg_vars[10]= gt.jotVtx3DVal[shift][idx];
+      bjetreg_vars[11]= gt.jotVtx3DErr[shift][idx];
+      bjetreg_vars[12]= gt.jotVtxNtrk[shift][idx];
+      bjetreg_vars[13]= hbbd[i].Et();
+      bjetreg_vars[14]= hbbd[i].Mt();
+
+      gt.hbbjtRegFac[shift][i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
+      hbbd_corr[i].SetPtEtaPhiM(
+            gt.hbbjtRegFac[shift][i] * gt.jotPt[shift][idx],
+            gt.jotEta[shift][idx],
+            gt.jotPhi[shift][idx],
+            gt.jotM[shift][idx]
+          );
+    }
+
+    TLorentzVector hbbsystem_corr = hbbd_corr[0] + hbbd_corr[1];
+    gt.hbbm_reg[shift] = hbbsystem_corr.M(); 
+    gt.hbbpt_reg[shift] = hbbsystem_corr.Pt();
+
+  } // regression
+
+  if (gt.hbbm > 0) {
+    gt.hbbCosThetaJJ[shift] = hbbsystem.CosTheta();
+    float csj1;
+    if (analysis.bjetRegression) {
+      if (hbbd_corr[0].Pt() > hbbd_corr[1].Pt())
+        csj1 = CosThetaCollinsSoper(hbbd_corr[0], hbbd_corr[1]);
+      else
+        csj1 = CosThetaCollinsSoper(hbbd_corr[1], hbbd_corr[0]);
+    } else {
+      if (hbbd[0].Pt() > hbbd[1].Pt())
+        csj1 = CosThetaCollinsSoper(hbbd[0], hbbd[1]);
+      else
+        csj1 = CosThetaCollinsSoper(hbbd[1], hbbd[0]);
+    }
+    gt.hbbCosThetaCSJ1[shift] = csj1;
+  }
+
+  if (gt.hbbm > 0 && gt.nLooseLep > 0 ) {
+    TLorentzVector leptonP4, metP4, nuP4, *jet0P4, *jet1P4, WP4, topP4;
+    float dRJet0W, dRJet1W;
+    bool jet0IsCloser;
+    leptonP4=looseLeps[0]->p4();
+
+    metP4.SetPtEtaPhiM(gt.pfmet[shift], 0, gt.pfmetphi[shift], 0);
+    nuP4 = getNu4Momentum( leptonP4, metP4 );
+    WP4 = leptonP4 + nuP4;
+
+    // If using b-jet regression, use the regressed jets for the top mass reconstruction
+    // Otherwise, use the un regressed jets
+    if (analysis.bjetRegression) {
+      jet0P4 = &hbbd_corr[0]; jet1P4 = &hbbd_corr[1];
+    } else {
+      jet0P4 = &hbbd[0]; jet1P4 = &hbbd[1];
+    }
+
+    dRJet0W=jet0P4->DeltaR(leptonP4); 
+    dRJet1W=jet1P4->DeltaR(leptonP4); 
+    jet0IsCloser = (dRJet0W < dRJet1W);
+
+    topP4 = jet0IsCloser ? (*jet0P4)+WP4 : (*jet1P4)+WP4;
+    gt.topMassLep1Met[shift] = topP4.M();
+    gt.topWBosonCosThetaCS[shift] = CosThetaCollinsSoper(WP4, jet0IsCloser ? *jet0P4 : *jet1P4);
+    gt.topWBosonPt  = WP4.Pt();
+    gt.topWBosonEta = WP4.Eta();
+    gt.topWBosonPhi = WP4.Phi();
+  }
 }

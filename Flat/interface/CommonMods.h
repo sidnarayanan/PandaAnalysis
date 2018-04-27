@@ -57,7 +57,11 @@ namespace pa {
                const Config& cfg_,                 
                const Utils& utils_,                
                GeneralTree& gt_) :                 
-      AnalysisMod("global", event_, cfg_, utils_, gt_) { }
+      AnalysisMod("global", event_, cfg_, utils_, gt_) { 
+        JESLOOP {
+          jesShifts[shift].shift_idx = shift;
+        }
+      }
     ~GlobalMod () { }
     
   protected:
