@@ -337,14 +337,7 @@ void PandaAnalyzer::FatjetBasics()
       gt->fj1MSD = fj.mSD;
       gt->fj1RawPt = rawpt;
 
-      // do a bit of jet energy scaling
       if (analysis->rerunJES) {
-        double scaleUnc = (fj.ptCorrUp - gt->fj1Pt) / gt->fj1Pt; 
-        gt->fj1PtScaleUp   = gt->fj1Pt  * (1 + 2*scaleUnc);
-        gt->fj1PtScaleDown  = gt->fj1Pt  * (1 - 2*scaleUnc);
-        gt->fj1MSDScaleUp  = gt->fj1MSD * (1 + 2*scaleUnc);
-        gt->fj1MSDScaleDown = gt->fj1MSD * (1 - 2*scaleUnc);
-
         // do some jet energy smearing
         if (isData) {
           gt->fj1PtSmeared = gt->fj1Pt;
@@ -356,17 +349,27 @@ void PandaAnalyzer::FatjetBasics()
         } else {
           double smear=1, smearUp=1, smearDown=1;
           ak8JERReader->getStochasticSmear(pt,eta,event.rho,smear,smearUp,smearDown);
-
           gt->fj1PtSmeared = smear*gt->fj1Pt;
           gt->fj1PtSmearedUp = smearUp*gt->fj1Pt;
           gt->fj1PtSmearedDown = smearDown*gt->fj1Pt;
-
           gt->fj1MSDSmeared = smear*gt->fj1MSD;
+          if (analysis->hbb) { // Use the smeared jets by default for certain measurements
+            gt->fj1Pt = gt->fj1PtSmeared; 
+            gt->fj1MSD = gt->fj1MSDSmeared;
+          }
           gt->fj1MSDSmearedUp = smearUp*gt->fj1MSD;
           gt->fj1MSDSmearedDown = smearDown*gt->fj1MSD;
         }
+        
+        // do a bit of jet energy scaling, around the smeared value
+        double scaleUnc = (fj.ptCorrUp - gt->fj1Pt) / gt->fj1Pt; 
+        gt->fj1PtScaleUp   = gt->fj1Pt  * (1 + 2*scaleUnc);
+        gt->fj1PtScaleDown  = gt->fj1Pt  * (1 - 2*scaleUnc);
+        gt->fj1MSDScaleUp  = gt->fj1MSD * (1 + 2*scaleUnc);
+        gt->fj1MSDScaleDown = gt->fj1MSD * (1 - 2*scaleUnc);
 
         // now have to do this mess with the subjets...
+        // not computed w.r.t. the smeared pt's right now
         TLorentzVector sjSum, sjSumUp, sjSumDown, sjSumSmear;
         for (int iSJ=0; iSJ!=(int)fj.subjets.size(); ++iSJ) {
           auto& subjet = fj.subjets.objAt(iSJ);
@@ -408,7 +411,7 @@ void PandaAnalyzer::FatjetBasics()
       if (analysis->monoh || analysis->hbb) {
         // mSD correction
         float corrweight=1.;
-        corrweight = GetMSDCorr(pt,eta);
+        corrweight = GetMSDCorr(gt->fj1Pt,eta);
         gt->fj1MSD_corr = corrweight*gt->fj1MSD;
       }
 
@@ -463,6 +466,10 @@ void PandaAnalyzer::FatjetBasics()
         }
       }
     }
+    if (!isData && fj.matchedGenJet.isValid())
+      gt->fj1GenNumB = fj.matchedGenJet.get()->numB;
+    else 
+      gt->fj1GenNumB = 0;
   }
   tr->TriggerSubEvent("fatjet basics");
 }

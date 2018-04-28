@@ -1,29 +1,9 @@
-#ifndef PandaTree_Objects_PackingHelperStandalone_h
-#define PandaTree_Objects_PackingHelperStandalone_h
+#include "../interface/PackingHelperStandalone.h"
 
-// This standalone class allows you to unpack interactively instead of relying on tabulated info.
-// After compiling PandaAnalysis using scram, you can call the following in CINT:
-//   gSystem->Load("libPandaAnalysisUtilities.so")
-//   #include "PandaAnalysis/Utilities/src/PackingHelperStandalone.cc"
-// and then perform a TTree Draw or Scan e.g.
-//   events->Scan("panda::PackingHelperStandalone::unpackUnbound(genParticles.packedPt)")
-
-#include "Rtypes.h"
 #include <cmath>
 
-namespace panda {
-  class PackingHelperStandalone {
-  public:
-    PackingHelperStandalone();
-
-    static Double_t unpackUnbound(UShort_t);
-    static Double_t unpack8LogBound(Char_t, Double_t min, Double_t max, UChar_t baseminus1);
-  };
-
-}
-
 Double_t
-panda::PackingHelperStandalone::unpackUnbound(UShort_t p)
+panda::PackingHelperStandalone::up(UShort_t p) // unpackUnbound
 {
   if(p==0) return 0;
   union {
@@ -71,7 +51,7 @@ panda::PackingHelperStandalone::unpackUnbound(UShort_t p)
 }
 
 Double_t
-panda::PackingHelperStandalone::unpack8LogBound(Char_t i, Double_t min, Double_t max, UChar_t baseminus1)
+panda::PackingHelperStandalone::up8(Char_t i, Double_t min, Double_t max, UChar_t baseminus1) // unpack8LogBound
 {
   if (baseminus1 > 127)
     baseminus1 = 127;
@@ -88,4 +68,3 @@ panda::PackingHelperStandalone::unpack8LogBound(Char_t i, Double_t min, Double_t
   else
     return val;
 }
-#endif

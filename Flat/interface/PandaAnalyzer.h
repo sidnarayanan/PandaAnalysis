@@ -147,6 +147,7 @@ private:
         cVBF_TrigMET, //!< MET trigger eff as a f'n of mjj/met 
         cVBF_TrigMETZmm,
         cBadECALJets,  //!< bad ECAL clusters to filter jets
+        cJetLoosePUID,
         cN
     };
 
@@ -238,6 +239,7 @@ private:
     void GenStudyEWK();
     float GetMSDCorr(float, float); 
     void HeavyFlavorCounting();
+    void InclusiveLeptons();
     void IsoJet(const panda::Jet&);
     void JetBRegressionInfo(const panda::Jet&);
     void JetBasics();
@@ -250,6 +252,7 @@ private:
     void JetVBFSystem();
     void JetVaryJES(const panda::Jet&);
     void LeptonSFs();
+    void LHEInfo();
     bool PFChargedPhotonMatch(const panda::Photon& photon);
     void PhotonSFs();
     void QCDUncs();
@@ -377,7 +380,7 @@ private:
     std::vector<TString> wIDs;
     std::vector<TriggerHandler> triggerHandlers = std::vector<TriggerHandler>(kNTrig);
 
-    std::vector<panda::Lepton*> looseLeps, tightLeps;
+    std::vector<panda::Lepton*> looseLeps, tightLeps, inclusiveLeps;
     std::vector<panda::Photon*> loosePhos;
     int looseLep1PdgId, looseLep2PdgId, looseLep3PdgId, looseLep4PdgId;
 

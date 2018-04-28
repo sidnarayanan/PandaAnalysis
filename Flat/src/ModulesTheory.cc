@@ -799,3 +799,12 @@ void PandaAnalyzer::GenStudyEWK() {
 
   tr->TriggerEvent("EWK gen study");
 }
+// Responsible: D. Hsu
+void PandaAnalyzer::LHEInfo() {
+  gt->lheHT=0;
+  for (auto& parton : event.partons) {
+    if (abs(parton.pdgid)>6 && parton.pdgid!=21) continue;
+    gt->lheHT += parton.pt();
+  }
+  tr->TriggerEvent("LHE info");
+}
