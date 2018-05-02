@@ -309,8 +309,8 @@ def classify_sample(full_path, isData):
     _classification = [
                 (root.kSignal , ['Vector_', 'Scalar_']),
                 (root.kTop    , ['ST_', 'ZprimeToTT']),
-                (root.ZEWK    , 'EWKZ2Jets'),
-                (root.WEWK    , 'EWKW'),
+                (root.kZEWK   , 'EWKZ2Jets'),
+                (root.kWEWK   , 'EWKW'),
                 (root.kZ      , ['ZJets', 'DY']),
                 (root.kW      , 'WJets'),
                 (root.kA      , 'GJets'),
