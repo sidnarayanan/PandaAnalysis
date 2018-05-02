@@ -172,9 +172,9 @@ void PandaAnalyzer::JetBasics()
 
         if (aeta < 2.4) {
           jets.central.push_back(&jw);
+          int njet = jets.central.size() - 1;
           
-          int njet = jets.central.size();
-          gt->nJet[shift] = njet;
+          gt->nJet[shift] = njet + 1;
           if (shift == jes2i(shiftjes::kNominal)) {
             if (njet < 2) {
               gt->jetPt[njet] = pt;
@@ -193,7 +193,7 @@ void PandaAnalyzer::JetBasics()
           vBarrelJets += jet.p4();
         }
 
-        int njet = jets.cleaned.size();
+        int njet = jets.cleaned.size() - 1;
         if (njet < 2 || ((analysis->hbb || analysis->monoh) && njet < NJET)) {
           gt->jotPt[shift][njet] = pt;
           gt->jotEta[shift][njet] = jet.eta();

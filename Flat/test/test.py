@@ -33,8 +33,8 @@ a = monotop()
 utils.set_year(a, 2017)
 skimmer.SetAnalysis(a)
 
-# skimmer.firstEvent=0
-# skimmer.lastEvent=10
+skimmer.firstEvent=0
+skimmer.lastEvent=10
 skimmer.isData=True
 utils.add_json(skimmer)
 fin = root.TFile.Open(torun)
