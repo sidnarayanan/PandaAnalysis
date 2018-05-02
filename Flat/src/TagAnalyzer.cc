@@ -257,9 +257,6 @@ void TagAnalyzer::Run() {
       PDebug("TagAnalyzer::Run::Dump","");
       event.pfMet.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
-      event.metMuOnlyFix.print(std::cout, 2);
-      std::cout << std::endl;
     }
 
     if (event.recoil.max<175) // no ECFs below this
