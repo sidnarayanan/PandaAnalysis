@@ -122,6 +122,15 @@ protected:
 };
 typedef RecoilSel MonojetSel; // backwards compatibility
 
+class LooseRecoilSel: public Selection {
+public:
+  LooseRecoilSel(): Selection(Selection::sReco, "loose recoil") { }
+  float threshold{100};
+protected:
+  virtual bool do_accept() const;
+  bool vary_jes{true};
+};
+
 
 class MonotopSel: public RecoilSel {
 public:

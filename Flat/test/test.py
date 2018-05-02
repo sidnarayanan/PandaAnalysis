@@ -18,6 +18,7 @@ argv = []
 import ROOT as root
 from PandaCore.Tools.Load import *
 from PandaAnalysis.Flat.analysis import *
+import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
@@ -28,19 +29,14 @@ skimmer = root.PandaAnalyzer(debug_level)
 #gghbb.btagSFs = False
 #gghbb.deep = True
 #gghbb.dump()
-a = wlnhbb()
-#a.processType = root.kTT
+a = monotop()
+utils.set_year(a, 2017)
 skimmer.SetAnalysis(a)
 
-skimmer.firstEvent=0
-skimmer.lastEvent=10
-skimmer.isData=False
-if skimmer.isData:
-    with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
-        payload = json.load(jsonFile)
-        for run,lumis in payload.iteritems():
-            for l in lumis:
-                skimmer.AddGoodLumiRange(int(run),l[0],l[1])
+# skimmer.firstEvent=0
+# skimmer.lastEvent=10
+skimmer.isData=True
+utils.add_json(skimmer)
 fin = root.TFile.Open(torun)
 
 tree = fin.FindObjectAny("events")

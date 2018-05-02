@@ -158,6 +158,7 @@ class Analysis {
 public:
   Analysis(TString name_ = "") { name = name_; }
   ~Analysis() {}
+  int year = 2016; 
   TString name;
   ProcessType processType=kNoProcess;
   bool ak8 = false;

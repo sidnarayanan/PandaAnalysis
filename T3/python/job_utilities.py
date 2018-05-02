@@ -19,6 +19,7 @@ _host = socket.gethostname()                                   # where we're run
 _IS_T3 = (_host[:2] == 't3')                                   # are we on the T3?
 REMOTE_READ = True                                             # should we read from hadoop or copy locally?
 local_copy = bool(smart_getenv('SUBMIT_LOCALACCESS', True))    # should we always xrdcp from T2?
+YEAR = 2016                                                    # what year's data is this analysis?
 
 stageout_protocol = None                                       # what stageout should we use?
 if _IS_T3:
@@ -74,6 +75,11 @@ def print_time(label):
            '%.1f s elapsed performing "%s"'%((now_-_stopwatch),label))
     _stopwatch = now_
 
+
+def set_year(analysis, year):
+    global YEAR
+    analysis.year = year
+    YEAR = year
 
 # convert an input name to an output name
 def input_to_output(name):
@@ -309,8 +315,8 @@ def classify_sample(full_path, isData):
     _classification = [
                 (root.kSignal , ['Vector_', 'Scalar_']),
                 (root.kTop    , ['ST_', 'ZprimeToTT']),
-                (root.ZEWK    , 'EWKZ2Jets'),
-                (root.WEWK    , 'EWKW'),
+                (root.kZEWK   , 'EWKZ2Jets'),
+                (root.kWEWK   , 'EWKW'),
                 (root.kZ      , ['ZJets', 'DY']),
                 (root.kW      , 'WJets'),
                 (root.kA      , 'GJets'),
@@ -329,7 +335,15 @@ def classify_sample(full_path, isData):
 
 
 # read a CERT json and add it to the skimmer
-def add_json(skimmer, json_path):
+_jsons = {
+        2016 : '/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt',
+        2017 : '/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt',
+        }
+def add_json(skimmer):
+    json_path = _jsons.get(YEAR, None)
+    if not json_path:
+        PError("T3.job_utilities.add_json", "Unknown key = "+str(YEAR))
+    json_path = _data_dir + json_path
     with open(json_path) as jsonFile:
         payload = json.load(jsonFile)
         for run_str,lumis in payload.iteritems():
@@ -361,7 +375,7 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
     output_name = input_to_output(input_name)
     skimmer.SetDataDir(_data_dir)
     if isData:
-        add_json(skimmer, _data_dir+'/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt')
+        add_json(skimmer)
 
     rinit = skimmer.Init(tree,hweights,weight_table)
     if rinit:

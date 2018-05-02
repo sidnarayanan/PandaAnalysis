@@ -39,6 +39,14 @@ monotop = lambda v=False : _analysis(
         verbose = v,
     )
 
+monojet = lambda v=False : _analysis(
+        name = 'monojet',
+        verbose = v,
+        fatjet = False,
+        btagSFs = False,
+        puppiJets = False
+    )
+
 vbf = lambda v=False : _analysis(
         name = 'vbf',
         verbose = v,
