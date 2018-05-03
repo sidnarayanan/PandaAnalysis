@@ -101,7 +101,7 @@ def normalizeFast(fpath,opt):
                 if fpath in k:
                     xsec = v[2]
     if xsec<0:
-        PError(sname,'could not find xsec, skipping %s!'%opt)
+        PWarning(sname,'could not find xsec (%s), skipping %s'%(opt, fpath))
         return
     xsec *= xsecscale
     PInfo(sname,'normalizing %s (%s) ...'%(fpath,opt))
