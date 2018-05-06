@@ -1,25 +1,6 @@
 #ifndef TEMPLATEPANDA
 #define TEMPLATEPANDA 1 
     
-template <typename T> 
-void PandaAnalyzer::MatchGenJets(T& genJets) 
-{
-  JESLOOP {
-    auto& jets = jesShifts[shift];
-    unsigned N = jets.cleaned.size();
-    for (unsigned i = 0; i != N; ++i) {
-      const panda::Jet& reco = jets.cleaned[i]->get_base();
-      for (auto &gen : genJets) {
-        if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
-          gt->jotGenPt[i][shift] = gen.pt();
-          gt->jotFlav[i][shift] = gen.pdgid;
-          break;
-        }
-      }
-    }
-  }
-  tr->TriggerEvent("match gen jets");
-}
 
 template <typename T>
 void PandaAnalyzer::CountGenPartons(std::unordered_set<const T*>& partons)

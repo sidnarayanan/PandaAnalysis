@@ -3,23 +3,28 @@
 using namespace pa;
 using namespace std;
 using namespace panda; 
+using namespace fastjet;
+
 
 float centralOnly(float x, float aeta, float def = -1) 
 {
   return  aeta < 2.4 ? x : -1;
 }
 
+
 bool csvLoose(float csv) 
 {
   return csv > 0.5426;
 }
+
 
 bool csvMed(float csv) 
 {
   return csv > 0.8484;
 }
 
-JetWrapper shiftJet(const Jet& jet, shiftjes shift, bool smear=false) 
+
+JetWrapper shiftJet(const Jet& jet, shiftjes shift, bool smear=false, bool ak4=true) 
 {
   float pt;
   switch (shift) {
@@ -50,7 +55,7 @@ void JetMod::do_readData(TString dirPath)
 
   TString jecV = "V4", jecReco = "23Sep2016"; 
   TString jecVFull = jecReco+jecV;
-  std::vector<TString> eraGroups = {"BCD","EF","G","H"};
+  vector<TString> eraGroups = {"BCD","EF","G","H"};
 
   ak4UncReader["MC"] = new JetCorrectionUncertainty(
        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK4PFPuppi.txt").Data()
@@ -64,7 +69,7 @@ void JetMod::do_readData(TString dirPath)
   ak4JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK4PFPuppi.txt",
                                dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK4PFPuppi.txt");
 
-  std::vector<JetCorrectorParameters> params = {
+  vector<JetCorrectorParameters> params = {
     JetCorrectorParameters(
       (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L1FastJet_AK4PFPuppi.txt").Data()),
     JetCorrectorParameters(
@@ -115,20 +120,19 @@ void JetMod::setupJES()
   }
 }
 
+
 void JetMod::varyJES()
 {
   JESLOOP {
     auto& jets = (*jesShifts)[shift];
     jets.reserve(ak4jets->size());
     for (auto &j : *ak4jets) {
-      jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb));
+      jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb, true));
     }
-    if (shift != jes2i(shiftjes::kNominal)) {
-      std::sort(jets.all.begin(), jets.all.end(),
-                [](JetWrapper x, JetWrapper y) { return x.pt > y.pt; });
-    }
+    jets.sort();
   }
 }
+
 
 void JetMod::do_execute()
 {
@@ -143,6 +147,8 @@ void JetMod::do_execute()
   TLorentzVector vBarrelJets;
 
   JESLOOP {
+    bool isNominal = (shift == jes2i(shiftjes::kNominal));
+    bool metShift = (i2jes(shift) <= shiftjes::kJESDown);
     JESHandler& jets = (*jesShifts)[shift];
     currentJES = &jets;
     for (auto& jw : jets.all) {
@@ -177,12 +183,14 @@ void JetMod::do_execute()
 
 
       if (pt > minJetPt) {
-        if ((analysis.hbb || analysis.monoh) && jets.cleaned.size() >= cfg.NJET)
+        // for H->bb, don't consider any jet based NJETSAVED, 
+        // for other analyses, consider them, just don't save them
+        if ((analysis.hbb || analysis.monoh) && jets.cleaned.size() >= cfg.NJETSAVED)
           continue;
 
         jets.cleaned.push_back(&jw);
         
-        if (jets.cleaned.size() < 3) {      
+        if (jets.cleaned.size() < 3) {
           if (utils.getCorr(cBadECALJets, jet.eta(), jet.phi()) > 0)
             gt.badECALFilter = 0;
         }
@@ -196,9 +204,9 @@ void JetMod::do_execute()
         if (aeta < 2.4) {
           jets.central.push_back(&jw);
           
-          int njet = jets.central.size();
-          gt.nJet[shift] = njet;
-          if (shift == jes2i(shiftjes::kNominal)) {
+          int njet = jets.central.size() - 1;
+          gt.nJet[shift] = njet + 1;
+          if (isNominal) {
             if (njet < 2) {
               gt.jetPt[njet] = pt;
               gt.jetEta[njet] = jet.eta();
@@ -211,26 +219,28 @@ void JetMod::do_execute()
           }
         }
 
-        if (shift == jes2i(shiftjes::kNominal) && aeta < 3.0) {
+        if (isNominal && aeta < 3.0) {
           gt.barrelHT += jet.pt();
           vBarrelJets += jet.p4();
         }
 
-        int njet = jets.cleaned.size();
+        int njet = jets.cleaned.size() - 1;
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJET)) {
           gt.jotPt[shift][njet] = pt;
-          gt.jotEta[shift][njet] = jet.eta();
-          gt.jotPhi[shift][njet] = jet.phi();
-          gt.jotE[shift][njet] = jet.e() * jw.scale();
-          gt.jotCSV[shift][njet] = csv;
-          gt.jotCMVA[shift][njet] = cmva;
-          gt.jotVBFID[shift][njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
+          if (isNominal) {
+            gt.jotEta[njet] = jet.eta();
+            gt.jotPhi[njet] = jet.phi();
+            gt.jotE[njet] = jet.e() * jw.scale();
+            gt.jotCSV[njet] = csv;
+            gt.jotCMVA[njet] = cmva;
+            gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
 
-          bjetreg->execute();
+            bjetreg->execute();
+          }
         }
 
         TLorentzVector vJet; vJet.SetPtEtaPhiM(pt, jet.eta(), jet.phi(), jet.m());
-        if (njet < nJetDPhi) {
+        if (metShift && njet < nJetDPhi) { // only do this for fully-correlated shifts
           gt.dphipuppimet[shift] = min(fabs(vJet.DeltaPhi(jets.vpuppiMET)), (double)gt.dphipuppimet[shift]);
           gt.dphipfmet[shift]    = min(fabs(vJet.DeltaPhi(jets.vpfMET)),    (double)gt.dphipfmet[shift]);
           if (analysis.recoil) {
@@ -246,32 +256,33 @@ void JetMod::do_execute()
     }
 
     gt.nJot[shift] = jets.cleaned.size();
-    switch (gt.whichRecoil) {
-      case 0: // MET
-        gt.dphipuppiU[shift] = gt.dphipuppimet[shift];
-        gt.dphipfU[shift] = gt.dphipfmet[shift];
-        break;
-      case -1: // photon
-        gt.dphipuppiU[shift] = gt.dphipuppiUA[shift];
-        gt.dphipfU[shift] = gt.dphipfUA[shift];
-        break;
-      case 1:
-        gt.dphipuppiU[shift] = gt.dphipuppiUW[shift];
-        gt.dphipfU[shift] = gt.dphipfUW[shift];
-        break;
-      case 2:
-        gt.dphipuppiU[shift] = gt.dphipuppiUZ[shift];
-        gt.dphipfU[shift] = gt.dphipfUZ[shift];
-        break;
-      default: // c'est impossible !
-        break;
+    if (metShift) {
+      switch (gt.whichRecoil) {
+        case 0: // MET
+          gt.dphipuppiU[shift] = gt.dphipuppimet[shift];
+          gt.dphipfU[shift] = gt.dphipfmet[shift];
+          break;
+        case -1: // photon
+          gt.dphipuppiU[shift] = gt.dphipuppiUA[shift];
+          gt.dphipfU[shift] = gt.dphipfUA[shift];
+          break;
+        case 1:
+          gt.dphipuppiU[shift] = gt.dphipuppiUW[shift];
+          gt.dphipfU[shift] = gt.dphipfUW[shift];
+          break;
+        case 2:
+          gt.dphipuppiU[shift] = gt.dphipuppiUZ[shift];
+          gt.dphipfU[shift] = gt.dphipfUZ[shift];
+          break;
+        default: // c'est impossible !
+          break;
+      }
     }
 
-    if (analysis.vbf) 
-      JetVBFSystem(shift);
-
-    if (analysis.monoh || analysis.hbb)
-      JetHbbReco(shift);
+    // dijet system
+    if (metShift) 
+      vbf->execute();
+    hbb->execute();
 
   } // shift loop 
 
@@ -302,6 +313,7 @@ void JetFlavorMod::partonFlavor()
     }
   }
 }
+
 
 void JetFlavorMod::clusteredFlavor()
 {
@@ -355,28 +367,27 @@ void BJetRegMod::do_execute()
   auto& jet = jw.get_base();
   auto& jets = **currentJES; 
 
-  int N = jets.cleaned.size();
-  int shift = jets.shift_idx;
+  int N = jets.cleaned.size() - 1;
 
-  gt.jotEMF[shift][N] = jet.cef + jet.nef;
-  gt.jotHF[shift][N] = jet.chf + jet.nhf;
-  gt.jotLep1Pt[shift][N] = 0;
-  gt.jotTrk1Pt[shift][N] = 0;
-  gt.jotNLep[shift][N] = 0;
+  gt.jotEMF[N] = jet.cef + jet.nef;
+  gt.jotHF[N] = jet.chf + jet.nhf;
+  gt.jotLep1Pt[N] = 0;
+  gt.jotTrk1Pt[N] = 0;
+  gt.jotNLep[N] = 0;
   for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
     if (!c_iter.isValid())
       continue;
     auto *pf = c_iter.get();
     if (pf->q() != 0) {
       float pt = pf->pt();
-      gt.jotTrk1Pt[shift][N] = max(pt, gt.jotTrk1Pt[shift][N]);
+      gt.jotTrk1Pt[N] = max(pt, gt.jotTrk1Pt[N]);
       int pdgid = abs(pf->pdgId());
       if (pdgid == 11 || pdgid == 13) {
-        gt.jotNLep[shift][N]++;
-        if (pt > gt.jotLep1Pt[shift][N]) {
-          gt.jotLep1Pt[shift][N] = pt;
-          gt.jotLep1PtRel[shift][N] = pf->p4().Perp(jet.p4().Vect());
-          gt.jotLep1DeltaR[shift][N] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
+        gt.jotNLep[N]++;
+        if (pt > gt.jotLep1Pt[N]) {
+          gt.jotLep1Pt[N] = pt;
+          gt.jotLep1PtRel[N] = pf->p4().Perp(jet.p4().Vect());
+          gt.jotLep1DeltaR[N] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
         }
       }
     }
@@ -384,11 +395,11 @@ void BJetRegMod::do_execute()
 
   auto& vert = jet.secondaryVertex;
   if (vert.isValid()) {
-    gt.jotVtxPt[shift][N] = vert->pt();
-    gt.jotVtxMass[shift][N] = vert->m();
-    gt.jotVtx3DVal[shift][N] = vert->vtx3DVal;
-    gt.jotVtx3DErr[shift][N] = vert->vtx3DeVal;
-    gt.jotVtxNtrk[shift][N] = vert->ntrk;
+    gt.jotVtxPt[N] = vert->pt();
+    gt.jotVtxMass[N] = vert->m();
+    gt.jotVtx3DVal[N] = vert->vtx3DVal;
+    gt.jotVtx3DErr[N] = vert->vtx3DeVal;
+    gt.jotVtxNtrk[N] = vert->ntrk;
   }
 }
 
@@ -399,8 +410,8 @@ void VBFSystemMod::do_execute()
   int shift = jets.shift_idx;
 
   if (jets.cleaned.size() > 1) {
-    TLorentzVector v0 = jets.cleaned[0]->p4();
-    TLorentzVector v1 = jets.cleaned[1]->p4();
+    TLorentzVector v0 = jets.cleaned_sorted[0]->p4();
+    TLorentzVector v1 = jets.cleaned_sorted[1]->p4();
     gt.jot12Mass[shift] = (v0 + v1).M();
     gt.jot12DPhi[shift] = v0.DeltaPhi(v1);
     gt.jot12DEta[shift] = fabs(v0.Eta() - v1.Eta());
@@ -490,27 +501,27 @@ void HbbSystemMod::do_execute()
       int idx = gt.hbbjtidx[shift][i];
       // Shifted values for the jet energies to perform the b-jet regression
       bjetreg_vars[0] = gt.jotPt[shift][idx];
-      bjetreg_vars[1] = gt.jotEta[shift][idx];
-      bjetreg_vars[2] = gt.jotTrk1Pt[shift][idx];
-      bjetreg_vars[3] = gt.jotLep1Pt[shift][idx];
-      bjetreg_vars[4] = gt.jotEMF[shift][idx];
-      bjetreg_vars[5] = gt.jotHF[shift][idx];
-      bjetreg_vars[6] = gt.jotLep1DeltaR[shift][idx];
-      bjetreg_vars[7] = gt.jotLep1PtRel[shift][idx];
-      bjetreg_vars[8] = gt.jotVtxPt[shift][idx];
-      bjetreg_vars[9] = gt.jotVtxMass[shift][idx];
-      bjetreg_vars[10]= gt.jotVtx3DVal[shift][idx];
-      bjetreg_vars[11]= gt.jotVtx3DErr[shift][idx];
-      bjetreg_vars[12]= gt.jotVtxNtrk[shift][idx];
+      bjetreg_vars[1] = gt.jotEta[idx];
+      bjetreg_vars[2] = gt.jotTrk1Pt[idx];
+      bjetreg_vars[3] = gt.jotLep1Pt[idx];
+      bjetreg_vars[4] = gt.jotEMF[idx];
+      bjetreg_vars[5] = gt.jotHF[idx];
+      bjetreg_vars[6] = gt.jotLep1DeltaR[idx];
+      bjetreg_vars[7] = gt.jotLep1PtRel[idx];
+      bjetreg_vars[8] = gt.jotVtxPt[idx];
+      bjetreg_vars[9] = gt.jotVtxMass[idx];
+      bjetreg_vars[10]= gt.jotVtx3DVal[idx];
+      bjetreg_vars[11]= gt.jotVtx3DErr[idx];
+      bjetreg_vars[12]= gt.jotVtxNtrk[idx];
       bjetreg_vars[13]= hbbd[i].Et();
       bjetreg_vars[14]= hbbd[i].Mt();
 
-      gt.hbbjtRegFac[shift][i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
+      gt.jotBReg[shift][i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
       hbbd_corr[i].SetPtEtaPhiM(
-            gt.hbbjtRegFac[shift][i] * gt.jotPt[shift][idx],
-            gt.jotEta[shift][idx],
-            gt.jotPhi[shift][idx],
-            gt.jotM[shift][idx]
+            gt.jotBReg[shift][i] * gt.jotPt[shift][idx],
+            gt.jotEta[idx],
+            gt.jotPhi[idx],
+            gt.jotM[idx]
           );
     }
 
@@ -537,8 +548,8 @@ void HbbSystemMod::do_execute()
     gt.hbbCosThetaCSJ1[shift] = csj1;
   }
 
-  if (gt.hbbm > 0 && gt.nLooseLep > 0 ) {
-    TLorentzVector leptonP4, metP4, nuP4, *jet0P4, *jet1P4, WP4, topP4;
+  if (gt.hbbm > 0 && gt.nLooseLep > 0 && shift <= jes2i(shiftjes::kJESDown)) {
+    TLorentzVector leptonP4, metP4, nuP4, *jet0P4{nullptr}, *jet1P4{nullptr}, WP4, topP4;
     float dRJet0W, dRJet1W;
     bool jet0IsCloser;
     leptonP4=looseLeps[0]->p4();
@@ -565,5 +576,190 @@ void HbbSystemMod::do_execute()
     gt.topWBosonPt  = WP4.Pt();
     gt.topWBosonEta = WP4.Eta();
     gt.topWBosonPhi = WP4.Phi();
+  }
+}
+
+void SoftActivityMod::do_execute() 
+{
+  // Soft activity
+  int shift = jes2i(shiftjes::kNominal);
+  auto& jets = (*jesShifts)[shift];
+
+  if (gt.hbbm[shift] > 0.) {
+    gt.sumEtSoft1=0; gt.nSoft2=0; gt.nSoft5=0; gt.nSoft10=0;
+    // Define the ellipse of particles to forget about
+    // https://math.stackexchange.com/questions/426150/\
+    // what-is-the-general-equation-of-the-ellipse-that-is-not-in-the-origin-and-rotate 
+    // ((x-h)cos(A) + (y-k)sin(A))^2 /a^2 + ((x-h)sin(A) - (y-k)cos(A))^2 /b^2 <=1
+    double ellipse_cosA, ellipse_sinA, ellipse_h, ellipse_k, ellipse_a, ellipse_b; {
+      double ellipse_alpha;
+      float phi1=gt.jetPhi[gt.hbbjtidx[shift][0]], phi2=gt.jetPhi[gt.hbbjtidx[shift][1]];
+      float eta1=gt.jetEta[gt.hbbjtidx[shift][0]], eta2=gt.jetEta[gt.hbbjtidx[shift][1]];
+      double phi1MinusPhi2 = phi1-phi2;
+      double eta1MinusEta2 = eta1-eta2;
+      double phi1MinusPhi2MPP = TVector2::Phi_mpi_pi(phi1MinusPhi2);
+      ellipse_alpha = atan2( phi1MinusPhi2MPP, eta1MinusEta2);
+      // compute delta R using already computed qty's to save time
+      ellipse_a = (sqrt(pow(eta1MinusEta2,2) 
+                   + pow(phi1MinusPhi2MPP,2)) + 1.)/2.; // Major axis 2*a = dR(b,b)+1
+      ellipse_b = 1./2.; // Minor axis 2*b = 1
+      ellipse_h = (eta1+eta2)/2.;
+      ellipse_k = TVector2::Phi_mpi_pi(phi2 + phi1MinusPhi2MPP/2.);
+      ellipse_cosA = cos(ellipse_alpha);
+      ellipse_sinA = sin(ellipse_alpha);
+      if (DEBUG > 10) {
+        PDebug("PandaAnalyzer::JetHbbSoftActivity",
+               Form("Calculating ellipse with (eta1,phi1)=(%.2f,%.2f), (eta2,phi2)=(%.2f,%.2f)",
+                    eta1,phi1,eta2,phi2));
+        PDebug("PandaAnalyzer::JetHbbSoftActivity",
+               Form("Found ellipse parameters (a,b,h,k,alpha)=(%.2f,%.2f,%.2f,%.2f,%.2f)",
+                    ellipse_a,ellipse_b,ellipse_h,ellipse_k,ellipse_alpha));
+      }
+    }
+
+    // Find out which PF constituents to not use
+    const RefVector<PFCand> &jet1Tracks = jets.cleaned[gt.hbbjtidx[shift][0]]->base->constituents,
+                            &jet2Tracks = jets.cleaned[gt.hbbjtidx[shift][1]]->base->constituents;
+
+    // Get vector of pseudo jets for clustering
+    panda::PFCandCollection &allTracks = event.pfCandidates;
+    vector<PseudoJet> softTracksPJ;
+    softTracksPJ.reserve(allTracks.size());
+    panda::PFCand *softTrack=0;
+    for (auto &softTrackRef : allTracks) {
+      softTrack = &softTrackRef;
+      // Minimum track pT threshold (300 MeV default)
+      if (softTrack->pt() < minSoftTrackPt) 
+        continue;
+      // High quality track flag
+      if (!softTrack->track.isValid() || !softTrack->track.get()->highPurity) 
+        continue;
+      // Only consider tracks with dz < 0.2 w.r.t. the primary vertex
+      if (fabs(softTrack->track.get()->dz()) > 0.2) 
+        continue;
+      // Track cannot be a constituent of loose leptons or the two b-jets
+      bool trackIsSpokenFor=false;
+      if (!trackIsSpokenFor) for (UShort_t iJetTrack=0; iJetTrack<jet1Tracks.size(); iJetTrack++) {
+        if (!jet1Tracks.at(iJetTrack).isValid()) continue;
+        if (softTrack==jet1Tracks.at(iJetTrack).get()) { trackIsSpokenFor=true; break; }
+      }
+      if (!trackIsSpokenFor) for (UShort_t iJetTrack=0; iJetTrack<jet2Tracks.size(); iJetTrack++) {
+        if (!jet2Tracks.at(iJetTrack).isValid()) continue;
+        if (softTrack==jet2Tracks.at(iJetTrack).get()) { trackIsSpokenFor=true; break; }
+      }
+      if (!trackIsSpokenFor) for (int iLep=0; iLep<gt.nLooseLep; iLep++) {
+        if (!looseLeps[iLep]->matchedPF.isValid()) continue;
+        if (softTrack==looseLeps[iLep]->matchedPF.get()) { trackIsSpokenFor=true; break; }
+      }
+      if (trackIsSpokenFor) 
+        continue;
+      // Require tracks to have the lowest |dz| with the hardest PV amongst all others
+      int idxVertexWithMinAbsDz=-1; float minAbsDz=9999;
+      for (int iV=0; iV!=(int)event.vertices.size(); iV++) {
+        auto& theVertex = event.vertices[iV];
+        float vertexAbsDz = fabs(softTrack->dz(theVertex.position()));
+        if (DEBUG > 10) 
+          PDebug("PandaAnalyzer::JetHbbSoftActivity",
+                 Form("Track has |dz| %.2f with vertex %d",vertexAbsDz,iV));
+        if (vertexAbsDz >= minAbsDz) 
+          continue;
+        idxVertexWithMinAbsDz = iV;
+        minAbsDz = vertexAbsDz;
+      }
+      if (idxVertexWithMinAbsDz!=0 || minAbsDz>0.2) 
+        continue;
+      if (DEBUG > 10) 
+        PDebug("PandaAnalyzer::JetHbbSoftActivity",
+            Form("Track above 300 MeV has dz %.3f", 
+              softTrack->track.isValid()?softTrack->track.get()->dz():-1));
+      // Need to add High Quality track flags :-)
+      bool trackIsInHbbEllipse=false; {
+        double ellipse_x = softTrack->eta();
+        double ellipse_y = softTrack->phi();
+        double ellipse_term1 = pow(
+          (TVector2::Phi_mpi_pi(ellipse_x - ellipse_h)*ellipse_cosA 
+           + (ellipse_y - ellipse_k)*ellipse_sinA) / ellipse_a,
+          2
+        );
+        double ellipse_term2 = pow(
+          (TVector2::Phi_mpi_pi(ellipse_x - ellipse_h)*ellipse_sinA 
+           - (ellipse_y - ellipse_k)*ellipse_cosA) / ellipse_b,
+          2
+        );
+        double ellipse_equation = (ellipse_term1 + ellipse_term2);
+        trackIsInHbbEllipse = (ellipse_equation <= 1.);
+      } if (trackIsInHbbEllipse) continue;
+      softTracksPJ.emplace_back(softTrack->px(),softTrack->py(),softTrack->pz(),softTrack->e());
+    }
+    if (DEBUG > 10) 
+      PDebug("PandaAnalyzer::JetHbbSoftActivity",
+          Form("Found %ld soft tracks that passed track quality cuts and the ellipse, jet constituency, and lepton matching vetoes",
+            softTracksPJ.size()));
+    ClusterSequenceArea softTrackSequence(softTracksPJ, *softTrackJetDefinition, *(utils.areaDef));
+    
+    vector<PseudoJet> softTrackJets(softTrackSequence.inclusive_jets(1.));
+    if (DEBUG > 10) 
+      PDebug("PandaAnalyzer::JetHbbSoftActivity",
+          Form("Clustered %ld jets of pT>1GeV using anti-kT algorithm (dR 0.4) from the soft tracks",
+            softTrackJets.size()));
+    for (vector<PseudoJet>::size_type iSTJ=0; iSTJ<softTrackJets.size(); iSTJ++) {
+      if (fabs(softTrackJets[iSTJ].eta()) > 4.7) continue;
+      gt.sumEtSoft1 += softTrackJets[iSTJ].Et(); 
+      if (DEBUG > 10) 
+        PDebug("PandaAnalyzer::JetHbbSoftActivity",
+            Form("Soft jet %d has pT %.2f",
+              (int)iSTJ,softTrackJets[iSTJ].pt()));
+      if (softTrackJets[iSTJ].pt() >  2.)  gt.nSoft2++; else continue;
+      if (softTrackJets[iSTJ].pt() >  5.)  gt.nSoft5++; else continue;
+      if (softTrackJets[iSTJ].pt() > 10.) gt.nSoft10++; else continue;
+    }
+  }
+}
+
+void GenJetsNuMod::do_execute()
+{
+  vector<PseudoJet> finalStates;
+  vector<const panda::GenParticle*> bcs;
+  for (auto* pptr : *genP) {
+    auto& p = pToGRef(pptr);
+    if (p.finalState && p.pt() > 0.001) {
+      finalStates.emplace_back(p.px(), p.py(), p.pz(), p.e());
+      continue;
+    }
+    int apdgid = abs(p.pdgid);
+    if (apdgid == 4 || apdgid == 5) {
+      bcs.push_back(&p);
+    }
+  }
+
+  ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
+  vector<PseudoJet> allJets(seq.inclusive_jets(0.01));
+
+  vector<panda::GenJet> genJetsNu; 
+  genJetsNu.reserve(allJets.size());
+  for (auto &pj : allJets) {
+    genJetsNu.emplace_back(panda::GenJet());
+    genJetsNu.back().setXYZE(pj.px(), pj.py(), pj.pz(), pj.e());
+    int flavor = 0;
+    for (auto *bc : bcs) {
+      if (DeltaR2(pj.eta(), pj.phi(), bc->eta(), bc->phi()) < 0.09) {
+        flavor = abs(bc->pdgid);
+        break;
+      }
+    }
+    genJetsNu.back().pdgid = flavor;
+  }
+
+  auto& jets = (*jesShifts)[0];
+  unsigned N = jets.cleaned.size();
+  for (unsigned i = 0; i != N; ++i) {
+    const panda::Jet& reco = jets.cleaned[i]->get_base();
+    for (auto &gen : genJets) {
+      if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
+        gt.jotGenPt[i] = gen.pt();
+        gt.jotFlav[i] = gen.pdgid;
+        break;
+      }
+    }
   }
 }

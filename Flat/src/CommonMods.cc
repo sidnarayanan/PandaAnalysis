@@ -49,7 +49,7 @@ void TriggerMod::do_init(Registry& registry)
     };
     triggerHandlers[kMETTrig].addTriggers(paths);
 
-    if (analysis->complicatedLeptons)
+    if (analysis.complicatedLeptons)
       paths = {
           "HLT_Ele25_eta2p1_WPTight_Gsf",
           "HLT_Ele27_eta2p1_WPLoose_Gsf",
@@ -127,7 +127,7 @@ void TriggerMod::do_init(Registry& registry)
     };
     triggerHandlers[kJetHTTrig].addTriggers(paths);
 
-    if (analysis->complicatedLeptons)
+    if (analysis.complicatedLeptons)
       paths = {
           "HLT_IsoMu24",
           "HLT_IsoTkMu24",
@@ -230,8 +230,10 @@ void GlobalMod::do_execute()
   gt.sumETRaw = event.pfMet.sumETRaw;
   gt.trkmet = event.trkMet.pt;
   gt.trkmetphi = event.trkMet.phi;
+  gt.pfmetsig = event.pfMet.significance;
+  gt.puppimetsig = event.puppiMet.significance; 
   
-  JESLOOP {
+  METLOOP {
     auto& jets = jesShifts[shift];
     // PF 
     shiftMET(event.pfMet, jets.vpfMET, i2jes(shift));
@@ -265,7 +267,7 @@ void RecoilMod::do_execute()
     vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
 
     // one lep => W
-    JESLOOP {
+    METLOOP {
       auto& jets = (*jesShifts)[shift]; 
 
       jets.vpuppiUW = jets.vpuppiMET + vObj1;
@@ -282,7 +284,7 @@ void RecoilMod::do_execute()
       panda::Lepton *lep2 = looseLeps->at(1);
       vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
 
-      JESLOOP {
+      METLOOP {
         auto& jets = (*jesShifts)[shift]; 
 
         jets.vpuppiUZ = jets.vpuppiUW + vObj2;
@@ -303,7 +305,7 @@ void RecoilMod::do_execute()
     panda::Photon *pho = loosePhos->(0);
     vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
 
-    JESLOOP {
+    METLOOP {
       auto& jets = (*jesShifts)[shift]; 
 
       jets.vpuppiUA = jets.vpuppiMET + vObj1;
@@ -324,3 +326,53 @@ void RecoilMod::do_execute()
   }
 }
 
+void TriggerEffMod::do_execute() 
+{
+  // trigger efficiencies
+  gt.sf_metTrig = utils.getCorr(cTrigMET,gt.pfmetnomu[jes2i(shiftjes::kNominal)]);
+  gt.sf_metTrigZmm = utils.getCorr(cTrigMETZmm,gt.pfmetnomu[jes2i(shiftjes::kNominal)]);
+
+  auto* lep0 = (*looseLeps)[0];
+  auto* lep1 = (*looseLeps)[1];
+
+  if (gt.nLooseElectron>0) {
+    panda::Electron *ele1=nullptr, *ele2=nullptr;
+    if (gt.nLooseLep>0) ele1 = dynamic_cast<panda::Electron*>(lep0);
+    if (gt.nLooseLep>1) ele2 = dynamic_cast<panda::Electron*>(lep1);
+    float eff1=0, eff2=0;
+    if (ele1!=nullptr && ele1->tight) {
+      eff1 = utils.getCorr(cTrigEle, ele1->eta(), ele1->pt());
+      if (ele2!=nullptr && ele2->tight)
+        eff2 = utils.getCorr(cTrigEle, ele2->eta(), ele2->pt());
+      gt.sf_eleTrig = 1 - (1-eff1)*(1-eff2);
+    }
+  } // done with ele trig SF
+  if (gt.nLooseMuon>0) {
+    panda::Muon *mu1=nullptr, *mu2=nullptr;
+    if (gt.nLooseLep>0) mu1 = dynamic_cast<panda::Muon*>(lep0);
+    if (gt.nLooseLep>1) mu2 = dynamic_cast<panda::Muon*>(lep1);
+    float eff1=0, eff2=0;
+    if (mu1!=nullptr && mu1->tight) {
+      eff1 = utils.getCorr(
+        cTrigMu,
+        fabs(mu1->eta()),
+        TMath::Max((float)26.,TMath::Min((float)499.99,(float)mu1->pt()))
+      );
+      if (mu2!=nullptr && mu2->tight)
+        eff2 = utils.getCorr(
+          cTrigMu,
+          fabs(mu2->eta()),
+          TMath::Max((float)26.,TMath::Min((float)499.99,(float)mu2->pt()))
+        );
+      gt.sf_muTrig = 1 - (1-eff1)*(1-eff2);
+    }
+  } // done with mu trig SF
+
+  if (gt.nLoosePhoton>0 && gt.loosePho1IsTight)
+    gt.sf_phoTrig = utils.getCorr(cTrigPho,gt.loosePho1Pt);
+
+  if (analysis.vbf) {
+    gt.sf_metTrigVBF = utils.getCorr(cVBF_TrigMET,gt.barrelHTMiss);
+    gt.sf_metTrigZmmVBF = utils.getCorr(cVBF_TrigMETZmm,gt.barrelHTMiss);
+  }
+}

@@ -11,6 +11,7 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
 {
 
   cfg.isData = analysis.isData;
+  utils.eras = new EraHandler(analysis.year);  
 
   // configuration of objects
   if (analysis.ak8)
@@ -44,13 +45,14 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
   if (analysis.hbb)
     utils.softTrackJetDefinition = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
 
-  // Custom jet pt threshold
   if (analysis.hbb) {
     cfg.minJetPt = analysis.ZllHbb ? 20 : 25;
     cfg.minGenFatJetPt = 200;
   }
   if (analysis.vbf || analysis.hbb || analysis.complicatedLeptons) 
     cfg.minBJetPt = 20;
+  if (analysis.hbb || analysis.monoh)
+    cfg.NJETSAVED = NJET;
 
   cfg.maxshiftJES = analysis.varyJES ? jes2i(shiftjes::N) : 1; 
 
@@ -322,6 +324,9 @@ void ConfigMod::readData(TString dirPath)
   utils.h1Corrs[cWNLO]->GetHist()->Divide(hWLO);    
   utils.h1Corrs[cANLO]->GetHist()->Divide(hALO);
 
+  minGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(1);
+  maxGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(utils.h1Corrs[cZNLO]->GetHist()->GetNbinsX()); 
+
   utils.openCorr(cANLO2j,dirPath+"moriond17/histo_photons_2jet.root","Func",1);
 
   if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded k factors");
@@ -366,48 +371,11 @@ void ConfigMod::readData(TString dirPath)
                  "h2jet",2);
 
 
-  if (analysis.btagSFs) {
-    // btag SFs
-    utils.btagCalib = new BTagCalibration("csvv2",
-                                          (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data());
-    utils.btagReaders[bJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
-    utils.btagReaders[bJetL]->load(*(utils.btagCalib),BTagEntry::FLAV_B,"comb");
-    utils.btagReaders[bJetL]->load(*(utils.btagCalib),BTagEntry::FLAV_C,"comb");
-    utils.btagReaders[bJetL]->load(*(utils.btagCalib),BTagEntry::FLAV_UDSG,"incl");
-
-    utils.sj_btagCalib = new BTagCalibration("csvv2",
-                                             (dirPath+"moriond17/subjet_CSVv2_Moriond17_B_H.csv").Data());
-    utils.btagReaders[bSubJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
-    utils.btagReaders[bSubJetL]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_B,"lt");
-    utils.btagReaders[bSubJetL]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_C,"lt");
-    utils.btagReaders[bSubJetL]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_UDSG,"incl");
-
-    utils.btagReaders[bJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-    utils.btagReaders[bJetM]->load(*(utils.btagCalib),BTagEntry::FLAV_B,"comb");
-    utils.btagReaders[bJetM]->load(*(utils.btagCalib),BTagEntry::FLAV_C,"comb");
-    utils.btagReaders[bJetM]->load(*(utils.btagCalib),BTagEntry::FLAV_UDSG,"incl");
-    
-    utils.btagReaders[bSubJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-    utils.btagReaders[bSubJetM]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_B,"lt");
-    utils.btagReaders[bSubJetM]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_C,"lt");
-    utils.btagReaders[bSubJetM]->load(*(utils.sj_btagCalib),BTagEntry::FLAV_UDSG,"incl");
-
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded btag SFs");
-  } 
-  if (analysis.btagWeights) {
-    if (analysis.useCMVA) 
-      utils.cmvaReweighter = new CSVHelper(
-            "PandaAnalysis/data/csvweights/cmva_rwt_fit_hf_v0_final_2017_3_29.root", 
-            "PandaAnalysis/data/csvweights/cmva_rwt_fit_lf_v0_final_2017_3_29.root", 
-            5
-          );
-    else
-      utils.csvReweighter  = new CSVHelper(
-            "PandaAnalysis/data/csvweights/csv_rwt_fit_hf_v2_final_2017_3_29test.root", 
-            "PandaAnalysis/data/csvweights/csv_rwt_fit_lf_v2_final_2017_3_29test.root", 
-            5
-          );
-  }
+  // btag
+  utils.openCorr(cCSVBL,dirPath+"csv/csv_effLoose.root","B",2);
+  utils.openCorr(cCSVCL,dirPath+"csv/csv_effLoose.root","C",2);
+  utils.openCorr(cCSVLL,dirPath+"csv/csv_effLoose.root","L",2);
+  utils.btag = new BTagCorr(dirPath, analysis); 
 
 
   // TODO move these into a getCorr-accessible correction

@@ -17,7 +17,7 @@ namespace pa {
     virtual bool on() { return !analysis.genOnly && !analysis.complicatedLeptons; }
     
   protected:
-    virtual void do_initialize(Registry& registry) {
+    virtual void do_init(Registry& registry) {
       registry.publishConst("looseLeps", &looseLeps);
       registry.publishConst("tightLeps", &tightLeps);
       registry.publishConst("lepPdgId", &lepPdgId);
@@ -51,8 +51,13 @@ namespace pa {
   protected:
     void do_readData(TString dirPath);
     void do_execute(); 
+    void do_initalize(Registry& registry) {
+      SimpleLeptonMod::do_initalize(registry);
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+    }
   private:
     RoccoR *rochesterCorrection{nullptr};
+    const std::vector<panda::Particle*> *genP{nullptr};
   };
 
   class InclusiveLeptonMod : public AnalysisMod {
@@ -67,7 +72,7 @@ namespace pa {
     virtual bool on() { return !analysis.genOnly && analysis.hbb; }
     
   protected:
-    virtual void do_initialize(Registry& registry) {
+    virtual void do_init(Registry& registry) {
       registry.publishConst("inclusiveLeps", &inclusiveLeps);
     }
     virtual void do_execute(); 
@@ -91,7 +96,7 @@ namespace pa {
     virtual bool on() { return !analysis.genOnly && !analysis.complicatedPhotons; }
     
   protected:
-    virtual void do_initialize(Registry& registry) {
+    virtual void do_init(Registry& registry) {
       registry.publishConst("loosePhos", &loosePhos);
     }
     virtual void do_execute(); 
@@ -115,8 +120,8 @@ namespace pa {
     virtual bool on() { return !analysis.genOnly && analysis.complicatedPhotons; }
     
   protected:
-    void do_initialize(Registry& registry) {
-      SimplePhotonMod::do_initialize(registry);
+    void do_init(Registry& registry) {
+      SimplePhotonMod::do_init(registry);
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
     void do_execute(); 
@@ -138,7 +143,7 @@ namespace pa {
     virtual bool on() { return !analysis.genOnly; }
     
   protected:
-    void do_initialize(Registry& registry) {
+    void do_init(Registry& registry) {
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
     void do_execute(); 
@@ -155,10 +160,15 @@ namespace pa {
       AnalysisMod("genlep", event_, cfg_, utils_, gt_) { }
     ~GenLepMod () { }
 
-    virtual bool on() { return analysis.vbf; }
+    virtual bool on() { return analysis.vbf && !analysis.isData; }
     
   protected:
     void do_execute(); 
+    void do_initalize(Registry& registry) {
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+    }
+  private:
+    const std::vector<panda::Particle*> *genP{nullptr};
   };
 
 }

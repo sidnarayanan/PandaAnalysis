@@ -16,6 +16,8 @@ namespace pa {
         flavor = new JetFlavorMod(event_, cfg_, utils_, gt_); subMods.push_back(flavor);
         isojet = new IsoJetMod(event_, cfg_, utils_, gt_); subMods.push_back(isojet);
         bjetreg = new BJetRegMod(event_, cfg_, utils_, gt_); subMods.push_back(bjetreg);
+        vbf = new VBFSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(vbf);
+        hbb = new HbbSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(hbb);
       }
     ~JetMod () { 
       delete ak4JERReader;
@@ -42,6 +44,8 @@ namespace pa {
     JetFlavorMod *flavor{nullptr};
     IsoJetMod *isojet{nullptr};
     BJetRegMod *bjetreg{nullptr};
+    VBFSystemMod *vbf{nullptr};
+    HbbSystemMod *hbb{nullptr};
 
     std::map<TString,FactorizedJetCorrector*> ak4ScaleReader; //!< calculate JES on the fly
     std::map<TString,JetCorrectionUncertainty*> ak4UncReader; //!< calculate JES unc on the fly
@@ -76,7 +80,7 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");
-      genP = registry.access<std::vector<panda::Particle*>("genP");
+      genP = registry.accessConst<std::vector<panda::Particle*>("genP");
     }
     void do_execute();
   private:
@@ -178,6 +182,56 @@ namespace pa {
     float *bjetreg_vars{nullptr};
   };
 
+  class SoftActivityMod : public AnalysisMod {
+  public: 
+    SoftActivityMod(panda::EventAnalysis& event_, 
+                    const Config& cfg_,                 
+                    const Utils& utils_,                
+                    GeneralTree& gt_) :                 
+      AnalysisMod("softactivity", event_, cfg_, utils_, gt_) { 
+      }
+    ~SoftActivityMod () { 
+      delete softTrackJetDefinition
+    }
+
+    virtual bool on() { return !analysis.genOnly && analysis.hbb; }
+    
+  protected:
+    void do_init(Registry& registry) {
+      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
+      softTrackJetDefinition = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
+    }
+    void do_execute();  
+
+  private:
+    std::vector<JESHandler>* jesShifts{nullptr}; 
+    fastjet::JetDefinition* jetDefSoftTrack       {nullptr};
+  };
+
+
+  class GenJetNuMod : public AnalysisMod {
+  public:
+    GenJetNuMod(panda::EventAnalysis& event_, 
+                 const Config& cfg_,                 
+                 const Utils& utils_,                
+                 GeneralTree& gt_) :                 
+      AnalysisMod("genjetnu", event_, cfg_, utils_, gt_) { 
+        jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
+      }
+    ~GenJetNuMod () { delete jetDef; }
+
+    bool on() { return !analysis.isData && analysis.reclusterGen && analysis.hbb; }
+  protected:
+    void do_init(Registry& registry) {
+      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
+      genP = registry.accessConst<std::vector<panda::Particle*>("genP");
+    }
+    void do_execute();
+  private:
+    std::vector<JESHandler>* jesShifts{nullptr}; 
+    const std::vector<panda::Particle*> *genP;
+    fastjet::JetDefinition *jetDef{nullptr}; 
+  };
 }
 
 #endif

@@ -5,48 +5,22 @@ using namespace std;
 
 Utils::~Utils() 
 {
-  for (auto* t : f1Corrs) { if (t != nullptr) delete t; }
-  for (auto* t : h1Corrs) { if (t != nullptr) delete t; }
-  for (auto* t : h2Corrs) { if (t != nullptr) delete t; }
+  for (auto* t : f1Corrs) { delete t; }
+  for (auto* t : h1Corrs) { delete t; }
+  for (auto* t : h2Corrs) { delete t; }
   for (auto* f : fCorrs)  { if (f != nullptr) f->Close(); }
 
-  delete btagCalib;
-  delete sj_btagCalib;
-  for (auto* reader : btagReaders)
-    delete reader;
-
-  for (auto& iter : ak8UncReaders)
-    delete iter.second;
-
-  delete ak8JERReader;
-
-  for (auto& iter : ak4UncReaders)
-    delete iter.second;
-
-  for (auto& iter : ak4ScaleReader)
-    delete iter.second;
-
-  delete ak4JERReader;
+  delete btag;
+  delete eras; 
 
   delete activeArea
   delete areaDef;
-  delete jetDef;
-  delete jetDefKt;
-  delete jetDefGen;
-  delete softDrop;
 
   delete hDTotalMCWeight;
   
-  delete bjetregReader;
-  delete bjetreg_vars;
   delete rochesterCorrection;
 
-  delete ecfcalc;
-  delete grid;
-
   delete rochesterCorrection;
-  delete csvReweighter;
-  delete cmvaReweighter;
   if (fMSDCorr)
     fMSDCorr->Close();
 }

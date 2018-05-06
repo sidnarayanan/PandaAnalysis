@@ -10,8 +10,8 @@ namespace pa {
               const Config& cfg_,                 
               const Utils& utils_,                
               GeneralTree& gt_) :                 
-      AnalysisMod("fatjet", event_, cfg_, utils_, gt_) { 
-        fatjets = analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets; 
+      AnalysisMod("fatjet", event_, cfg_, utils_, gt_),
+      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
         recluster = new FatJetReclusterMod(event_, cfg_, utils_, gt_); subMods.push_back(recluster);
       }
     ~FatJetMod () { 
@@ -38,7 +38,7 @@ namespace pa {
     JetCorrectionUncertainty *uncReader  {nullptr};        
 
     panda::FatJet *fj1{nullptr}; 
-    panda::FatJetCollection *fatjets{nullptr};
+    panda::FatJetCollection &fatjets;
 
     const std::vector<panda::Lepton*>* matchLeps;
     const std::vector<panda::Photon*>* matchPhos;
@@ -73,6 +73,31 @@ namespace pa {
   private:
     const panda::FatJet **fj1{nullptr}; 
     fastjet::JetDefinition       *jetDef                {nullptr};
+  };
+
+  class FatJetMatchingMod : public AnalysisMod {
+  public: 
+    FatJetMatchingMod(panda::EventAnalysis& event_, 
+                      const Config& cfg_,                 
+                      const Utils& utils_,                
+                      GeneralTree& gt_) :                 
+      AnalysisMod("fatjet matching", event_, cfg_, utils_, gt_) { }
+    ~FatJetMatchingMod () { }
+
+    virtual bool on() { return !analysis.genOnly && analysis.fatjet && !analysis.isData; }
+    
+  protected:
+    void do_init(Registry& registry) {
+      fjPtr = registry.accessConst<panda::FatJet*>("fj1");
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+    }
+    void do_execute();  
+    void do_reset() { genObjects.clear(); }
+  private:
+    const panda::FatJet **fjPtr{nullptr}; 
+    const std::vector<panda::Particle*> *genP{nullptr}; 
+    std::map<const panda::GenParticle*,float> genObjects; // gen particle -> pt 
+    const panda::GenParticle* matchGen(double eta, double phi, double r2, int pdgid=0) const;  
   };
 }
 

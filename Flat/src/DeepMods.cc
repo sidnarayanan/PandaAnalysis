@@ -408,14 +408,14 @@ void DeepGenMod<GENP>::incrementAux(bool close)
 {
   if (fAux) {
     fAux->WriteTObject(tAux, "inputs", "Overwrite");
-    TString path = TString::Format(auxFilePath.Data(),auxCounter);
+    TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter);
     if (DEBUG) PDebug("DeepGenMod::incrementAux", "Closing "+path);
     fAux->Close();
   }
   if (close)
     return;
 
-  TString path = TString::Format(auxFilePath.Data(),auxCounter++);
+  TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter++);
   fAux = TFile::Open(path.Data(), "RECREATE");
   if (DEBUG) PDebug("DeepGenMod::incrementAux", "Opening "+path);
   tAux = new TTree("inputs","inputs");

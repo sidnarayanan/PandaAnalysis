@@ -17,7 +17,7 @@ namespace pa {
     bool on() { return !analysis.genOnly && analysis.recoil; }
 
   protected:
-    void do_initialize(Registry& registry) {
+    void do_init(Registry& registry) {
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       loosePhos = registry.accessConst<std::vector<panda::Photon*>>("loosePhos");
       lepPdgId = registry.accessConst<std::array<int,4>>("lepPdgId");
@@ -44,12 +44,34 @@ namespace pa {
     bool on() { return !analysis.genOnly && (analysis.isData || analysis.mcTriggers); }
 
   protected:
-    void do_initialize(Registry& registry);
+    void do_init(Registry& registry);
     void do_execute();
 
   private:
     auto triggerHandlers = std::vector<TriggerHandler>(kNTrig) 
   };
+
+  class TriggerEffMod : public AnalysisMod {
+  public:
+    TriggerEffMod(panda::EventAnalysis& event_, 
+               const Config& cfg_,                 
+               const Utils& utils_,                
+               GeneralTree& gt_) :                 
+      AnalysisMod("triggereff", event_, cfg_, utils_, gt_) { }
+    ~TriggerEffMod () { }
+
+    bool on() { return !analysis.genOnly && !analysis.isData; }
+
+  protected:
+    void do_init(Registry& registry) {
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); 
+    }
+    void do_execute();
+
+  private:
+    const std::vector<panda::Lepton*> *looseLeps{nullptr};
+  };
+
 
   class GlobalMod : public AnalysisMod {
   public:
@@ -69,7 +91,7 @@ namespace pa {
     void do_execute();  
     void do_reset() { 
       for (auto& s : jesShifts)
-        s.reset();
+        s.clear();
     }
   private:
     auto jesShifts = std::vector<JESHandler>(jes2i(shiftjes::N)); 

@@ -6,10 +6,12 @@ using namespace panda;
 
 void SimpleLeptonMod::scaleFactors()
 {
+  if (analysis.isData)
+    return; 
   // For the hadronic analyses, store a single branch for lepton ID,
   // isolation, and tracking, computed based on the 2 leading loose
   // leptons in the event. Cool guyz get per-leg scalefactors
-  // computed in ModulesLepPho.cc
+  // computed in ComplicatedLeptonMod
   for (int iL=0; iL!=TMath::Min(gt.nLooseLep,2); ++iL) {
     auto* lep = looseLeps.at(iL);
     float pt = lep->pt(), eta = lep->eta(), aeta = TMath::Abs(eta);
@@ -236,8 +238,8 @@ void ComplicatedLeptonMod::do_execute()
     } else if (pt>0) { // perform the rochester correction to the simulated particle
       // attempt gen-matching to a final state muon
       bool muonIsTruthMatched=false; TLorentzVector genP4; GenParticle genParticle;
-      for (int iG = 0; iG != (int)validGenP.size() && !muonIsTruthMatched; ++iG) {
-        genParticle = pToGRef(validGenP[iG]);
+      for (int iG = 0; iG != (int)genP->size() && !muonIsTruthMatched; ++iG) {
+        genParticle = pToGRef((*genP)[iG]);
         if (genParticle.finalState != 1) continue;
         if (genParticle.pdgid != ((int)mu.charge) * -13) continue;
         genP4.SetPtEtaPhiM(genParticle.pt(), genParticle.eta(), genParticle.phi(), 0.106);
@@ -378,6 +380,8 @@ void InclusiveLepMod::do_execute()
 
 void SimplePhotonMod::scaleFactors()
 {
+  if (analysis.isData)
+    return; 
   if (gt.nLoosePhoton < 1)
     return;
   float pt = gt.loosePho1Pt, eta = gt.loosePho1Eta;
@@ -508,7 +512,7 @@ void GenLepMod::do_execute()
   gt.genMuonPt = -1;
   GenParticle *tau = NULL;
   bool foundTauLeptonic = false; 
-  for (auto* genptr : validGenP) {
+  for (auto* genptr : *genP) {
     auto& gen = pToGRef(genptr);
     int apdgid = abs(gen.pdgid);
     float pt = gen.pt();
