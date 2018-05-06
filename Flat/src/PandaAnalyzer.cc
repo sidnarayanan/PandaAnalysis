@@ -28,11 +28,11 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   // Define analyses 
   ADDRECO(GenPMod)
   if (analysis.unpackedGen)
-    ADDRECO(DeepUGenMod)
+    ADDRECO(DeepGenMod<UnpackedGenParticle>)
   else
-    ADDRECO(DeepPGenMod)
-  ADDRECO(SimpleLepMod)
-  ADDRECO(ComplicatedMod)
+    ADDRECO(DeepGenMod<GenParticle>)
+  ADDRECO(SimpleLeptonMod)
+  ADDRECO(ComplicatedLeptonMod)
   ADDRECO(RecoilMod)
   ADDRECO(FatJetMod)
   ADDRECO(JetMod)
@@ -58,13 +58,13 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   fIn = TFile::Open(analysis.inpath);
   tIn = static_cast<TTree*>(fIn->Get("events"));
   event.setStatus(*tIn, {"!*"});
-  event.setAddress(*tIn, configMod.get_inputBranches());
+  event.setAddress(*tIn, cfgmod.get_inputBranches());
 
   hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
 
   TTree* tW = static_cast<TTree*>(fIn->Get("weights"));
-  if (tW && analysis.proccessType == kSignal) {
+  if (tW && analysis.processType == kSignal) {
     if (tW->GetEntries()!=377 && tW->GetEntries()!=22) {
       PError("PandaAnalyzer::PandaAnalyzer",
           TString::Format("Reweighting failed because only found %u weights!",
@@ -99,8 +99,9 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   fOut = TFile::Open(analysis.outpath, "RECREATE");
   fOut->cd();
-  tOut = new TTree("events", "events")
+  tOut = new TTree("events", "events");
   fOut->WriteTObject(hDTotalMCWeight);
+  registry.publish("fOut", fOut); 
 
   gt.WriteTree(tOut);
 
@@ -193,7 +194,7 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 
 void PandaAnalyzer::Reset() 
 {
-  gt->Reset();
+  gt.Reset();
   
   for (auto* mod : mods_all)
     mod->reset(); 
@@ -237,7 +238,7 @@ void PandaAnalyzer::Run()
   fOut->cd(); // to be absolutely sure
 
   for (auto* mod : mods_all)
-    mod->initialize(); 
+    mod->initialize(registry); 
 
   ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,10);
   TimeReporter& tr = cfgmod.cfg.tr; 

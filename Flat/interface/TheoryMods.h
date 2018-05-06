@@ -19,13 +19,15 @@ namespace pa {
     virtual void do_init(Registry& registry) {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
-      loosePhos = registry.accessConst<std::vector<panda::Lepton*>>("loosePhos");
+      loosePhos = registry.accessConst<std::vector<panda::Photon*>>("loosePhos");
+      lepPdgId = registry.accessConst<std::array<int,4>>("lepPdgId"); 
     }
     virtual void do_execute(); 
   private:
     const std::vector<panda::Particle*> *genP{nullptr};
     const std::vector<panda::Lepton*> *looseLeps{nullptr}; 
-    const std::vector<panda::Lepton*> *loosePhos{nullptr}; 
+    const std::vector<panda::Photon*> *loosePhos{nullptr}; 
+    const std::array<int,4> *lepPdgId{nullptr};
     
   };
 

@@ -2,6 +2,7 @@
 #define LEPPHOMODS
 
 #include "Module.h"
+#include "AnalyzerUtilities.h"
 #include "array"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
 

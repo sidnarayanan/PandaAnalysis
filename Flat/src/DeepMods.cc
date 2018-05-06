@@ -5,9 +5,6 @@ using namespace std;
 using namespace panda;
 using namespace fastjet;
 
-typedef DeepGenMod<GenParticle> DeepPGenMod;
-typedef DeepGenMod<UnpackedGenParticle> DeepUGenMod;
-
 template <typename GENP>
 DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_, 
            Config& cfg_,
@@ -19,17 +16,12 @@ DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
     return;
 
   double radius = 1.5;
-  double sdZcut = 0.15;
-  double sdBeta = 1.;
   auto algo = cambridge_algorithm;
   if (analysis.ak8) {
     radius = 0.8;
-    sdZcut = 0.1;
-    sdBeta = 0.;
     algo = antikt_algorithm;
   } 
   jetDef = new JetDefinition(algo,radius);
-  softDrop = new contrib::SoftDrop(sdBeta,sdZcut,radius);
   tauN = new contrib::Njettiness(contrib::OnePass_KT_Axes(), 
                                           contrib::NormalizedMeasure(1., radius));
   ecfcalc = new ECFCalculator();
@@ -49,7 +41,7 @@ void DeepGenMod<GENP>::do_execute()
   vector<PseudoJet> finalStates;
 
   int idx = -1;
-  for (auto* p_ : genP) {
+  for (auto* p_ : *genP) {
     auto* p = dynamic_cast<const GENP*>(p_);
     ++idx;
     if (!p->finalState)
@@ -67,7 +59,7 @@ void DeepGenMod<GENP>::do_execute()
         if (apdgid == 11 ||
             apdgid == 13 ||
             apdgid == 15) {
-          const T *parent = p;
+          const GENP *parent = p;
           bool foundW = false, foundT = false;
           while (parent->parent.isValid()) {
             parent = parent->parent.get();
@@ -113,7 +105,7 @@ void DeepGenMod<GENP>::do_execute()
 
   PseudoJet* fullJet = NULL;
   for (auto& testJet : allJets) {
-    if (testJet.perp() < minGenFatJetPt)
+    if (testJet.perp() < cfg.minGenFatJetPt)
       break;
     bool jetOverlapsLepton = false;
     for (auto& c : testJet.constituents()) {
@@ -129,16 +121,13 @@ void DeepGenMod<GENP>::do_execute()
     }
   }
 
-  tr->TriggerSubEvent("clustering gen");
 
   if (fullJet == NULL) {
-    tr->TriggerEvent("fill gen tree");
     return;
   }
 
   gt.genFatJetPt = fullJet->perp();
   if (gt.genFatJetPt < 450) {
-    tr->TriggerEvent("fill gen tree");
     return;
   }
 
@@ -149,7 +138,7 @@ void DeepGenMod<GENP>::do_execute()
   genJetInfo.phi = fullJet->phi();
 
   // softdrop the jet
-  PseudoJet sdJet = (*softDrop)(*fullJet);
+  PseudoJet sdJet = (*utils.softDrop)(*fullJet);
   VPseudoJet sdConstituents = sorted_by_pt(sdJet.constituents());
   genJetInfo.msd = sdJet.m();
   vector<bool> survived(allConstituents.size());
@@ -185,10 +174,10 @@ void DeepGenMod<GENP>::do_execute()
   GeneralTree::ECFParams ep;
   ecfcalc->calculate(sdConstsFiltered);
   for (auto iter = ecfcalc->begin(); iter != ecfcalc->end(); ++iter) {
-    int N = iter.get<pandaecf::Calculator::nP>();
-    int o = iter.get<pandaecf::Calculator::oP>();
-    int beta = iter.get<pandaecf::Calculator::bP>();
-    float ecf(iter.get<pandaecf::Calculator::ecfP>());
+    int N = iter.get<pa::ECFCalculator::nP>();
+    int o = iter.get<pa::ECFCalculator::oP>();
+    int beta = iter.get<pa::ECFCalculator::bP>();
+    float ecf(iter.get<pa::ECFCalculator::ecfP>());
     genJetInfo.ecfs[o][N][beta] = ecf;
     ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
     gt.fjECFNs[ep] = ecf;
@@ -196,7 +185,7 @@ void DeepGenMod<GENP>::do_execute()
   
   // now we have to count the number of prongs 
   unordered_set<const GENP*> partons; 
-  countGenPartons<GENP>(partons); // fill the parton set
+  countGenPartons(partons); // fill the parton set
 
   map<const GENP*, unsigned> partonToIdx;
   for (auto* parton : partons) 
@@ -274,7 +263,7 @@ void DeepGenMod<GENP>::do_execute()
     unsigned ptype = 0;
     int parent_idx = -1;
     if (c.user_index() >= 0) {
-      auto* gen = dynamic_cast<const GENP*>(validGenP.at(c.user_index()));
+      auto* gen = dynamic_cast<const GENP*>(genP->at(c.user_index()));
       int pdgid = gen->pdgid;
       int apdgid = abs(pdgid);
       if (apdgid == 11) {
@@ -284,7 +273,7 @@ void DeepGenMod<GENP>::do_execute()
       } else if (apdgid == 22) {
         ptype = 3;
       } else {
-        float q = pdgToQ[apdgid];
+        float q = utils.pdgToQ[apdgid];
         if (apdgid != pdgid)
           q *= -1;
         if (q == 0) 
@@ -325,7 +314,7 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
     return DeltaR2(base_eta, base_phi, p.eta(), p.phi()) < dR2;
   };
   float threshold = genJetInfo.pt * 0.2;
-  for (auto* gen_ : genP) {
+  for (auto* gen_ : *genP) {
     auto* gen = dynamic_cast<const GENP*>(gen_);
     unsigned apdgid = abs(gen->pdgid);
     if (apdgid > 5 && 
@@ -341,8 +330,8 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
     if (!matchJet(*gen))
       continue;
 
-    const T *parent = gen;
-    const T *foundParent = NULL;
+    const GENP *parent = gen;
+    const GENP *foundParent = NULL;
     while (parent->parent.isValid()) {
       parent = parent->parent.get();
       if (partons.find(parent) != partons.end()) {
@@ -351,8 +340,8 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
       }
     }
 
-    const T *dau1 = NULL, *dau2 = NULL;
-    for (const auto* child_ : validGenP) {
+    const GENP *dau1 = NULL, *dau2 = NULL;
+    for (const auto* child_ : *genP) {
       auto* child = dynamic_cast<const GENP*>(child_); 
       if (!(child->parent.isValid() && 
             child->parent.get() == gen))
@@ -409,7 +398,6 @@ void DeepGenMod<GENP>::incrementAux(bool close)
   if (fAux) {
     fAux->WriteTObject(tAux, "inputs", "Overwrite");
     TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter);
-    if (DEBUG) PDebug("DeepGenMod::incrementAux", "Closing "+path);
     fAux->Close();
   }
   if (close)
@@ -417,7 +405,6 @@ void DeepGenMod<GENP>::incrementAux(bool close)
 
   TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter++);
   fAux = TFile::Open(path.Data(), "RECREATE");
-  if (DEBUG) PDebug("DeepGenMod::incrementAux", "Opening "+path);
   tAux = new TTree("inputs","inputs");
   
   genJetInfo.particles.resize(cfg.NMAXPF);
@@ -460,3 +447,6 @@ void DeepGenMod<GENP>::incrementAux(bool close)
 
   fOut->cd();
 }
+
+template class DeepGenMod<panda::GenParticle>;
+template class DeepGenMod<panda::UnpackedGenParticle>;

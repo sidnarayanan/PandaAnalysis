@@ -344,7 +344,6 @@ void GeneralTree::Reset() {
     jetFlav[iA] = 0;
     jetIsTight[iA] = 0;
     jetIsIso[iA] = 0;
-    hbbjtidx[iA] = 0;
   }
   for (int iA=0; iA!=20; ++iA) {
     jotEta[iA] = -99;
@@ -445,6 +444,7 @@ void GeneralTree::Reset() {
   for (int iS=0; iS!=43; ++iS) {
     for (int iA=0; iA!=2; ++iA) {
       jotBReg[iS][iA] = -99;
+      hbbjtidx[iS][iA] = 0;
     }
   }
 }
@@ -1214,13 +1214,55 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("jotNLep",jotNLep,"jotNLep["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/I");
     Book("jotGenPt",jotGenPt,"jotGenPt["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotFlav",jotFlav,"jotFlav["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/I");
-    Book("hbbjtidx",hbbjtidx,"hbbjtidx["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/I");
     Book("fjsjPt",fjsjPt,"fjsjPt["+TString("2")+"]/F");
     Book("fjsjEta",fjsjEta,"fjsjEta["+TString("2")+"]/F");
     Book("fjsjPhi",fjsjPhi,"fjsjPhi["+TString("2")+"]/F");
     Book("fjsjM",fjsjM,"fjsjM["+TString("2")+"]/F");
     Book("fjsjCSV",fjsjCSV,"fjsjCSV["+TString("2")+"]/F");
     Book("fjsjQGL",fjsjQGL,"fjsjQGL["+TString("2")+"]/F");
+    Book("hbbjtidx",hbbjtidx[0],"hbbjtidx["+TString("2")+"]/I");
+    Book("hbbjtidx_JESUp",hbbjtidx[1],"hbbjtidx_JESUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESDown",hbbjtidx[2],"hbbjtidx_JESDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcAbsoluteMPFBiasUp",hbbjtidx[3],"hbbjtidx_JESSrcAbsoluteMPFBiasUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcAbsoluteMPFBiasDown",hbbjtidx[4],"hbbjtidx_JESSrcAbsoluteMPFBiasDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcAbsoluteScaleUp",hbbjtidx[5],"hbbjtidx_JESSrcAbsoluteScaleUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcAbsoluteScaleDown",hbbjtidx[6],"hbbjtidx_JESSrcAbsoluteScaleDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcAbsoluteStatUp",hbbjtidx[7],"hbbjtidx_JESSrcAbsoluteStatUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcAbsoluteStatDown",hbbjtidx[8],"hbbjtidx_JESSrcAbsoluteStatDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcFlavorQCDUp",hbbjtidx[9],"hbbjtidx_JESSrcFlavorQCDUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcFlavorQCDDown",hbbjtidx[10],"hbbjtidx_JESSrcFlavorQCDDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcFragmentationUp",hbbjtidx[11],"hbbjtidx_JESSrcFragmentationUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcFragmentationDown",hbbjtidx[12],"hbbjtidx_JESSrcFragmentationDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpDataMCUp",hbbjtidx[13],"hbbjtidx_JESSrcPileUpDataMCUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpDataMCDown",hbbjtidx[14],"hbbjtidx_JESSrcPileUpDataMCDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtBBUp",hbbjtidx[15],"hbbjtidx_JESSrcPileUpPtBBUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtBBDown",hbbjtidx[16],"hbbjtidx_JESSrcPileUpPtBBDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtEC1Up",hbbjtidx[17],"hbbjtidx_JESSrcPileUpPtEC1Up["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtEC1Down",hbbjtidx[18],"hbbjtidx_JESSrcPileUpPtEC1Down["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtEC2Up",hbbjtidx[19],"hbbjtidx_JESSrcPileUpPtEC2Up["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtEC2Down",hbbjtidx[20],"hbbjtidx_JESSrcPileUpPtEC2Down["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtRefUp",hbbjtidx[21],"hbbjtidx_JESSrcPileUpPtRefUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcPileUpPtRefDown",hbbjtidx[22],"hbbjtidx_JESSrcPileUpPtRefDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeFSRUp",hbbjtidx[23],"hbbjtidx_JESSrcRelativeFSRUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeFSRDown",hbbjtidx[24],"hbbjtidx_JESSrcRelativeFSRDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeJEREC1Up",hbbjtidx[25],"hbbjtidx_JESSrcRelativeJEREC1Up["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeJEREC1Down",hbbjtidx[26],"hbbjtidx_JESSrcRelativeJEREC1Down["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativePtBBUp",hbbjtidx[27],"hbbjtidx_JESSrcRelativePtBBUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativePtBBDown",hbbjtidx[28],"hbbjtidx_JESSrcRelativePtBBDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativePtEC1Up",hbbjtidx[29],"hbbjtidx_JESSrcRelativePtEC1Up["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativePtEC1Down",hbbjtidx[30],"hbbjtidx_JESSrcRelativePtEC1Down["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativePtEC2Up",hbbjtidx[31],"hbbjtidx_JESSrcRelativePtEC2Up["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativePtEC2Down",hbbjtidx[32],"hbbjtidx_JESSrcRelativePtEC2Down["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeStatECUp",hbbjtidx[33],"hbbjtidx_JESSrcRelativeStatECUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeStatECDown",hbbjtidx[34],"hbbjtidx_JESSrcRelativeStatECDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeStatFSRUp",hbbjtidx[35],"hbbjtidx_JESSrcRelativeStatFSRUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcRelativeStatFSRDown",hbbjtidx[36],"hbbjtidx_JESSrcRelativeStatFSRDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcSinglePionECALUp",hbbjtidx[37],"hbbjtidx_JESSrcSinglePionECALUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcSinglePionECALDown",hbbjtidx[38],"hbbjtidx_JESSrcSinglePionECALDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcSinglePionHCALUp",hbbjtidx[39],"hbbjtidx_JESSrcSinglePionHCALUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcSinglePionHCALDown",hbbjtidx[40],"hbbjtidx_JESSrcSinglePionHCALDown["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcTimePtEtaUp",hbbjtidx[41],"hbbjtidx_JESSrcTimePtEtaUp["+TString("2")+"]/I");
+    Book("hbbjtidx_JESSrcTimePtEtaDown",hbbjtidx[42],"hbbjtidx_JESSrcTimePtEtaDown["+TString("2")+"]/I");
     Book("hbbpt",&(hbbpt[0]),"hbbpt/F");
     Book("hbbpt_JESUp",&(hbbpt[1]),"hbbpt_JESUp/F");
     Book("hbbpt_JESDown",&(hbbpt[2]),"hbbpt_JESDown/F");

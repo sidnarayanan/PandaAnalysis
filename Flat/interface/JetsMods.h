@@ -23,12 +23,14 @@ namespace pa {
     void do_readData(TString dirPath);
     void do_init(Registry& registry) {
       currentJES = registry.access<JESHandler*>("currentJES");
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       registry.publishConst("btagsortedjets", &btagsorted);
     }
     void do_execute();
   private:
     JESHandler **currentJES{nullptr};
     std::vector<const JetWrapper*> btagsorted;
+    const std::vector<panda::Lepton*>* looseLeps{nullptr};
 
     TMVA::Reader *bjetregReader{nullptr}; 
     float *bjetreg_vars{nullptr};
@@ -172,8 +174,8 @@ namespace pa {
     FactorizedJetCorrector   *scaleReaderAK4{nullptr};        
     std::vector<JESHandler>* jesShifts{nullptr}; 
 
-    const std::vector<panda::Lepton*>* matchLeps;
-    const std::vector<panda::Photon*>* matchPhos;
+    const std::vector<panda::Lepton*>* matchLeps{nullptr};
+    const std::vector<panda::Photon*>* matchPhos{nullptr};
 
     panda::JetCollection *ak4Jets{nullptr};
 
@@ -203,12 +205,14 @@ namespace pa {
     void do_init(Registry& registry) {
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       jetDefSoftTrack = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
     void do_execute();  
 
   private:
     std::vector<JESHandler>* jesShifts{nullptr}; 
     fastjet::JetDefinition* jetDefSoftTrack       {nullptr};
+    const std::vector<panda::Lepton*>* looseLeps{nullptr};
   };
 
 

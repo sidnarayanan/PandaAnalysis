@@ -84,6 +84,7 @@ namespace pa {
     bool recoil = true;
     bool rerunJES = false;
     bool useCMVA = false;
+    bool unpackedGen = false; 
     bool varyJES = false;
     bool vbf = false;
     bool ZllHbb = false;

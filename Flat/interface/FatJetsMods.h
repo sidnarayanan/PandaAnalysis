@@ -63,6 +63,7 @@ namespace pa {
     void do_execute();  
     float getMSDCorr(float,float);
   private:
+    void setupJES(); 
     std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
     JERReader *ak8JERReader{nullptr}; //!< fatjet jet energy resolution reader
     JetCorrectionUncertainty *uncReader  {nullptr};        

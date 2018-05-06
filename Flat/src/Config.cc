@@ -13,6 +13,7 @@ Utils::~Utils()
   delete btag;
   delete eras; 
 
+  delete softDrop; 
   delete activeArea;
   delete areaDef;
 

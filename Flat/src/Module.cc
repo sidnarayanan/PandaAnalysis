@@ -34,6 +34,16 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
     utils.areaDef = new AreaDefinition(active_area_explicit_ghosts,*(utils.activeArea));
   }
 
+  double radius = 1.5;
+  double sdZcut = 0.15;
+  double sdBeta = 1.;
+  if (analysis.ak8) {
+    radius = 0.8;
+    sdZcut = 0.1;
+    sdBeta = 0.;
+  } 
+  utils.softDrop = new contrib::SoftDrop(sdBeta,sdZcut,radius);
+
   if (analysis.deepTracks) {
     cfg.NPFPROPS += 7;
     if (analysis.deepSVs) {

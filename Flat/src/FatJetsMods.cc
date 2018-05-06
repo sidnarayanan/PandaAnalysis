@@ -3,6 +3,7 @@
 using namespace pa;
 using namespace std;
 using namespace panda; 
+using namespace fastjet;
 
 void FatJetMod::do_readData(TString dirPath) {
   if (!analysis.rerunJES)
@@ -16,7 +17,7 @@ void FatJetMod::do_readData(TString dirPath) {
        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK8PFPuppi.txt").Data()
     );
   for (auto e : eraGroups) {
-    utils.ak8UncReader["data"+e] = new JetCorrectionUncertainty(
+    ak8UncReader["data"+e] = new JetCorrectionUncertainty(
          (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK8PFPuppi.txt").Data()
       );
   }
@@ -32,7 +33,7 @@ void FatJetMod::setupJES()
   if (!analysis.rerunJES || (uncReader != nullptr)) 
     return;
   if (analysis.isData) {
-    TString thisEra = utils.eras.getEra(gt.runNumber);
+    TString thisEra = utils.eras->getEra(gt.runNumber);
     for (auto& iter : ak8UncReader) {
       if (!iter.first.Contains("data"))
         continue;
@@ -71,15 +72,15 @@ void FatJetMod::do_execute()
       continue;
 
     float phi = fj.phi();
-    if (isMatched(matchLeps,FATJETMATCHDR2,eta,phi) || 
-        isMatched(matchPhos,FATJETMATCHDR2,eta,phi)) {
+    if (isMatched(matchLeps,cfg.FATJETMATCHDR2,eta,phi) || 
+        isMatched(matchPhos,cfg.FATJETMATCHDR2,eta,phi)) {
       continue;
     }
 
     gt.nFatjet++;
     if (gt.nFatjet==1) {
       fj1 = &fj;
-      gt.fj1IsClean = fatjet_counter==0 ? 1 : 0;
+      gt.fjIsClean = fatjet_counter==0 ? 1 : 0;
       gt.fjPt = pt;
       gt.fjEta = eta;
       gt.fjPhi = phi;
@@ -98,9 +99,9 @@ void FatJetMod::do_execute()
       gt.fjTau21 = clean(fj.tau2/fj.tau1);
       gt.fjTau21SD = clean(fj.tau2SD/fj.tau1SD);
 
-      for (auto ibeta : ibetas) {
-        for (auto N : Ns) {
-          for (auto order : orders) {
+      for (auto ibeta : cfg.ibetas) {
+        for (auto N : cfg.Ns) {
+          for (auto order : cfg.orders) {
             GeneralTree::ECFParams p;
             p.order = order; p.N = N; p.ibeta = ibeta;
             if (gt.fjIsClean || true)
@@ -143,7 +144,7 @@ void FatJetMod::do_execute()
         }
       }
     }
-    if (!isData && fj.matchedGenJet.isValid())
+    if (!analysis.isData && fj.matchedGenJet.isValid())
       gt.fjGenNumB = fj.matchedGenJet.get()->numB;
     else 
       gt.fjGenNumB = 0;
@@ -201,7 +202,7 @@ void FatJetReclusterMod::do_execute()
     }
 
 
-    fastjet::PseudoJet sdJet = (*softDrop)(*pj1);
+    fastjet::PseudoJet sdJet = (*utils.softDrop)(*pj1);
     VPseudoJet sdConstituents = fastjet::sorted_by_pt(sdJet.constituents());
     eTot=0; eTrunc=0;
     for (unsigned iC=0; iC!=sdConstituents.size(); ++iC) {
@@ -210,15 +211,16 @@ void FatJetReclusterMod::do_execute()
       if (iC<100)
         eTrunc += e;
     }
+  }
 }
 
-const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double radius, int pdgid) 
+const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double radius, int pdgid) const 
 {
   const GenParticle* found=NULL;
   double r2 = radius*radius;
   pdgid = abs(pdgid);
 
-  for (map<const GenParticle*,float>::iterator iG=genObjects.begin();
+  for (auto iG=genObjects.begin();
       iG!=genObjects.end(); ++iG) {
     if (found!=NULL)
       break;
@@ -239,7 +241,7 @@ void FatJetMatchingMod::do_execute()
     return;
 
   int pdgidTarget=0;
-  if (!isData && analysis.processType>=kTT) {
+  if (!analysis.isData && analysis.processType>=kTT) {
     switch(analysis.processType) {
       case kTop:
       case kTT:
@@ -269,7 +271,7 @@ void FatJetMatchingMod::do_execute()
     } //looking for targets
 
     for (int iG : targets) {
-      auto& part = pToGRef((*genP)]iG]);
+      auto& part = pToGRef((*genP)[iG]);
 
       // check there is no further copy:
       bool isLastCopy=true;
@@ -379,9 +381,7 @@ void FatJetMatchingMod::do_execute()
     } // loop over targets
   } // process is interesting
 
-  tr->TriggerEvent("gen matching");
-
-  if (!isData && gt.nFatjet>0) {
+  if (!analysis.isData && gt.nFatjet>0) {
     // first see if jet is matched
     auto* matched = matchGen(fj1->eta(),fj1->phi(),1.5,pdgidTarget);
     if (matched!=nullptr) {
@@ -407,12 +407,12 @@ void FatJetMatchingMod::do_execute()
     int has_gluon_splitting=0;
     const GenParticle* first_b_mo(0);
     // now get the highest pT gen particle inside the jet cone
-    for (auto* genptr : validGenP) {
+    for (auto* genptr : *genP) {
       auto& gen = pToGRef(genptr);
       float pt = gen.pt();
       int pdgid = gen.pdgid;
       if (pt>(gt.fjHighestPtGenPt)
-          && DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<FATJETMATCHDR2) {
+          && DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<cfg.FATJETMATCHDR2) {
         gt.fjHighestPtGenPt = pt;
         gt.fjHighestPtGen = pdgid;
       }
@@ -425,7 +425,7 @@ void FatJetMatchingMod::do_execute()
       if (apdgid!=5 && apdgid!=4) 
         continue;
 
-      if (DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<FATJETMATCHDR2) {
+      if (DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<cfg.FATJETMATCHDR2) {
         gt.fjNHF++;
         if (apdgid==5) {
           if (gen.parent.isValid() && gen.parent->pdgid==21 && gen.parent->pt()>20) {
@@ -457,7 +457,7 @@ void FatJetMatchingMod::do_execute()
       for (int iSJ=0; iSJ!=nSJ; ++iSJ) {
         auto& subjet = fj1->subjets.objAt(iSJ);
         int flavor=0;
-        for (auto* genptr : validGenP) {
+        for (auto* genptr : *genP) {
           auto& gen = pToGRef(genptr);
           int apdgid = abs(gen.pdgid);
           if (apdgid==0 || (apdgid>5 && apdgid!=21)) // light quark or gluon

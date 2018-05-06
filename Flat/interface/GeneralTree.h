@@ -395,7 +395,6 @@ class GeneralTree : public genericTree {
   int jotNLep[20];
   float jotGenPt[20];
   int jotFlav[20];
-  int hbbjtidx[2];
   float barrelJet1Pt;
   float barrelJet1Eta;
   float barrelHT;
@@ -540,6 +539,7 @@ class GeneralTree : public genericTree {
   float diLepMass;
   int nTau;
   float mT[43];
+  int hbbjtidx[43][2];
   float hbbpt[43];
   float hbbeta[43];
   float hbbphi[43];

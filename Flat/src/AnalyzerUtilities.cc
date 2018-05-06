@@ -1,8 +1,10 @@
-#include "PandaAnalysis/Flat/interface/AnalyzerUtilities.h"
+#include "../interface/AnalyzerUtilities.h"
 #include <cassert>
 
 using namespace fastjet;
 using namespace std;
+using namespace pa;
+using namespace panda;
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,7 +141,7 @@ void JetRotation::Rotate(float& x, float& y, float& z)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-VPseudoJet ConvertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
+VPseudoJet pa::convertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
 {
   VPseudoJet vpj;
   vpj.reserve(incoll.size());
@@ -156,29 +158,29 @@ VPseudoJet ConvertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi
   return vpj;
 }
 
-VPseudoJet ConvertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
+VPseudoJet pa::convertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
 {
   vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
   for (auto incand : incoll)
     outcoll.push_back(incand.get());
 
-  return ConvertPFCands(outcoll, puppi, minPt);
+  return pa::convertPFCands(outcoll, puppi, minPt);
 }
 
-VPseudoJet ConvertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt) 
+VPseudoJet pa::convertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt) 
 {
   vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
   for (auto &incand : incoll)
     outcoll.push_back(&incand);
 
-  return ConvertPFCands(outcoll, puppi, minPt);
+  return pa::convertPFCands(outcoll, puppi, minPt);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool ElectronIP(double eta, double dxy, double dz) 
+bool pa::ElectronIP(double eta, double dxy, double dz) 
 {
   double aeta = fabs(eta);
   if (aeta<1.4442) {
@@ -188,7 +190,7 @@ bool ElectronIP(double eta, double dxy, double dz)
   }
 }
 
-bool MuonIP(double dxy, double dz) 
+bool pa::MuonIP(double dxy, double dz) 
 {
   return (dxy < 0.02 && dz < 0.10);
 }

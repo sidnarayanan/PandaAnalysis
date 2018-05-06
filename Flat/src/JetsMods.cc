@@ -1,4 +1,7 @@
 #include "../interface/JetsMods.h"
+#include "PandaAnalysis/Utilities/interface/Helicity.h"
+#include "PandaAnalysis/Utilities/interface/NeutrinoSolver.h"
+#include "TSystem.h"
 
 using namespace pa;
 using namespace std;
@@ -80,7 +83,6 @@ void JetMod::do_readData(TString dirPath)
       (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2L3Residual_AK4PFPuppi.txt").Data())
   };
   ak4ScaleReader["MC"] = new FactorizedJetCorrector(params);
-  if (DEBUG>1) PDebug("JetMod::do_readData","Loaded JES for AK4 MC");
   for (auto e : eraGroups) {
     params = {
       JetCorrectorParameters(
@@ -93,10 +95,8 @@ void JetMod::do_readData(TString dirPath)
         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2L3Residual_AK4PFPuppi.txt").Data())
     };
     ak4ScaleReader["data"+e] = new FactorizedJetCorrector(params);
-    if (DEBUG>1) PDebug("JetMod::do_readData","Loaded JES for AK4 "+e);
   }
 
-  if (DEBUG) PDebug("JetMod::do_readData","Loaded JES/R");
 }
 
 void JetMod::setupJES()
@@ -104,7 +104,7 @@ void JetMod::setupJES()
   if (!analysis.rerunJES || (uncReaderAK4 != nullptr)) 
     return;
   if (analysis.isData) {
-    TString thisEra = utils.eras.getEra(gt.runNumber);
+    TString thisEra = utils.eras->getEra(gt.runNumber);
     for (auto& iter : ak4UncReader) {
       if (!iter.first.Contains("data"))
         continue;
@@ -125,8 +125,8 @@ void JetMod::varyJES()
 {
   JESLOOP {
     auto& jets = (*jesShifts)[shift];
-    jets.reserve(ak4jets->size());
-    for (auto &j : *ak4jets) {
+    jets.reserve(ak4Jets->size());
+    for (auto &j : *ak4Jets) {
       jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb, true));
     }
     jets.sort();
@@ -170,7 +170,7 @@ void JetMod::do_execute()
       float csv = centralOnly(jet.csv, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
-      if (pt > minBJetPt && aeta < 2.4) { // b jets
+      if (pt > cfg.minBJetPt && aeta < 2.4) { // b jets
         if (csvLoose(csv)) { 
           ++(gt.jetNBtags[shift]);
           if (csvMed(csv)) {
@@ -182,10 +182,10 @@ void JetMod::do_execute()
       } 
 
 
-      if (pt > minJetPt) {
+      if (pt > cfg.minJetPt) {
         // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
-        if ((analysis.hbb || analysis.monoh) && jets.cleaned.size() >= cfg.NJETSAVED)
+        if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
           continue;
 
         jets.cleaned.push_back(&jw);
@@ -225,12 +225,12 @@ void JetMod::do_execute()
         }
 
         int njet = jets.cleaned.size() - 1;
-        if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJET)) {
+        if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
           gt.jotPt[shift][njet] = pt;
           if (isNominal) {
             gt.jotEta[njet] = jet.eta();
             gt.jotPhi[njet] = jet.phi();
-            gt.jotE[njet] = jet.e() * jw.scale();
+            gt.jotM[njet] = jet.m();
             gt.jotCSV[njet] = csv;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
@@ -352,7 +352,7 @@ void IsoJetMod::do_execute()
   bool isIsoJet = ( 
         gt.nFatjet == 0 || 
         (fabs(jet.eta()) < maxIsoEta && 
-         DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > FATJETMATCHDR2) 
+         DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2) 
       ); 
 
   jw.iso = isIsoJet; 
@@ -487,7 +487,7 @@ void HbbSystemMod::do_execute()
   gt.hbbjtidx[shift][0] = order[bjets[0]];
   gt.hbbjtidx[shift][1] = order[bjets[1]];
 
-  const vector<TLorentzVector> hbbd = { bjets[0]->p4(), bjets[1]->p4() };
+  array<TLorentzVector,2> hbbd = {{ bjets[0]->p4(), bjets[1]->p4() }};
   TLorentzVector hbbsystem = hbbd[0] + hbbd[1];
 
   gt.hbbpt[shift] = hbbsystem.Pt();
@@ -495,7 +495,7 @@ void HbbSystemMod::do_execute()
   gt.hbbphi[shift] = hbbsystem.Phi();
   gt.hbbm[shift] = hbbsystem.M();
 
-  TLorentzVector hbbd_corr[2];
+  array<TLorentzVector,2> hbbd_corr;
   if (analysis.bjetRegression && gt.hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
@@ -552,7 +552,7 @@ void HbbSystemMod::do_execute()
     TLorentzVector leptonP4, metP4, nuP4, *jet0P4{nullptr}, *jet1P4{nullptr}, WP4, topP4;
     float dRJet0W, dRJet1W;
     bool jet0IsCloser;
-    leptonP4=looseLeps[0]->p4();
+    leptonP4=(*looseLeps)[0]->p4();
 
     metP4.SetPtEtaPhiM(gt.pfmet[shift], 0, gt.pfmetphi[shift], 0);
     nuP4 = getNu4Momentum( leptonP4, metP4 );
@@ -588,7 +588,7 @@ void SoftActivityMod::do_execute()
   if (gt.hbbm[shift] > 0.) {
     gt.sumEtSoft1=0; gt.nSoft2=0; gt.nSoft5=0; gt.nSoft10=0;
     // Define the ellipse of particles to forget about
-    // https://math.stackexchange.com/questions/426150/\
+    // https://math.stackexchange.com/questions/426150/
     // what-is-the-general-equation-of-the-ellipse-that-is-not-in-the-origin-and-rotate 
     // ((x-h)cos(A) + (y-k)sin(A))^2 /a^2 + ((x-h)sin(A) - (y-k)cos(A))^2 /b^2 <=1
     double ellipse_cosA, ellipse_sinA, ellipse_h, ellipse_k, ellipse_a, ellipse_b; {
@@ -607,14 +607,6 @@ void SoftActivityMod::do_execute()
       ellipse_k = TVector2::Phi_mpi_pi(phi2 + phi1MinusPhi2MPP/2.);
       ellipse_cosA = cos(ellipse_alpha);
       ellipse_sinA = sin(ellipse_alpha);
-      if (DEBUG > 10) {
-        PDebug("PandaAnalyzer::JetHbbSoftActivity",
-               Form("Calculating ellipse with (eta1,phi1)=(%.2f,%.2f), (eta2,phi2)=(%.2f,%.2f)",
-                    eta1,phi1,eta2,phi2));
-        PDebug("PandaAnalyzer::JetHbbSoftActivity",
-               Form("Found ellipse parameters (a,b,h,k,alpha)=(%.2f,%.2f,%.2f,%.2f,%.2f)",
-                    ellipse_a,ellipse_b,ellipse_h,ellipse_k,ellipse_alpha));
-      }
     }
 
     // Find out which PF constituents to not use
@@ -629,7 +621,7 @@ void SoftActivityMod::do_execute()
     for (auto &softTrackRef : allTracks) {
       softTrack = &softTrackRef;
       // Minimum track pT threshold (300 MeV default)
-      if (softTrack->pt() < minSoftTrackPt) 
+      if (softTrack->pt() < cfg.minSoftTrackPt) 
         continue;
       // High quality track flag
       if (!softTrack->track.isValid() || !softTrack->track.get()->highPurity) 
@@ -648,8 +640,8 @@ void SoftActivityMod::do_execute()
         if (softTrack==jet2Tracks.at(iJetTrack).get()) { trackIsSpokenFor=true; break; }
       }
       if (!trackIsSpokenFor) for (int iLep=0; iLep<gt.nLooseLep; iLep++) {
-        if (!looseLeps[iLep]->matchedPF.isValid()) continue;
-        if (softTrack==looseLeps[iLep]->matchedPF.get()) { trackIsSpokenFor=true; break; }
+        if (!(*looseLeps)[iLep]->matchedPF.isValid()) continue;
+        if (softTrack==(*looseLeps)[iLep]->matchedPF.get()) { trackIsSpokenFor=true; break; }
       }
       if (trackIsSpokenFor) 
         continue;
@@ -658,9 +650,6 @@ void SoftActivityMod::do_execute()
       for (int iV=0; iV!=(int)event.vertices.size(); iV++) {
         auto& theVertex = event.vertices[iV];
         float vertexAbsDz = fabs(softTrack->dz(theVertex.position()));
-        if (DEBUG > 10) 
-          PDebug("PandaAnalyzer::JetHbbSoftActivity",
-                 Form("Track has |dz| %.2f with vertex %d",vertexAbsDz,iV));
         if (vertexAbsDz >= minAbsDz) 
           continue;
         idxVertexWithMinAbsDz = iV;
@@ -668,10 +657,6 @@ void SoftActivityMod::do_execute()
       }
       if (idxVertexWithMinAbsDz!=0 || minAbsDz>0.2) 
         continue;
-      if (DEBUG > 10) 
-        PDebug("PandaAnalyzer::JetHbbSoftActivity",
-            Form("Track above 300 MeV has dz %.3f", 
-              softTrack->track.isValid()?softTrack->track.get()->dz():-1));
       // Need to add High Quality track flags :-)
       bool trackIsInHbbEllipse=false; {
         double ellipse_x = softTrack->eta();
@@ -691,24 +676,12 @@ void SoftActivityMod::do_execute()
       } if (trackIsInHbbEllipse) continue;
       softTracksPJ.emplace_back(softTrack->px(),softTrack->py(),softTrack->pz(),softTrack->e());
     }
-    if (DEBUG > 10) 
-      PDebug("PandaAnalyzer::JetHbbSoftActivity",
-          Form("Found %ld soft tracks that passed track quality cuts and the ellipse, jet constituency, and lepton matching vetoes",
-            softTracksPJ.size()));
-    ClusterSequenceArea softTrackSequence(softTracksPJ, *softTrackJetDefinition, *(utils.areaDef));
+    ClusterSequenceArea softTrackSequence(softTracksPJ, *jetDefSoftTrack, *(utils.areaDef));
     
     vector<PseudoJet> softTrackJets(softTrackSequence.inclusive_jets(1.));
-    if (DEBUG > 10) 
-      PDebug("PandaAnalyzer::JetHbbSoftActivity",
-          Form("Clustered %ld jets of pT>1GeV using anti-kT algorithm (dR 0.4) from the soft tracks",
-            softTrackJets.size()));
     for (vector<PseudoJet>::size_type iSTJ=0; iSTJ<softTrackJets.size(); iSTJ++) {
       if (fabs(softTrackJets[iSTJ].eta()) > 4.7) continue;
       gt.sumEtSoft1 += softTrackJets[iSTJ].Et(); 
-      if (DEBUG > 10) 
-        PDebug("PandaAnalyzer::JetHbbSoftActivity",
-            Form("Soft jet %d has pT %.2f",
-              (int)iSTJ,softTrackJets[iSTJ].pt()));
       if (softTrackJets[iSTJ].pt() >  2.)  gt.nSoft2++; else continue;
       if (softTrackJets[iSTJ].pt() >  5.)  gt.nSoft5++; else continue;
       if (softTrackJets[iSTJ].pt() > 10.) gt.nSoft10++; else continue;
@@ -716,7 +689,7 @@ void SoftActivityMod::do_execute()
   }
 }
 
-void GenJetsNuMod::do_execute()
+void GenJetNuMod::do_execute()
 {
   vector<PseudoJet> finalStates;
   vector<const panda::GenParticle*> bcs;
@@ -754,7 +727,7 @@ void GenJetsNuMod::do_execute()
   unsigned N = jets.cleaned.size();
   for (unsigned i = 0; i != N; ++i) {
     const panda::Jet& reco = jets.cleaned[i]->get_base();
-    for (auto &gen : genJets) {
+    for (auto &gen : genJetsNu) {
       if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
         gt.jotGenPt[i] = gen.pt();
         gt.jotFlav[i] = gen.pdgid;

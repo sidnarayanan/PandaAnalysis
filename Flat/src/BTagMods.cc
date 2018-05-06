@@ -1,4 +1,4 @@
-#include "../BTagMods.h"
+#include "../interface/BTagMods.h"
 
 using namespace pa;
 using namespace std;
@@ -19,7 +19,7 @@ void BTagSFMod::do_execute()
     const panda::Jet &jet = jw->get_base();
 
     bool isIsoJet = false;
-    if (!analysis->fatjet || 
+    if (!analysis.fatjet || 
         // if we do not consider fatjets, everything is an isojet 
         // otherwise, explicitly check isojet
         find(isojets.begin(), isojets.end(), jw) != isojets.end()) 
@@ -31,8 +31,6 @@ void BTagSFMod::do_execute()
 
     float btagUncFactor = 1;
     double eff(1),sf(1),sfUp(1),sfDown(1);
-    unsigned int binpt = btagpt.bin(pt);
-    unsigned int bineta = btageta.bin(fabs(eta));
     if (flavor==5)
       eff = utils.getCorr(cCSVBL,pt,fabs(eta));
     else if (flavor==4)
@@ -91,9 +89,9 @@ void BTagWeightMod::do_execute()
   // throwaway addresses
   double csvWgtHF, csvWgtLF, csvWgtCF, cmvaWgtHF, cmvaWgtLF, cmvaWgtCF;
   for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
-    GeneralTree::csvShift shift = gt->csvShifts[iShift];
+    GeneralTree::csvShift shift = gt.csvShifts[iShift];
     if (analysis.useCMVA) {
-      gt.sf_csvWeights[shift] = utils.btag.cmvaReweighter->getCSVWeight(jetPts,
+      gt.sf_csvWeights[shift] = utils.btag->cmvaReweighter->getCSVWeight(jetPts,
                                                                         jetEtas,
                                                                         jetCMVAs,
                                                                         jetFlavors, 
@@ -103,7 +101,7 @@ void BTagWeightMod::do_execute()
                                                                         cmvaWgtCF);
     }
     else 
-      gt.sf_csvWeights[shift] = utils.btag.csvReweighter->getCSVWeight(jetPts,
+      gt.sf_csvWeights[shift] = utils.btag->csvReweighter->getCSVWeight(jetPts,
                                                                        jetEtas,
                                                                        jetCSVs,
                                                                        jetFlavors, 

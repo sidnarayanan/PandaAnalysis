@@ -7,6 +7,9 @@
 #include "CondTools/BTau/interface/BTagCalibrationReader.h"
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
 
+#include "Common.h"
+#include "GeneralTree.h"
+
 namespace pa {
   
   enum BTagType {

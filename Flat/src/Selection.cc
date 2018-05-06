@@ -1,4 +1,7 @@
 #include "../interface/Selection.h"
+#include "../interface/Common.h"
+
+using namespace pa; 
 
 static float best_recoil(const GeneralTree *gt, bool include_var) {
   int maxshift = include_var ? static_cast<int>(shiftjes::N) : 1;

@@ -25,7 +25,7 @@ namespace pa {
    * @param  j2 second jet
    * @return    \f$dR^2\f$
    */
-   double DeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2);
+   double jetDeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2);
 
 
   /**

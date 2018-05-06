@@ -11,6 +11,7 @@
 
 // fastjet
 #include "fastjet/contrib/MeasureDefinition.hh"
+#include "fastjet/contrib/SoftDrop.hh"
 
 // JEC
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -74,6 +75,7 @@ namespace pa {
     // fastjet reclustering
     fastjet::AreaDefinition    *areaDef         {nullptr};
     fastjet::GhostedAreaSpec   *activeArea      {nullptr};
+    fastjet::contrib::SoftDrop   *softDrop      {nullptr};
 
     EraHandler *eras{nullptr}; //!< determining data-taking era, to be used for era-dependent JEC
 

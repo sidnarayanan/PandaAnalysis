@@ -84,9 +84,9 @@ void GenStudyEWKMod::do_execute()
   std::vector<int> targetsTop;
   std::vector<int> targetsN;
 
-  int nGen = validGenP.size();
+  int nGen = genP->size();
   for (int iG=0; iG!=nGen; ++iG) {
-    auto& part = pToGRef(validGenP.at(iG));
+    auto& part = pToGRef(genP->at(iG));
     int pdgid = part.pdgid;
     unsigned int abspdgid = abs(pdgid);
     
@@ -123,7 +123,7 @@ void GenStudyEWKMod::do_execute()
   } //looking for targets
 
   for (int jG : targetsPhoton) {
-    auto& partph = pToGRef(validGenP.at(jG));
+    auto& partph = pToGRef(genP->at(jG));
     
     if (partph.pt() <= 10) continue; // ignore low pt photons
 
@@ -135,13 +135,13 @@ void GenStudyEWKMod::do_execute()
   TLorentzVector rhoP4(0,0,0,0);
   double bosonPtMin = 1000000000;
   for (int iG : targetsLepton) {
-    auto& part = pToGRef(validGenP.at(iG));
+    auto& part = pToGRef(genP->at(iG));
     TLorentzVector dressedLepton;
     dressedLepton.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
   
     rhoP4 = rhoP4 + dressedLepton;
     for (int jG : targetsPhoton) {
-      auto& partj = pToGRef(validGenP.at(jG));
+      auto& partj = pToGRef(genP->at(jG));
 
       if (DeltaR2(part.eta(),part.phi(),partj.eta(),partj.phi()) < 0.01) {
         TLorentzVector photonV;
@@ -220,7 +220,7 @@ void GenStudyEWKMod::do_execute()
       {
         gt.looseGenLep1PdgId = 1;
       }
-      if (part.pdgid != looseLep1PdgId) 
+      if (part.pdgid != (*lepPdgId)[0]) 
         gt.looseGenLep1PdgId = -1 * gt.looseGenLep1PdgId;
     }
 
@@ -237,7 +237,7 @@ void GenStudyEWKMod::do_execute()
       {
         gt.looseGenLep2PdgId = 1;
       }
-      if (part.pdgid != looseLep2PdgId) 
+      if (part.pdgid != (*lepPdgId)[1]) 
         gt.looseGenLep2PdgId = -1 * gt.looseGenLep2PdgId;
     }
     if (v3.Pt() > 0 && DeltaR2(part.eta(),part.phi(),v3.Eta(),v3.Phi()) < 0.01) {
@@ -253,7 +253,7 @@ void GenStudyEWKMod::do_execute()
       {
         gt.looseGenLep3PdgId = 1;
       }
-      if (part.pdgid != looseLep3PdgId) 
+      if (part.pdgid != (*lepPdgId)[2]) 
         gt.looseGenLep3PdgId = -1 * gt.looseGenLep3PdgId;
     }
     if (v4.Pt() > 0 && DeltaR2(part.eta(),part.phi(),v4.Eta(),v4.Phi()) < 0.01) {
@@ -269,7 +269,7 @@ void GenStudyEWKMod::do_execute()
       {
         gt.looseGenLep4PdgId = 1;
       }
-      if (part.pdgid != looseLep4PdgId) 
+      if (part.pdgid != (*lepPdgId)[3]) 
         gt.looseGenLep4PdgId = -1 * gt.looseGenLep4PdgId;
     }
     if (p1.Pt() > 0 && DeltaR2(part.eta(),part.phi(),p1.Eta(),p1.Phi()) < 0.01) {
@@ -290,13 +290,13 @@ void GenStudyEWKMod::do_execute()
   
   unsigned char nNeutrinos=0;
   for (int iG : targetsN) {
-    auto& part = pToGRef(validGenP.at(iG));
+    auto& part = pToGRef(genP->at(iG));
     TLorentzVector neutrino;
     neutrino.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
     // check there is no further copy:
     bool isLastCopy=true;
     for (int kG : targetsN) {
-      auto& kpart = pToGRef(validGenP.at(kG));
+      auto& kpart = pToGRef(genP->at(kG));
       if (kpart.parent.isValid() && kpart.parent.get() == &part) {
         isLastCopy=false;
         break;
@@ -311,14 +311,14 @@ void GenStudyEWKMod::do_execute()
   TLorentzVector higgsBosons(0,0,0,0);
   int nHBosons = 0;
   for (int iG : targetsH) {
-    auto& part = pToGRef(validGenP.at(iG));
+    auto& part = pToGRef(genP->at(iG));
     TLorentzVector boson;
     boson.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
 
     // check there is no further copy:
     bool isLastCopy=true;
     for (int kG : targetsH) {
-      auto& kpart = pToGRef(validGenP.at(kG));
+      auto& kpart = pToGRef(genP->at(kG));
       if (kpart.parent.isValid() 
           && kpart.parent.get() == &part) {
         isLastCopy=false;
@@ -334,14 +334,14 @@ void GenStudyEWKMod::do_execute()
   TLorentzVector wBosons(0,0,0,0);
   int nZBosons = 0; int nWBosons = 0; vector<bool> wBosonQ; wBosonQ.reserve(8);
   for (int iG : targetsV) {
-    auto& part = pToGRef(validGenP.at(iG));
+    auto& part = pToGRef(genP->at(iG));
     TLorentzVector boson;
     boson.SetPtEtaPhiM(part.pt(),part.eta(),part.phi(),part.m());
 
     // check there is no further copy:
     bool isLastCopy=true;
     for (int kG : targetsV) {
-      auto& kpart = pToGRef(validGenP.at(kG));
+      auto& kpart = pToGRef(genP->at(kG));
       if (kpart.parent.isValid() 
           && kpart.parent.get() == &part) {
         isLastCopy=false;
@@ -526,7 +526,7 @@ void KFactorMod::toppt()
     if (analysis.processType != kTT)
       return;
 
-    for (auto* genptr : validGenP) {
+    for (auto* genptr : *genP) {
       auto& gen = pToGRef(genptr);
       if (abs(gen.pdgid)!=24)
         continue;
@@ -536,7 +536,7 @@ void KFactorMod::toppt()
       }
     }
     float pt_t=0, pt_tbar=0;
-    for (auto* genptr : validGenP) {
+    for (auto* genptr : *genP) {
       auto& gen = pToGRef(genptr);
       if (abs(gen.pdgid)!=6)
         continue;
@@ -576,7 +576,7 @@ void KFactorMod::vpt()
     if (analysis.vbf) {
       // first find high pT leptons
       std::vector<const GenParticle*> genLeptons;
-      for (auto* genptr : validGenP) {
+      for (auto* genptr : *genP) {
         auto& gp = pToGRef(genptr);
         if (!gp.finalState)
           continue;
@@ -622,13 +622,13 @@ void KFactorMod::vpt()
     if (analysis.processType==kZ || analysis.processType==kZEWK) target=23;
     if (analysis.processType==kA) target=22;
 
-    for (auto* genptr : validGenP) {
+    for (auto* genptr : *genP) {
       auto& gen = pToGRef(genptr);
       if (found) break;
       int apdgid = abs(gen.pdgid);
       if (apdgid==target)     {
         bool foundChild = false;
-        for (auto* childptr : validGenP) {
+        for (auto* childptr : *genP) {
           auto& child = pToGRef(childptr);
           if (abs(child.pdgid) != target)
             continue;
@@ -643,7 +643,7 @@ void KFactorMod::vpt()
           gt.trueGenBosonPt = gen.pt();
           gt.genBosonMass = gen.m();
           gt.genBosonEta = gen.eta();
-          gt.genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
+          gt.genBosonPt = bound(gen.pt(),cfg.minGenBosonPt,cfg.maxGenBosonPt);
           gt.sf_qcdV = utils.getCorr(cZNLO,gt.genBosonPt);
           gt.sf_ewkV = utils.getCorr(cZEWK,gt.genBosonPt);
           if (analysis.vbf) {
@@ -657,7 +657,7 @@ void KFactorMod::vpt()
           gt.trueGenBosonPt = gen.pt();
           gt.genBosonMass = gen.m();
           gt.genBosonEta = gen.eta();
-          gt.genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
+          gt.genBosonPt = bound(gen.pt(),cfg.minGenBosonPt,cfg.maxGenBosonPt);
           gt.sf_qcdV = utils.getCorr(cWNLO,gt.genBosonPt);
           gt.sf_ewkV = utils.getCorr(cWEWK,gt.genBosonPt);
           if (analysis.vbf) {
@@ -669,7 +669,7 @@ void KFactorMod::vpt()
           gt.trueGenBosonPt = gen.pt();
           gt.genBosonMass = gen.m();
           gt.genBosonEta = gen.eta();
-          gt.genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
+          gt.genBosonPt = bound(gen.pt(),cfg.minGenBosonPt,cfg.maxGenBosonPt);
           if (analysis.vbf) {
             gt.sf_qcdV_VBF = utils.getCorr(cVBF_EWKZ,gt.genBosonPt,gt.genMjj);
             gt.sf_qcdV_VBFTight = gt.sf_qcdV_VBF; // for consistency
@@ -678,7 +678,7 @@ void KFactorMod::vpt()
           gt.trueGenBosonPt = gen.pt();
           gt.genBosonMass = gen.m();
           gt.genBosonEta = gen.eta();
-          gt.genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
+          gt.genBosonPt = bound(gen.pt(),cfg.minGenBosonPt,cfg.maxGenBosonPt);
           if (analysis.vbf) {
             gt.sf_qcdV_VBF = utils.getCorr(cVBF_EWKW,gt.genBosonPt,gt.genMjj);
             gt.sf_qcdV_VBFTight = gt.sf_qcdV_VBF; // for consistency
@@ -689,7 +689,7 @@ void KFactorMod::vpt()
             gt.trueGenBosonPt = gen.pt();
             gt.genBosonMass = gen.m();
             gt.genBosonEta = gen.eta();
-            gt.genBosonPt = bound(gen.pt(),genBosonPtMin,genBosonPtMax);
+            gt.genBosonPt = bound(gen.pt(),cfg.minGenBosonPt,cfg.maxGenBosonPt);
             gt.sf_qcdV = utils.getCorr(cANLO,gt.genBosonPt);
             gt.sf_ewkV = utils.getCorr(cAEWK,gt.genBosonPt);
             gt.sf_qcdV2j = utils.getCorr(cANLO2j,gt.genBosonPt);
@@ -703,7 +703,7 @@ void KFactorMod::vpt()
 
       TLorentzVector vpt(0,0,0,0);
 
-      for (auto* partptr : validGenP) {
+      for (auto* partptr : *genP) {
         auto& part = pToGRef(partptr);
         int pdgid = part.pdgid;
         unsigned int abspdgid = abs(pdgid);
@@ -726,7 +726,7 @@ void KFactorMod::vpt()
         }
       }
       
-      gt.genBosonPt = bound(vpt.Pt(),genBosonPtMin,genBosonPtMax);
+      gt.genBosonPt = bound(vpt.Pt(),cfg.minGenBosonPt,cfg.maxGenBosonPt);
       gt.trueGenBosonPt = vpt.Pt();
       gt.genBosonMass = vpt.M();
       gt.genBosonEta = vpt.Eta();

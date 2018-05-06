@@ -4,7 +4,6 @@
 #include "Module.h"
 #include "set"
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
-#include "fastjet/contrib/SoftDrop.hh"
 #include "fastjet/contrib/Njettiness.hh"
 
 namespace pa {
@@ -16,7 +15,7 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_);
     ~DeepGenMod () { 
-      delete jetDef; delete softDrop; delete tauN;
+      delete jetDef; delete tauN;
       delete ecfcalc; delete grid;
     }
 
@@ -25,6 +24,7 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      fOut = registry.access<TFile>("fOut");
       incrementAux(false); 
     }
     void do_execute(); 
@@ -41,15 +41,19 @@ namespace pa {
   private:
     const std::vector<panda::Particle*> *genP{nullptr};
     fastjet::JetDefinition       *jetDef                {nullptr};
-    fastjet::contrib::SoftDrop   *softDrop              {nullptr};
     fastjet::contrib::Njettiness *tauN                  {nullptr};
     ECFCalculator *ecfcalc{nullptr};
     ParticleGridder *grid{nullptr};
     GenJetInfo genJetInfo;
     TFile *fAux{nullptr};
     TTree *tAux{nullptr};
+    TFile *fOut{nullptr};
     int auxCounter{0}; 
   };
+
+  typedef DeepGenMod<panda::GenParticle> DeepPGenMod;
+  typedef DeepGenMod<panda::UnpackedGenParticle> DeepUGenMod;
 }
+
 
 #endif

@@ -112,9 +112,9 @@ namespace pa {
   ////////////////////////////////////////////////////////////////////////////////////
 
   typedef std::vector<fastjet::PseudoJet> VPseudoJet;
-  VPseudoJet ConvertPFCands(const std::vector<const panda::PFCand*> &incoll, bool puppi, double minPt=0.001);
-  VPseudoJet ConvertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt=0.001);
-  VPseudoJet ConvertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt=0.001);
+  VPseudoJet convertPFCands(const std::vector<const panda::PFCand*> &incoll, bool puppi, double minPt=0.001);
+  VPseudoJet convertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt=0.001);
+  VPseudoJet convertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt=0.001);
 
   ////////////////////////////////////////////////////////////////////////////////////
 

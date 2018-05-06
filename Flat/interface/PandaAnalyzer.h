@@ -29,6 +29,7 @@ namespace pa {
         void AddPresel(Selection *s) { selections.push_back(s); }
         void AddGoodLumiRange(int run, int l0, int l1);
 
+        int firstEvent{0}, lastEvent{-1};
     private:
         bool PassGoodLumis(int run, int lumi);
         bool PassPresel(Selection::Stage stage);
@@ -53,7 +54,7 @@ namespace pa {
         int DEBUG; //!< debug verbosity level
         Analysis& analysis; //!< configure what to run
         Registry registry;
-        std::vector<BaseModule*> mods_reco, mods_gen, mods_all; 
+        std::vector<AnalysisMod*> mods_reco, mods_gen, mods_all; 
         GlobalMod *gblmod{nullptr};
         ConfigMod cfgmod; 
 
