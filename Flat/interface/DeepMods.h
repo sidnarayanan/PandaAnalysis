@@ -12,8 +12,8 @@ namespace pa {
   class DeepGenMod : public AnalysisMod {
   public: 
     DeepGenMod(panda::EventAnalysis& event_, 
-               const Config& cfg_,
-               const Utils& utils_,
+               Config& cfg_,
+               Utils& utils_,
                GeneralTree& gt_);
     ~DeepGenMod () { 
       delete jetDef; delete softDrop; delete tauN;

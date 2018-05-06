@@ -2,13 +2,131 @@
 #define JETSMODS
 
 #include "Module.h"
+#include "TMVA/Reader.h"
 
 namespace pa {
+
+  class HbbSystemMod : public AnalysisMod {
+  public:
+    HbbSystemMod(panda::EventAnalysis& event_, 
+                 Config& cfg_,                 
+                 Utils& utils_,                
+                 GeneralTree& gt_) :                 
+      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_) { }
+    ~HbbSystemMod () {
+      delete bjetregReader;
+      delete[] bjetreg_vars;
+    }
+
+    bool on() { return analysis.hbb; }
+  protected:
+    void do_readData(TString dirPath);
+    void do_init(Registry& registry) {
+      currentJES = registry.access<JESHandler*>("currentJES");
+      registry.publishConst("btagsortedjets", &btagsorted);
+    }
+    void do_execute();
+  private:
+    JESHandler **currentJES{nullptr};
+    std::vector<const JetWrapper*> btagsorted;
+
+    TMVA::Reader *bjetregReader{nullptr}; 
+    float *bjetreg_vars{nullptr};
+  };
+
+  class JetFlavorMod : public AnalysisMod {
+  public:
+    JetFlavorMod(panda::EventAnalysis& event_, 
+                 Config& cfg_,                 
+                 Utils& utils_,                
+                 GeneralTree& gt_) :                 
+      AnalysisMod("jetflavor", event_, cfg_, utils_, gt_) { }
+    ~JetFlavorMod () {}
+
+    bool on() { return analysis.jetFlavorPartons || analysis.jetFlavorJets; }
+  protected:
+    void do_init(Registry& registry) {
+      currentJet = registry.access<JetWrapper*>("currentJet");
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+    }
+    void do_execute();
+  private:
+    JetWrapper **currentJet{nullptr};
+    const std::vector<panda::Particle*> *genP;
+
+    void partonFlavor();
+    void clusteredFlavor();
+  };
+
+  class IsoJetMod : public AnalysisMod {
+  public:
+    IsoJetMod(panda::EventAnalysis& event_, 
+              Config& cfg_,                 
+              Utils& utils_,                
+              GeneralTree& gt_) :                 
+      AnalysisMod("isojet", event_, cfg_, utils_, gt_) { }
+    ~IsoJetMod () {}
+
+    bool on() { return analysis.fatjet; }
+  protected:
+    void do_init(Registry& registry) {
+      currentJet = registry.access<JetWrapper*>("currentJet");
+      currentJES = registry.access<JESHandler*>("currentJES");
+      fj1 = registry.accessConst<panda::FatJet*>("fj1");
+    }
+    void do_execute();
+  private:
+    JetWrapper **currentJet{nullptr};
+    JESHandler **currentJES{nullptr};
+    panda::FatJet *const *fj1{nullptr}; 
+  };
+
+  class BJetRegMod : public AnalysisMod {
+  public:
+    BJetRegMod(panda::EventAnalysis& event_, 
+                  Config& cfg_,                 
+                  Utils& utils_,                
+                  GeneralTree& gt_) :                 
+      AnalysisMod("bjetreg", event_, cfg_, utils_, gt_) { }
+    ~BJetRegMod () {}
+
+    bool on() { return analysis.bjetRegression; }
+  protected:
+    void do_init(Registry& registry) {
+      currentJet = registry.access<JetWrapper*>("currentJet");
+      currentJES = registry.access<JESHandler*>("currentJES");
+    }
+    void do_execute();
+  private:
+    JetWrapper **currentJet{nullptr};
+    JESHandler **currentJES{nullptr};
+  };
+
+  class VBFSystemMod : public AnalysisMod {
+  public:
+    VBFSystemMod(panda::EventAnalysis& event_, 
+                 Config& cfg_,                 
+                 Utils& utils_,                
+                 GeneralTree& gt_) :                 
+      AnalysisMod("vbfsystem", event_, cfg_, utils_, gt_) { }
+    ~VBFSystemMod () {}
+
+    bool on() { return analysis.vbf; }
+  protected:
+    void do_init(Registry& registry) {
+      currentJES = registry.access<JESHandler*>("currentJES");
+    }
+    void do_execute();
+  private:
+    JESHandler **currentJES{nullptr};
+  };
+
+
   class JetMod : public AnalysisMod {
   public: 
     JetMod(panda::EventAnalysis& event_, 
-           const Config& cfg_,                 
-           const Utils& utils_,                
+           Config& cfg_,                 
+           Utils& utils_,                
            GeneralTree& gt_) :                 
       AnalysisMod("jet", event_, cfg_, utils_, gt_) { 
         ak4Jets = &(event.chsAK4Jets); 
@@ -36,7 +154,7 @@ namespace pa {
       registry.publish("currentJES", &currentJES);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
-      matchPhos = registry.accessConst<std::vector<panda::Photon*>>("loosePhos");
+      matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
     }
     void do_execute();  
 
@@ -67,131 +185,16 @@ namespace pa {
   };
 
 
-  class JetFlavorMod : public AnalysisMod {
-  public:
-    JetFlavorMod(panda::EventAnalysis& event_, 
-                 const Config& cfg_,                 
-                 const Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("jetflavor", event_, cfg_, utils_, gt_) { }
-    ~JetFlavorMod () {}
-
-    bool on() { return analysis.jetFlavorPartons || analysis.jetFlavorJets; }
-  protected:
-    void do_init(Registry& registry) {
-      currentJet = registry.access<JetWrapper*>("currentJet");
-      genP = registry.accessConst<std::vector<panda::Particle*>("genP");
-    }
-    void do_execute();
-  private:
-    JetWrapper **currentJet{nullptr};
-    const std::vector<panda::Particle*> *genP;
-
-    void partonFlavor();
-    void clusteredFlavor();
-  };
-
-  class IsoJetMod : public AnalysisMod {
-  public:
-    IsoJetMod(panda::EventAnalysis& event_, 
-              const Config& cfg_,                 
-              const Utils& utils_,                
-              GeneralTree& gt_) :                 
-      AnalysisMod("isojet", event_, cfg_, utils_, gt_) { }
-    ~IsoJetMod () {}
-
-    bool on() { return analysis.fatjet; }
-  protected:
-    void do_init(Registry& registry) {
-      currentJet = registry.access<JetWrapper*>("currentJet");
-      currentJES = registry.access<JESWrapper*>("currentJES");
-      fj1 = registry.accessConst<panda::FatJet*>("fj1");
-    }
-    void do_execute();
-  private:
-    JetWrapper **currentJet{nullptr};
-    JESHandler **currentJES{nullptr};
-    const panda::FatJet **fj1{nullptr}; 
-  };
-
-  class BJetRegMod : public AnalysisMod {
-  public:
-    BJetRegMod(panda::EventAnalysis& event_, 
-                  const Config& cfg_,                 
-                  const Utils& utils_,                
-                  GeneralTree& gt_) :                 
-      AnalysisMod("bjetreg", event_, cfg_, utils_, gt_) { }
-    ~BJetRegMod () {}
-
-    bool on() { return analysis.bjetRegression; }
-  protected:
-    void do_init(Registry& registry) {
-      currentJet = registry.access<JetWrapper*>("currentJet");
-      currentJES = registry.access<JESWrapper*>("currentJES");
-    }
-    void do_execute();
-  private:
-    JetWrapper **currentJet{nullptr};
-    JESHandler **currentJES{nullptr};
-  };
-
-  class VBFSystemMod : public AnalysisMod {
-  public:
-    VBFSystemMod(panda::EventAnalysis& event_, 
-                 const Config& cfg_,                 
-                 const Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("vbfsystem", event_, cfg_, utils_, gt_) { }
-    ~VBFSystemMod () {}
-
-    bool on() { return analysis.vbf; }
-  protected:
-    void do_init(Registry& registry) {
-      currentJES = registry.access<JESWrapper*>("currentJES");
-    }
-    void do_execute();
-  private:
-    JESHandler **currentJES{nullptr};
-  };
-
-  class HbbSystemMod : public AnalysisMod {
-  public:
-    HbbSystemMod(panda::EventAnalysis& event_, 
-                 const Config& cfg_,                 
-                 const Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_) { }
-    ~HbbSystemMod () {
-      delete bjetregReader;
-      delete[] bjetreg_vars;
-    }
-
-    bool on() { return analysis.hbb; }
-  protected:
-    void do_readData(TString dirPath);
-    void do_init(Registry& registry) {
-      currentJES = registry.access<JESWrapper*>("currentJES");
-      registry.publishConst("btagsortedjets", &btagsorted)
-    }
-    void do_execute();
-  private:
-    JESHandler **currentJES{nullptr};
-    std::vector<const JetWrapper*> btagsorted;
-
-    TMVA::Reader *bjetregReader{nullptr}; 
-    float *bjetreg_vars{nullptr};
-  };
-
   class SoftActivityMod : public AnalysisMod {
   public: 
     SoftActivityMod(panda::EventAnalysis& event_, 
-                    const Config& cfg_,                 
-                    const Utils& utils_,                
+                    Config& cfg_,                 
+                    Utils& utils_,                
                     GeneralTree& gt_) :                 
       AnalysisMod("softactivity", event_, cfg_, utils_, gt_) { 
       }
     ~SoftActivityMod () { 
-      delete softTrackJetDefinition
+      delete jetDefSoftTrack;
     }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb; }
@@ -199,7 +202,7 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
-      softTrackJetDefinition = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
+      jetDefSoftTrack = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
     }
     void do_execute();  
 
@@ -212,8 +215,8 @@ namespace pa {
   class GenJetNuMod : public AnalysisMod {
   public:
     GenJetNuMod(panda::EventAnalysis& event_, 
-                 const Config& cfg_,                 
-                 const Utils& utils_,                
+                 Config& cfg_,                 
+                 Utils& utils_,                
                  GeneralTree& gt_) :                 
       AnalysisMod("genjetnu", event_, cfg_, utils_, gt_) { 
         jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
@@ -224,7 +227,7 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
-      genP = registry.accessConst<std::vector<panda::Particle*>("genP");
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();
   private:

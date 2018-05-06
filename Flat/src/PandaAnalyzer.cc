@@ -14,7 +14,7 @@ using namespace pa;
 
 PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) : 
   DEBUG(debug_),
-  analysis(a), 
+  analysis(*a), 
   cfgmod(analysis, gt, DEBUG)
 {
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
@@ -55,7 +55,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   
 
   // Read inputs 
-  fIn = TFile::Open(analysis->inpath);
+  fIn = TFile::Open(analysis.inpath);
   tIn = static_cast<TTree*>(fIn->Get("events"));
   event.setStatus(*tIn, {"!*"});
   event.setAddress(*tIn, configMod.get_inputBranches());
@@ -64,7 +64,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   hDTotalMCWeight->SetDirectory(0);
 
   TTree* tW = static_cast<TTree*>(fIn->Get("weights"));
-  if (tW && analysis->proccessType == kSignal) {
+  if (tW && analysis.proccessType == kSignal) {
     if (tW->GetEntries()!=377 && tW->GetEntries()!=22) {
       PError("PandaAnalyzer::PandaAnalyzer",
           TString::Format("Reweighting failed because only found %u weights!",
@@ -78,7 +78,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
       tW->GetEntry(iW);
       wIDs.push_back(*id);
     }
-  } else if (analysis->processType==kSignal) {
+  } else if (analysis.processType==kSignal) {
     PError("PandaAnalyzer::PandaAnalyzer","This is a signal file, but the weights are missing!");
     throw runtime_error("");
   }
@@ -86,18 +86,18 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // Define outputs
   
-  gt.is_monohiggs      = (analysis->monoh || analysis->hbb);
-  gt.is_vbf            = analysis->vbf;
-  gt.is_fatjet         = (analysis->fatjet || analysis->deepGen);
-  gt.is_leptonic       = analysis->complicatedLeptons;
-  gt.is_photonic       = analysis->complicatedPhotons;
-  gt.is_monotop        = !(analysis->monoh || analysis->hbb || analysis->vbf);
-  gt.btagWeights       = analysis->btagWeights;
-  gt.useCMVA           = analysis->useCMVA;
+  gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
+  gt.is_vbf            = analysis.vbf;
+  gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
+  gt.is_leptonic       = analysis.complicatedLeptons;
+  gt.is_photonic       = analysis.complicatedPhotons;
+  gt.is_monotop        = !(analysis.monoh || analysis.hbb || analysis.vbf);
+  gt.btagWeights       = analysis.btagWeights;
+  gt.useCMVA           = analysis.useCMVA;
   for (auto& id : wIDs)
     gt.signal_weights[id] = 1; 
 
-  fOut = TFile::Open(analysis->outpath, "RECREATE");
+  fOut = TFile::Open(analysis.outpath, "RECREATE");
   fOut->cd();
   tOut = new TTree("events", "events")
   fOut->WriteTObject(hDTotalMCWeight);
@@ -109,7 +109,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // read input data 
   for (auto* mod : mods_all)
-    mod->readData(analysis->datapath);
+    mod->readData(analysis.datapath);
 
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Called constructor");
 }
@@ -253,7 +253,7 @@ void PandaAnalyzer::Run()
 
     gblmod->execute();
 
-    if (analysis->isData && !PassGoodLumis(gt.runNumber,gt.lumiNumber))
+    if (analysis.isData && !PassGoodLumis(gt.runNumber,gt.lumiNumber))
         continue;
 
     for (auto* mod : mods_reco)
@@ -268,9 +268,9 @@ void PandaAnalyzer::Run()
     if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
 
-//     if (analysis->deep || analysis->hbb)
+//     if (analysis.deep || analysis.hbb)
 //       FatjetPartons();
-//     if (analysis->deep) {
+//     if (analysis.deep) {
 //       FillPFTree();
 //       tAux->Fill();
 //       if (tAux->GetEntriesFast() == 2500)

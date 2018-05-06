@@ -88,7 +88,7 @@ class Shift(Word):
                 e = '_Nominal'
             e = e.replace('_','')
             fn.append('    case shift%s::k%s : return "%s";'%(self.cname, e, e))
-        fn.append('    case shift%s::N : return "N";'%(self.cname)) 
+        fn.append('    default : return "N";') 
         fn.append('  }')
         fn.append('}')
         return fn

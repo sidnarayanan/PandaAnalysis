@@ -100,15 +100,15 @@ void SimpleLeptonMod::do_execute()
     gt.muonPdgId[iL]                = mu.charge*-13;
     looseLeps.push_back(&mu);
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
-    JESLOOP {
-      jesShifts[shift].vpfMETNoMu += vMu;
+    METLOOP {
+      (*jesShifts)[shift].vpfMETNoMu += vMu;
     }
     gt.nLooseMuon++;
     if (gt.nLooseMuon>=2) 
       break;
   }
-  JESLOOP {
-    gt.pfmetnomu[shift] = jesShifts[shift].vpfMETNoMu.Mod();
+  METLOOP {
+    gt.pfmetnomu[shift] = (*jesShifts)[shift].vpfMETNoMu.Mod();
   }
 
   // now consider all leptons
@@ -123,7 +123,7 @@ void SimpleLeptonMod::do_execute()
     std::partial_sort(looseLeps.begin(),looseLeps.begin()+nToSort,looseLeps.end(),ptsort);
 
     Lepton* lep1 = looseLeps[0];
-    JESLOOP {
+    METLOOP {
       gt.mT[shift] = MT(lep1->pt(),lep1->phi(),gt.pfmet[shift],gt.pfmetphi[shift]);
     }
   }  
@@ -160,7 +160,7 @@ void ComplicatedLeptonMod::do_execute()
 {
   for (auto& ele : event.electrons) {
     float pt = ele.smearedPt; float eta = ele.eta(); float aeta = fabs(eta);
-    if (analysis->hbb) {
+    if (analysis.hbb) {
       if (pt<7 || aeta>2.4 || fabs(ele.dxy)>0.05 || fabs(ele.dz)>0.2 || ele.combIso()>0.4*pt) 
         continue;
     } else {
@@ -233,7 +233,7 @@ void ComplicatedLeptonMod::do_execute()
     float pt = mu.pt(); float eta = mu.eta(); float aeta = fabs(eta);
     if (pt<2 || aeta>2.4) continue;
     double ptCorrection=1;
-    if (isData) { // perform the rochester correction on the actual particle
+    if (analysis.isData) { // perform the rochester correction on the actual particle
       ptCorrection=rochesterCorrection->kScaleDT((int)mu.charge, pt, eta, mu.phi(), 0, 0);
     } else if (pt>0) { // perform the rochester correction to the simulated particle
       // attempt gen-matching to a final state muon
@@ -262,7 +262,7 @@ void ComplicatedLeptonMod::do_execute()
       }
     }
     pt *= ptCorrection;
-    if (analysis->hbb) {
+    if (analysis.hbb) {
       if (pt<5 || aeta>2.4 || !mu.loose || fabs(mu.dxy)>0.5 || fabs(mu.dz)>1.0 || mu.combIso()>0.4*pt) continue;
     } else {
       if (pt<10 || aeta>2.4 || !mu.loose) continue;
@@ -297,10 +297,9 @@ void ComplicatedLeptonMod::do_execute()
     gt.muonIsSoftMuon[iL]           = mu.soft;
     gt.muonCombIso[iL]              = mu.combIso();
     looseLeps.push_back(&mu);
-    matchLeps.push_back(&mu);
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
-    JESLOOP {
-      jesShifts[shift].vpfMETNoMu += vMu;
+    METLOOP {
+      (*jesShifts)[shift].vpfMETNoMu += vMu;
     }
     // WARNING: The definition of "loose" here may not match your analysis 
     // definition of a loose muon for lepton multiplicity or jet cleaning 
@@ -311,8 +310,8 @@ void ComplicatedLeptonMod::do_execute()
     if (gt.nLooseMuon>=NLEP) 
       break;
   }
-  JESLOOP {
-    gt.pfmetnomu[shift] = jesShifts[shift].vpfMETNoMu.Mod();
+  METLOOP {
+    gt.pfmetnomu[shift] = (*jesShifts)[shift].vpfMETNoMu.Mod();
   }
 
   // now consider all leptons
@@ -326,7 +325,7 @@ void ComplicatedLeptonMod::do_execute()
     std::partial_sort(looseLeps.begin(),looseLeps.begin()+nToSort,looseLeps.end(),ptsort);
 
     Lepton* lep1 = looseLeps[0];
-    JESLOOP {
+    METLOOP {
       gt.mT[shift] = MT(lep1->pt(),lep1->phi(),gt.pfmet[shift],gt.pfmetphi[shift]);
     }
   }
@@ -352,7 +351,7 @@ void ComplicatedLeptonMod::do_execute()
 }
 
 
-void InclusiveLepMod::do_execute()
+void InclusiveLeptonMod::do_execute()
 {
   // "Inclusive very loose selection"
   // https://github.com/vhbb/cmssw/blob/vhbbHeppy80X/PhysicsTools/Heppy/python/analyzers/objects/LeptonAnalyzer.py
@@ -415,7 +414,7 @@ void SimplePhotonMod::do_execute()
       if (gt.nLoosePhoton==1)
         gt.loosePho1IsTight=1;
       gt.nTightPhoton++;
-      matchPhos.push_back(&pho);
+      tightPhos.push_back(&pho);
     }
   }
 
@@ -434,7 +433,7 @@ void ComplicatedPhotonMod::do_execute()
     float eta = pho.eta(), phi = pho.phi();
     if (pt<25 || fabs(eta)>2.5)
       continue;
-    if (IsMatched(matchLeps,0.16,pho.eta(),pho.phi()))
+    if (isMatched(matchLeps,0.16,pho.eta(),pho.phi()))
       continue;
     loosePhos.push_back(&pho);
     gt.nLoosePhoton++;
@@ -456,14 +455,14 @@ void ComplicatedPhotonMod::do_execute()
     }
     if ( pho.medium && pho.csafeVeto && pho.pixelVeto) { // apply eta cut offline
       gt.nTightPhoton++;
-      matchPhos.push_back(&pho);
+      tightPhos.push_back(&pho);
     }
   }
 
   scaleFactors();
 }
 
-void ComplicatedPhotonMod::pfChargedPhotonMatch(const Photon& photon)
+bool ComplicatedPhotonMod::pfChargedPhotonMatch(const Photon& photon)
 {
   double matchedRelPt = -1.;
 
@@ -499,7 +498,7 @@ void TauMod::do_execute()
     }
     if (tau.pt()<18 || fabs(tau.eta())>2.3)
       continue;
-    if (IsMatched(matchLeps,0.16,tau.eta(),tau.phi()))
+    if (isMatched(matchLeps,0.16,tau.eta(),tau.phi()))
       continue;
     gt.nTau++;
   }

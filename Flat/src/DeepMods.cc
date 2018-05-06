@@ -10,8 +10,8 @@ typedef DeepGenMod<UnpackedGenParticle> DeepUGenMod;
 
 template <typename GENP>
 DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_, 
-           const Config& cfg_,
-           const Utils& utils_,
+           Config& cfg_,
+           Utils& utils_,
            GeneralTree& gt_) :
   AnalysisMod("deepgen", event_, cfg_, utils_, gt_) 
 { 

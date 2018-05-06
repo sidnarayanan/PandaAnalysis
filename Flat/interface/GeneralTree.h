@@ -372,7 +372,7 @@ class GeneralTree : public genericTree {
   int jetIsTight[2];
   int jetIsIso[2];
   float jotPt[43][20];
-  float hbbjtRegFac[43][2];
+  float jotBReg[43][2];
   float jotEta[20];
   float jotPhi[20];
   float jotCSV[20];
@@ -401,9 +401,9 @@ class GeneralTree : public genericTree {
   float barrelHT;
   float barrelHTMiss;
   float barrelJet12Pt;
-  float jot12Mass[43];
-  float jot12DEta[43];
-  float jot12DPhi[43];
+  float jot12Mass[3];
+  float jot12DEta[3];
+  float jot12DPhi[3];
   int jetNBtags[43];
   int jetNMBtags[43];
   int isojetNBtags[43];

@@ -7,8 +7,8 @@ namespace pa {
   class GenStudyEWKMod : public AnalysisMod {
   public: 
     GenStudyEWKMod(panda::EventAnalysis& event_, 
-                    const Config& cfg_,
-                    const Utils& utils_,
+                    Config& cfg_,
+                    Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("genstudyewk", event_, cfg_, utils_, gt_) { }
     virtual ~GenStudyEWKMod () { }
@@ -33,8 +33,8 @@ namespace pa {
   class QCDUncMod : public AnalysisMod {
   public: 
     QCDUncMod(panda::EventAnalysis& event_, 
-                    const Config& cfg_,
-                    const Utils& utils_,
+                    Config& cfg_,
+                    Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("qcdunc", event_, cfg_, utils_, gt_) { }
     virtual ~QCDUncMod () { }
@@ -49,8 +49,8 @@ namespace pa {
   class SignalGenMod : public AnalysisMod {
   public: 
     SignalGenMod(panda::EventAnalysis& event_, 
-                    const Config& cfg_,
-                    const Utils& utils_,
+                    Config& cfg_,
+                    Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("signalweight", event_, cfg_, utils_, gt_) { }
     virtual ~SignalGenMod () { }
@@ -65,15 +65,15 @@ namespace pa {
     }
   private:
     const std::vector<TString> *wIDs {nullptr};
-    const std::vector<panda::Particle*> *genP{nullptR}
+    const std::vector<panda::Particle*> *genP{nullptr};
   };
 
 
   class HFCountingMod : public AnalysisMod {
   public: 
     HFCountingMod(panda::EventAnalysis& event_, 
-                    const Config& cfg_,
-                    const Utils& utils_,
+                    Config& cfg_,
+                    Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("hfcounting", event_, cfg_, utils_, gt_) { }
     virtual ~HFCountingMod () { }
@@ -86,14 +86,14 @@ namespace pa {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
   private:
-    const std::vector<panda::Particle*> *genP{nullptR}
+    const std::vector<panda::Particle*> *genP{nullptr};
   };
 
   class KFactorMod : public AnalysisMod {
   public: 
     KFactorMod(panda::EventAnalysis& event_, 
-                    const Config& cfg_,
-                    const Utils& utils_,
+                    Config& cfg_,
+                    Utils& utils_,
                     GeneralTree& gt_) : 
       AnalysisMod("kfactor", event_, cfg_, utils_, gt_) { }
     virtual ~KFactorMod () { }
@@ -110,7 +110,7 @@ namespace pa {
     void toppt(); 
     void vpt(); 
 
-    const std::vector<panda::Particle*> *genP{nullptr}
+    const std::vector<panda::Particle*> *genP{nullptr};
     const std::vector<panda::Lepton*> *matchLeps{nullptr}; 
   };
 }

@@ -5,15 +5,18 @@ using namespace panda;
 using namespace std;
 using namespace fastjet; 
 
-ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
+ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
+  BaseModule("config"),
+  cfg(a_, DEBUG_),
   analysis(a_),
-  cfg(analysis, DEBUG_),
+  gt(gt_),
   bl({"runNumber", "lumiNumber", "eventNumber","weight"})
 {
 
   cfg.isData = analysis.isData;
   utils.eras = new EraHandler(analysis.year);  
-  cfg.auxFilePath = a.outpath.Replace(".root","_aux%i.root");
+  cfg.auxFilePath = analysis.outpath;
+  cfg.auxFilePath.ReplaceAll(".root","_aux%i.root");
 
   // configuration of objects
   if (analysis.ak8)
@@ -42,11 +45,6 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
     cfg.NGENPROPS = 5;
   }
 
-  if (analysis.reclusterGen || analysis.deepExC) 
-    utils.jetDefGen = new JetDefinition(antikt_algorithm,0.4);
-  if (analysis.hbb)
-    utils.softTrackJetDefinition = new JetDefinition(antikt_algorithm,0.4);
-
   if (analysis.hbb) {
     cfg.minJetPt = analysis.ZllHbb ? 20 : 25;
     cfg.minGenFatJetPt = 200;
@@ -63,7 +61,7 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
   cfg.orders = gt.get_orders();
 
   set_inputBranches();
-  set_outputBranches(gt);
+  set_outputBranches();
 }
 
 void ConfigMod::set_inputBranches()
@@ -100,7 +98,7 @@ void ConfigMod::set_inputBranches()
     if (analysis.bjetRegression || analysis.deepSVs)
       bl.push_back("secondaryVertices");
 
-    if (cfg.isData || analysis.applyMCTriggers) {
+    if (cfg.isData || analysis.mcTriggers) {
       bl.push_back("triggers");
     }
 
@@ -112,7 +110,7 @@ void ConfigMod::set_inputBranches()
   }
 }
 
-void ConfigMod::set_outputBranches(GeneralTree& gt)
+void ConfigMod::set_outputBranches() 
 {
   // manipulate the output tree
   if (cfg.isData) {
@@ -145,7 +143,6 @@ void ConfigMod::readData(TString dirPath)
 {
   dirPath += "/";
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Starting loading of data");
 
   // pileup
   utils.openCorr(cNPV,dirPath+"moriond17/normalized_npv.root","data_npv_Wmn",1);
@@ -298,7 +295,6 @@ void ConfigMod::readData(TString dirPath)
                  dirPath+"moriond17/metTriggerEfficiency_zmm_recoil_monojet_TH1F.root",
                  "hden_monojet_recoil_clone_passed",1);
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded scale factors");
 
   // kfactors
   TFile *fKFactor = analysis.vbf ?
@@ -326,12 +322,11 @@ void ConfigMod::readData(TString dirPath)
   utils.h1Corrs[cWNLO]->GetHist()->Divide(hWLO);    
   utils.h1Corrs[cANLO]->GetHist()->Divide(hALO);
 
-  minGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(1);
-  maxGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(utils.h1Corrs[cZNLO]->GetHist()->GetNbinsX()); 
+  cfg.minGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(1);
+  cfg.maxGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(utils.h1Corrs[cZNLO]->GetHist()->GetNbinsX()); 
 
   utils.openCorr(cANLO2j,dirPath+"moriond17/histo_photons_2jet.root","Func",1);
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded k factors");
 
   if (analysis.vbf) {
 
@@ -349,7 +344,6 @@ void ConfigMod::readData(TString dirPath)
     utils.openCorr(cVBFTight_ZllNLO,
                    dirPath+"vbf16/kqcd/mjj/merged_zll.root","h_kfactors_cc",1);
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded VBF k factors");
 
     utils.openCorr(cVBF_EWKZ,
                    dirPath+"vbf16/kewk/kFactor_ZToNuNu_pT_Mjj.root",
@@ -365,7 +359,6 @@ void ConfigMod::readData(TString dirPath)
                    dirPath+"vbf16/trig/fit_nmu2.root",
                    "f_eff",3);
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded VBF k factors");
   }
 
   utils.openCorr(cBadECALJets,
@@ -377,15 +370,15 @@ void ConfigMod::readData(TString dirPath)
   utils.openCorr(cCSVBL,dirPath+"csv/csv_effLoose.root","B",2);
   utils.openCorr(cCSVCL,dirPath+"csv/csv_effLoose.root","C",2);
   utils.openCorr(cCSVLL,dirPath+"csv/csv_effLoose.root","L",2);
-  utils.btag = new BTagCorr(dirPath, analysis); 
+  utils.btag = new BTagCorrs(dirPath, analysis, gt); 
 
 
   // TODO move these into a getCorr-accessible correction
   // mSD corr
   utils.fMSDcorr = new TFile(dirPath+"/puppiCorr.root");
-  utils.puppisd_corrGEN = (TF1*)fMSDcorr->Get("puppiJECcorr_gen");;
-  utils.puppisd_corrRECO_cen = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_0eta1v3");
-  utils.puppisd_corrRECO_for = (TF1*)fMSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
+  utils.puppisd_corrGEN = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_gen");;
+  utils.puppisd_corrRECO_cen = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_reco_0eta1v3");
+  utils.puppisd_corrRECO_for = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
 
 
   TFile *fcharges = TFile::Open((dirPath + "/deep/charges.root").Data());

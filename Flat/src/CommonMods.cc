@@ -32,7 +32,7 @@ void shiftMET(const panda::RecoMet& met, TLorentzVector& v, shiftjes shift)
 void TriggerMod::do_init(Registry& registry) 
 {
   vector<TString> paths; 
-  if (analysis.isData || analysis.applyMCTriggers) {
+  if (analysis.isData || analysis.mcTriggers) {
     paths = {
           "HLT_PFMET170_NoiseCleaned",
           "HLT_PFMET170_HBHECleaned",
@@ -160,7 +160,7 @@ void TriggerMod::do_init(Registry& registry)
     for (auto &th : triggerHandlers) {
       unsigned N = th.paths.size();
       for (unsigned i = 0; i != N; i++) {
-        unsigned panda_idx = event.registryTrigger(th.paths.at(i));
+        unsigned panda_idx = event.registerTrigger(th.paths.at(i));
         th.indices[i] = panda_idx;
       }
     }
@@ -213,7 +213,7 @@ void GlobalMod::do_execute()
   gt.runNumber = event.runNumber;
   gt.lumiNumber = event.lumiNumber;
   gt.eventNumber = event.eventNumber;
-  gt.isData = isData ?  1 : 0; 
+  gt.isData = analysis.isData ?  1 : 0; 
   gt.npv = event.npv;
   gt.pu = event.npvTrue;
   gt.metFilter = (event.metFilters.pass()) ? 1 : 0;
@@ -279,7 +279,7 @@ void RecoilMod::do_execute()
       gt.pfUWphi[shift] = jets.vpfUW.Phi(); 
     }
 
-    if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
+    if (gt.nLooseLep>1 && (*lepPdgId)[0]+(*lepPdgId)[1]==0) {
       // two OS lep => Z
       panda::Lepton *lep2 = looseLeps->at(1);
       vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
@@ -302,7 +302,7 @@ void RecoilMod::do_execute()
     }
   }
   if (gt.nLoosePhoton>0) {
-    panda::Photon *pho = loosePhos->(0);
+    panda::Photon *pho = (*loosePhos)[0];
     vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
 
     METLOOP {

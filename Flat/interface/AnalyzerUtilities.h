@@ -250,9 +250,18 @@ namespace pa {
 
   bool ElectronIP(double eta, double dxy, double dz); 
   bool MuonIP(double dxy, double dz); 
-  bool isMatched(std::vector<panda::Particle*>*objects,
-                 double deltaR2, double eta, double phi);
-  bool JetPUID(double pt, double eta, double puid);
+
+  template <typename T>
+  bool isMatched(const std::vector<T*>*objects,
+                 double deltaR2, double eta, double phi) {
+    for (auto *x : *objects) {
+      if (x->pt()>0) {
+        if ( DeltaR2(x->eta(),x->phi(),eta,phi) < deltaR2 )
+          return true;
+      }
+    }
+    return false;
+  }
 
 ////////////////////////////////////////////////////////////////////////////////////
   struct GenJetInfo {
@@ -323,8 +332,8 @@ namespace pa {
     void sort() { 
     for (auto* jw : cleaned)
       cleaned_sorted.push_back(jw);
-    std::sort(cleaned_sorted.begin(), cleaned_sorted.end(); 
-          [](const JetWrapper* x, const JetWrapper* y) { return x->pt > y->pt; });
+    std::sort(cleaned_sorted.begin(), cleaned_sorted.end(), 
+              [](const JetWrapper* x, const JetWrapper* y) { return x->pt > y->pt; });
     }
     void clear() { 
         all.clear(); cleaned.clear(); iso.clear();

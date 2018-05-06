@@ -56,7 +56,6 @@ namespace pa {
     bool isData;
     
     bool ak8 = false;
-    bool applyMCTriggers = false;
     bool bjetRegression = false;
     bool btagSFs = true;
     bool btagWeights = false;
@@ -74,10 +73,10 @@ namespace pa {
     bool firstGen = true;
     bool genOnly = false;
     bool hbb = false;
-    bool ZllHbb = false;
     bool hfCounting = false;
     bool jetFlavorPartons = true;
     bool jetFlavorJets = false;
+    bool mcTriggers = false;
     bool monoh = false;
     bool puppiJets = true;
     bool recluster = false;
@@ -87,6 +86,7 @@ namespace pa {
     bool useCMVA = false;
     bool varyJES = false;
     bool vbf = false;
+    bool ZllHbb = false;
   };
 
   enum CorrectionType { //!< enum listing relevant corrections applied to MC

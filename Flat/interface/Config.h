@@ -7,6 +7,7 @@
 
 #include "AnalyzerUtilities.h"
 #include "Common.h"
+#include "BTagTools.h"
 
 // fastjet
 #include "fastjet/contrib/MeasureDefinition.hh"
@@ -57,7 +58,11 @@ namespace pa {
 
   class Utils {
   public:
-    Utils() { }
+    Utils() : 
+      fCorrs(cN,nullptr),
+      f1Corrs(cN,nullptr),
+      h1Corrs(cN,nullptr),
+      h2Corrs(cN,nullptr)   { }
     ~Utils(); 
 
     double getCorr(CorrectionType ct, double x, double y=0);
@@ -70,12 +75,12 @@ namespace pa {
     fastjet::AreaDefinition    *areaDef         {nullptr};
     fastjet::GhostedAreaSpec   *activeArea      {nullptr};
 
-    EraHandler *eras{nullptr{; //!< determining data-taking era, to be used for era-dependent JEC
+    EraHandler *eras{nullptr}; //!< determining data-taking era, to be used for era-dependent JEC
 
-    auto   fCorrs = std::vector<TFile*>  (cN,nullptr);
-    auto  f1Corrs = std::vector<TF1Corr*>  (cN,nullptr);
-    auto  h1Corrs = std::vector<TH1Corr*>  (cN,nullptr);
-    auto  h2Corrs = std::vector<TH2Corr*>  (cN,nullptr);
+    std::vector<TFile*> fCorrs;
+    std::vector<TF1Corr*> f1Corrs;
+    std::vector<THCorr1*> h1Corrs;
+    std::vector<THCorr2*> h2Corrs;
 
     TFile   *fMSDcorr       {nullptr};
     TF1     *puppisd_corrGEN    {nullptr};

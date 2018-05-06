@@ -1,15 +1,15 @@
-#ifndef COMMONMODS
-#define COMMONMODS
+#ifndef BTAGMODS
+#define BTAGMODS
 
-#include "Module.cc"
+#include "Module.h"
 #include "AnalyzerUtilities.h"
 
 namespace pa {
   class BTagSFMod : public AnalysisMod {
   public:
     BTagSFMod(panda::EventAnalysis& event_, 
-              const Config& cfg_,                 
-              const Utils& utils_,                
+              Config& cfg_,                 
+              Utils& utils_,                
               GeneralTree& gt_) :                 
       AnalysisMod("btagsf", event_, cfg_, utils_, gt_) { }
     ~BTagSFMod () { }
@@ -29,10 +29,10 @@ namespace pa {
   class BTagWeightMod : public AnalysisMod {
   public:
     BTagWeightMod(panda::EventAnalysis& event_, 
-              const Config& cfg_,                 
-              const Utils& utils_,                
+              Config& cfg_,                 
+              Utils& utils_,                
               GeneralTree& gt_) :                 
-      AnalysisMod("btagsf"ght, event_, cfg_, utils_, gt_) { }
+      AnalysisMod("btagweight", event_, cfg_, utils_, gt_) { }
     ~BTagWeightMod () { }
 
     bool on() { return !analysis.genOnly && analysis.btagWeights; }

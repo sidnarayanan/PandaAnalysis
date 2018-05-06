@@ -48,7 +48,7 @@ namespace pa {
                   GeneralTree::BTagShift shift, GeneralTree::BTagJet jettype, bool do2=false);
       void calcSF(BTagType bt, int flavor, double eta, double pt, 
                   double eff, double uncFactor, double &sf, double &sfUp, double &sfDown);
-      auto readers = std::vector<BTagCalibrationReader*>(bN,nullptr);
+      std::vector<BTagCalibrationReader*> readers = std::vector<BTagCalibrationReader*>(bN,nullptr);
       CSVHelper *csvReweighter{nullptr}, *cmvaReweighter{nullptr};
     private:
       BTagCalibration *calib{nullptr}, *sj_calib{nullptr};

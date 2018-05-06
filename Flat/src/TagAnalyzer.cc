@@ -6,6 +6,7 @@
 
 using namespace panda;
 using namespace std;
+using namespace pa; 
 
 TagAnalyzer::TagAnalyzer(int debug_/*=0*/) {
   DEBUG = debug_;

@@ -178,17 +178,6 @@ VPseudoJet ConvertPFCands(const panda::PFCandCollection &incoll, bool puppi, dou
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-double TTNLOToNNLO(double pt) 
-{
-    double a = 0.1102;
-    double b = 0.1566;
-    double c = -3.685e-4;
-    double d = 1.098;
-
-    return TMath::Min(1.25,
-                        a*TMath::Exp(-b*pow(pt,2)+1) + c*pt + d);
-}
-
 bool ElectronIP(double eta, double dxy, double dz) 
 {
   double aeta = fabs(eta);
@@ -202,18 +191,6 @@ bool ElectronIP(double eta, double dxy, double dz)
 bool MuonIP(double dxy, double dz) 
 {
   return (dxy < 0.02 && dz < 0.10);
-}
-
-bool isMatched(vector<panda::Particle*>*objects,
-               double deltaR2, double eta, double phi) 
-{
-  for (auto *x : *objects) {
-    if (x->pt()>0) {
-      if ( DeltaR2(x->eta(),x->phi(),eta,phi) < deltaR2 )
-        return true;
-    }
-  }
-  return false;
 }
 
 

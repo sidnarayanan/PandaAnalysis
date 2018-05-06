@@ -5,6 +5,9 @@
 #include "vector"
 #include "map"
 
+#include "Common.h"
+#include "Config.h"
+
 namespace pa {
 
   class Registry {
@@ -33,16 +36,16 @@ namespace pa {
       Registry() { }
       ~Registry() { for (auto& iter : _objs) { delete iter.second; } }
       template <typename T>
-        void publish(TString name, T* ptr) { _objs[name] = new Container(ptr); }
+        void publish(TString name, T* ptr) { _objs[name] = new Container<T>(ptr); }
       template <typename T>
-        void publishConst(TString name, const T* ptr) { _objs[name] = new ConstContainer(ptr); }
+        void publishConst(TString name, const T* ptr) { _objs[name] = new ConstContainer<T>(ptr); }
       template <typename T>
         T* access(TString name) { 
           return dynamic_cast<Container<T>*>(_objs.at(name))->ptr; 
         }
       template <typename T>
         const T* accessConst(TString name) { 
-          return dynamic_cast<ConstContainer<T*>>(_objs.at(name))->ptr; 
+          return dynamic_cast<ConstContainer<T>*>(_objs.at(name))->ptr; 
         }
       bool exists(TString name) { return _objs.find(name) != _objs.end(); }
     private:
@@ -54,13 +57,13 @@ namespace pa {
       BaseModule(TString name_): name(name_) { }
       virtual ~BaseModule() { }
 
-    private:
+    protected:
       TString name;
   };
 
   class ConfigMod : public BaseModule {
     public:
-      ConfigMod(Analysis* a_, GeneralTree& gt, int DEBUG_);
+      ConfigMod(const Analysis& a_, GeneralTree& gt, int DEBUG_);
       ~ConfigMod() { }
 
       void readData(TString path);
@@ -71,19 +74,20 @@ namespace pa {
 
     protected:
       const Analysis& analysis;
+      GeneralTree& gt; 
       panda::utils::BranchList bl;
 
     private:
       void set_inputBranches(); 
-      void set_outputBranches(GeneralTree& gt) const;
+      void set_outputBranches();
   };
 
   class AnalysisMod : public BaseModule {
     public:
       AnalysisMod(TString name, 
                   panda::EventAnalysis& event_, 
-                  const Config& cfg_, 
-                  const Utils& utils_,
+                  Config& cfg_, 
+                  Utils& utils_,
                   GeneralTree& gt_) : 
         BaseModule(name), 
         event(event_), 
@@ -107,8 +111,8 @@ namespace pa {
 
     protected:
       panda::EventAnalysis& event;
-      const Config& cfg;
-      const Utils& utils;
+      Config& cfg;
+      Utils& utils;
       const Analysis& analysis;
       GeneralTree& gt; 
       std::vector<AnalysisMod*> subMods; // memory management is done by parent

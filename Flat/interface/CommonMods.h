@@ -1,15 +1,15 @@
 #ifndef COMMONMODS
 #define COMMONMODS
 
-#include "Module.cc"
+#include "Module.h"
 #include "AnalyzerUtilities.h"
 
 namespace pa {
   class RecoilMod : public AnalysisMod {
   public:
     RecoilMod(panda::EventAnalysis& event_, 
-              const Config& cfg_,                 
-              const Utils& utils_,                
+              Config& cfg_,                 
+              Utils& utils_,                
               GeneralTree& gt_) :                 
       AnalysisMod("recoil", event_, cfg_, utils_, gt_) { }
     ~RecoilMod () { }
@@ -29,16 +29,17 @@ namespace pa {
     const std::vector<panda::Lepton*> *looseLeps{nullptr};
     const std::vector<panda::Photon*> *loosePhos{nullptr};
     const std::array<int,4> *lepPdgId {nullptr};
-    const std::vector<JESHandler> *jesShifts{nullptr};
+    std::vector<JESHandler> *jesShifts{nullptr};
   };
 
   class TriggerMod : public AnalysisMod {
   public:
     TriggerMod(panda::EventAnalysis& event_, 
-               const Config& cfg_,                 
-               const Utils& utils_,                
+               Config& cfg_,                 
+               Utils& utils_,                
                GeneralTree& gt_) :                 
-      AnalysisMod("trigger", event_, cfg_, utils_, gt_) { }
+      AnalysisMod("trigger", event_, cfg_, utils_, gt_),
+      triggerHandlers(kNTrig) { }
     ~TriggerMod () { }
 
     bool on() { return !analysis.genOnly && (analysis.isData || analysis.mcTriggers); }
@@ -48,14 +49,14 @@ namespace pa {
     void do_execute();
 
   private:
-    auto triggerHandlers = std::vector<TriggerHandler>(kNTrig) 
+    std::vector<TriggerHandler> triggerHandlers; 
   };
 
   class TriggerEffMod : public AnalysisMod {
   public:
     TriggerEffMod(panda::EventAnalysis& event_, 
-               const Config& cfg_,                 
-               const Utils& utils_,                
+               Config& cfg_,                 
+               Utils& utils_,                
                GeneralTree& gt_) :                 
       AnalysisMod("triggereff", event_, cfg_, utils_, gt_) { }
     ~TriggerEffMod () { }
@@ -76,10 +77,11 @@ namespace pa {
   class GlobalMod : public AnalysisMod {
   public:
     GlobalMod(panda::EventAnalysis& event_, 
-               const Config& cfg_,                 
-               const Utils& utils_,                
+               Config& cfg_,                 
+               Utils& utils_,                
                GeneralTree& gt_) :                 
-      AnalysisMod("global", event_, cfg_, utils_, gt_) { 
+      AnalysisMod("global", event_, cfg_, utils_, gt_),
+      jesShifts(jes2i(shiftjes::N)) { 
         JESLOOP {
           jesShifts[shift].shift_idx = shift;
         }
@@ -94,14 +96,14 @@ namespace pa {
         s.clear();
     }
   private:
-    auto jesShifts = std::vector<JESHandler>(jes2i(shiftjes::N)); 
+    std::vector<JESHandler> jesShifts;
   };
 
   class GenPMod : public AnalysisMod {
   public:
     GenPMod(panda::EventAnalysis& event_, 
-            const Config& cfg_,                 
-            const Utils& utils_,                
+            Config& cfg_,                 
+            Utils& utils_,                
             GeneralTree& gt_) :                 
       AnalysisMod("gendup", event_, cfg_, utils_, gt_) { }
     ~GenPMod () { }
@@ -120,7 +122,7 @@ namespace pa {
     std::vector<panda::Particle*> genP;
 
     template <typename T>
-    void merge_particles(const panda::Collection<T>& genParticles) {
+    void merge_particles(panda::Collection<T>& genParticles) {
       genP.reserve(genParticles.size()); // approx
       for (auto& g : genParticles) {
         bool foundDup = false;

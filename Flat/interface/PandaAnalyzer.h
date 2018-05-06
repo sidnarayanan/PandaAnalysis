@@ -7,12 +7,20 @@
 #include "Module.h"
 #include "Common.h"
 
+#include "CommonMods.h"
+#include "BTagMods.h"
+#include "CommonMods.h"
+#include "DeepMods.h"
+#include "FatJetsMods.h"
+#include "JetsMods.h"
+#include "LepPhoMods.h"
+#include "TheoryMods.h"
+
 
 namespace pa { 
 
     class PandaAnalyzer {
     public :
-
         PandaAnalyzer(Analysis* a, int debug_=0);
         ~PandaAnalyzer();
         void Reset();
@@ -33,8 +41,8 @@ namespace pa {
         // IO for the analyzer
         TFile *fOut{nullptr};     // output file is owned by PandaAnalyzer
         TTree *tOut{nullptr};
-        GeneralTree gt; // essentially a wrapper around tOut
         TH1D *hDTotalMCWeight{nullptr};
+        GeneralTree gt; 
 
         TFile *fIn{nullptr};
         TTree *tIn{nullptr};    // input tree to read
@@ -43,10 +51,10 @@ namespace pa {
         std::vector<TString> wIDs;
 
         int DEBUG; //!< debug verbosity level
-        Analysis *analysis{nullptr}; //!< configure what to run
+        Analysis& analysis; //!< configure what to run
         Registry registry;
         std::vector<BaseModule*> mods_reco, mods_gen, mods_all; 
-        GlobalMod *gblmod;
+        GlobalMod *gblmod{nullptr};
         ConfigMod cfgmod; 
 
     };

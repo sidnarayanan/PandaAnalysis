@@ -13,16 +13,11 @@ Utils::~Utils()
   delete btag;
   delete eras; 
 
-  delete activeArea
+  delete activeArea;
   delete areaDef;
 
-  delete hDTotalMCWeight;
-  
-  delete rochesterCorrection;
-
-  delete rochesterCorrection;
-  if (fMSDCorr)
-    fMSDCorr->Close();
+  if (fMSDcorr)
+    fMSDcorr->Close();
 }
 
 double Utils::getCorr(CorrectionType ct, double x, double y)
@@ -38,13 +33,13 @@ double Utils::getCorr(CorrectionType ct, double x, double y)
   if (h2Corrs[ct] != nullptr) {
     return h2Corrs[ct]->Eval(x,y);
   }
-
+  return 0;
 }
 
 double Utils::getError(CorrectionType ct, double x, double y)
 {
   if (f1Corrs[ct] != nullptr) {
-    return f1Corrs[ct]->Error(x);
+    return 0;  
   }
 
   if (h1Corrs[ct] != nullptr) {
@@ -54,6 +49,7 @@ double Utils::getError(CorrectionType ct, double x, double y)
   if (h2Corrs[ct] != nullptr) {
     return h2Corrs[ct]->Error(x,y);
   }
+  return 0;
 }
 
 void Utils::openCorr(CorrectionType ct, TString fpath, TString hname, int dim)
