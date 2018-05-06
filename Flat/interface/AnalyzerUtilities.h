@@ -146,7 +146,7 @@ namespace pa {
         indices.push_back(-1); 
       }
     }
-    void registerTrigger(unsigned my_idx, int panda_idx) { indices[my_idx] = panda_idx; }
+    void registryTrigger(unsigned my_idx, int panda_idx) { indices[my_idx] = panda_idx; }
     std::vector<int> indices;
     std::vector<TString> paths;
   };
@@ -250,7 +250,7 @@ namespace pa {
 
   bool ElectronIP(double eta, double dxy, double dz); 
   bool MuonIP(double dxy, double dz); 
-  bool IsMatched(std::vector<panda::Particle*>*objects,
+  bool isMatched(std::vector<panda::Particle*>*objects,
                  double deltaR2, double eta, double phi);
   bool JetPUID(double pt, double eta, double puid);
 

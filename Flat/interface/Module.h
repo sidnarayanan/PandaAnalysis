@@ -64,16 +64,13 @@ namespace pa {
       ~ConfigMod() { }
 
       void readData(TString path);
-
-      const Config& get_config() const { return cfg; }
-      const Utils& get_utils() const { return utils; }
       const panda::utils::BranchList get_inputBranches() const { return bl; }
 
-    protected:
-      const Analysis& analysis;
       Config cfg;
       Utils utils;
 
+    protected:
+      const Analysis& analysis;
       panda::utils::BranchList bl;
 
     private:

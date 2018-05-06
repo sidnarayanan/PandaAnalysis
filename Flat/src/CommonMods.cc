@@ -160,7 +160,7 @@ void TriggerMod::do_init(Registry& registry)
     for (auto &th : triggerHandlers) {
       unsigned N = th.paths.size();
       for (unsigned i = 0; i != N; i++) {
-        unsigned panda_idx = event.registerTrigger(th.paths.at(i));
+        unsigned panda_idx = event.registryTrigger(th.paths.at(i));
         th.indices[i] = panda_idx;
       }
     }

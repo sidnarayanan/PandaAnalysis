@@ -3,6 +3,7 @@
 using namespace pa;
 using namespace panda;
 using namespace std;
+using namespace fastjet; 
 
 ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
   analysis(a_),
@@ -12,6 +13,7 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
 
   cfg.isData = analysis.isData;
   utils.eras = new EraHandler(analysis.year);  
+  cfg.auxFilePath = a.outpath.Replace(".root","_aux%i.root");
 
   // configuration of objects
   if (analysis.ak8)
@@ -25,8 +27,8 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
     int activeAreaRepeats = 1;
     double ghostArea = 0.01;
     double ghostEtaMax = 7.0;
-    utils.activeArea = new fastjet::GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
-    utils.areaDef = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*(utils.activeArea));
+    utils.activeArea = new GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
+    utils.areaDef = new AreaDefinition(active_area_explicit_ghosts,*(utils.activeArea));
   }
 
   if (analysis.deepTracks) {
@@ -41,9 +43,9 @@ ConfigMod::ConfigMod(const Analysis& a_, const GeneralTree& gt, int DEBUG_) :
   }
 
   if (analysis.reclusterGen || analysis.deepExC) 
-    utils.jetDefGen = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
+    utils.jetDefGen = new JetDefinition(antikt_algorithm,0.4);
   if (analysis.hbb)
-    utils.softTrackJetDefinition = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
+    utils.softTrackJetDefinition = new JetDefinition(antikt_algorithm,0.4);
 
   if (analysis.hbb) {
     cfg.minJetPt = analysis.ZllHbb ? 20 : 25;
@@ -426,6 +428,7 @@ void AnalysisMod::execute()
   if (!on())
     return;
   do_execute();
+  cfg.tr.TriggerEvent("execute "+name);
 }
 
 void AnalysisMod::reset()

@@ -48,7 +48,13 @@ namespace pa {
     Analysis(TString name_ = "") { name = name_; }
     ~Analysis() {}
     TString name;
+    TString inpath="";
+    TString outpath="";
+    TString datapath="";
     ProcessType processType=kNoProcess;
+    int year=2016;
+    bool isData;
+    
     bool ak8 = false;
     bool applyMCTriggers = false;
     bool bjetRegression = false;

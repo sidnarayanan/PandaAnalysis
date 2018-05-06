@@ -23,7 +23,7 @@ namespace pa {
     Config(const Analysis& a_, int DEBUG_ = 0) : 
     DEBUG(DEBUG_),
     analysis(a_),
-    tr("PandaAnalyzer::Run", DEBUG+1),
+    tr("PandaAnalyzer", DEBUG+1),
     isData(analysis.isData)
     { }
 

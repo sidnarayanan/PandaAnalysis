@@ -204,7 +204,7 @@ bool MuonIP(double dxy, double dz)
   return (dxy < 0.02 && dz < 0.10);
 }
 
-bool IsMatched(vector<panda::Particle*>*objects,
+bool isMatched(vector<panda::Particle*>*objects,
                double deltaR2, double eta, double phi) 
 {
   for (auto *x : *objects) {
