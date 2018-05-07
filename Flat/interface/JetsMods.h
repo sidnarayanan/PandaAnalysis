@@ -130,7 +130,21 @@ namespace pa {
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_) :
-      AnalysisMod(name, event_, cfg_, utils_, gt_) { }
+      AnalysisMod(name, event_, cfg_, utils_, gt_) { 
+        if (analysis.year == 2016) {
+          jecV = "V4"; jecReco = "23Sep2016"; 
+          campaign = "Summer16";
+          jerV = "Spring16_25nsV10";
+          eraGroups = {"BCD","EF","G","H"};
+          spacer = "";
+        } else {
+          jecV = "V8"; jecReco = "17Nov2017"; 
+          campaign = "Fall17";
+          jerV = "Fall17_25nsV1";
+          eraGroups = {"B","C","D","E","F"};
+          spacer = "";
+        }
+      }
     virtual ~BaseJetMod () { 
       delete jer;
       for (auto& iter : scales)
@@ -150,7 +164,8 @@ namespace pa {
     std::vector<JetCorrectionUncertainty*> *scaleUnc  {nullptr}; // src -> unc 
     FactorizedJetCorrector   *scale{nullptr};        
     
-    TString jecV, jecReco, jetType;
+    TString jecV, jecReco, jetType, campaign, spacer, jerV;
+    std::vector<TString> eraGroups;
   private:
     void setScaleUnc(TString, TString);
   };
@@ -170,7 +185,7 @@ namespace pa {
         vbf = new VBFSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(vbf);
         hbb = new HbbSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(hbb);
 
-        jecV = "V4"; jecReco = "23Sep2016"; jetType = "AK4PFchs";
+        jetType = "AK4PFchs";
       }
     virtual ~JetMod () { }
 

@@ -196,9 +196,15 @@ void ConfigMod::readData(TString dirPath)
     utils.openCorr(cEleTight,
                    dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                    "scalefactors_Tight_Electron",2);
-    utils.openCorr(cEleMvaWP90,
-                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
-                   "scalefactors_MediumMVA_Electron",2);
+    if (analysis.year==2017) {
+      utils.openCorr(cEleMvaWP90,
+                     dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
+                     "scalefactors_MediumMVA_Electron",2);
+    } else {
+      utils.openCorr(cEleMvaWP90,
+                     dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                     "scalefactors_MediumMVA_Electron",2);
+    }
     utils.openCorr(cEleMvaWP80,
                    dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                    "scalefactors_TightMVA_Electron",2);
@@ -304,7 +310,14 @@ void ConfigMod::readData(TString dirPath)
   utils.openCorr(cTrigMETZmm,
                  dirPath+"moriond17/metTriggerEfficiency_zmm_recoil_monojet_TH1F.root",
                  "hden_monojet_recoil_clone_passed",1);
-
+  if (analysis.year==2017) {
+    utils.openCorr(cTrigDoubleEleLeg1,
+                   dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
+                   "scalefactors_doubleEleTriggerLeg1",2);
+    utils.openCorr(cTrigDoubleEleLeg2,
+                   dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
+                   "scalefactors_doubleEleTriggerLeg2",2);
+  }
 
   // kfactors
   TFile *fKFactor = analysis.vbf ?

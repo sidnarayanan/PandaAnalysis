@@ -118,6 +118,10 @@ namespace pa {
     cTrigEle,   //!< Ele trigger eff    
     cTrigMu,    //!< Mu trigger eff    
     cTrigPho,   //!< Pho trigger eff    
+    cTrigDoubleEleLeg1, //!< Double Ele trigger eff    
+    cTrigDoubleEleLeg2, //!< Double Ele trigger eff    
+    cTribDoubleMuLeg1, //!< Double Mu trigger eff
+    cTribDoubleMuLeg2, //!< Double Mu trigger eff
     cZNLO,    //!< NLO weights for QCD Z,W,A,A+2j
     cWNLO,
     cANLO,

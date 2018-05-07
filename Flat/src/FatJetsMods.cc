@@ -5,7 +5,6 @@ using namespace std;
 using namespace panda; 
 using namespace fastjet;
 
-
 void FatJetMod::setupJES()
 {
   if (!analysis.rerunJES || (scaleUnc != nullptr)) 

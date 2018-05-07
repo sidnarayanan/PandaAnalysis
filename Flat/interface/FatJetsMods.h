@@ -44,7 +44,7 @@ namespace pa {
       BaseJetMod("fatjet", event_, cfg_, utils_, gt_),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
         recluster = new FatJetReclusterMod(event_, cfg_, utils_, gt_); subMods.push_back(recluster);
-        jecV = "V4"; jecReco = "23Sep2016"; jetType = "AK8PFPuppi";
+        jetType = "AK8PFPuppi";
       }
     virtual ~FatJetMod () { }
 

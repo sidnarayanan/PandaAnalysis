@@ -46,12 +46,9 @@ void BaseJetMod::do_readData(TString dirPath)
   if (!analysis.rerunJES)
     return;
 
-  TString jecV = "V4", jecReco = "23Sep2016"; 
-  TString jecVFull = jecReco+jecV;
-  TString jetType = "AK4PFchs";
-  vector<TString> eraGroups = {"BCD","EF","G","H"};
+  TString jecVFull = jecReco+spacer+jecV;
 
-  TString basePath = dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull;
+  TString basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+jecVFull;
   vector<JECParams> params = {
     JECParams((basePath+"_MC_L1FastJet_"+jetType+".txt").Data()),
     JECParams((basePath+"_MC_L2Relative_"+jetType+".txt").Data()),
@@ -70,16 +67,17 @@ void BaseJetMod::do_readData(TString dirPath)
     scales["data"+e] = new FactorizedJetCorrector(params);
   }
 
-  jer = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_"+jetType+".txt",
-                      dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_"+jetType+".txt");
+  jer = new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
+                      dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt");
 
 
   basePath = dirPath+"/jec/"+jecVFull+"/Summer16_";
   setScaleUnc("MC", (basePath+jecVFull+"_MC_Uncertainty_"+jetType+".txt").Data());
   for (auto e : eraGroups) {
-    setScaleUnc("data"+e, (basePath+jecReco+e+jecV+"_DATA_Uncertainty_"+jetType+".txt").Data());
+    setScaleUnc("data"+e, (basePath+jecReco+e+spacer+jecV+"_DATA_Uncertainty_"+jetType+".txt").Data());
   }
 }
+
 
 void BaseJetMod::setScaleUnc(TString tag, TString path)
 {
