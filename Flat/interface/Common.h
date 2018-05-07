@@ -102,18 +102,6 @@ namespace pa {
     cEleMvaWP90,
     cEleMvaWP80,
     cEleReco,   //!< monojet SF, tracking for e
-    cWmHEwkCorr,   //!< W(l-V)H Ewk Corr weight  
-    cWmHEwkCorrUp,   //!< W(l-V)H Ewk Corr weight Up  
-    cWmHEwkCorrDown, //!< W(l-V)H Ewk Corr weight Down  
-    cWpHEwkCorr,   //!< W(l+v)H Ewk Corr weight  
-    cWpHEwkCorrUp,   //!< W(l+v)H Ewk Corr weight Up  
-    cWpHEwkCorrDown, //!< W(l+v)H Ewk Corr weight Down  
-    cZnnHEwkCorr,   //!< Z(vv)H Ewk Corr weight  
-    cZnnHEwkCorrUp,   //!< Z(vv)H Ewk Corr weight Up  
-    cZnnHEwkCorrDown, //!< Z(vv)H Ewk Corr weight Down  
-    cZllHEwkCorr,   //!< Z(ll)H Ewk Corr weight  
-    cZllHEwkCorrUp,   //!< Z(ll)H Ewk Corr weight Up  
-    cZllHEwkCorrDown, //!< Z(ll)H Ewk Corr weight Down  
     cWZEwkCorr,
     cqqZZQcdCorr,
     cMuLooseID,   //!< MUO POG SF, Loose ID for mu 
@@ -149,9 +137,21 @@ namespace pa {
     cVBF_TrigMETZmm,
     cBadECALJets,  //!< bad ECAL clusters to filter jets
     cJetLoosePUID,
-    cCSVBL, //!< CSV loose EP efficiencies 
+    cCSVBL, //!< CSV loose WP efficiencies 
     cCSVCL,
     cCSVLL,
+    cWmHEwkCorr,   //!< W(l-V)H Ewk Corr weight  
+    cWmHEwkCorrUp,   //!< W(l-V)H Ewk Corr weight Up  
+    cWmHEwkCorrDown, //!< W(l-V)H Ewk Corr weight Down  
+    cWpHEwkCorr,   //!< W(l+v)H Ewk Corr weight  
+    cWpHEwkCorrUp,   //!< W(l+v)H Ewk Corr weight Up  
+    cWpHEwkCorrDown, //!< W(l+v)H Ewk Corr weight Down  
+    cZnnHEwkCorr,   //!< Z(vv)H Ewk Corr weight  
+    cZnnHEwkCorrUp,   //!< Z(vv)H Ewk Corr weight Up  
+    cZnnHEwkCorrDown, //!< Z(vv)H Ewk Corr weight Down  
+    cZllHEwkCorr,   //!< Z(ll)H Ewk Corr weight  
+    cZllHEwkCorrUp,   //!< Z(ll)H Ewk Corr weight Up  
+    cZllHEwkCorrDown, //!< Z(ll)H Ewk Corr weight Down  
     cN
   };
 

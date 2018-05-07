@@ -1,6 +1,6 @@
 #include "../interface/Helicity.h"
 
-double CosThetaCollinsSoper(TLorentzVector LVlep1, TLorentzVector LVlep2) {
+double pa::CosThetaCollinsSoper(TLorentzVector LVlep1, TLorentzVector LVlep2) {
   TLorentzVector LVZ = LVlep1+LVlep2;
   //do transformation to Collins-Soper frame (1 rotation, 2 boosts)
   // 1st transormation - rotate to ptZ direction
@@ -30,7 +30,7 @@ double CosThetaCollinsSoper(TLorentzVector LVlep1, TLorentzVector LVlep2) {
   return cos_theta_CS;
 }
 
-double CosThetaStar(TLorentzVector lep1, TLorentzVector lep2, TLorentzVector grandma) {
+double pa::CosThetaStar(TLorentzVector lep1, TLorentzVector lep2, TLorentzVector grandma) {
   // Leptons in laboratory frame
   TLorentzVector p4_l1_mother = lep1;
   TLorentzVector dilep=lep1+lep2;

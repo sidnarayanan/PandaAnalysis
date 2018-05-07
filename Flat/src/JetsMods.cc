@@ -7,116 +7,111 @@ using namespace pa;
 using namespace std;
 using namespace panda; 
 using namespace fastjet;
+using JECParams = JetCorrectorParameters;
 
-
-float centralOnly(float x, float aeta, float def = -1) 
+inline float centralOnly(float x, float aeta, float def = -1) 
 {
   return  aeta < 2.4 ? x : -1;
 }
 
 
-bool csvLoose(float csv) 
+inline bool csvLoose(float csv) 
 {
   return csv > 0.5426;
 }
 
 
-bool csvMed(float csv) 
+inline bool csvMed(float csv) 
 {
   return csv > 0.8484;
 }
 
 
-JetWrapper shiftJet(const Jet& jet, shiftjes shift, bool smear=false, bool ak4=true) 
+JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear) 
 {
-  float pt;
-  switch (shift) {
-    case shiftjes::kNominal:
-      pt = jet.pt();
-      break;
-    case shiftjes::kJESUp:
-      pt = jet.ptCorrUp;
-      break;
-    case shiftjes::kJESDown:
-      pt = jet.ptCorrDown;
-      break;
-    default:
-      PError("shiftJet", "Unknown JES type!");
-      exit(1);
-  }
-  if (smear) {
-    pt *= jet.ptSmear / jet.pt();
+  float pt = smear ? jet.ptSmear : jet.pt(); 
+  if (shift != shiftjes::kNominal) { 
+    int ishift = jes2i(shift);
+    bool isUp = !(ishift % 2 == 0); 
+    (*scaleUnc)[ishift]->setJetPt(pt);
+    (*scaleUnc)[ishift]->setJetEta(jet.eta());
+    pt *= (*scaleUnc)[ishift]->getUncertainty(isUp);
   }
   return JetWrapper(pt, jet);
 }
 
 
-void JetMod::do_readData(TString dirPath) 
+void BaseJetMod::do_readData(TString dirPath) 
 {
   if (!analysis.rerunJES)
     return;
 
   TString jecV = "V4", jecReco = "23Sep2016"; 
   TString jecVFull = jecReco+jecV;
+  TString jetType = "AK4PFchs";
   vector<TString> eraGroups = {"BCD","EF","G","H"};
 
-  ak4UncReader["MC"] = new JetCorrectionUncertainty(
-       (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK4PFPuppi.txt").Data()
-    );
-  for (auto e : eraGroups) {
-    ak4UncReader["data"+e] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK4PFPuppi.txt").Data()
-      );
-  }
-
-  ak4JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK4PFPuppi.txt",
-                               dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK4PFPuppi.txt");
-
-  vector<JetCorrectorParameters> params = {
-    JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L1FastJet_AK4PFPuppi.txt").Data()),
-    JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2Relative_AK4PFPuppi.txt").Data()),
-    JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L3Absolute_AK4PFPuppi.txt").Data()),
-    JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2L3Residual_AK4PFPuppi.txt").Data())
+  TString basePath = dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull;
+  vector<JECParams> params = {
+    JECParams((basePath+"_MC_L1FastJet_"+jetType+".txt").Data()),
+    JECParams((basePath+"_MC_L2Relative_"+jetType+".txt").Data()),
+    JECParams((basePath+"_MC_L3Absolute_"+jetType+".txt").Data()),
+    JECParams((basePath+"_MC_L2L3Residual_"+jetType+".txt").Data())
   };
-  ak4ScaleReader["MC"] = new FactorizedJetCorrector(params);
+  scales["MC"] = new FactorizedJetCorrector(params);
   for (auto e : eraGroups) {
+    basePath = dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+jecV;
     params = {
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L1FastJet_AK4PFPuppi.txt").Data()),
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2Relative_AK4PFPuppi.txt").Data()),
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L3Absolute_AK4PFPuppi.txt").Data()),
-      JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2L3Residual_AK4PFPuppi.txt").Data())
+      JECParams((basePath+"_DATA_L1FastJet_"+jetType+".txt").Data()),
+      JECParams((basePath+"_DATA_L2Relative_"+jetType+".txt").Data()),
+      JECParams((basePath+"_DATA_L3Absolute_"+jetType+".txt").Data()),
+      JECParams((basePath+"_DATA_L2L3Residual_"+jetType+".txt").Data())
     };
-    ak4ScaleReader["data"+e] = new FactorizedJetCorrector(params);
+    scales["data"+e] = new FactorizedJetCorrector(params);
   }
 
+  jer = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_"+jetType+".txt",
+                      dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_"+jetType+".txt");
+
+
+  basePath = dirPath+"/jec/"+jecVFull+"/Summer16_";
+  setScaleUnc("MC", (basePath+jecVFull+"_MC_Uncertainty_"+jetType+".txt").Data());
+  for (auto e : eraGroups) {
+    setScaleUnc("data"+e, (basePath+jecReco+e+jecV+"_DATA_Uncertainty_"+jetType+".txt").Data());
+  }
+}
+
+void BaseJetMod::setScaleUnc(TString tag, TString path)
+{
+  scaleUncs[tag] = std::vector<JetCorrectionUncertainty*>(jes2i(shiftjes::N),nullptr);  
+  JESLOOP {
+    if (shift % 2 == 0)
+      continue; 
+    TString shiftName = jesName(i2jes(shift));
+    shiftName.ReplaceAll("JES","").ReplaceAll("Up","");
+    scaleUncs[tag][shift] = new JetCorrectionUncertainty(JECParams(path.Data(), shiftName.Data()));
+    scaleUncs[tag][shift+1] = scaleUncs[tag][shift]; // Down = Up 
+  }
 }
 
 void JetMod::setupJES()
 {
-  if (!analysis.rerunJES || (uncReaderAK4 != nullptr)) 
+  if (!analysis.rerunJES || (scaleUnc != nullptr)) 
     return;
   if (analysis.isData) {
     TString thisEra = utils.eras->getEra(gt.runNumber);
-    for (auto& iter : ak4UncReader) {
+    for (auto& iter : scaleUncs) {
       if (!iter.first.Contains("data"))
         continue;
       if (iter.first.Contains(thisEra)) {
-        uncReaderAK4 = ak4UncReader[iter.first];
-        scaleReaderAK4 = ak4ScaleReader[iter.first];
+        scaleUnc = &(scaleUncs[iter.first]);
+        scale = scales[iter.first];
         return;
       }
     }
   } else {
-    uncReaderAK4 = ak4UncReader["MC"];
-    scaleReaderAK4 = ak4ScaleReader["MC"];
+    scaleUnc = &(scaleUncs["MC"]);
+    scale = scales["MC"];
   }
 }
 
@@ -127,7 +122,7 @@ void JetMod::varyJES()
     auto& jets = (*jesShifts)[shift];
     jets.reserve(ak4Jets->size());
     for (auto &j : *ak4Jets) {
-      jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb, true));
+      jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb));
     }
     jets.sort();
   }
@@ -148,7 +143,7 @@ void JetMod::do_execute()
 
   JESLOOP {
     bool isNominal = (shift == jes2i(shiftjes::kNominal));
-    bool metShift = (i2jes(shift) <= shiftjes::kJESDown);
+    bool metShift = (i2jes(shift) <= shiftjes::kJESTotalDown);
     JESHandler& jets = (*jesShifts)[shift];
     currentJES = &jets;
     for (auto& jw : jets.all) {
@@ -548,7 +543,7 @@ void HbbSystemMod::do_execute()
     gt.hbbCosThetaCSJ1[shift] = csj1;
   }
 
-  if (gt.hbbm > 0 && gt.nLooseLep > 0 && shift <= jes2i(shiftjes::kJESDown)) {
+  if (gt.hbbm > 0 && gt.nLooseLep > 0 && shift <= jes2i(shiftjes::kJESTotalDown)) {
     TLorentzVector leptonP4, metP4, nuP4, *jet0P4{nullptr}, *jet1P4{nullptr}, WP4, topP4;
     float dRJet0W, dRJet1W;
     bool jet0IsCloser;

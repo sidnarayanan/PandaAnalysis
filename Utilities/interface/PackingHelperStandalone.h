@@ -12,10 +12,10 @@
 // For the analog of panda::PackingHelper::unpack8LogBound, use panda::PHS::up8(...)
 
 
-namespace panda {
+namespace pa {
   class PackingHelperStandalone {
   public:
-    PackingHelperStandalone();
+    PackingHelperStandalone() { }
 
     static Double_t up(UShort_t);
     static Double_t up8(Char_t, Double_t min, Double_t max, UChar_t baseminus1);

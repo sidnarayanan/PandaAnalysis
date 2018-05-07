@@ -5,45 +5,23 @@ using namespace std;
 using namespace panda; 
 using namespace fastjet;
 
-void FatJetMod::do_readData(TString dirPath) {
-  if (!analysis.rerunJES)
-    return;
-
-  TString jecV = "V4", jecReco = "23Sep2016"; 
-  TString jecVFull = jecReco+jecV;
-  std::vector<TString> eraGroups = {"BCD","EF","G","H"};
-
-  ak8UncReader["MC"] = new JetCorrectionUncertainty(
-       (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK8PFPuppi.txt").Data()
-    );
-  for (auto e : eraGroups) {
-    ak8UncReader["data"+e] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK8PFPuppi.txt").Data()
-      );
-  }
-
-  ak8JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK8PFPuppi.txt",
-                               dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK8PFPuppi.txt");
-
-}
-
 
 void FatJetMod::setupJES()
 {
-  if (!analysis.rerunJES || (uncReader != nullptr)) 
+  if (!analysis.rerunJES || (scaleUnc != nullptr)) 
     return;
   if (analysis.isData) {
     TString thisEra = utils.eras->getEra(gt.runNumber);
-    for (auto& iter : ak8UncReader) {
+    for (auto& iter : scaleUncs) {
       if (!iter.first.Contains("data"))
         continue;
       if (iter.first.Contains(thisEra)) {
-        uncReader = ak8UncReader[iter.first];
+        scaleUnc = &(scaleUncs[iter.first]);
         return;
       }
     }
   } else {
-    uncReader = ak8UncReader["MC"];
+    scaleUnc = &(scaleUncs["MC"]);
   }
 }
 

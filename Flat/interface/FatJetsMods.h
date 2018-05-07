@@ -2,6 +2,7 @@
 #define FATJETSMODS
 
 #include "Module.h"
+#include "JetsMods.h" // need BaseJetMod 
 
 namespace pa {
   class FatJetReclusterMod : public AnalysisMod {
@@ -17,7 +18,7 @@ namespace pa {
                                                            fastjet::cambridge_algorithm,
                                             analysis.ak8 ?  0.8 : 1.5);
       }
-    ~FatJetReclusterMod () { 
+    virtual ~FatJetReclusterMod () { 
       delete jetDef;
     }
 
@@ -34,26 +35,22 @@ namespace pa {
   };
 
 
-  class FatJetMod : public AnalysisMod {
+  class FatJetMod : public BaseJetMod {
   public: 
     FatJetMod(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
               GeneralTree& gt_) :                 
-      AnalysisMod("fatjet", event_, cfg_, utils_, gt_),
+      BaseJetMod("fatjet", event_, cfg_, utils_, gt_),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
         recluster = new FatJetReclusterMod(event_, cfg_, utils_, gt_); subMods.push_back(recluster);
+        jecV = "V4"; jecReco = "23Sep2016"; jetType = "AK8PFPuppi";
       }
-    ~FatJetMod () { 
-      delete ak8JERReader;
-      for (auto& iter : ak8UncReader)
-        delete iter.second;
-    }
+    virtual ~FatJetMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet; }
     
   protected:
-    void do_readData(TString path);
     void do_init(Registry& registry) {
       registry.publishConst("fj1", &fj1);
       registry.publishConst("fatjets", &fatjets);
@@ -64,9 +61,6 @@ namespace pa {
     float getMSDCorr(float,float);
   private:
     void setupJES(); 
-    std::map<TString,JetCorrectionUncertainty*> ak8UncReader; //!< calculate JES unc on the fly
-    JERReader *ak8JERReader{nullptr}; //!< fatjet jet energy resolution reader
-    JetCorrectionUncertainty *uncReader  {nullptr};        
 
     panda::FatJet *fj1{nullptr}; 
     panda::FatJetCollection &fatjets;
@@ -84,7 +78,7 @@ namespace pa {
                       Utils& utils_,                
                       GeneralTree& gt_) :                 
       AnalysisMod("fatjet matching", event_, cfg_, utils_, gt_) { }
-    ~FatJetMatchingMod () { }
+    virtual ~FatJetMatchingMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet && !analysis.isData; }
     
