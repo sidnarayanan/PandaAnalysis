@@ -9,7 +9,7 @@ void FatJetMod::do_readData(TString dirPath) {
   if (!analysis.rerunJES)
     return;
 
-  TString jecV, jecReco, jecVFull, campaign, folder;
+  TString jecV, jecReco, jecVFull, campaign, folder, spacer;
   std::vector<TString> eraGroups;
   
   if (analysis.year==2016) {

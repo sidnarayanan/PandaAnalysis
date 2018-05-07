@@ -32,19 +32,28 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
     }
 
     if (analysis.btagWeights) {
-        if (analysis.useCMVA)  {
-          cmvaReweighter = new CSVHelper(
-                "PandaAnalysis/data/csvweights/cmva_rwt_fit_hf_v0_final_2017_3_29.root", 
-                "PandaAnalysis/data/csvweights/cmva_rwt_fit_lf_v0_final_2017_3_29.root", 
-                5
-              );
-        } else {
-          csvReweighter  = new CSVHelper(
-                "PandaAnalysis/data/csvweights/csv_rwt_fit_hf_v2_final_2017_3_29test.root", 
-                "PandaAnalysis/data/csvweights/csv_rwt_fit_lf_v2_final_2017_3_29test.root", 
-                5
-              );
-        }
+      // Build a vector of syst names for instantiating the BTagCalibrationReader
+      std::vector<std::string> systNames;
+      systNames.reserve(GeneralTree::nCsvShifts);
+      for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
+        GeneralTree::csvShift shift = gt.csvShifts[iShift];
+        if (shift==GeneralTree::csvCent) continue;
+        systNames.push_back(officialShiftNames[shift]);
+      }    
+      reshaper = new BTagCalibrationReader(BTagEntry::OP_RESHAPING,
+        officialShiftNames[GeneralTree::csvCent], systNames);
+
+      if (analysis.year==2016) {
+        if (analysis.useCMVA) 
+          reshaper_calib = new BTagCalibration("csvv2", (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data());
+        else
+          reshaper_calib = new BTagCalibration("cMVAv2", (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data());
+      } else if (analysis.year==2017) {
+        reshaper_calib = new BTagCalibration("DeepCSV", (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data());
+      }
+      reshaper->load(*(reshaper_calib), BTagEntry::FLAV_B, "iterativeFit");
+      reshaper->load(*(reshaper_calib), BTagEntry::FLAV_C, "iterativeFit");
+      reshaper->load(*(reshaper_calib), BTagEntry::FLAV_UDSG, "iterativeFit");
     }
 }
 

@@ -147,6 +147,7 @@ void ConfigMod::set_outputBranches()
   if (analysis.complicatedLeptons) {
     gt.RemoveBranches({"genJet.*","puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*"});
   }
+  //gt.RemoveBranches({"sf_cmva.*"},{"sf_cmva_Central"});
 }
 
 void ConfigMod::readData(TString dirPath)

@@ -26,6 +26,16 @@ bool csvMed(float csv)
   return csv > 0.8484;
 }
 
+bool deepCsvLoose(float csv)
+{
+  return csv > 0.2219;
+}
+
+bool deepCsvMed(float csv)
+{ 
+  return csv > 0.6324;
+}
+
 
 JetWrapper shiftJet(const Jet& jet, shiftjes shift, bool smear=false, bool ak4=true) 
 {
@@ -56,7 +66,7 @@ void JetMod::do_readData(TString dirPath)
   if (!analysis.rerunJES)
     return;
 
-  TString jecV, jecReco, jecVFull, campaign, folder;
+  TString jecV, jecReco, jecVFull, campaign, folder, spacer;
   std::vector<TString> eraGroups;
   if (analysis.year==2016) {
     jecV = "V4"; jecReco = "23Sep2016"; 
