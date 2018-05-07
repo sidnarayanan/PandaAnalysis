@@ -9,21 +9,40 @@ void FatJetMod::do_readData(TString dirPath) {
   if (!analysis.rerunJES)
     return;
 
-  TString jecV = "V4", jecReco = "23Sep2016"; 
-  TString jecVFull = jecReco+jecV;
-  std::vector<TString> eraGroups = {"BCD","EF","G","H"};
-
+  TString jecV, jecReco, jecVFull, campaign, folder;
+  std::vector<TString> eraGroups;
+  
+  if (analysis.year==2016) {
+    jecV = "V4"; jecReco = "23Sep2016"; 
+    jecVFull = jecReco+jecV;
+    campaign="Summer16";
+    eraGroups = {"BCD","EF","G","H"};
+    folder=jecVFull;
+    spacer="";
+  } else if (analysis.year==2017) {
+    TString jecV = "V8", jecReco = "23Sep2016"; 
+    TString jecVFull = jecReco+"_"+jecV;
+    campaign="Fall17";
+    eraGroups = {"B","C","D","E","F"};
+    folder=campaign+"_"+jecReco+jecV;
+    spacer="_"; // 2017 files have an underscore in them "Fall17_17Nov2017_V8_MC"
+  }
+  
   ak8UncReader["MC"] = new JetCorrectionUncertainty(
-       (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK8PFPuppi.txt").Data()
+       (dirPath+"/jec/"+folder+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_Uncertainty_AK8PFPuppi.txt").Data()
     );
   for (auto e : eraGroups) {
     ak8UncReader["data"+e] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK8PFPuppi.txt").Data()
+         (dirPath+"/jec/"+folder+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_Uncertainty_AK8PFPuppi.txt").Data()
       );
   }
 
-  ak8JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK8PFPuppi.txt",
-                               dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK8PFPuppi.txt");
+  if (analysis.year==2016)
+    ak8JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK8PFPuppi.txt",
+                                 dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK8PFPuppi.txt");
+  else if (analysis.year==2017)
+    ak8JERReader = new JERReader(dirPath+"/jec/Fall17_25nsV1/Fall17_25nsV1_MC_SF_AK8PFPuppi.txt",
+                                 dirPath+"/jec/Fall17_25nsV1/Fall17_25nsV1_MC_PtResolution_AK8PFPuppi.txt");
 
 }
 

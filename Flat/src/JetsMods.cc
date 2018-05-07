@@ -56,43 +56,61 @@ void JetMod::do_readData(TString dirPath)
   if (!analysis.rerunJES)
     return;
 
-  TString jecV = "V4", jecReco = "23Sep2016"; 
-  TString jecVFull = jecReco+jecV;
-  vector<TString> eraGroups = {"BCD","EF","G","H"};
+  TString jecV, jecReco, jecVFull, campaign, folder;
+  std::vector<TString> eraGroups;
+  if (analysis.year==2016) {
+    jecV = "V4"; jecReco = "23Sep2016"; 
+    jecVFull = jecReco+jecV;
+    campaign="Summer16";
+    eraGroups = {"BCD","EF","G","H"};
+    folder=jecVFull;
+    spacer="";
+  } else if (analysis.year==2017) {
+    TString jecV = "V8", jecReco = "23Sep2016"; 
+    TString jecVFull = jecReco+"_"+jecV;
+    campaign="Fall17";
+    eraGroups = {"B","C","D","E","F"};
+    folder=campaign+"_"+jecReco+jecV;
+    spacer="_"; // 2017 files have an underscore in them "Fall17_17Nov2017_V8_MC"
+  }
 
   ak4UncReader["MC"] = new JetCorrectionUncertainty(
-       (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_Uncertainty_AK4PFPuppi.txt").Data()
+       (dirPath+"/jec/"+folder+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_Uncertainty_AK4PFPuppi.txt").Data()
     );
   for (auto e : eraGroups) {
     ak4UncReader["data"+e] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_Uncertainty_AK4PFPuppi.txt").Data()
+         (dirPath+"/jec/"+folder+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_Uncertainty_AK4PFPuppi.txt").Data()
       );
   }
 
-  ak4JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK4PFPuppi.txt",
-                               dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK4PFPuppi.txt");
+  if (analysis.year==2016)
+    ak4JERReader = new JERReader(dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_SF_AK4PFPuppi.txt",
+                                 dirPath+"/jec/25nsV10/Spring16_25nsV10_MC_PtResolution_AK4PFPuppi.txt");
+  else if (analysis.year==2017)
+    ak4JERReader = new JERReader(dirPath+"/jec/Fall17_25nsV1/Fall17_25nsV1_MC_SF_AK4PFPuppi.txt",
+                                 dirPath+"/jec/Fall17_25nsV1/Fall17_25nsV1_MC_PtResolution_AK4PFPuppi.txt");
 
   vector<JetCorrectorParameters> params = {
     JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L1FastJet_AK4PFPuppi.txt").Data()),
+      (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_L1FastJet_AK4PFPuppi.txt").Data()),
     JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2Relative_AK4PFPuppi.txt").Data()),
+      (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_L2Relative_AK4PFPuppi.txt").Data()),
     JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L3Absolute_AK4PFPuppi.txt").Data()),
+      (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_L3Absolute_AK4PFPuppi.txt").Data()),
     JetCorrectorParameters(
-      (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2L3Residual_AK4PFPuppi.txt").Data())
+      (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_L2L3Residual_AK4PFPuppi.txt").Data())
   };
   ak4ScaleReader["MC"] = new FactorizedJetCorrector(params);
   for (auto e : eraGroups) {
     params = {
       JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L1FastJet_AK4PFPuppi.txt").Data()),
+        (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_L1FastJet_AK4PFPuppi.txt").Data()),
       JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2Relative_AK4PFPuppi.txt").Data()),
+        (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_L2Relative_AK4PFPuppi.txt").Data()),
       JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L3Absolute_AK4PFPuppi.txt").Data()),
+        (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_L3Absolute_AK4PFPuppi.txt").Data()),
       JetCorrectorParameters(
-        (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2L3Residual_AK4PFPuppi.txt").Data())
+        (dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_L2L3Residual_AK4PFPuppi.txt").Data())
     };
     ak4ScaleReader["data"+e] = new FactorizedJetCorrector(params);
   }
