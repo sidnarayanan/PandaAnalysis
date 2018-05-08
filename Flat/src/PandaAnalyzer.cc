@@ -199,6 +199,8 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
   for (auto* s : selections) {
     if (s->anded())
       continue;
+    if (DEBUG>1)
+      PDebug("PandaAnalyzer::PassPresel",s->get_name());
     if (s->accept(stage)) {
       pass = true;
       break;
@@ -207,6 +209,8 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 
   for (auto* s : selections) {
     if (s->anded()) {
+      if (DEBUG>1)
+        PDebug("PandaAnalyzer::PassPresel",s->get_name());
       pass = pass && s->accept(stage);
     }
   }
@@ -284,7 +288,7 @@ void PandaAnalyzer::Run()
     for (auto* mod : mods_reco)
       mod->execute();
 
-    if (!PassPresel(Selection::sRecoil))
+    if (!PassPresel(Selection::sReco))
       continue;
 
     for (auto* mod : mods_gen)

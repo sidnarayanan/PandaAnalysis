@@ -4,7 +4,7 @@
 using namespace pa; 
 
 static float best_recoil(const GeneralTree *gt, bool include_var) {
-  int maxshift = include_var ? static_cast<int>(shiftjes::N) : 1;
+  int maxshift = include_var ? jes2i(shiftjes::kJESTotalDown)+1 : 1;
   float max_puppi = -1, max_pf = -1;
   for (int shift = 0; shift != maxshift; ++ shift) {
     max_puppi = std::max({max_puppi, gt->puppimet[shift], 
@@ -70,12 +70,15 @@ bool MonohiggsSel::do_accept() const
 
 bool VHbbSel::do_accept() const
 {
-  int maxshift = static_cast<int>(shiftjes::N);
   float bestMet = -1, bestJet1 = -1, bestJet2 = -1;
+  int maxshift = jes2i(shiftjes::kJESTotalDown)+1;
   for (int shift = 0; shift != maxshift; ++ shift) {
     bestMet = std::max(bestMet, gt->pfmet[shift]);
-    bestJet1 = std::max(bestJet1, gt->jotPt[0][shift]);
-    bestJet2 = std::max(bestJet2, gt->jotPt[1][shift]);
+  }
+  maxshift = jes2i(shiftjes::N);
+  for (int shift = 0; shift != maxshift; ++ shift) {
+    bestJet1 = std::max(bestJet1, gt->jotPt[shift][0]);
+    bestJet2 = std::max(bestJet2, gt->jotPt[shift][1]);
   }
 
   // ZnnHbb

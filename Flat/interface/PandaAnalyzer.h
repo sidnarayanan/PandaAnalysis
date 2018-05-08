@@ -27,7 +27,7 @@ namespace pa {
         void Reset();
         void Run();
         void Terminate();
-        void AddPresel(Selection *s) { selections.push_back(s); }
+        void AddPresel(Selection *s) { s->set_gt(&gt); selections.push_back(s); }
         void AddGoodLumiRange(int run, int l0, int l1);
 
         int firstEvent{0}, lastEvent{-1};

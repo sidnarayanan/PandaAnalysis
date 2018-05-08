@@ -13,7 +13,7 @@ namespace pa {
   class Selection {
   public:
     enum Stage {
-      sRecoil, sGen, sReco
+      sGen, sReco
     };
 
     Selection(Stage stage_, TString n=""): stage(stage_), name(n) { }
@@ -32,6 +32,7 @@ namespace pa {
       return good;
     };
     virtual bool anded() const final { return is_anded; }
+    virtual TString get_name() const final { return name; }
   protected:
     virtual bool do_accept() const = 0;
     Stage stage;
