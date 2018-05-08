@@ -67,7 +67,9 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   TH1D* hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
   TH1D* hDNPUWeight = nullptr; {
-    TH1D* hbase = static_cast<TH1D*>(fIn->Get("hNPVTrue"));
+    TH1D* hbase = static_cast<TH1D*>(fIn->Get("hNPVReco"));
+    if (hbase == nullptr)
+      hbase = static_cast<TH1D*>(fIn->Get("hNPVTrue"));
     if (hbase != nullptr) {
       hDNPUWeight = static_cast<TH1D*>(hbase->Clone("hDNPUWeight"));
       hDNPUWeight->SetDirectory(0);
@@ -152,7 +154,7 @@ void PandaAnalyzer::AddGoodLumiRange(int run, int l0, int l1)
 {
   auto run_ = goodLumis.find(run);
   if (run_==goodLumis.end()) { // don't know about this run yet
-    std::vector<LumiRange> newLumiList;
+    vector<LumiRange> newLumiList;
     newLumiList.emplace_back(l0,l1);
     goodLumis[run] = newLumiList;
   } else {
