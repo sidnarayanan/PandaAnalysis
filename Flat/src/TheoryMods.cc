@@ -497,17 +497,23 @@ void HFCountingMod::do_execute()
     int pdgid = gen.pdgid;
     if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
       continue;
+    
     //count bs and cs
     int apdgid = abs(pdgid);
-    if (apdgid!=5 && apdgid!=4) 
-      continue;
-    if (pt>5) {
+    if ((apdgid==5 || apdgid==4) && gen.testFlag(GenParticle::kIsPrompt)) {
       gt.nHF++;
       if (apdgid==5)
         gt.nB++;
     }
+    // Count status 2 B hadrons
+    // https://github.com/vhbb/cmssw/blob/vhbbHeppy80X/VHbbAnalysis/Heppy/python/VHGeneratorAnalyzer.py
+    int apdgidMod10k = apdgid % 10000;
+    if (gen.testFlag(GenParticle::kIsDecayedLeptonHadron) && (
+        (apdgidMod10k >=  500 && apdgidMod10k <  600) ||
+        (apdgidMod10k >= 5000 && apdgidMod10k < 6000)))
+      gt.nStatus2BHadrons++;
   }
-
+  
   // Gen B jet counting stored in nBGenJets
   for (auto &gen : event.ak4GenJets) {
     if (gen.pt() > 20 && std::abs(gen.eta()) < 2.4 && (gen.numB != 0 || abs(gen.pdgid)==5))
@@ -717,7 +723,7 @@ void KFactorMod::vpt()
 
           //ideally you want to have dressed leptons (lepton + photon), 
           //but we have in any ways have a photon veto in the analysis
-          if (isMatched(matchLeps,0.01,part.eta(),part.phi()))
+          if (isMatched(looseLeps,0.01,part.eta(),part.phi()))
             vpt += part.p4();
         }
         

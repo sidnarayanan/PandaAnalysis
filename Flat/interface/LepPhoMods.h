@@ -46,6 +46,7 @@ namespace pa {
     virtual void do_init(Registry& registry) {
       registry.publishConst("looseLeps", &looseLeps);
       registry.publishConst("tightLeps", &tightLeps);
+      registry.publishConst("matchLeps", &matchLeps);
       registry.publishConst("lepPdgId", &lepPdgId);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
     }
@@ -53,12 +54,13 @@ namespace pa {
     virtual void do_reset() { 
       looseLeps.clear();
       tightLeps.clear();
+      matchLeps.clear();
       for (auto& id : lepPdgId)
         id = 0;
     }
     void scaleFactors();
 
-    std::vector<panda::Lepton*> looseLeps, tightLeps;
+    std::vector<panda::Lepton*> looseLeps, tightLeps, matchLeps;
     std::array<int,4> lepPdgId;
     std::vector<JESHandler> *jesShifts{nullptr};
     
@@ -130,7 +132,7 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       SimplePhotonMod::do_init(registry);
-      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
     }
     void do_execute(); 
   private:
@@ -152,7 +154,7 @@ namespace pa {
     
   protected:
     void do_init(Registry& registry) {
-      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
     }
     void do_execute(); 
   private:

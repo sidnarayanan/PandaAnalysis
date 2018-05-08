@@ -155,7 +155,7 @@ namespace pa {
       registry.publish("currentJet", &currentJet);
       registry.publish("currentJES", &currentJES);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
-      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
     }
     void do_execute();  

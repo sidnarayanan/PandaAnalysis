@@ -286,13 +286,19 @@ void GeneralTree::Reset() {
   looseGenLep4PdgId = 0;
   diLepMass = -99;
   nTau = 0;
+  sumEtSoft1 = -99;
   nSoft2 = 0;
   nSoft5 = 0;
   nSoft10 = 0;
   topWBosonPt = -99;
   topWBosonEta = -99;
   topWBosonPhi = -99;
-  sumEtSoft1 = -99;
+  ZBosonPt = -99;
+  ZBosonEta = -99;
+  ZBosonPhi = -99;
+  ZBosonM = -99;
+  ZBosonLep1CosThetaCS = -99;
+  ZBosonLep1CosThetaStar = -99;
   scaleUp = 1;
   scaleDown = 1;
   pdfUp = 1;
@@ -1095,61 +1101,6 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("looseGenLep3PdgId",&looseGenLep3PdgId,"looseGenLep3PdgId/I");
     Book("looseGenLep4PdgId",&looseGenLep4PdgId,"looseGenLep4PdgId/I");
   }
-  if (is_monotop||is_vbf) {
-    Book("jetPt",jetPt,"jetPt["+TString("2")+"]/F");
-    Book("jetEta",jetEta,"jetEta["+TString("2")+"]/F");
-    Book("jetPhi",jetPhi,"jetPhi["+TString("2")+"]/F");
-    Book("jetGenPt",jetGenPt,"jetGenPt["+TString("2")+"]/F");
-    Book("jetCSV",jetCSV,"jetCSV["+TString("2")+"]/F");
-    Book("jetFlav",jetFlav,"jetFlav["+TString("2")+"]/I");
-    Book("jetIsTight",jetIsTight,"jetIsTight["+TString("2")+"]/I");
-    Book("jetIsIso",jetIsIso,"jetIsIso["+TString("2")+"]/I");
-  }
-  if (is_fatjet) {
-    Book("nFatjet",&nFatjet,"nFatjet/I");
-    Book("fjTau32",&fjTau32,"fjTau32/F");
-    Book("fjTau21",&fjTau21,"fjTau21/F");
-    Book("fjTau32SD",&fjTau32SD,"fjTau32SD/F");
-    Book("fjTau21SD",&fjTau21SD,"fjTau21SD/F");
-    Book("fjMSD",&fjMSD,"fjMSD/F");
-    Book("fjRho",&fjRho,"fjRho/F");
-    Book("fjRawRho",&fjRawRho,"fjRawRho/F");
-    Book("fjRho2",&fjRho2,"fjRho2/F");
-    Book("fjRawRho2",&fjRawRho2,"fjRawRho2/F");
-    Book("fjMSD_corr",&fjMSD_corr,"fjMSD_corr/F");
-    Book("fjPt",&fjPt,"fjPt/F");
-    Book("fjPhi",&fjPhi,"fjPhi/F");
-    Book("fjEta",&fjEta,"fjEta/F");
-    Book("fjM",&fjM,"fjM/F");
-    Book("fjMaxCSV",&fjMaxCSV,"fjMaxCSV/F");
-    Book("fjSubMaxCSV",&fjSubMaxCSV,"fjSubMaxCSV/F");
-    Book("fjMinCSV",&fjMinCSV,"fjMinCSV/F");
-    Book("fjDoubleCSV",&fjDoubleCSV,"fjDoubleCSV/F");
-    Book("fjgbb",&fjgbb,"fjgbb/I");
-    Book("fjNbs",&fjNbs,"fjNbs/I");
-    Book("fjGenPt",&fjGenPt,"fjGenPt/F");
-    Book("fjGenSize",&fjGenSize,"fjGenSize/F");
-    Book("fjIsMatched",&fjIsMatched,"fjIsMatched/I");
-    Book("fjGenWPt",&fjGenWPt,"fjGenWPt/F");
-    Book("fjGenWSize",&fjGenWSize,"fjGenWSize/F");
-    Book("fjIsWMatched",&fjIsWMatched,"fjIsWMatched/I");
-    Book("fjHighestPtGen",&fjHighestPtGen,"fjHighestPtGen/I");
-    Book("fjHighestPtGenPt",&fjHighestPtGenPt,"fjHighestPtGenPt/F");
-    Book("fjIsTight",&fjIsTight,"fjIsTight/I");
-    Book("fjIsLoose",&fjIsLoose,"fjIsLoose/I");
-    Book("fjRawPt",&fjRawPt,"fjRawPt/F");
-    Book("fjNHF",&fjNHF,"fjNHF/I");
-    Book("fjHTTMass",&fjHTTMass,"fjHTTMass/F");
-    Book("fjHTTFRec",&fjHTTFRec,"fjHTTFRec/F");
-    Book("fjIsClean",&fjIsClean,"fjIsClean/I");
-    Book("fjNPartons",&fjNPartons,"fjNPartons/I");
-    Book("fjNBPartons",&fjNBPartons,"fjNBPartons/I");
-    Book("fjNCPartons",&fjNCPartons,"fjNCPartons/I");
-    Book("fjPartonM",&fjPartonM,"fjPartonM/F");
-    Book("fjPartonPt",&fjPartonPt,"fjPartonPt/F");
-    Book("fjPartonEta",&fjPartonEta,"fjPartonEta/F");
-    Book("fjGenNumB",&fjGenNumB,"fjGenNumB/I");
-  }
   if (is_monohiggs||is_hbb) {
     Book("pfmetsig",&pfmetsig,"pfmetsig/F");
     Book("puppimetsig",&puppimetsig,"puppimetsig/F");
@@ -1521,6 +1472,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("hbbpt_reg_JESSrcSinglePionHCALDown",&(hbbpt_reg[40]),"hbbpt_reg_JESSrcSinglePionHCALDown/F");
     Book("hbbpt_reg_JESSrcTimePtEtaUp",&(hbbpt_reg[41]),"hbbpt_reg_JESSrcTimePtEtaUp/F");
     Book("hbbpt_reg_JESSrcTimePtEtaDown",&(hbbpt_reg[42]),"hbbpt_reg_JESSrcTimePtEtaDown/F");
+    Book("sumEtSoft1",&sumEtSoft1,"sumEtSoft1/F");
     Book("nSoft2",&nSoft2,"nSoft2/I");
     Book("nSoft5",&nSoft5,"nSoft5/I");
     Book("nSoft10",&nSoft10,"nSoft10/I");
@@ -1699,6 +1651,66 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("topWBosonPt",&topWBosonPt,"topWBosonPt/F");
     Book("topWBosonEta",&topWBosonEta,"topWBosonEta/F");
     Book("topWBosonPhi",&topWBosonPhi,"topWBosonPhi/F");
-    Book("sumEtSoft1",&sumEtSoft1,"sumEtSoft1/F");
+    Book("ZBosonPt",&ZBosonPt,"ZBosonPt/F");
+    Book("ZBosonEta",&ZBosonEta,"ZBosonEta/F");
+    Book("ZBosonPhi",&ZBosonPhi,"ZBosonPhi/F");
+    Book("ZBosonM",&ZBosonM,"ZBosonM/F");
+    Book("ZBosonLep1CosThetaCS",&ZBosonLep1CosThetaCS,"ZBosonLep1CosThetaCS/F");
+    Book("ZBosonLep1CosThetaStar",&ZBosonLep1CosThetaStar,"ZBosonLep1CosThetaStar/F");
+  }
+  if (is_fatjet) {
+    Book("nFatjet",&nFatjet,"nFatjet/I");
+    Book("fjTau32",&fjTau32,"fjTau32/F");
+    Book("fjTau21",&fjTau21,"fjTau21/F");
+    Book("fjTau32SD",&fjTau32SD,"fjTau32SD/F");
+    Book("fjTau21SD",&fjTau21SD,"fjTau21SD/F");
+    Book("fjMSD",&fjMSD,"fjMSD/F");
+    Book("fjRho",&fjRho,"fjRho/F");
+    Book("fjRawRho",&fjRawRho,"fjRawRho/F");
+    Book("fjRho2",&fjRho2,"fjRho2/F");
+    Book("fjRawRho2",&fjRawRho2,"fjRawRho2/F");
+    Book("fjMSD_corr",&fjMSD_corr,"fjMSD_corr/F");
+    Book("fjPt",&fjPt,"fjPt/F");
+    Book("fjPhi",&fjPhi,"fjPhi/F");
+    Book("fjEta",&fjEta,"fjEta/F");
+    Book("fjM",&fjM,"fjM/F");
+    Book("fjMaxCSV",&fjMaxCSV,"fjMaxCSV/F");
+    Book("fjSubMaxCSV",&fjSubMaxCSV,"fjSubMaxCSV/F");
+    Book("fjMinCSV",&fjMinCSV,"fjMinCSV/F");
+    Book("fjDoubleCSV",&fjDoubleCSV,"fjDoubleCSV/F");
+    Book("fjgbb",&fjgbb,"fjgbb/I");
+    Book("fjNbs",&fjNbs,"fjNbs/I");
+    Book("fjGenPt",&fjGenPt,"fjGenPt/F");
+    Book("fjGenSize",&fjGenSize,"fjGenSize/F");
+    Book("fjIsMatched",&fjIsMatched,"fjIsMatched/I");
+    Book("fjGenWPt",&fjGenWPt,"fjGenWPt/F");
+    Book("fjGenWSize",&fjGenWSize,"fjGenWSize/F");
+    Book("fjIsWMatched",&fjIsWMatched,"fjIsWMatched/I");
+    Book("fjHighestPtGen",&fjHighestPtGen,"fjHighestPtGen/I");
+    Book("fjHighestPtGenPt",&fjHighestPtGenPt,"fjHighestPtGenPt/F");
+    Book("fjIsTight",&fjIsTight,"fjIsTight/I");
+    Book("fjIsLoose",&fjIsLoose,"fjIsLoose/I");
+    Book("fjRawPt",&fjRawPt,"fjRawPt/F");
+    Book("fjNHF",&fjNHF,"fjNHF/I");
+    Book("fjHTTMass",&fjHTTMass,"fjHTTMass/F");
+    Book("fjHTTFRec",&fjHTTFRec,"fjHTTFRec/F");
+    Book("fjIsClean",&fjIsClean,"fjIsClean/I");
+    Book("fjNPartons",&fjNPartons,"fjNPartons/I");
+    Book("fjNBPartons",&fjNBPartons,"fjNBPartons/I");
+    Book("fjNCPartons",&fjNCPartons,"fjNCPartons/I");
+    Book("fjPartonM",&fjPartonM,"fjPartonM/F");
+    Book("fjPartonPt",&fjPartonPt,"fjPartonPt/F");
+    Book("fjPartonEta",&fjPartonEta,"fjPartonEta/F");
+    Book("fjGenNumB",&fjGenNumB,"fjGenNumB/I");
+  }
+  if (is_monotop||is_vbf) {
+    Book("jetPt",jetPt,"jetPt["+TString("2")+"]/F");
+    Book("jetEta",jetEta,"jetEta["+TString("2")+"]/F");
+    Book("jetPhi",jetPhi,"jetPhi["+TString("2")+"]/F");
+    Book("jetGenPt",jetGenPt,"jetGenPt["+TString("2")+"]/F");
+    Book("jetCSV",jetCSV,"jetCSV["+TString("2")+"]/F");
+    Book("jetFlav",jetFlav,"jetFlav["+TString("2")+"]/I");
+    Book("jetIsTight",jetIsTight,"jetIsTight["+TString("2")+"]/I");
+    Book("jetIsIso",jetIsIso,"jetIsIso["+TString("2")+"]/I");
   }
 }

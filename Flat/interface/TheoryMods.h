@@ -106,14 +106,14 @@ namespace pa {
     void do_execute(); 
     void do_init(Registry& registry) {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
-      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
   private:
     void toppt(); 
     void vpt(); 
 
     const std::vector<panda::Particle*> *genP{nullptr};
-    const std::vector<panda::Lepton*> *matchLeps{nullptr}; 
+    const std::vector<panda::Lepton*> *looseLeps{nullptr}; 
   };
 }
 
