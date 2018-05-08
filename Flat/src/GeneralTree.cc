@@ -299,6 +299,7 @@ void GeneralTree::Reset() {
   ZBosonM = -99;
   ZBosonLep1CosThetaCS = -99;
   ZBosonLep1CosThetaStar = -99;
+  ZBosonLep1CosThetaStarFJ = -99;
   scaleUp = 1;
   scaleDown = 1;
   pdfUp = 1;
@@ -1657,6 +1658,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("ZBosonM",&ZBosonM,"ZBosonM/F");
     Book("ZBosonLep1CosThetaCS",&ZBosonLep1CosThetaCS,"ZBosonLep1CosThetaCS/F");
     Book("ZBosonLep1CosThetaStar",&ZBosonLep1CosThetaStar,"ZBosonLep1CosThetaStar/F");
+    Book("ZBosonLep1CosThetaStarFJ",&ZBosonLep1CosThetaStarFJ,"ZBosonLep1CosThetaStarFJ/F");
   }
   if (is_fatjet) {
     Book("nFatjet",&nFatjet,"nFatjet/I");

@@ -1,4 +1,5 @@
 #include "../interface/LepPhoMods.h"
+#include "PandaAnalysis/Utilities/interface/Helicity.h"
 
 using namespace pa;
 using namespace std;
@@ -145,7 +146,9 @@ void SimpleLeptonMod::do_execute()
     Lepton *lep1=looseLeps[0], *lep2=looseLeps[1];
     v1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
     v2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-    gt.diLepMass = (v1+v2).M();
+    dilep = new TLorentzVector;
+    (*dilep) = v1+v2;
+    gt.diLepMass = dilep->M();
   } else {
     gt.diLepMass = -1;
   }
@@ -352,18 +355,27 @@ void ComplicatedLeptonMod::do_execute()
       lepPdgId[i] = ele->charge * -11;
     }
   }
-  if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
+  
+  if (gt.nLooseLep>1) {
     TLorentzVector v1,v2;
     Lepton *lep1=looseLeps[0], *lep2=looseLeps[1];
     v1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
     v2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-    gt.diLepMass = (v1+v2).M();
-  } else {
-    gt.diLepMass = -1;
-  }
-
-  // Z boson reconstruction
-
+    dilep = new TLorentzVector;
+    (*dilep) = v1+v2;
+    if (lepPdgId[0]+lepPdgId[1]==0)  // Strict sign/flavor 
+      gt.diLepMass = dilep->M();
+  
+    // Also allow for opposite flavor or same sign selection:
+    gt.ZBosonPt  = dilep->Pt();
+    gt.ZBosonEta = dilep->Eta();
+    gt.ZBosonPhi = dilep->Phi();
+    gt.ZBosonM   = dilep->M();
+    gt.ZBosonLep1CosThetaCS = CosThetaCollinsSoper(v1,v2);
+    // ZBosonLep1CosThetaStar, ZBosonLep1CosThetaStarFJ
+    // are not calculated here, we need the Z(ll)H(bb) system in JetsMods
+    
+  } 
 
 }
 

@@ -563,6 +563,7 @@ class GeneralTree : public genericTree {
   float ZBosonM;
   float ZBosonLep1CosThetaCS;
   float ZBosonLep1CosThetaStar;
+  float ZBosonLep1CosThetaStarFJ;
   float scaleUp;
   float scaleDown;
   float pdfUp;

@@ -47,6 +47,7 @@ namespace pa {
       registry.publishConst("looseLeps", &looseLeps);
       registry.publishConst("tightLeps", &tightLeps);
       registry.publishConst("matchLeps", &matchLeps);
+      registry.publishConst("dilep", dilep);
       registry.publishConst("lepPdgId", &lepPdgId);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
     }
@@ -63,9 +64,9 @@ namespace pa {
     std::vector<panda::Lepton*> looseLeps, tightLeps, matchLeps;
     std::array<int,4> lepPdgId;
     std::vector<JESHandler> *jesShifts{nullptr};
+    TLorentzVector *dilep{nullptr};
     
   };
-
 
   class ComplicatedLeptonMod : public SimpleLeptonMod {
   public: 

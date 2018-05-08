@@ -156,7 +156,9 @@ namespace pa {
       registry.publish("currentJES", &currentJES);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); // needed for ZH spin
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
+      dilep = registry.accessConst<TLorentzVector*>("dilep"); // needed for ZH spin
     }
     void do_execute();  
 
@@ -175,7 +177,9 @@ namespace pa {
     std::vector<JESHandler>* jesShifts{nullptr}; 
 
     const std::vector<panda::Lepton*>* matchLeps{nullptr};
+    const std::vector<panda::Lepton*>* looseLeps{nullptr};
     const std::vector<panda::Photon*>* matchPhos{nullptr};
+    const TLorentzVector *dilep{nullptr};
 
     panda::JetCollection *ak4Jets{nullptr};
 

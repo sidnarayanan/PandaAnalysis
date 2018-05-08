@@ -526,4 +526,10 @@ void FatJetMatchingMod::do_execute()
     }
 
   }
+  if (gt.nFatjet>0 && dilep) {
+    TLorentzVector HP4, ZHP4;
+    HP4.SetPtEtaPhiM(gt.fjPt,gt.fjEta,gt.fjPhi,gt.fjMSD_corr);
+    TLorentzVector ZHP4 = (*dilep) + HP4;
+    gt.ZBosonLep1CosThetaStarFJ = CosThetaStar(*looseLeps->at(0), *looseLeps->at(1), ZHP4);
+  }
 }
