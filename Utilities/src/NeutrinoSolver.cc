@@ -1,22 +1,7 @@
 #include "../interface/NeutrinoSolver.h"
 
-/**
- *\Function EquationSolver:
- *
- *Solves 3rd degree equations
- *
- * \Author A. Orso M. Iorio
- * 
- *
- *\version  $Id: EquationSolver.h,v 1.1 2013/02/27 12:18:42 degrutto Exp $
- *
- *
-*/
 
-
-
-
-TLorentzVector getNu4Momentum(const TLorentzVector& TLepton, const TLorentzVector& TMET){
+TLorentzVector pa::getNu4Momentum(const TLorentzVector& TLepton, const TLorentzVector& TMET){
     TLorentzVector Lepton;
     Lepton.SetPxPyPzE(TLepton.Px(), TLepton.Py(), TLepton.Pz(), TLepton.E());
     TLorentzVector MET;

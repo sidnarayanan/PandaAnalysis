@@ -2,6 +2,8 @@
 
 #include "../interface/CSVHelper.h"
 
+using namespace pa;
+
 CSVHelper::CSVHelper(std::string hf, std::string lf, int nHFptBins_):nHFptBins(nHFptBins_)
 {
     std::string inputFileHF = hf.size() > 0 ? hf : "PandaAnalysis/data/csvweights/csv_rwt_fit_hf_v2_final_2017_3_29test.root"; //cmva_rwt_fit_hf_v0_final_2017_3_29.root

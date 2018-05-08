@@ -31,6 +31,7 @@ void BTagSFMod::do_execute()
 
     float btagUncFactor = 1;
     double eff(1),sf(1),sfUp(1),sfDown(1);
+    exit(1);
     if (flavor==5)
       eff = utils.getCorr(cCSVBL,pt,fabs(eta));
     else if (flavor==4)

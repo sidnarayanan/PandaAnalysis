@@ -50,20 +50,20 @@ void FatJetMod::do_readData(TString dirPath) {
 
 void FatJetMod::setupJES()
 {
-  if (!analysis.rerunJES || (uncReader != nullptr)) 
+  if (!analysis.rerunJES || (scaleUnc != nullptr)) 
     return;
   if (analysis.isData) {
     TString thisEra = utils.eras->getEra(gt.runNumber);
-    for (auto& iter : ak8UncReader) {
+    for (auto& iter : scaleUncs) {
       if (!iter.first.Contains("data"))
         continue;
       if (iter.first.Contains(thisEra)) {
-        uncReader = ak8UncReader[iter.first];
+        scaleUnc = &(scaleUncs[iter.first]);
         return;
       }
     }
   } else {
-    uncReader = ak8UncReader["MC"];
+    scaleUnc = &(scaleUncs["MC"]);
   }
 }
 

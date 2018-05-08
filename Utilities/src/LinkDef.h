@@ -2,6 +2,7 @@
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
 #include "PandaAnalysis/Utilities/interface/PackingHelperStandalone.h"
+#include "PandaAnalysis/Utilities/interface/JetCorrector.h"
 
 #ifdef __CLING__
 #pragma link off all globals;
@@ -9,14 +10,15 @@
 #pragma link off all functions;
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;
-#pragma link C++ namespace pandaecf;
+#pragma link C++ namespace pa;
 
-#pragma link C++ class pandaecf::Calculator;
-#pragma link C++ class pandaecf::Calculator::iterator;
-#pragma link C++ class RocRes;
-#pragma link C++ class RocOne;
-#pragma link C++ class RoccoR;
-#pragma link C++ class CSVHelper;
-#pragma link C++ class PackingHelperStandalone;
+#pragma link C++ class pa::ECFCalculator;
+#pragma link C++ class pa::ECFCalculator::iterator;
+#pragma link C++ class pa::RocRes;
+#pragma link C++ class pa::RocOne;
+#pragma link C++ class pa::RoccoR;
+#pragma link C++ class pa::CSVHelper;
+#pragma link C++ class pa::PackingHelperStandalone;
+#pragma link C++ class pa::JetCorrector;
 
 #endif

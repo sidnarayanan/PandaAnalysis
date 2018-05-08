@@ -10,6 +10,8 @@
 #include "../interface/RoccoR.h"
 #include <assert.h>  
 
+using namespace pa;
+
 const double CrystalBall::pi    = TMath::Pi();
 const double CrystalBall::SPiO2 = sqrt(TMath::Pi()/2.0);
 const double CrystalBall::S2    = sqrt(2.0);

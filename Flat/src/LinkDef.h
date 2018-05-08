@@ -1,7 +1,6 @@
 #include "PandaAnalysis/Flat/interface/AnalyzerUtilities.h"
 #include "PandaAnalysis/Flat/interface/GeneralTree.h"
 #include "PandaAnalysis/Flat/interface/TagTree.h"
-#include "PandaAnalysis/Flat/interface/JetCorrector.h"
 #include "PandaAnalysis/Flat/interface/LimitTreeBuilder.h"
 #include "PandaAnalysis/Flat/interface/PandaAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/TagAnalyzer.h"
@@ -42,7 +41,6 @@
 #pragma link C++ class pa::THCorr;
 #pragma link C++ class pa::TF1Corr;
 #pragma link C++ class pa::btagcand;
-#pragma link C++ class pa::JetCorrector;
 #pragma link C++ class pa::PandaAnalyzer;
 #pragma link C++ class pa::TagAnalyzer;
 #pragma link C++ class pa::GeneralTree;

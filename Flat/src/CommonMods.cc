@@ -13,11 +13,11 @@ void shiftMET(const panda::RecoMet& met, TLorentzVector& v, shiftjes shift)
       pt = met.pt;
       phi = met.phi;
       break;
-    case shiftjes::kJESUp:
+    case shiftjes::kJESTotalUp:
       pt = met.ptCorrUp;
       phi = met.phiCorrUp;
       break;
-    case shiftjes::kJESDown:
+    case shiftjes::kJESTotalDown:
       pt = met.ptCorrDown;
       phi = met.phiCorrDown;
       break;

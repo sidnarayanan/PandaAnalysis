@@ -1,6 +1,8 @@
 #include "../interface/JetCorrector.h"
 #include "TLorentzVector.h"
 
+using namespace pa; 
+
 JetCorrector::JetCorrector() 
 { 
 	era = new EraHandler(2016);

@@ -3,6 +3,7 @@
 <use   name="fastjet"/>
 <use   name="fastjet-contrib"/>
 <use   name="PandaCore/Tools"/>
+<use   name="PandaTree/Objects"/>
 <export>
   <lib   name="1"/>
 </export>
