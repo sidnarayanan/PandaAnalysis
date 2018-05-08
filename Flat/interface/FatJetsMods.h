@@ -89,7 +89,8 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       fjPtr = registry.accessConst<panda::FatJet*>("fj1");
-      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      if (!analysis.isData)
+        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();  
     void do_reset() { genObjects.clear(); }

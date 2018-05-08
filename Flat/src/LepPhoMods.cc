@@ -248,7 +248,7 @@ void ComplicatedLeptonMod::do_execute()
     double ptCorrection=1;
     if (analysis.isData) { // perform the rochester correction on the actual particle
       ptCorrection=rochesterCorrection->kScaleDT((int)mu.charge, pt, eta, mu.phi(), 0, 0);
-    } else if (pt>0) { // perform the rochester correction to the simulated particle
+    } else if (pt > 0) { // perform the rochester correction to the simulated particle
       // attempt gen-matching to a final state muon
       bool muonIsTruthMatched=false; TLorentzVector genP4; GenParticle genParticle;
       for (int iG = 0; iG != (int)genP->size() && !muonIsTruthMatched; ++iG) {

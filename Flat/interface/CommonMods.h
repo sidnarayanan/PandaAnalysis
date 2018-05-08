@@ -49,6 +49,7 @@ namespace pa {
     void do_execute();
 
   private:
+    void checkEle32();
     std::vector<TriggerHandler> triggerHandlers; 
   };
 

@@ -113,7 +113,9 @@ void ConfigMod::set_inputBranches()
       bl.push_back("secondaryVertices");
 
     if (cfg.isData || analysis.mcTriggers) {
-      bl += {"triggers", "triggerObjects"};
+      bl.push_back("triggers");
+      if (analysis.hbb)
+        bl.push_back("triggerObjects");
     }
 
     if (!cfg.isData) {

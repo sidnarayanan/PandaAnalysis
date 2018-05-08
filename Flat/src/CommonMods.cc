@@ -4,7 +4,7 @@ using namespace pa;
 using namespace std;
 using namespace panda;
 
-void shiftMET(const panda::RecoMet& met, TLorentzVector& v, shiftjes shift) 
+void shiftMET(const RecoMet& met, TLorentzVector& v, shiftjes shift) 
 {
   float pt;
   float phi;
@@ -201,34 +201,39 @@ void TriggerMod::do_init(Registry& registry)
   }
 }
 
+void TriggerMod::checkEle32()
+{
+  auto& filter1Objects = event.triggerObjects.filterObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
+  auto& filter2Objects = event.triggerObjects.filterObjects("hltEGL1SingleEGOrFilter");
+  if (filter1Objects.size()==0 && filter2Objects.size()==0) 
+    return; 
+  TLorentzVector filter1ObjectP4 = filter1Objects[0]->p4();
+  TLorentzVector filter2ObjectP4 = filter2Objects[0]->p4();
+  bool matchedToTriggerObject=false;
+  for (auto& ele : event.electrons) {
+    if (!ele.tight && !ele.mvaWP80) 
+      continue;
+    if (filter1ObjectP4.DeltaR(ele.p4())<0.1 && filter2ObjectP4.DeltaR(ele.p4())<0.1) {
+      matchedToTriggerObject = true;
+      break;
+    }
+  }
+  if (matchedToTriggerObject) 
+    gt.trigger |= (1 << kSingleEleTrig);
+}
+
 void TriggerMod::do_execute()
 {
   for (unsigned iT = 0; iT != kNTrig; ++iT) {
-    // Ugly hack for the Ele32 trigger in 2017
-    if (analysis.year==2017 && analysis.hbb && iT==kSingleEleTrig) {    
-      panda::HLTObjectStore::HLTObjectVector filter1Objects, filter2Objects;
-      filter1Objects=event.triggerObjects.filterObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
-      filter2Objects=event.triggerObjects.filterObjects("hltEGL1SingleEGOrFilter");
-      if (filter1Objects.size()==0 && filter2Objects.size()==0) 
-        continue;
-      TLorentzVector filter1ObjectP4, filter2ObjectP4;
-      filter1ObjectP4.SetPtEtaPhiM(filter1Objects[0]->pt(), filter1Objects[0]->eta(), filter1Objects[0]->phi(), filter1Objects[0]->m());
-      filter2ObjectP4.SetPtEtaPhiM(filter2Objects[0]->pt(), filter2Objects[0]->eta(), filter2Objects[0]->phi(), filter2Objects[0]->m());
-      bool matchedToTriggerObject=false;
-      for (auto& ele : event.electrons) {
-        if(!ele.tight && !ele.mvaWP80) continue;
-        if(filter1ObjectP4.DeltaR(ele.p4())<0.1 && filter2ObjectP4.DeltaR(ele.p4())<0.1)
-          matchedToTriggerObject=true;
-      }
-      if (matchedToTriggerObject) 
-        gt.trigger |= (1 << iT);
-      continue;
-    }
-    auto &th = triggerHandlers.at(iT);
-    for (auto iP : th.indices) {
-      if (event.triggerFired(iP)) {
-          gt.trigger |= (1 << iT);
-          break;
+    if (analysis.hbb && analysis.year==2017 && iT==kSingleEleTrig) {
+      checkEle32();
+    } else {
+      auto &th = triggerHandlers.at(iT);
+      for (auto iP : th.indices) {
+        if (event.triggerFired(iP)) {
+            gt.trigger |= (1 << iT);
+            break;
+        }
       }
     }
   }
@@ -317,7 +322,7 @@ void RecoilMod::do_execute()
   TLorentzVector vObj1, vObj2;
   gt.whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
   if (gt.nLooseLep>0) {
-    panda::Lepton *lep1 = looseLeps->at(0);
+    Lepton *lep1 = looseLeps->at(0);
     vObj1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
 
     // one lep => W
@@ -335,7 +340,7 @@ void RecoilMod::do_execute()
 
     if (gt.nLooseLep>1 && (*lepPdgId)[0]+(*lepPdgId)[1]==0) {
       // two OS lep => Z
-      panda::Lepton *lep2 = looseLeps->at(1);
+      Lepton *lep2 = looseLeps->at(1);
       vObj2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
 
       METLOOP {
@@ -356,7 +361,7 @@ void RecoilMod::do_execute()
     }
   }
   if (gt.nLoosePhoton>0) {
-    panda::Photon *pho = (*loosePhos)[0];
+    Photon *pho = (*loosePhos)[0];
     vObj1.SetPtEtaPhiM(pho->pt(),pho->eta(),pho->phi(),0.);
 
     METLOOP {
@@ -390,9 +395,9 @@ void TriggerEffMod::do_execute()
   auto* lep1 = looseLeps->size()>1 ? (*looseLeps)[1] : nullptr;
 
   if (gt.nLooseElectron>0) {
-    panda::Electron *ele1=nullptr, *ele2=nullptr;
-    if (gt.nLooseLep>0) ele1 = dynamic_cast<panda::Electron*>(lep0);
-    if (gt.nLooseLep>1) ele2 = dynamic_cast<panda::Electron*>(lep1);
+    Electron *ele1=nullptr, *ele2=nullptr;
+    if (gt.nLooseLep>0) ele1 = dynamic_cast<Electron*>(lep0);
+    if (gt.nLooseLep>1) ele2 = dynamic_cast<Electron*>(lep1);
     float eff1=0, eff2=0;
     if (ele1!=nullptr && ele1->tight) {
       eff1 = utils.getCorr(cTrigEle, ele1->eta(), ele1->pt());
@@ -402,9 +407,9 @@ void TriggerEffMod::do_execute()
     }
   } // done with ele trig SF
   if (gt.nLooseMuon>0) {
-    panda::Muon *mu1=nullptr, *mu2=nullptr;
-    if (gt.nLooseLep>0) mu1 = dynamic_cast<panda::Muon*>(lep0);
-    if (gt.nLooseLep>1) mu2 = dynamic_cast<panda::Muon*>(lep1);
+    Muon *mu1=nullptr, *mu2=nullptr;
+    if (gt.nLooseLep>0) mu1 = dynamic_cast<Muon*>(lep0);
+    if (gt.nLooseLep>1) mu2 = dynamic_cast<Muon*>(lep1);
     float eff1=0, eff2=0;
     if (mu1!=nullptr && mu1->tight) {
       eff1 = utils.getCorr(

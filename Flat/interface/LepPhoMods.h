@@ -177,7 +177,8 @@ namespace pa {
   protected:
     void do_execute(); 
     void do_init(Registry& registry) {
-      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      if (!analysis.isData) 
+        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
   private:
     const std::vector<panda::Particle*> *genP{nullptr};

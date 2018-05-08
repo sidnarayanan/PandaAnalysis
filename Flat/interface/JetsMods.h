@@ -50,7 +50,8 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");
-      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      if (!analysis.isData)
+        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();
   private:
