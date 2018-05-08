@@ -330,8 +330,8 @@ void PandaAnalyzer::SignalInfo()
 // Responsible: S. Narayanan
 void PandaAnalyzer::QCDUncs()
 {
-      gt->pdfUp = 1 + event.genReweight.pdfDW;
-      gt->pdfDown = 1 - event.genReweight.pdfDW;
+      gt->pdfUp = 1;// + event.genReweight.pdfDW;
+      gt->pdfDown = 1;// - event.genReweight.pdfDW;
       auto &genReweight = event.genReweight;
       for (unsigned iS=0; iS!=6; ++iS) {
         float s = 0;

@@ -346,6 +346,7 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
         tree = fin.FindObjectAny("events")
         weight_table = fin.FindObjectAny('weights')
         hweights = fin.FindObjectAny("hSumW")
+	hnpuweights = fin.FindObjectAny("hNPVTrue")
     except:
         PError(_sname+'.run_PandaAnalyzer','Could not read %s'%input_name)
         return False # file open error => xrootd?
@@ -355,15 +356,17 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
     if not hweights:
         PError(_sname+'.run_PandaAnalyzer','Could not recover hweights in %s'%input_name)
         return False
+    if not hnpuweights:
+        hnpuweights = None
     if not weight_table:
         weight_table = None
 
     output_name = input_to_output(input_name)
     skimmer.SetDataDir(_data_dir)
     if isData:
-        add_json(skimmer, _data_dir+'/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt')
+        add_json(skimmer, _data_dir+'/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt')
 
-    rinit = skimmer.Init(tree,hweights,weight_table)
+    rinit = skimmer.Init(tree,hweights,hnpuweights,weight_table)
     if rinit:
         PError(_sname+'.run_PandaAnalyzer','Failed to initialize %s!'%(input_name))
         return False 

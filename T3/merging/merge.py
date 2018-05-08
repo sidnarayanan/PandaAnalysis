@@ -25,7 +25,7 @@ import ROOT as root
 from PandaCore.Tools.Misc import *
 from PandaCore.Tools.Load import Load
 
-if args.cfg == 'leptonic':
+if 'leptonic' in args.cfg:
     from PandaCore.Tools.process_leptonic import *
     xsecscale = 1000
 else:

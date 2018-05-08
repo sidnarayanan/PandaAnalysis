@@ -18,6 +18,7 @@ void PandaAnalyzer::SetOutputFile(TString fOutName)
   tOut = new TTree("events","events");
 
   fOut->WriteTObject(hDTotalMCWeight);    
+  fOut->WriteTObject(hDNPUWeight);    
 
   gt->monohiggs      = (analysis->monoh || analysis->hbb);
   gt->vbf            = analysis->vbf;
@@ -49,7 +50,7 @@ void PandaAnalyzer::SetOutputFile(TString fOutName)
 }
 
 
-int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
+int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TH1D *hnpuweights, TTree *weightNames)
 {
   if (DEBUG) PDebug("PandaAnalyzer::Init","Starting initialization");
   if (!t || !hweights) {
@@ -114,6 +115,11 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   // read MC weights
   hDTotalMCWeight = dynamic_cast<TH1D*>(hweights->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
+
+  if (hnpuweights) {
+    hDNPUWeight = dynamic_cast<TH1D*>(hnpuweights->Clone("hDNPUWeight"));
+    hDNPUWeight->SetDirectory(0);
+  }
 
   if (weightNames && analysis->processType==kSignal) { // hack?
     if (weightNames->GetEntries()!=377 && weightNames->GetEntries()!=22) {

@@ -110,6 +110,7 @@ void PandaAnalyzer::Terminate()
   delete softDrop;
 
   delete hDTotalMCWeight;
+  if(hDNPUWeight) delete hDNPUWeight;
   
   delete bjetregReader;
   delete rochesterCorrection;
@@ -218,7 +219,14 @@ void PandaAnalyzer::Run()
           "HLT_Ele115_CaloIdVT_GsfTrkIdT",
           "HLT_Ele27_eta2p1_WPTight_Gsf",
           "HLT_Ele32_eta2p1_WPTight_Gsf",
-          "HLT_ECALHT800"
+          "HLT_ECALHT800",
+
+	  "HLT_Ele27_WPTight_Gsf",
+	  "HLT_Ele32_WPTight_Gsf",
+	  "HLT_Ele35_WPTight_Gsf",
+	  "HLT_Ele32_WPTight_Gsf_L1DoubleEG",
+	  "HLT_Photon200"
+	  
       };
     else
       paths = {
@@ -230,7 +238,9 @@ void PandaAnalyzer::Run()
             "HLT_Ele27_eta2p1_WPTight_Gsf",
             "HLT_Ele32_eta2p1_WPTight_Gsf",
             "HLT_Ele35_WPLoose_Gsf",
-            "HLT_ECALHT800"
+            "HLT_ECALHT800",
+	  
+	  "HLT_Ele32_WPTight_Gsf"
       };
     triggerHandlers[kSingleEleTrig].addTriggers(paths);
     
@@ -238,13 +248,22 @@ void PandaAnalyzer::Run()
           "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL",
           "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL",
           "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
-          "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ"
+          "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ",
+	  
+	  "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass3p8",
+	  "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass8"
     };
     triggerHandlers[kDoubleMuTrig].addTriggers(paths);
 
     paths = {
           "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_DoubleEle24_22_eta2p1_WPLoose_Gsf"
+          "HLT_DoubleEle24_22_eta2p1_WPLoose_Gsf",
+	  
+	  "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+	  "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
+	  "HLT_DiEle27_WPTightCaloOnly_L1DoubleEG",
+	  "HLT_DoubleEle33_CaloIdL_MW",
+	  "HLT_DoubleEle25_CaloIdL_MW"
     };
     triggerHandlers[kDoubleEleTrig].addTriggers(paths);
     
@@ -257,6 +276,7 @@ void PandaAnalyzer::Run()
           "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL",
           "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
           "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
+
     };
     triggerHandlers[kEMuTrig].addTriggers(paths);
 
@@ -270,7 +290,9 @@ void PandaAnalyzer::Run()
           "HLT_Photon120_R9Id90_HE10_IsoM",
           "HLT_Photon165_R9Id90_HE10_IsoM",
           "HLT_Photon300_NoHE",
-          "HLT_ECALHT800"
+          "HLT_ECALHT800",
+	  
+	  "HLT_Photon200"
     };
     triggerHandlers[kSinglePhoTrig].addTriggers(paths);
 
@@ -290,24 +312,33 @@ void PandaAnalyzer::Run()
           "HLT_IsoMu22",
           "HLT_IsoTkMu22",
           "HLT_Mu45_eta2p1",
-          "HLT_Mu50"
+          "HLT_Mu50",
+	  
+	  "HLT_IsoMu27",
+	  "HLT_IsoMu30"
       };
     else
       paths = {
             "HLT_IsoMu20",
             "HLT_IsoMu22",
             "HLT_IsoMu24",
+
+	    "HLT_IsoMu27"
       };
     triggerHandlers[kSingleMuTrig].addTriggers(paths);
     
     paths = {
           "HLT_Mu8_TrkIsoVV",
-          "HLT_Mu17_TrkIsoVV"
+          "HLT_Mu17_TrkIsoVV",
+	  
+	  "HLT_Mu19_TrkIsoVVL"
     };
     triggerHandlers[kMuFakeTrig].addTriggers(paths);
 
     paths = {
+          "HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30",
           "HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30",
+          "HLT_Ele15_CaloIdL_TrackIdL_IsoVL_PFJet30",
           "HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30",
           "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30"
     };
@@ -356,7 +387,7 @@ void PandaAnalyzer::Run()
       event.pfMet.print(std::cout, 2);
       std::cout << std::endl;
       PDebug("PandaAnalyzer::Run::Dump","");
-      event.metMuOnlyFix.print(std::cout, 2);
+      //event.metMuOnlyFix.print(std::cout, 2);
       std::cout << std::endl;
     }
     

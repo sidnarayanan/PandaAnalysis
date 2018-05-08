@@ -74,7 +74,7 @@ public :
 
     PandaAnalyzer(int debug_=0);
     ~PandaAnalyzer();
-    int Init(TTree *tree, TH1D *hweights, TTree *weightNames=0);
+    int Init(TTree *tree, TH1D *hweights, TH1D *hnpuweights=0, TTree *weightNames=0);
     void SetOutputFile(TString fOutName);
     void ResetBranches();
     void Run();
@@ -359,6 +359,7 @@ private:
     TFile *fAux=0; // auxillary file
     TTree *tAux=0;
     TH1D *hDTotalMCWeight=0;
+    TH1D *hDNPUWeight=0;
     TTree *tIn=0;    // input tree to read
     unsigned int preselBits=0;
     panda::EventAnalysis event;

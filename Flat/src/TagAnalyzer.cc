@@ -258,7 +258,7 @@ void TagAnalyzer::Run() {
       event.pfMet.print(std::cout, 2);
       std::cout << std::endl;
       PDebug("TagAnalyzer::Run::Dump","");
-      event.metMuOnlyFix.print(std::cout, 2);
+      //event.metMuOnlyFix.print(std::cout, 2);
       std::cout << std::endl;
     }
 

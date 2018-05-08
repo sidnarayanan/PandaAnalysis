@@ -36,7 +36,7 @@ skimmer.firstEvent=0
 skimmer.lastEvent=1000
 skimmer.isData=False
 if skimmer.isData:
-    with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
+    with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt') as jsonFile:
         payload = json.load(jsonFile)
         for run,lumis in payload.iteritems():
             for l in lumis:
@@ -45,12 +45,15 @@ fin = root.TFile.Open(torun)
 
 tree = fin.FindObjectAny("events")
 hweights = fin.FindObjectAny("hSumW")
+hnpuweights = fin.FindObjectAny("hNPVTrue")
 weights = fin.FindObjectAny('weights')
+if not hnpuweights:
+    hnpuweights = None
 if not weights:
     weights = None
 
 skimmer.SetDataDir(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/')
-skimmer.Init(tree,hweights,weights)
+skimmer.Init(tree,hweights,hnpuweights,weights)
 skimmer.SetOutputFile(output)
 
 skimmer.Run()
