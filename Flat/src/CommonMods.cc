@@ -205,11 +205,11 @@ void TriggerMod::checkEle32()
 {
   auto& filter1Objects = event.triggerObjects.filterObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
   auto& filter2Objects = event.triggerObjects.filterObjects("hltEGL1SingleEGOrFilter");
-  if (filter1Objects.size()==0 && filter2Objects.size()==0) 
+  if (filter1Objects.size()==0 || filter2Objects.size()==0) 
     return; 
   TLorentzVector filter1ObjectP4 = filter1Objects[0]->p4();
   TLorentzVector filter2ObjectP4 = filter2Objects[0]->p4();
-  bool matchedToTriggerObject=false;
+  bool matchedToTriggerObject = false;
   for (auto& ele : event.electrons) {
     if (!ele.tight && !ele.mvaWP80) 
       continue;

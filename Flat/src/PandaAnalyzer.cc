@@ -31,6 +31,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
     ADDRECO(DeepGenMod<UnpackedGenParticle>)
   else
     ADDRECO(DeepGenMod<GenParticle>)
+  ADDRECO(TriggerMod)
   ADDRECO(SimpleLeptonMod)
   ADDRECO(ComplicatedLeptonMod)
   ADDRECO(SimplePhotonMod)
