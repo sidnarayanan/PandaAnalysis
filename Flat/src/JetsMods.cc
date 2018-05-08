@@ -108,7 +108,7 @@ void JetMod::varyJES()
     auto& jets = (*jesShifts)[shift];
     jets.reserve(ak4Jets->size());
     for (auto &j : *ak4Jets) {
-      jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb));
+      jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb && !analysis.isData));
     }
     jets.sort();
   }
