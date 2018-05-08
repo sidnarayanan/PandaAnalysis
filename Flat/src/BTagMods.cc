@@ -81,8 +81,14 @@ void BTagWeightMod::do_execute()
       float reshapeFactor = utils.btag->reshaper->eval_auto_bounds(
             GeneralTree::csvShiftName(shift).Data(),
             flav, jet.eta(), jw->pt, discr
-          );
-      if (reshapeFactor > 0.001) gt.sf_csvWeights[shift] *= reshapeFactor;
+            );
+      if (reshapeFactor > 0.001)
+        gt.sf_csvWeights[shift] *= reshapeFactor;
+      else
+        gt.sf_csvWeights[shift] *= utils.btag->reshaper->eval_auto_bounds(
+            GeneralTree::csvShiftName(GeneralTree::csvCent).Data(),
+            flav, jet.eta(), jw->pt, discr
+            );
     }
   }
 }

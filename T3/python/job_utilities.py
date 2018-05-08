@@ -337,7 +337,7 @@ def classify_sample(full_path, isData):
 # read a CERT json and add it to the skimmer
 _jsons = {
         2016 : '/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt',
-        2017 : '/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt',
+        2017 : '/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt',
         }
 def add_json(skimmer):
     json_path = _jsons.get(YEAR, None)
