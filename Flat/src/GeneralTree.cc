@@ -189,6 +189,8 @@ void GeneralTree::Reset() {
   sumET = -99;
   trkmet = -99;
   trkmetphi = -99;
+  trkmetDZ = -99;
+  trkmetDZphi = -99;
   pfmetsig = -99;
   puppimetsig = -99;
   whichRecoil = 0;
@@ -563,6 +565,8 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("sumET",&sumET,"sumET/F");
   Book("trkmet",&trkmet,"trkmet/F");
   Book("trkmetphi",&trkmetphi,"trkmetphi/F");
+  Book("trkmetDZ",&trkmetDZ,"trkmetDZ/F");
+  Book("trkmetDZphi",&trkmetDZphi,"trkmetDZphi/F");
   Book("whichRecoil",&whichRecoil,"whichRecoil/I");
   Book("puppiUWmag",&(puppiUWmag[0]),"puppiUWmag/F");
   Book("puppiUWmag_JESTotalUp",&(puppiUWmag[1]),"puppiUWmag_JESTotalUp/F");

@@ -309,6 +309,8 @@ class GeneralTree : public genericTree {
   float sumET;
   float trkmet;
   float trkmetphi;
+  float trkmetDZ;
+  float trkmetDZphi;
   float pfmetsig;
   float puppimetsig;
   int whichRecoil;

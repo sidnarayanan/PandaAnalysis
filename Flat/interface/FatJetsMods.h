@@ -11,7 +11,7 @@ namespace pa {
                        Config& cfg_,                 
                        Utils& utils_,                
                        GeneralTree& gt_) :                 
-      AnalysisMod("fatjet recluster", event_, cfg_, utils_, gt_) { 
+      AnalysisMod("fjrecluster", event_, cfg_, utils_, gt_) { 
         if (!on())
           return;
         jetDef = new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm : 
@@ -81,7 +81,7 @@ namespace pa {
                       Config& cfg_,                 
                       Utils& utils_,                
                       GeneralTree& gt_) :                 
-      AnalysisMod("fatjet matching", event_, cfg_, utils_, gt_) { }
+      AnalysisMod("fjmatching", event_, cfg_, utils_, gt_) { }
     virtual ~FatJetMatchingMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet && !analysis.isData; }

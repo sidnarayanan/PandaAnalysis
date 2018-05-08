@@ -40,6 +40,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDRECO(JetMod)
   ADDRECO(TauMod)
 
+  ADDGEN(HbbMiscMod)
   ADDGEN(InclusiveLeptonMod)
   ADDGEN(SoftActivityMod)
   ADDGEN(FatJetMatchingMod)

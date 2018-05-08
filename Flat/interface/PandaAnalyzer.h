@@ -15,6 +15,7 @@
 #include "JetsMods.h"
 #include "LepPhoMods.h"
 #include "TheoryMods.h"
+#include "HbbMods.h"
 
 
 namespace pa { 
