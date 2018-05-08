@@ -53,6 +53,28 @@ TString jesName(shiftjes e) {
     default : return "N";
   }
 }
+std::string officialCsvShiftName(GeneralTree::csvShift shift) {
+  if      (shift == GeneralTree::csvCent        ) return "central"      ;
+  else if (shift == GeneralTree::csvJESup       ) return "up_jes"       ;
+  else if (shift == GeneralTree::csvJESdown     ) return "down_jes"     ;
+  else if (shift == GeneralTree::csvLFup        ) return "up_lf"        ;
+  else if (shift == GeneralTree::csvLFdown      ) return "down_lf"      ;
+  else if (shift == GeneralTree::csvHFup        ) return "up_hf"        ;
+  else if (shift == GeneralTree::csvHFdown      ) return "down_hf"      ;
+  else if (shift == GeneralTree::csvHFStats1up  ) return "up_hfstats1"  ;
+  else if (shift == GeneralTree::csvHFStats1down) return "down_hfstats1";
+  else if (shift == GeneralTree::csvHFStats2up  ) return "up_hfstats2"  ;
+  else if (shift == GeneralTree::csvHFStats2down) return "down_hfstats2";
+  else if (shift == GeneralTree::csvLFStats1up  ) return "up_lfstats1"  ;
+  else if (shift == GeneralTree::csvLFStats1down) return "down_lfstats1";
+  else if (shift == GeneralTree::csvLFStats2up  ) return "up_lfstats2"  ;
+  else if (shift == GeneralTree::csvLFStats2down) return "down_lfstats2";
+  else if (shift == GeneralTree::csvCErr1up     ) return "up_cferr1"    ;
+  else if (shift == GeneralTree::csvCErr1down   ) return "down_cferr1"  ;
+  else if (shift == GeneralTree::csvCErr2up     ) return "up_cferr2"    ;
+  else if (shift == GeneralTree::csvCErr2down   ) return "down_cferr2"  ;
+  else return "central";
+}
 GeneralTree::GeneralTree() {
 // STARTCUSTOM CONSTRUCTOR
     for (auto ibeta : ibetas) {

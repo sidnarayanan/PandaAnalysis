@@ -493,7 +493,6 @@ void HFCountingMod::do_execute()
   // Simple B and C counting stored in nB, nHF
   for (auto* genptr : *genP) {
     auto& gen = pToGRef(genptr);
-    float pt = gen.pt();
     int pdgid = gen.pdgid;
     if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
       continue;

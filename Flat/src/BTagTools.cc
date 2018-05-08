@@ -38,10 +38,10 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
       for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
         GeneralTree::csvShift shift = gt.csvShifts[iShift];
         if (shift==GeneralTree::csvCent) continue;
-        systNames.push_back(officialShiftNames[shift]);
+        systNames.push_back(officialCsvShiftName(shift));
       }    
       reshaper = new BTagCalibrationReader(BTagEntry::OP_RESHAPING,
-        officialShiftNames[GeneralTree::csvCent], systNames);
+        officialCsvShiftName(GeneralTree::csvCent), systNames);
 
       if (analysis.year==2016) {
         if (analysis.useCMVA) 

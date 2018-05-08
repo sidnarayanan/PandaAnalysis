@@ -572,4 +572,5 @@ class GeneralTree : public genericTree {
   float lheHT;
   int isGS;
 };
+std::string officialCsvShiftName(GeneralTree::csvShift shift);
 #endif

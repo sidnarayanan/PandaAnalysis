@@ -57,7 +57,7 @@ namespace pa {
     void do_init(Registry& registry) {
       registry.publishConst("fj1", &fj1);
       registry.publishConst("fatjets", &fatjets);
-      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); // needed for ZH spin
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
       dilep = registry.accessConst<TLorentzVector>("dilep"); // needed for ZH spin

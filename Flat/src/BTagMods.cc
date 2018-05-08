@@ -102,7 +102,7 @@ void BTagWeightMod::do_execute()
       else              flav=BTagEntry::FLAV_UDSG;
 
       gt.sf_csvWeights[shift] *= utils.btag->reshaper->eval_auto_bounds(
-        utils.btag->officialShiftNames[shift],
+        officialCsvShiftName(shift),
         flav, jetEtas[iJ], jetPts[iJ], jetDiscrs[iJ]);
     }
   }
