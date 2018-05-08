@@ -33,23 +33,34 @@ void TriggerMod::do_init(Registry& registry)
 {
   vector<TString> paths; 
   if (analysis.isData || analysis.mcTriggers) {
-    paths = {
-          "HLT_PFMET170_NoiseCleaned",
-          "HLT_PFMET170_HBHECleaned",
-          "HLT_PFMET170_JetIdCleaned",
-          "HLT_PFMET170_NotCleaned",
-          "HLT_PFMET170_HBHE_BeamHaloCleaned",
-          "HLT_PFMETNoMu120_NoiseCleaned_PFMHTNoMu120_IDTight",
-          "HLT_PFMETNoMu110_NoiseCleaned_PFMHTNoMu110_IDTight",
-          "HLT_PFMETNoMu90_NoiseCleaned_PFMHTNoMu90_IDTight",
-          "HLT_PFMETNoMu90_PFMHTNoMu90_IDTight",
-          "HLT_PFMETNoMu100_PFMHTNoMu100_IDTight",
-          "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight",
-          "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"
-    };
+    // MET
+    if (analysis.year == 2016) {
+      paths = {
+            "HLT_PFMET170_NoiseCleaned",
+            "HLT_PFMET170_HBHECleaned",
+            "HLT_PFMET170_JetIdCleaned",
+            "HLT_PFMET170_NotCleaned",
+            "HLT_PFMET170_HBHE_BeamHaloCleaned",
+            "HLT_PFMETNoMu120_NoiseCleaned_PFMHTNoMu120_IDTight",
+            "HLT_PFMETNoMu110_NoiseCleaned_PFMHTNoMu110_IDTight",
+            "HLT_PFMETNoMu90_NoiseCleaned_PFMHTNoMu90_IDTight",
+            "HLT_PFMETNoMu90_PFMHTNoMu90_IDTight",
+            "HLT_PFMETNoMu100_PFMHTNoMu100_IDTight",
+            "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight",
+            "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"
+      };
+    } else if (analysis.year == 2017) { 
+        paths = {
+          "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60",
+          "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight",
+          "HLT_PFMETNoMu130_PFMHTNoMu130_IDTight",
+          "HLT_PFMETNoMu140_PFMHTNoMu140_IDTight",
+        };
+    }
     triggerHandlers[kMETTrig].addTriggers(paths);
 
-    if (analysis.complicatedLeptons)
+    // SingleEle    
+    if (analysis.complicatedLeptons) {
       paths = {
           "HLT_Ele25_eta2p1_WPTight_Gsf",
           "HLT_Ele27_eta2p1_WPLoose_Gsf",
@@ -64,46 +75,30 @@ void TriggerMod::do_init(Registry& registry)
           "HLT_Ele32_eta2p1_WPTight_Gsf",
           "HLT_ECALHT800"
       };
-    else
-      paths = {
-            "HLT_Ele27_WP85_Gsf",
-            "HLT_Ele27_WPLoose_Gsf",
-            "HLT_Ele105_CaloIdVT_GsfTrkIdT",
-            "HLT_Ele27_WPTight_Gsf",
-            "HLT_Ele30_WPTight_Gsf",
-            "HLT_Ele27_eta2p1_WPTight_Gsf",
-            "HLT_Ele32_eta2p1_WPTight_Gsf",
-            "HLT_Ele35_WPLoose_Gsf",
-            "HLT_ECALHT800"
-      };
+    } else {
+      if (analysis.year == 2016) {
+        paths = {
+              "HLT_Ele27_WP85_Gsf",
+              "HLT_Ele27_WPLoose_Gsf",
+              "HLT_Ele105_CaloIdVT_GsfTrkIdT",
+              "HLT_Ele27_WPTight_Gsf",
+              "HLT_Ele30_WPTight_Gsf",
+              "HLT_Ele27_eta2p1_WPTight_Gsf",
+              "HLT_Ele32_eta2p1_WPTight_Gsf",
+              "HLT_Ele35_WPLoose_Gsf",
+              "HLT_ECALHT800"
+        };
+      } else if (analysis.year == 2017) {
+        paths = {
+          "HLT_Ele35_WPTight_Gsf",
+          "HLT_Ele38_WPTight_Gsf",
+          "HLT_Ele40_WPTight_Gsf"
+        };
+      }
+    }
     triggerHandlers[kSingleEleTrig].addTriggers(paths);
     
-    paths = {
-          "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL",
-          "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL",
-          "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
-          "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ"
-    };
-    triggerHandlers[kDoubleMuTrig].addTriggers(paths);
-
-    paths = {
-          "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_DoubleEle24_22_eta2p1_WPLoose_Gsf"
-    };
-    triggerHandlers[kDoubleEleTrig].addTriggers(paths);
-    
-    paths = {
-          "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL",
-          "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
-          "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL",
-          "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
-    };
-    triggerHandlers[kEMuTrig].addTriggers(paths);
-
+    // single pho
     paths = {
           "HLT_Photon175",
           "HLT_Photon165_HE10",
@@ -118,6 +113,62 @@ void TriggerMod::do_init(Registry& registry)
     };
     triggerHandlers[kSinglePhoTrig].addTriggers(paths);
 
+    // Single muon
+    if (analysis.complicatedLeptons) {
+      paths = {
+          "HLT_IsoMu24",
+          "HLT_IsoTkMu24",
+          "HLT_IsoMu22",
+          "HLT_IsoTkMu22",
+          "HLT_Mu45_eta2p1",
+          "HLT_Mu50"
+      };
+    } else {
+      if (analysis.year == 2016) { 
+        paths = {
+              "HLT_IsoMu20",
+              "HLT_IsoMu22",
+              "HLT_IsoMu24",
+        };
+      } else if (analysis.year == 2017) { 
+        paths = {
+              "HLT_IsoMu24",
+              "HLT_IsoMu27"
+        };
+      }
+    }
+    triggerHandlers[kSingleMuTrig].addTriggers(paths);
+
+    // double muon
+    paths = {
+          "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL",
+          "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL",
+          "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
+          "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ"
+    };
+    triggerHandlers[kDoubleMuTrig].addTriggers(paths);
+
+    // double ele
+    paths = {
+          "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+          "HLT_DoubleEle24_22_eta2p1_WPLoose_Gsf"
+    };
+    triggerHandlers[kDoubleEleTrig].addTriggers(paths);
+    
+    // emu
+    paths = {
+          "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+          "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL",
+          "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+          "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+          "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ",
+          "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL",
+          "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+          "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
+    };
+    triggerHandlers[kEMuTrig].addTriggers(paths);
+
+    // JetHT
     paths = {
           "HLT_PFHT650",
           "HLT_PFHT900",
@@ -127,23 +178,6 @@ void TriggerMod::do_init(Registry& registry)
     };
     triggerHandlers[kJetHTTrig].addTriggers(paths);
 
-    if (analysis.complicatedLeptons)
-      paths = {
-          "HLT_IsoMu24",
-          "HLT_IsoTkMu24",
-          "HLT_IsoMu22",
-          "HLT_IsoTkMu22",
-          "HLT_Mu45_eta2p1",
-          "HLT_Mu50"
-      };
-    else
-      paths = {
-            "HLT_IsoMu20",
-            "HLT_IsoMu22",
-            "HLT_IsoMu24",
-      };
-    triggerHandlers[kSingleMuTrig].addTriggers(paths);
-    
     paths = {
           "HLT_Mu8_TrkIsoVV",
           "HLT_Mu17_TrkIsoVV"
