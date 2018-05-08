@@ -606,13 +606,13 @@ void HbbSystemMod::do_execute()
     gt.topWBosonPhi = WP4.Phi();
   }
   if (dilep && gt.hbbm > 0) {
-    TLorentzVector HP4, ZHP4;
+    TLorentzVector HP4;
     if (analysis.bjetRegression)
       HP4.SetPtEtaPhiM(gt.hbbpt_reg[0], gt.hbbeta[0], gt.hbbphi[0], gt.hbbm_reg[0]);
     else
       HP4.SetPtEtaPhiM(gt.hbbpt[0], gt.hbbeta[0], gt.hbbphi[0], gt.hbbm[0]);
     TLorentzVector ZHP4 = (*dilep) + HP4;
-    gt.ZBosonLep1CosThetaStar = CosThetaStar(*looseLeps->at(0), *looseLeps->at(1), ZHP4);
+    gt.ZBosonLep1CosThetaStar = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
   }
 }
 

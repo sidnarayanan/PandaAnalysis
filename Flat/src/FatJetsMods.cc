@@ -1,4 +1,5 @@
 #include "../interface/FatJetsMods.h"
+#include "PandaAnalysis/Utilities/interface/Helicity.h"
 
 using namespace pa;
 using namespace std;
@@ -167,6 +168,13 @@ void FatJetMod::do_execute()
       gt.fjGenNumB = fj.matchedGenJet.get()->numB;
     else 
       gt.fjGenNumB = 0;
+  }
+
+  if (gt.nFatjet>0 && dilep) {
+    TLorentzVector HP4;
+    HP4.SetPtEtaPhiM(gt.fjPt,gt.fjEta,gt.fjPhi,gt.fjMSD_corr);
+    TLorentzVector ZHP4 = (*dilep) + HP4;
+    gt.ZBosonLep1CosThetaStarFJ = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
   }
 
   recluster->execute();
@@ -525,11 +533,5 @@ void FatJetMatchingMod::do_execute()
       utils.btag->evalSF(sj_btagcands,sj_sf_mDown,GeneralTree::bMDown,GeneralTree::bSubJet,true);
     }
 
-  }
-  if (gt.nFatjet>0 && dilep) {
-    TLorentzVector HP4, ZHP4;
-    HP4.SetPtEtaPhiM(gt.fjPt,gt.fjEta,gt.fjPhi,gt.fjMSD_corr);
-    TLorentzVector ZHP4 = (*dilep) + HP4;
-    gt.ZBosonLep1CosThetaStarFJ = CosThetaStar(*looseLeps->at(0), *looseLeps->at(1), ZHP4);
   }
 }

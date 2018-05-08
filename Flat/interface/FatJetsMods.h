@@ -60,7 +60,7 @@ namespace pa {
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); // needed for ZH spin
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
-      dilep = registry.accessConst<TLorentzVector*>("dilep"); // needed for ZH spin
+      dilep = registry.accessConst<TLorentzVector>("dilep"); // needed for ZH spin
     }
     void do_execute();  
     float getMSDCorr(float,float);

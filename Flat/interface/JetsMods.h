@@ -23,14 +23,16 @@ namespace pa {
     void do_readData(TString dirPath);
     void do_init(Registry& registry) {
       currentJES = registry.access<JESHandler*>("currentJES");
-      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); // needed for W reco and ZH spin
       registry.publishConst("btagsortedjets", &btagsorted);
+      dilep = registry.accessConst<TLorentzVector>("dilep"); // needed for ZH spin
     }
     void do_execute();
   private:
     JESHandler **currentJES{nullptr};
     std::vector<const JetWrapper*> btagsorted;
     const std::vector<panda::Lepton*>* looseLeps{nullptr};
+    const TLorentzVector *dilep{nullptr};
 
     TMVA::Reader *bjetregReader{nullptr}; 
     float *bjetreg_vars{nullptr};
@@ -156,9 +158,7 @@ namespace pa {
       registry.publish("currentJES", &currentJES);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
-      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); // needed for ZH spin
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
-      dilep = registry.accessConst<TLorentzVector*>("dilep"); // needed for ZH spin
     }
     void do_execute();  
 
@@ -177,9 +177,7 @@ namespace pa {
     std::vector<JESHandler>* jesShifts{nullptr}; 
 
     const std::vector<panda::Lepton*>* matchLeps{nullptr};
-    const std::vector<panda::Lepton*>* looseLeps{nullptr};
     const std::vector<panda::Photon*>* matchPhos{nullptr};
-    const TLorentzVector *dilep{nullptr};
 
     panda::JetCollection *ak4Jets{nullptr};
 
