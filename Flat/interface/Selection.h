@@ -73,13 +73,13 @@ namespace pa {
   class FatjetSel: public LambdaSel {
   public:
     FatjetSel():
-      LambdaSel(Selection::sReco, "Fatjet", __ACCPFUNC(gt->fjPt > 250)) { }
+      LambdaSel(Selection::sReco, "Fatjet", __ACCPFUNC(gt->fjPt[0] > 250)) { }
   };
 
   class Fatjet450Sel: public LambdaSel {
   public:
     Fatjet450Sel():
-      LambdaSel(Selection::sReco, "Fatjet450", __ACCPFUNC(gt->fjPt > 450)) { }
+      LambdaSel(Selection::sReco, "Fatjet450", __ACCPFUNC(gt->fjPt[0] > 450)) { }
   };
 
   class GenFatJetSel: public LambdaSel {

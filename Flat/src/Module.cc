@@ -64,7 +64,11 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   if (analysis.hbb || analysis.monoh)
     cfg.NJETSAVED = NJET;
 
-  cfg.maxshiftJES = analysis.varyJES ? jes2i(shiftjes::N) : 1; 
+  cfg.maxshiftJES = analysis.varyJES ? 
+                      (analysis.hbb ? 
+                        jes2i(shiftjes::N) : 
+                        jes2i(shiftjes::kJESTotalDown) + 1) :
+                      1; 
 
   cfg.ibetas = gt.get_ibetas();
   cfg.Ns = gt.get_Ns();

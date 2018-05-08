@@ -54,7 +54,7 @@ bool RecoilSel::do_accept() const
 bool MonotopSel::do_accept() const
 {
   bool base = RecoilSel::do_accept();
-  return (base && gt->nFatjet>0 && gt->fjPt>200);
+  return (base && gt->nFatjet>0 && gt->fjPt[0]>200);
 }
 
 
@@ -64,7 +64,7 @@ bool MonohiggsSel::do_accept() const
 
   return (base && 
           (gt->hbbpt[0] < 150 ||
-           (gt->nFatjet>=1 && gt->fjPt>200)));
+           (gt->nFatjet>=1 && gt->fjPt[0]>200)));
 }
 
 

@@ -221,16 +221,12 @@ void GeneralTree::Reset() {
   fjTau21 = -99;
   fjTau32SD = -99;
   fjTau21SD = -99;
-  fjMSD = -99;
   fjRho = -99;
   fjRawRho = -99;
   fjRho2 = -99;
   fjRawRho2 = -99;
-  fjMSD_corr = -99;
-  fjPt = -99;
   fjPhi = -99;
   fjEta = -99;
-  fjM = -99;
   fjMaxCSV = -99;
   fjSubMaxCSV = -99;
   fjMinCSV = -99;
@@ -331,43 +327,6 @@ void GeneralTree::Reset() {
   pdfDown = 1;
   lheHT = -99;
   isGS = 0;
-  for (int iA=0; iA!=20; ++iA) {
-    jotEta[iA] = -99;
-    jotPhi[iA] = -99;
-    jotCSV[iA] = -99;
-    jotVBFID[iA] = 0;
-    jotM[iA] = -99;
-    jotCMVA[iA] = -99;
-    jotIso[iA] = 0;
-    jotQGL[iA] = -99;
-    jotLep1Pt[iA] = -99;
-    jotLep1PtRel[iA] = -99;
-    jotLep1DeltaR[iA] = -99;
-    jotTrk1Pt[iA] = -99;
-    jotVtxPt[iA] = -99;
-    jotVtxMass[iA] = -99;
-    jotVtx3DVal[iA] = -99;
-    jotVtx3DErr[iA] = -99;
-    jotVtxNtrk[iA] = 0;
-    jotEMF[iA] = -99;
-    jotHF[iA] = -99;
-    jotNLep[iA] = 0;
-    jotGenPt[iA] = -99;
-    jotFlav[iA] = 0;
-  }
-  for (int iA=0; iA!=6; ++iA) {
-    scale[iA] = 1;
-  }
-  for (int iA=0; iA!=2; ++iA) {
-    jetPt[iA] = -99;
-    jetEta[iA] = -99;
-    jetPhi[iA] = -99;
-    jetGenPt[iA] = -99;
-    jetCSV[iA] = -99;
-    jetFlav[iA] = 0;
-    jetIsTight[iA] = 0;
-    jetIsIso[iA] = 0;
-  }
   for (int iA=0; iA!=4; ++iA) {
     electronPt[iA] = -99;
     electronEta[iA] = -99;
@@ -401,6 +360,43 @@ void GeneralTree::Reset() {
     muonIsSoftMuon[iA] = 0;
     muonCombIso[iA] = -99;
   }
+  for (int iA=0; iA!=6; ++iA) {
+    scale[iA] = 1;
+  }
+  for (int iA=0; iA!=2; ++iA) {
+    jetPt[iA] = -99;
+    jetEta[iA] = -99;
+    jetPhi[iA] = -99;
+    jetGenPt[iA] = -99;
+    jetCSV[iA] = -99;
+    jetFlav[iA] = 0;
+    jetIsTight[iA] = 0;
+    jetIsIso[iA] = 0;
+  }
+  for (int iA=0; iA!=20; ++iA) {
+    jotEta[iA] = -99;
+    jotPhi[iA] = -99;
+    jotCSV[iA] = -99;
+    jotVBFID[iA] = 0;
+    jotM[iA] = -99;
+    jotCMVA[iA] = -99;
+    jotIso[iA] = 0;
+    jotQGL[iA] = -99;
+    jotLep1Pt[iA] = -99;
+    jotLep1PtRel[iA] = -99;
+    jotLep1DeltaR[iA] = -99;
+    jotTrk1Pt[iA] = -99;
+    jotVtxPt[iA] = -99;
+    jotVtxMass[iA] = -99;
+    jotVtx3DVal[iA] = -99;
+    jotVtx3DErr[iA] = -99;
+    jotVtxNtrk[iA] = 0;
+    jotEMF[iA] = -99;
+    jotHF[iA] = -99;
+    jotNLep[iA] = 0;
+    jotGenPt[iA] = -99;
+    jotFlav[iA] = 0;
+  }
   for (int iA=0; iA!=2; ++iA) {
     fjsjPt[iA] = -99;
     fjsjEta[iA] = -99;
@@ -416,6 +412,10 @@ void GeneralTree::Reset() {
     jetNBtags[iS] = 0;
     jetNMBtags[iS] = 0;
     isojetNBtags[iS] = 0;
+    fjMSD[iS] = -99;
+    fjMSD_corr[iS] = -99;
+    fjPt[iS] = -99;
+    fjM[iS] = -99;
     hbbpt[iS] = -99;
     hbbeta[iS] = -99;
     hbbphi[iS] = -99;
@@ -469,14 +469,14 @@ void GeneralTree::Reset() {
     topWBosonCosThetaCS[iS] = -99;
   }
   for (int iS=0; iS!=43; ++iS) {
-    for (int iA=0; iA!=2; ++iA) {
-      jotBReg[iS][iA] = -99;
-      hbbjtidx[iS][iA] = 0;
+    for (int iA=0; iA!=20; ++iA) {
+      jotPt[iS][iA] = -99;
     }
   }
   for (int iS=0; iS!=43; ++iS) {
-    for (int iA=0; iA!=20; ++iA) {
-      jotPt[iS][iA] = -99;
+    for (int iA=0; iA!=2; ++iA) {
+      jotBReg[iS][iA] = -99;
+      hbbjtidx[iS][iA] = 0;
     }
   }
 }
@@ -1087,6 +1087,229 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("looseGenLep3PdgId",&looseGenLep3PdgId,"looseGenLep3PdgId/I");
     Book("looseGenLep4PdgId",&looseGenLep4PdgId,"looseGenLep4PdgId/I");
   }
+  if (is_monotop||is_vbf) {
+    Book("jetPt",jetPt,"jetPt["+TString("2")+"]/F");
+    Book("jetEta",jetEta,"jetEta["+TString("2")+"]/F");
+    Book("jetPhi",jetPhi,"jetPhi["+TString("2")+"]/F");
+    Book("jetGenPt",jetGenPt,"jetGenPt["+TString("2")+"]/F");
+    Book("jetCSV",jetCSV,"jetCSV["+TString("2")+"]/F");
+    Book("jetFlav",jetFlav,"jetFlav["+TString("2")+"]/I");
+    Book("jetIsTight",jetIsTight,"jetIsTight["+TString("2")+"]/I");
+    Book("jetIsIso",jetIsIso,"jetIsIso["+TString("2")+"]/I");
+  }
+  if (is_fatjet) {
+    Book("nFatjet",&nFatjet,"nFatjet/I");
+    Book("fjTau32",&fjTau32,"fjTau32/F");
+    Book("fjTau21",&fjTau21,"fjTau21/F");
+    Book("fjTau32SD",&fjTau32SD,"fjTau32SD/F");
+    Book("fjTau21SD",&fjTau21SD,"fjTau21SD/F");
+    Book("fjMSD",&(fjMSD[0]),"fjMSD/F");
+    Book("fjMSD_JESTotalUp",&(fjMSD[1]),"fjMSD_JESTotalUp/F");
+    Book("fjMSD_JESTotalDown",&(fjMSD[2]),"fjMSD_JESTotalDown/F");
+    Book("fjMSD_JESAbsoluteMPFBiasUp",&(fjMSD[3]),"fjMSD_JESAbsoluteMPFBiasUp/F");
+    Book("fjMSD_JESAbsoluteMPFBiasDown",&(fjMSD[4]),"fjMSD_JESAbsoluteMPFBiasDown/F");
+    Book("fjMSD_JESAbsoluteScaleUp",&(fjMSD[5]),"fjMSD_JESAbsoluteScaleUp/F");
+    Book("fjMSD_JESAbsoluteScaleDown",&(fjMSD[6]),"fjMSD_JESAbsoluteScaleDown/F");
+    Book("fjMSD_JESAbsoluteStatUp",&(fjMSD[7]),"fjMSD_JESAbsoluteStatUp/F");
+    Book("fjMSD_JESAbsoluteStatDown",&(fjMSD[8]),"fjMSD_JESAbsoluteStatDown/F");
+    Book("fjMSD_JESFlavorQCDUp",&(fjMSD[9]),"fjMSD_JESFlavorQCDUp/F");
+    Book("fjMSD_JESFlavorQCDDown",&(fjMSD[10]),"fjMSD_JESFlavorQCDDown/F");
+    Book("fjMSD_JESFragmentationUp",&(fjMSD[11]),"fjMSD_JESFragmentationUp/F");
+    Book("fjMSD_JESFragmentationDown",&(fjMSD[12]),"fjMSD_JESFragmentationDown/F");
+    Book("fjMSD_JESPileUpDataMCUp",&(fjMSD[13]),"fjMSD_JESPileUpDataMCUp/F");
+    Book("fjMSD_JESPileUpDataMCDown",&(fjMSD[14]),"fjMSD_JESPileUpDataMCDown/F");
+    Book("fjMSD_JESPileUpPtBBUp",&(fjMSD[15]),"fjMSD_JESPileUpPtBBUp/F");
+    Book("fjMSD_JESPileUpPtBBDown",&(fjMSD[16]),"fjMSD_JESPileUpPtBBDown/F");
+    Book("fjMSD_JESPileUpPtEC1Up",&(fjMSD[17]),"fjMSD_JESPileUpPtEC1Up/F");
+    Book("fjMSD_JESPileUpPtEC1Down",&(fjMSD[18]),"fjMSD_JESPileUpPtEC1Down/F");
+    Book("fjMSD_JESPileUpPtEC2Up",&(fjMSD[19]),"fjMSD_JESPileUpPtEC2Up/F");
+    Book("fjMSD_JESPileUpPtEC2Down",&(fjMSD[20]),"fjMSD_JESPileUpPtEC2Down/F");
+    Book("fjMSD_JESPileUpPtRefUp",&(fjMSD[21]),"fjMSD_JESPileUpPtRefUp/F");
+    Book("fjMSD_JESPileUpPtRefDown",&(fjMSD[22]),"fjMSD_JESPileUpPtRefDown/F");
+    Book("fjMSD_JESRelativeFSRUp",&(fjMSD[23]),"fjMSD_JESRelativeFSRUp/F");
+    Book("fjMSD_JESRelativeFSRDown",&(fjMSD[24]),"fjMSD_JESRelativeFSRDown/F");
+    Book("fjMSD_JESRelativeJEREC1Up",&(fjMSD[25]),"fjMSD_JESRelativeJEREC1Up/F");
+    Book("fjMSD_JESRelativeJEREC1Down",&(fjMSD[26]),"fjMSD_JESRelativeJEREC1Down/F");
+    Book("fjMSD_JESRelativePtBBUp",&(fjMSD[27]),"fjMSD_JESRelativePtBBUp/F");
+    Book("fjMSD_JESRelativePtBBDown",&(fjMSD[28]),"fjMSD_JESRelativePtBBDown/F");
+    Book("fjMSD_JESRelativePtEC1Up",&(fjMSD[29]),"fjMSD_JESRelativePtEC1Up/F");
+    Book("fjMSD_JESRelativePtEC1Down",&(fjMSD[30]),"fjMSD_JESRelativePtEC1Down/F");
+    Book("fjMSD_JESRelativePtEC2Up",&(fjMSD[31]),"fjMSD_JESRelativePtEC2Up/F");
+    Book("fjMSD_JESRelativePtEC2Down",&(fjMSD[32]),"fjMSD_JESRelativePtEC2Down/F");
+    Book("fjMSD_JESRelativeStatECUp",&(fjMSD[33]),"fjMSD_JESRelativeStatECUp/F");
+    Book("fjMSD_JESRelativeStatECDown",&(fjMSD[34]),"fjMSD_JESRelativeStatECDown/F");
+    Book("fjMSD_JESRelativeStatFSRUp",&(fjMSD[35]),"fjMSD_JESRelativeStatFSRUp/F");
+    Book("fjMSD_JESRelativeStatFSRDown",&(fjMSD[36]),"fjMSD_JESRelativeStatFSRDown/F");
+    Book("fjMSD_JESSinglePionECALUp",&(fjMSD[37]),"fjMSD_JESSinglePionECALUp/F");
+    Book("fjMSD_JESSinglePionECALDown",&(fjMSD[38]),"fjMSD_JESSinglePionECALDown/F");
+    Book("fjMSD_JESSinglePionHCALUp",&(fjMSD[39]),"fjMSD_JESSinglePionHCALUp/F");
+    Book("fjMSD_JESSinglePionHCALDown",&(fjMSD[40]),"fjMSD_JESSinglePionHCALDown/F");
+    Book("fjMSD_JESTimePtEtaUp",&(fjMSD[41]),"fjMSD_JESTimePtEtaUp/F");
+    Book("fjMSD_JESTimePtEtaDown",&(fjMSD[42]),"fjMSD_JESTimePtEtaDown/F");
+    Book("fjRho",&fjRho,"fjRho/F");
+    Book("fjRawRho",&fjRawRho,"fjRawRho/F");
+    Book("fjRho2",&fjRho2,"fjRho2/F");
+    Book("fjRawRho2",&fjRawRho2,"fjRawRho2/F");
+    Book("fjMSD_corr",&(fjMSD_corr[0]),"fjMSD_corr/F");
+    Book("fjMSD_corr_JESTotalUp",&(fjMSD_corr[1]),"fjMSD_corr_JESTotalUp/F");
+    Book("fjMSD_corr_JESTotalDown",&(fjMSD_corr[2]),"fjMSD_corr_JESTotalDown/F");
+    Book("fjMSD_corr_JESAbsoluteMPFBiasUp",&(fjMSD_corr[3]),"fjMSD_corr_JESAbsoluteMPFBiasUp/F");
+    Book("fjMSD_corr_JESAbsoluteMPFBiasDown",&(fjMSD_corr[4]),"fjMSD_corr_JESAbsoluteMPFBiasDown/F");
+    Book("fjMSD_corr_JESAbsoluteScaleUp",&(fjMSD_corr[5]),"fjMSD_corr_JESAbsoluteScaleUp/F");
+    Book("fjMSD_corr_JESAbsoluteScaleDown",&(fjMSD_corr[6]),"fjMSD_corr_JESAbsoluteScaleDown/F");
+    Book("fjMSD_corr_JESAbsoluteStatUp",&(fjMSD_corr[7]),"fjMSD_corr_JESAbsoluteStatUp/F");
+    Book("fjMSD_corr_JESAbsoluteStatDown",&(fjMSD_corr[8]),"fjMSD_corr_JESAbsoluteStatDown/F");
+    Book("fjMSD_corr_JESFlavorQCDUp",&(fjMSD_corr[9]),"fjMSD_corr_JESFlavorQCDUp/F");
+    Book("fjMSD_corr_JESFlavorQCDDown",&(fjMSD_corr[10]),"fjMSD_corr_JESFlavorQCDDown/F");
+    Book("fjMSD_corr_JESFragmentationUp",&(fjMSD_corr[11]),"fjMSD_corr_JESFragmentationUp/F");
+    Book("fjMSD_corr_JESFragmentationDown",&(fjMSD_corr[12]),"fjMSD_corr_JESFragmentationDown/F");
+    Book("fjMSD_corr_JESPileUpDataMCUp",&(fjMSD_corr[13]),"fjMSD_corr_JESPileUpDataMCUp/F");
+    Book("fjMSD_corr_JESPileUpDataMCDown",&(fjMSD_corr[14]),"fjMSD_corr_JESPileUpDataMCDown/F");
+    Book("fjMSD_corr_JESPileUpPtBBUp",&(fjMSD_corr[15]),"fjMSD_corr_JESPileUpPtBBUp/F");
+    Book("fjMSD_corr_JESPileUpPtBBDown",&(fjMSD_corr[16]),"fjMSD_corr_JESPileUpPtBBDown/F");
+    Book("fjMSD_corr_JESPileUpPtEC1Up",&(fjMSD_corr[17]),"fjMSD_corr_JESPileUpPtEC1Up/F");
+    Book("fjMSD_corr_JESPileUpPtEC1Down",&(fjMSD_corr[18]),"fjMSD_corr_JESPileUpPtEC1Down/F");
+    Book("fjMSD_corr_JESPileUpPtEC2Up",&(fjMSD_corr[19]),"fjMSD_corr_JESPileUpPtEC2Up/F");
+    Book("fjMSD_corr_JESPileUpPtEC2Down",&(fjMSD_corr[20]),"fjMSD_corr_JESPileUpPtEC2Down/F");
+    Book("fjMSD_corr_JESPileUpPtRefUp",&(fjMSD_corr[21]),"fjMSD_corr_JESPileUpPtRefUp/F");
+    Book("fjMSD_corr_JESPileUpPtRefDown",&(fjMSD_corr[22]),"fjMSD_corr_JESPileUpPtRefDown/F");
+    Book("fjMSD_corr_JESRelativeFSRUp",&(fjMSD_corr[23]),"fjMSD_corr_JESRelativeFSRUp/F");
+    Book("fjMSD_corr_JESRelativeFSRDown",&(fjMSD_corr[24]),"fjMSD_corr_JESRelativeFSRDown/F");
+    Book("fjMSD_corr_JESRelativeJEREC1Up",&(fjMSD_corr[25]),"fjMSD_corr_JESRelativeJEREC1Up/F");
+    Book("fjMSD_corr_JESRelativeJEREC1Down",&(fjMSD_corr[26]),"fjMSD_corr_JESRelativeJEREC1Down/F");
+    Book("fjMSD_corr_JESRelativePtBBUp",&(fjMSD_corr[27]),"fjMSD_corr_JESRelativePtBBUp/F");
+    Book("fjMSD_corr_JESRelativePtBBDown",&(fjMSD_corr[28]),"fjMSD_corr_JESRelativePtBBDown/F");
+    Book("fjMSD_corr_JESRelativePtEC1Up",&(fjMSD_corr[29]),"fjMSD_corr_JESRelativePtEC1Up/F");
+    Book("fjMSD_corr_JESRelativePtEC1Down",&(fjMSD_corr[30]),"fjMSD_corr_JESRelativePtEC1Down/F");
+    Book("fjMSD_corr_JESRelativePtEC2Up",&(fjMSD_corr[31]),"fjMSD_corr_JESRelativePtEC2Up/F");
+    Book("fjMSD_corr_JESRelativePtEC2Down",&(fjMSD_corr[32]),"fjMSD_corr_JESRelativePtEC2Down/F");
+    Book("fjMSD_corr_JESRelativeStatECUp",&(fjMSD_corr[33]),"fjMSD_corr_JESRelativeStatECUp/F");
+    Book("fjMSD_corr_JESRelativeStatECDown",&(fjMSD_corr[34]),"fjMSD_corr_JESRelativeStatECDown/F");
+    Book("fjMSD_corr_JESRelativeStatFSRUp",&(fjMSD_corr[35]),"fjMSD_corr_JESRelativeStatFSRUp/F");
+    Book("fjMSD_corr_JESRelativeStatFSRDown",&(fjMSD_corr[36]),"fjMSD_corr_JESRelativeStatFSRDown/F");
+    Book("fjMSD_corr_JESSinglePionECALUp",&(fjMSD_corr[37]),"fjMSD_corr_JESSinglePionECALUp/F");
+    Book("fjMSD_corr_JESSinglePionECALDown",&(fjMSD_corr[38]),"fjMSD_corr_JESSinglePionECALDown/F");
+    Book("fjMSD_corr_JESSinglePionHCALUp",&(fjMSD_corr[39]),"fjMSD_corr_JESSinglePionHCALUp/F");
+    Book("fjMSD_corr_JESSinglePionHCALDown",&(fjMSD_corr[40]),"fjMSD_corr_JESSinglePionHCALDown/F");
+    Book("fjMSD_corr_JESTimePtEtaUp",&(fjMSD_corr[41]),"fjMSD_corr_JESTimePtEtaUp/F");
+    Book("fjMSD_corr_JESTimePtEtaDown",&(fjMSD_corr[42]),"fjMSD_corr_JESTimePtEtaDown/F");
+    Book("fjPt",&(fjPt[0]),"fjPt/F");
+    Book("fjPt_JESTotalUp",&(fjPt[1]),"fjPt_JESTotalUp/F");
+    Book("fjPt_JESTotalDown",&(fjPt[2]),"fjPt_JESTotalDown/F");
+    Book("fjPt_JESAbsoluteMPFBiasUp",&(fjPt[3]),"fjPt_JESAbsoluteMPFBiasUp/F");
+    Book("fjPt_JESAbsoluteMPFBiasDown",&(fjPt[4]),"fjPt_JESAbsoluteMPFBiasDown/F");
+    Book("fjPt_JESAbsoluteScaleUp",&(fjPt[5]),"fjPt_JESAbsoluteScaleUp/F");
+    Book("fjPt_JESAbsoluteScaleDown",&(fjPt[6]),"fjPt_JESAbsoluteScaleDown/F");
+    Book("fjPt_JESAbsoluteStatUp",&(fjPt[7]),"fjPt_JESAbsoluteStatUp/F");
+    Book("fjPt_JESAbsoluteStatDown",&(fjPt[8]),"fjPt_JESAbsoluteStatDown/F");
+    Book("fjPt_JESFlavorQCDUp",&(fjPt[9]),"fjPt_JESFlavorQCDUp/F");
+    Book("fjPt_JESFlavorQCDDown",&(fjPt[10]),"fjPt_JESFlavorQCDDown/F");
+    Book("fjPt_JESFragmentationUp",&(fjPt[11]),"fjPt_JESFragmentationUp/F");
+    Book("fjPt_JESFragmentationDown",&(fjPt[12]),"fjPt_JESFragmentationDown/F");
+    Book("fjPt_JESPileUpDataMCUp",&(fjPt[13]),"fjPt_JESPileUpDataMCUp/F");
+    Book("fjPt_JESPileUpDataMCDown",&(fjPt[14]),"fjPt_JESPileUpDataMCDown/F");
+    Book("fjPt_JESPileUpPtBBUp",&(fjPt[15]),"fjPt_JESPileUpPtBBUp/F");
+    Book("fjPt_JESPileUpPtBBDown",&(fjPt[16]),"fjPt_JESPileUpPtBBDown/F");
+    Book("fjPt_JESPileUpPtEC1Up",&(fjPt[17]),"fjPt_JESPileUpPtEC1Up/F");
+    Book("fjPt_JESPileUpPtEC1Down",&(fjPt[18]),"fjPt_JESPileUpPtEC1Down/F");
+    Book("fjPt_JESPileUpPtEC2Up",&(fjPt[19]),"fjPt_JESPileUpPtEC2Up/F");
+    Book("fjPt_JESPileUpPtEC2Down",&(fjPt[20]),"fjPt_JESPileUpPtEC2Down/F");
+    Book("fjPt_JESPileUpPtRefUp",&(fjPt[21]),"fjPt_JESPileUpPtRefUp/F");
+    Book("fjPt_JESPileUpPtRefDown",&(fjPt[22]),"fjPt_JESPileUpPtRefDown/F");
+    Book("fjPt_JESRelativeFSRUp",&(fjPt[23]),"fjPt_JESRelativeFSRUp/F");
+    Book("fjPt_JESRelativeFSRDown",&(fjPt[24]),"fjPt_JESRelativeFSRDown/F");
+    Book("fjPt_JESRelativeJEREC1Up",&(fjPt[25]),"fjPt_JESRelativeJEREC1Up/F");
+    Book("fjPt_JESRelativeJEREC1Down",&(fjPt[26]),"fjPt_JESRelativeJEREC1Down/F");
+    Book("fjPt_JESRelativePtBBUp",&(fjPt[27]),"fjPt_JESRelativePtBBUp/F");
+    Book("fjPt_JESRelativePtBBDown",&(fjPt[28]),"fjPt_JESRelativePtBBDown/F");
+    Book("fjPt_JESRelativePtEC1Up",&(fjPt[29]),"fjPt_JESRelativePtEC1Up/F");
+    Book("fjPt_JESRelativePtEC1Down",&(fjPt[30]),"fjPt_JESRelativePtEC1Down/F");
+    Book("fjPt_JESRelativePtEC2Up",&(fjPt[31]),"fjPt_JESRelativePtEC2Up/F");
+    Book("fjPt_JESRelativePtEC2Down",&(fjPt[32]),"fjPt_JESRelativePtEC2Down/F");
+    Book("fjPt_JESRelativeStatECUp",&(fjPt[33]),"fjPt_JESRelativeStatECUp/F");
+    Book("fjPt_JESRelativeStatECDown",&(fjPt[34]),"fjPt_JESRelativeStatECDown/F");
+    Book("fjPt_JESRelativeStatFSRUp",&(fjPt[35]),"fjPt_JESRelativeStatFSRUp/F");
+    Book("fjPt_JESRelativeStatFSRDown",&(fjPt[36]),"fjPt_JESRelativeStatFSRDown/F");
+    Book("fjPt_JESSinglePionECALUp",&(fjPt[37]),"fjPt_JESSinglePionECALUp/F");
+    Book("fjPt_JESSinglePionECALDown",&(fjPt[38]),"fjPt_JESSinglePionECALDown/F");
+    Book("fjPt_JESSinglePionHCALUp",&(fjPt[39]),"fjPt_JESSinglePionHCALUp/F");
+    Book("fjPt_JESSinglePionHCALDown",&(fjPt[40]),"fjPt_JESSinglePionHCALDown/F");
+    Book("fjPt_JESTimePtEtaUp",&(fjPt[41]),"fjPt_JESTimePtEtaUp/F");
+    Book("fjPt_JESTimePtEtaDown",&(fjPt[42]),"fjPt_JESTimePtEtaDown/F");
+    Book("fjPhi",&fjPhi,"fjPhi/F");
+    Book("fjEta",&fjEta,"fjEta/F");
+    Book("fjM",&(fjM[0]),"fjM/F");
+    Book("fjM_JESTotalUp",&(fjM[1]),"fjM_JESTotalUp/F");
+    Book("fjM_JESTotalDown",&(fjM[2]),"fjM_JESTotalDown/F");
+    Book("fjM_JESAbsoluteMPFBiasUp",&(fjM[3]),"fjM_JESAbsoluteMPFBiasUp/F");
+    Book("fjM_JESAbsoluteMPFBiasDown",&(fjM[4]),"fjM_JESAbsoluteMPFBiasDown/F");
+    Book("fjM_JESAbsoluteScaleUp",&(fjM[5]),"fjM_JESAbsoluteScaleUp/F");
+    Book("fjM_JESAbsoluteScaleDown",&(fjM[6]),"fjM_JESAbsoluteScaleDown/F");
+    Book("fjM_JESAbsoluteStatUp",&(fjM[7]),"fjM_JESAbsoluteStatUp/F");
+    Book("fjM_JESAbsoluteStatDown",&(fjM[8]),"fjM_JESAbsoluteStatDown/F");
+    Book("fjM_JESFlavorQCDUp",&(fjM[9]),"fjM_JESFlavorQCDUp/F");
+    Book("fjM_JESFlavorQCDDown",&(fjM[10]),"fjM_JESFlavorQCDDown/F");
+    Book("fjM_JESFragmentationUp",&(fjM[11]),"fjM_JESFragmentationUp/F");
+    Book("fjM_JESFragmentationDown",&(fjM[12]),"fjM_JESFragmentationDown/F");
+    Book("fjM_JESPileUpDataMCUp",&(fjM[13]),"fjM_JESPileUpDataMCUp/F");
+    Book("fjM_JESPileUpDataMCDown",&(fjM[14]),"fjM_JESPileUpDataMCDown/F");
+    Book("fjM_JESPileUpPtBBUp",&(fjM[15]),"fjM_JESPileUpPtBBUp/F");
+    Book("fjM_JESPileUpPtBBDown",&(fjM[16]),"fjM_JESPileUpPtBBDown/F");
+    Book("fjM_JESPileUpPtEC1Up",&(fjM[17]),"fjM_JESPileUpPtEC1Up/F");
+    Book("fjM_JESPileUpPtEC1Down",&(fjM[18]),"fjM_JESPileUpPtEC1Down/F");
+    Book("fjM_JESPileUpPtEC2Up",&(fjM[19]),"fjM_JESPileUpPtEC2Up/F");
+    Book("fjM_JESPileUpPtEC2Down",&(fjM[20]),"fjM_JESPileUpPtEC2Down/F");
+    Book("fjM_JESPileUpPtRefUp",&(fjM[21]),"fjM_JESPileUpPtRefUp/F");
+    Book("fjM_JESPileUpPtRefDown",&(fjM[22]),"fjM_JESPileUpPtRefDown/F");
+    Book("fjM_JESRelativeFSRUp",&(fjM[23]),"fjM_JESRelativeFSRUp/F");
+    Book("fjM_JESRelativeFSRDown",&(fjM[24]),"fjM_JESRelativeFSRDown/F");
+    Book("fjM_JESRelativeJEREC1Up",&(fjM[25]),"fjM_JESRelativeJEREC1Up/F");
+    Book("fjM_JESRelativeJEREC1Down",&(fjM[26]),"fjM_JESRelativeJEREC1Down/F");
+    Book("fjM_JESRelativePtBBUp",&(fjM[27]),"fjM_JESRelativePtBBUp/F");
+    Book("fjM_JESRelativePtBBDown",&(fjM[28]),"fjM_JESRelativePtBBDown/F");
+    Book("fjM_JESRelativePtEC1Up",&(fjM[29]),"fjM_JESRelativePtEC1Up/F");
+    Book("fjM_JESRelativePtEC1Down",&(fjM[30]),"fjM_JESRelativePtEC1Down/F");
+    Book("fjM_JESRelativePtEC2Up",&(fjM[31]),"fjM_JESRelativePtEC2Up/F");
+    Book("fjM_JESRelativePtEC2Down",&(fjM[32]),"fjM_JESRelativePtEC2Down/F");
+    Book("fjM_JESRelativeStatECUp",&(fjM[33]),"fjM_JESRelativeStatECUp/F");
+    Book("fjM_JESRelativeStatECDown",&(fjM[34]),"fjM_JESRelativeStatECDown/F");
+    Book("fjM_JESRelativeStatFSRUp",&(fjM[35]),"fjM_JESRelativeStatFSRUp/F");
+    Book("fjM_JESRelativeStatFSRDown",&(fjM[36]),"fjM_JESRelativeStatFSRDown/F");
+    Book("fjM_JESSinglePionECALUp",&(fjM[37]),"fjM_JESSinglePionECALUp/F");
+    Book("fjM_JESSinglePionECALDown",&(fjM[38]),"fjM_JESSinglePionECALDown/F");
+    Book("fjM_JESSinglePionHCALUp",&(fjM[39]),"fjM_JESSinglePionHCALUp/F");
+    Book("fjM_JESSinglePionHCALDown",&(fjM[40]),"fjM_JESSinglePionHCALDown/F");
+    Book("fjM_JESTimePtEtaUp",&(fjM[41]),"fjM_JESTimePtEtaUp/F");
+    Book("fjM_JESTimePtEtaDown",&(fjM[42]),"fjM_JESTimePtEtaDown/F");
+    Book("fjMaxCSV",&fjMaxCSV,"fjMaxCSV/F");
+    Book("fjSubMaxCSV",&fjSubMaxCSV,"fjSubMaxCSV/F");
+    Book("fjMinCSV",&fjMinCSV,"fjMinCSV/F");
+    Book("fjDoubleCSV",&fjDoubleCSV,"fjDoubleCSV/F");
+    Book("fjgbb",&fjgbb,"fjgbb/I");
+    Book("fjNbs",&fjNbs,"fjNbs/I");
+    Book("fjGenPt",&fjGenPt,"fjGenPt/F");
+    Book("fjGenSize",&fjGenSize,"fjGenSize/F");
+    Book("fjIsMatched",&fjIsMatched,"fjIsMatched/I");
+    Book("fjGenWPt",&fjGenWPt,"fjGenWPt/F");
+    Book("fjGenWSize",&fjGenWSize,"fjGenWSize/F");
+    Book("fjIsWMatched",&fjIsWMatched,"fjIsWMatched/I");
+    Book("fjHighestPtGen",&fjHighestPtGen,"fjHighestPtGen/I");
+    Book("fjHighestPtGenPt",&fjHighestPtGenPt,"fjHighestPtGenPt/F");
+    Book("fjIsTight",&fjIsTight,"fjIsTight/I");
+    Book("fjIsLoose",&fjIsLoose,"fjIsLoose/I");
+    Book("fjRawPt",&fjRawPt,"fjRawPt/F");
+    Book("fjNHF",&fjNHF,"fjNHF/I");
+    Book("fjHTTMass",&fjHTTMass,"fjHTTMass/F");
+    Book("fjHTTFRec",&fjHTTFRec,"fjHTTFRec/F");
+    Book("fjIsClean",&fjIsClean,"fjIsClean/I");
+    Book("fjNPartons",&fjNPartons,"fjNPartons/I");
+    Book("fjNBPartons",&fjNBPartons,"fjNBPartons/I");
+    Book("fjNCPartons",&fjNCPartons,"fjNCPartons/I");
+    Book("fjPartonM",&fjPartonM,"fjPartonM/F");
+    Book("fjPartonPt",&fjPartonPt,"fjPartonPt/F");
+    Book("fjPartonEta",&fjPartonEta,"fjPartonEta/F");
+    Book("fjGenNumB",&fjGenNumB,"fjGenNumB/I");
+  }
   if (is_monohiggs||is_hbb) {
     Book("pfmetsig",&pfmetsig,"pfmetsig/F");
     Book("puppimetsig",&puppimetsig,"puppimetsig/F");
@@ -1564,60 +1787,5 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("ZBosonLep1CosThetaCS",&ZBosonLep1CosThetaCS,"ZBosonLep1CosThetaCS/F");
     Book("ZBosonLep1CosThetaStar",&ZBosonLep1CosThetaStar,"ZBosonLep1CosThetaStar/F");
     Book("ZBosonLep1CosThetaStarFJ",&ZBosonLep1CosThetaStarFJ,"ZBosonLep1CosThetaStarFJ/F");
-  }
-  if (is_fatjet) {
-    Book("nFatjet",&nFatjet,"nFatjet/I");
-    Book("fjTau32",&fjTau32,"fjTau32/F");
-    Book("fjTau21",&fjTau21,"fjTau21/F");
-    Book("fjTau32SD",&fjTau32SD,"fjTau32SD/F");
-    Book("fjTau21SD",&fjTau21SD,"fjTau21SD/F");
-    Book("fjMSD",&fjMSD,"fjMSD/F");
-    Book("fjRho",&fjRho,"fjRho/F");
-    Book("fjRawRho",&fjRawRho,"fjRawRho/F");
-    Book("fjRho2",&fjRho2,"fjRho2/F");
-    Book("fjRawRho2",&fjRawRho2,"fjRawRho2/F");
-    Book("fjMSD_corr",&fjMSD_corr,"fjMSD_corr/F");
-    Book("fjPt",&fjPt,"fjPt/F");
-    Book("fjPhi",&fjPhi,"fjPhi/F");
-    Book("fjEta",&fjEta,"fjEta/F");
-    Book("fjM",&fjM,"fjM/F");
-    Book("fjMaxCSV",&fjMaxCSV,"fjMaxCSV/F");
-    Book("fjSubMaxCSV",&fjSubMaxCSV,"fjSubMaxCSV/F");
-    Book("fjMinCSV",&fjMinCSV,"fjMinCSV/F");
-    Book("fjDoubleCSV",&fjDoubleCSV,"fjDoubleCSV/F");
-    Book("fjgbb",&fjgbb,"fjgbb/I");
-    Book("fjNbs",&fjNbs,"fjNbs/I");
-    Book("fjGenPt",&fjGenPt,"fjGenPt/F");
-    Book("fjGenSize",&fjGenSize,"fjGenSize/F");
-    Book("fjIsMatched",&fjIsMatched,"fjIsMatched/I");
-    Book("fjGenWPt",&fjGenWPt,"fjGenWPt/F");
-    Book("fjGenWSize",&fjGenWSize,"fjGenWSize/F");
-    Book("fjIsWMatched",&fjIsWMatched,"fjIsWMatched/I");
-    Book("fjHighestPtGen",&fjHighestPtGen,"fjHighestPtGen/I");
-    Book("fjHighestPtGenPt",&fjHighestPtGenPt,"fjHighestPtGenPt/F");
-    Book("fjIsTight",&fjIsTight,"fjIsTight/I");
-    Book("fjIsLoose",&fjIsLoose,"fjIsLoose/I");
-    Book("fjRawPt",&fjRawPt,"fjRawPt/F");
-    Book("fjNHF",&fjNHF,"fjNHF/I");
-    Book("fjHTTMass",&fjHTTMass,"fjHTTMass/F");
-    Book("fjHTTFRec",&fjHTTFRec,"fjHTTFRec/F");
-    Book("fjIsClean",&fjIsClean,"fjIsClean/I");
-    Book("fjNPartons",&fjNPartons,"fjNPartons/I");
-    Book("fjNBPartons",&fjNBPartons,"fjNBPartons/I");
-    Book("fjNCPartons",&fjNCPartons,"fjNCPartons/I");
-    Book("fjPartonM",&fjPartonM,"fjPartonM/F");
-    Book("fjPartonPt",&fjPartonPt,"fjPartonPt/F");
-    Book("fjPartonEta",&fjPartonEta,"fjPartonEta/F");
-    Book("fjGenNumB",&fjGenNumB,"fjGenNumB/I");
-  }
-  if (is_monotop||is_vbf) {
-    Book("jetPt",jetPt,"jetPt["+TString("2")+"]/F");
-    Book("jetEta",jetEta,"jetEta["+TString("2")+"]/F");
-    Book("jetPhi",jetPhi,"jetPhi["+TString("2")+"]/F");
-    Book("jetGenPt",jetGenPt,"jetGenPt["+TString("2")+"]/F");
-    Book("jetCSV",jetCSV,"jetCSV["+TString("2")+"]/F");
-    Book("jetFlav",jetFlav,"jetFlav["+TString("2")+"]/I");
-    Book("jetIsTight",jetIsTight,"jetIsTight["+TString("2")+"]/I");
-    Book("jetIsIso",jetIsIso,"jetIsIso["+TString("2")+"]/I");
   }
 }

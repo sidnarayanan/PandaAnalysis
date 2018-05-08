@@ -33,7 +33,7 @@ void FatJetMod::do_execute()
   int fatjet_counter=-1;
   for (auto& fj : fatjets) {
     ++fatjet_counter;
-    float pt = fj.pt();
+    float pt = analysis.hbb ? fj.pt() : fj.ptSmear;
     float rawpt = fj.rawPt;
     float eta = fj.eta();
     float mass = fj.m();
@@ -59,17 +59,21 @@ void FatJetMod::do_execute()
     if (gt.nFatjet==1) {
       fj1 = &fj;
       gt.fjIsClean = fatjet_counter==0 ? 1 : 0;
-      gt.fjPt = pt;
       gt.fjEta = eta;
       gt.fjPhi = phi;
-      gt.fjM = mass;
-      gt.fjMSD = fj.mSD;
       gt.fjRawPt = rawpt;
+      JESLOOP {
+        JetWrapper jw = shiftJet(fj, i2jes(shift), analysis.hbb);
+        gt.fjPt[shift] = jw.pt;
+        gt.fjM[shift] = mass * jw.scale();
+        gt.fjMSD[shift] = fj.mSD * jw.scale();
+      }
 
       // mSD correction
-      float corrweight=1.;
-      corrweight = getMSDCorr(pt,eta);
-      gt.fjMSD_corr = corrweight*gt.fjMSD;
+      float corrweight = getMSDCorr(pt,eta);
+      JESLOOP { 
+        gt.fjMSD_corr[shift] = corrweight*gt.fjMSD[shift];
+      }
 
       // now we do substructure
       gt.fjTau32 = clean(fj.tau3/fj.tau2);
@@ -131,11 +135,13 @@ void FatJetMod::do_execute()
       gt.fjGenNumB = 0;
   }
 
-  if (gt.nFatjet > 0 && gt.nLooseLep > 1) {
-    TLorentzVector HP4;
-    HP4.SetPtEtaPhiM(gt.fjPt,gt.fjEta,gt.fjPhi,gt.fjMSD_corr);
-    TLorentzVector ZHP4 = (*dilep) + HP4;
-    gt.ZBosonLep1CosThetaStarFJ = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
+  if (analysis.hbb) {
+    if (gt.nFatjet > 0 && gt.nLooseLep > 1) {
+      TLorentzVector HP4;
+      HP4.SetPtEtaPhiM(gt.fjPt[0], gt.fjEta, gt.fjPhi, gt.fjMSD_corr[0]);
+      TLorentzVector ZHP4 = (*dilep) + HP4;
+      gt.ZBosonLep1CosThetaStarFJ = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
+    }
   }
 
   recluster->execute();
@@ -150,11 +156,10 @@ float FatJetMod::getMSDCorr(float puppipt, float puppieta)
   float totalWeight = 1.;
 
   genCorr = utils.puppisd_corrGEN->Eval( puppipt );
-  if ( fabs(puppieta) <= 1.3 ){
-    recoCorr = utils.puppisd_corrRECO_cen->Eval( puppipt );
-  }
-  else {
-    recoCorr = utils.puppisd_corrRECO_for->Eval( puppipt );
+  if (fabs(puppieta) <= 1.3) {
+    recoCorr = utils.puppisd_corrRECO_cen->Eval(puppipt);
+  } else {
+    recoCorr = utils.puppisd_corrRECO_for->Eval(puppipt);
   }
   totalWeight = genCorr * recoCorr;
 
