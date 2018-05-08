@@ -4,6 +4,7 @@
 #include "TString.h"
 #include "vector"
 #include "map"
+#include "stdexcept"
 
 #include "Common.h"
 #include "Config.h"
@@ -41,11 +42,21 @@ namespace pa {
         void publishConst(TString name, const T* ptr) { _objs[name] = new ConstContainer<T>(ptr); }
       template <typename T>
         T* access(TString name) { 
-          return dynamic_cast<Container<T>*>(_objs.at(name))->ptr; 
+          try {
+            return dynamic_cast<Container<T>*>(_objs.at(name))->ptr; 
+          } catch (std::exception& e) {
+            PError("Registry::access","Could not access "+name+"!");
+            throw;
+          }
         }
       template <typename T>
         const T* accessConst(TString name) { 
-          return dynamic_cast<ConstContainer<T>*>(_objs.at(name))->ptr; 
+          try{
+            return dynamic_cast<ConstContainer<T>*>(_objs.at(name))->ptr; 
+          } catch (std::exception& e) {
+            PError("Registry::access","Could not access "+name+"!");
+            throw;
+          }
         }
       bool exists(TString name) { return _objs.find(name) != _objs.end(); }
     private:

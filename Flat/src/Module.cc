@@ -422,6 +422,8 @@ void AnalysisMod::initialize(Registry& registry)
 {
   if (!on())
     return;
+  if (cfg.DEBUG) 
+    PDebug("AnalysisMod::initialize", name);
   do_init(registry);
   for (auto* mod: subMods)
     mod->initialize(registry);
@@ -431,6 +433,8 @@ void AnalysisMod::readData(TString path)
 {
   if (!on())
     return;
+  if (cfg.DEBUG) 
+    PDebug("AnalysisMod::readData", name);
   do_readData(path+"/");
   for (auto* mod: subMods)
     mod->readData(path);
@@ -443,6 +447,8 @@ void AnalysisMod::execute()
 {
   if (!on())
     return;
+  if (cfg.DEBUG>1)
+    PDebug("AnalysisMod::execute", name);
   do_execute();
   cfg.tr.TriggerEvent("execute "+name);
 }
@@ -451,6 +457,8 @@ void AnalysisMod::reset()
 {
   if (!on())
     return;
+  if (cfg.DEBUG) 
+    PDebug("AnalysisMod::reset", name);
   do_reset();
   for (auto* mod : subMods)
     mod->reset();
@@ -460,6 +468,8 @@ void AnalysisMod::terminate()
 {
   if (!on())
     return;
+  if (cfg.DEBUG) 
+    PDebug("AnalysisMod::terminate", name);
   do_terminate();
   for (auto* mod : subMods)
     mod->terminate();

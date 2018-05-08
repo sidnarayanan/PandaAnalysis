@@ -142,7 +142,7 @@ namespace pa {
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
           eraGroups = {"B","C","D","E","F"};
-          spacer = "";
+          spacer = "_";
         }
       }
     virtual ~BaseJetMod () { 

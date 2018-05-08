@@ -52,6 +52,7 @@ void BTagCorrs::calcSF(BTagType bt, int flavor,
                        double eta, double pt, double eff, double uncFactor,
                        double &sf, double &sfUp, double &sfDown) 
 {
+  printf("1 %p\n", readers[bt]);
   if (flavor==5) {
     sf     = readers[bt]->eval_auto_bounds("central",BTagEntry::FLAV_B,eta,pt);
     sfUp   = readers[bt]->eval_auto_bounds("up",BTagEntry::FLAV_B,eta,pt);
@@ -65,6 +66,7 @@ void BTagCorrs::calcSF(BTagType bt, int flavor,
     sfUp   = readers[bt]->eval_auto_bounds("up",BTagEntry::FLAV_UDSG,eta,pt);
     sfDown = readers[bt]->eval_auto_bounds("down",BTagEntry::FLAV_UDSG,eta,pt);
   }
+  printf("2\n");
 
   sfUp = uncFactor*(sfUp-sf)+sf;
   sfDown = uncFactor*(sfDown-sf)+sf;

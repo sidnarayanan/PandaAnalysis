@@ -293,8 +293,8 @@ namespace pa {
   };
 
   struct JetHistory {
-  int user_idx;
-  int child_idx;
+    int user_idx;
+    int child_idx;
   };
 
   struct JetWrapper {
@@ -308,11 +308,15 @@ namespace pa {
 
     const panda::Jet& get_base() const { return *base; }
     float scale() const { return pt / base->pt(); }
+    void p4(TLorentzVector& v) const {
+      v.SetPtEtaPhiM(pt, base->eta(), base->phi(), base->m()); 
+    }
     TLorentzVector p4() const { 
       TLorentzVector v; 
-      v.SetPtEtaPhiM(pt, base->eta(), base->phi(), base->m()); 
+      p4(v);
       return v;
     }
+
   };
 
   struct JESHandler {
@@ -330,10 +334,10 @@ namespace pa {
     int shift_idx{-1};
 
     void sort() { 
-    for (auto* jw : cleaned)
-      cleaned_sorted.push_back(jw);
-    std::sort(cleaned_sorted.begin(), cleaned_sorted.end(), 
-              [](const JetWrapper* x, const JetWrapper* y) { return x->pt > y->pt; });
+      for (auto* jw : cleaned)
+        cleaned_sorted.push_back(jw);
+      std::sort(cleaned_sorted.begin(), cleaned_sorted.end(), 
+                [](const JetWrapper* x, const JetWrapper* y) { return x->pt > y->pt; });
     }
     void clear() { 
         all.clear(); cleaned.clear(); iso.clear();

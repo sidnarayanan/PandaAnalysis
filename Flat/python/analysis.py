@@ -18,7 +18,7 @@ def _dump(a):
 
 
 def _analysis(name, verbose, **kwargs):
-    a = root.Analysis(name)
+    a = root.pa.Analysis(name)
     for k,v in kwargs.iteritems():
         if not hasattr(a, k):
             PError('PandaAnalysis.Flat.analysis','Could not set property %s'%k)

@@ -48,7 +48,7 @@ void BaseJetMod::do_readData(TString dirPath)
 
   TString jecVFull = jecReco+spacer+jecV;
 
-  TString basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+jecVFull;
+  TString basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecVFull;
   vector<JECParams> params = {
     JECParams((basePath+"_MC_L1FastJet_"+jetType+".txt").Data()),
     JECParams((basePath+"_MC_L2Relative_"+jetType+".txt").Data()),
@@ -57,7 +57,7 @@ void BaseJetMod::do_readData(TString dirPath)
   };
   scales["MC"] = new FactorizedJetCorrector(params);
   for (auto e : eraGroups) {
-    basePath = dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+jecV;
+    basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+e+spacer+jecV;
     params = {
       JECParams((basePath+"_DATA_L1FastJet_"+jetType+".txt").Data()),
       JECParams((basePath+"_DATA_L2Relative_"+jetType+".txt").Data()),
@@ -71,10 +71,10 @@ void BaseJetMod::do_readData(TString dirPath)
                       dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt");
 
 
-  basePath = dirPath+"/jec/"+jecVFull+"/Summer16_";
-  setScaleUnc("MC", (basePath+jecVFull+"_MC_Uncertainty_"+jetType+".txt").Data());
+  basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_";
+  setScaleUnc("MC", (basePath+jecVFull+"_MC_UncertaintySources_"+jetType+".txt").Data());
   for (auto e : eraGroups) {
-    setScaleUnc("data"+e, (basePath+jecReco+e+spacer+jecV+"_DATA_Uncertainty_"+jetType+".txt").Data());
+    setScaleUnc("data"+e, (basePath+jecReco+e+spacer+jecV+"_DATA_UncertaintySources_"+jetType+".txt").Data());
   }
 }
 
@@ -86,7 +86,8 @@ void BaseJetMod::setScaleUnc(TString tag, TString path)
     if (shift % 2 == 0)
       continue; 
     TString shiftName = jesName(i2jes(shift));
-    shiftName.ReplaceAll("JES","").ReplaceAll("Up","");
+    shiftName.ReplaceAll("JES","");
+    shiftName = shiftName(0,shiftName.Length()-2);
     scaleUncs[tag][shift] = new JetCorrectionUncertainty(JECParams(path.Data(), shiftName.Data()));
     scaleUncs[tag][shift+1] = scaleUncs[tag][shift]; // Down = Up 
   }
@@ -462,7 +463,7 @@ void HbbSystemMod::do_execute()
   auto& jets = **currentJES; 
   int shift = jets.shift_idx;
 
-  if (jets.cleaned.size() < 2)
+  if (jets.central.size() < 2)
     return;
 
   btagsorted = jets.central; // copy
@@ -475,12 +476,14 @@ void HbbSystemMod::do_execute()
   for (int i = 0; i != (int)jets.cleaned.size(); ++i) 
     order[jets.cleaned[i]] = i;
  
-  const JetWrapper* bjets[2] = {btagsorted[0], btagsorted[1]};
 
-  gt.hbbjtidx[shift][0] = order[bjets[0]];
-  gt.hbbjtidx[shift][1] = order[bjets[1]];
+  gt.hbbjtidx[shift][0] = order[btagsorted[0]];
+  gt.hbbjtidx[shift][1] = order[btagsorted[1]];
 
-  array<TLorentzVector,2> hbbd = {{ bjets[0]->p4(), bjets[1]->p4() }};
+  vector<TLorentzVector> hbbd(2);
+  for (int i = 0; i != 2; ++i) {
+    btagsorted[i]->p4(hbbd[i]);
+  }
   TLorentzVector hbbsystem = hbbd[0] + hbbd[1];
 
   gt.hbbpt[shift] = hbbsystem.Pt();
