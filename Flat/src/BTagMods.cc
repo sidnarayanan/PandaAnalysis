@@ -78,10 +78,11 @@ void BTagWeightMod::do_execute()
       unsigned absid = abs(jw->flavor);
       auto flav = absid == 5 ? BTagEntry::FLAV_B : 
                                (absid == 4 ? BTagEntry::FLAV_C : BTagEntry::FLAV_UDSG);
-      gt.sf_csvWeights[shift] *= utils.btag->reshaper->eval_auto_bounds(
+      float reshapeFactor = utils.btag->reshaper->eval_auto_bounds(
             GeneralTree::csvShiftName(shift).Data(),
             flav, jet.eta(), jw->pt, discr
           );
+      if (reshapeFactor > 0.001) gt.sf_csvWeights[shift] *= reshapeFactor;
     }
   }
 }

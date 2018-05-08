@@ -138,7 +138,7 @@ void GeneralTree::Reset() {
     }
     for (unsigned iShift=0; iShift<nCsvShifts; iShift++) {
         csvShift shift = csvShifts[iShift];
-        sf_csvWeights[shift] = -1;
+        sf_csvWeights[shift] = 1;
     }
     for (auto iter=signal_weights.begin(); iter!=signal_weights.end(); ++iter) {
         signal_weights[iter->first] = 1;
