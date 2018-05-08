@@ -1737,7 +1737,6 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("jetIsTight",jetIsTight,"jetIsTight["+TString("2")+"]/I");
     Book("jetIsIso",jetIsIso,"jetIsIso["+TString("2")+"]/I");
   }
-}
   if (is_fatjet) {
     Book("nFatjet",&nFatjet,"nFatjet/I");
     Book("fjTau32",&fjTau32,"fjTau32/F");

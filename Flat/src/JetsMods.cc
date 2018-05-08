@@ -56,33 +56,8 @@ void BaseJetMod::do_readData(TString dirPath)
   if (!analysis.rerunJES)
     return;
 
-  TString jecV, jecReco, jecVFull, campaign, folder, spacer;
-  std::vector<TString> eraGroups;
-  if (analysis.year==2016) {
-    jecV = "V4"; jecReco = "23Sep2016"; 
-    jecVFull = jecReco+jecV;
-    campaign="Summer16";
-    eraGroups = {"BCD","EF","G","H"};
-    folder=jecVFull;
-    spacer="";
-  } else if (analysis.year==2017) {
-    TString jecV = "V8", jecReco = "23Sep2016"; 
-    TString jecVFull = jecReco+"_"+jecV;
-    campaign="Fall17";
-    eraGroups = {"B","C","D","E","F"};
-    folder=campaign+"_"+jecReco+jecV;
-    spacer="_"; // 2017 files have an underscore in them "Fall17_17Nov2017_V8_MC"
-  }
-
-  ak4UncReader["MC"] = new JetCorrectionUncertainty(
-       (dirPath+"/jec/"+folder+"/"+campaign+"_"+jecReco+spacer+jecV+"_MC_Uncertainty_AK4PFPuppi.txt").Data()
-    );
-  for (auto e : eraGroups) {
-    ak4UncReader["data"+e] = new JetCorrectionUncertainty(
-         (dirPath+"/jec/"+folder+"/"+campaign+"_"+jecReco+e+spacer+jecV+"_DATA_Uncertainty_AK4PFPuppi.txt").Data()
-      );
-  }
-
+  TString jecVFull = jecReco+spacer+jecV;
+  
   TString basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecVFull;
   vector<JECParams> params = {
     JECParams((basePath+"_MC_L1FastJet_"+jetType+".txt").Data()),
