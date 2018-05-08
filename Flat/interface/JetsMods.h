@@ -147,11 +147,16 @@ namespace pa {
       }
     virtual ~BaseJetMod () { 
       delete jer;
-      for (auto& iter : scales)
+      for (auto& iter : scales) {
         delete iter.second;
-      for (auto& iter : scaleUncs)
-        for (auto* p : iter.second)
-          delete p;
+      }
+      for (auto& iter : scaleUncs) {
+        for (size_t i = 0; i != iter.second.size(); ++i) {
+          if (i % 2 == 0)
+            continue; // avoid double-freeing memory
+          delete iter.second[i];
+        }
+      }
     }
   protected:
     virtual void do_execute() = 0;

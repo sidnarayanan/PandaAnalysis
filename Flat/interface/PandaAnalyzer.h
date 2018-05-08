@@ -42,7 +42,6 @@ namespace pa {
         // IO for the analyzer
         TFile *fOut{nullptr};     // output file is owned by PandaAnalyzer
         TTree *tOut{nullptr};
-        TH1D *hDTotalMCWeight{nullptr};
         GeneralTree gt; 
 
         TFile *fIn{nullptr};

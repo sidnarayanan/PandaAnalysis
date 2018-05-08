@@ -106,7 +106,12 @@ namespace pa {
         utils(utils_),
         analysis(cfg.analysis),
         gt(gt_) { }
-      virtual ~AnalysisMod() { for (auto* m : subMods) delete m; }
+      virtual ~AnalysisMod() { 
+        if (cfg.DEBUG)
+          PDebug("AnalysisMod::~AnalysisMod", name);
+        for (auto* m : subMods) 
+          delete m; 
+      }
       
       // cascading calls to protected functions
       void initialize(Registry& registry);

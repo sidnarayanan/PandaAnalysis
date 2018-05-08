@@ -31,7 +31,6 @@ void BTagSFMod::do_execute()
 
     float btagUncFactor = 1;
     double eff(1),sf(1),sfUp(1),sfDown(1);
-    exit(1);
     if (flavor==5)
       eff = utils.getCorr(cCSVBL,pt,fabs(eta));
     else if (flavor==4)
@@ -39,7 +38,6 @@ void BTagSFMod::do_execute()
     else
       eff = utils.getCorr(cCSVLL,pt,fabs(eta));
     if (isIsoJet) {
-
       utils.btag->calcSF(bJetL,flavor,eta,pt,eff,btagUncFactor,sf,sfUp,sfDown);
       btagcands.emplace_back(iJ,flavor,eff,sf,sfUp,sfDown);
       sf_cent.push_back(sf);

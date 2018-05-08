@@ -147,6 +147,8 @@ void ConfigMod::set_outputBranches()
   if (analysis.complicatedLeptons) {
     gt.RemoveBranches({"genJet.*","puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*"});
   }
+  if (!analysis.hbb) 
+    gt.RemoveBranches({".*JES.*"},{".*JESTotal.*"});
 }
 
 void ConfigMod::readData(TString dirPath)

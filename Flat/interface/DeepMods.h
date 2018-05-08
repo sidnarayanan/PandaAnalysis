@@ -14,7 +14,7 @@ namespace pa {
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_);
-    ~DeepGenMod () { 
+    virtual ~DeepGenMod () { 
       delete jetDef; delete tauN;
       delete ecfcalc; delete grid;
     }

@@ -153,23 +153,10 @@ namespace pa {
 
   ////////////////////////////////////////////////////////////////////////////////////
 
-  template <typename T>
-  class TCorr {
-    public:
-      TCorr(TObject* o): base(o) { } 
-      virtual ~TCorr() {}
-      virtual double Eval(double x)=0; 
-    protected:
-      T *h=nullptr;
-      const TObject *base=nullptr;
-  };
 
-
-  class TF1Corr : public TCorr<TF1> {
+  class TF1Corr {
   public:
-    TF1Corr(TF1 *f_):
-      TCorr(f_) 
-    {
+    TF1Corr(TF1 *f_) {
       h = f_;
     }
     ~TF1Corr() {} 
@@ -178,16 +165,17 @@ namespace pa {
     }
 
     TF1 *GetFunc() { return h; }
+  private:
+    TF1* h=nullptr;
   };
 
   template <typename T>
-  class THCorr : public TCorr<T> {
+  class THCorr {
     public:
       // wrapper around TH[12] to do corrections
-      THCorr(TObject *h_):
-        TCorr<T>(h_)
-      {
+      THCorr(TObject *h_) {
         this->h = new T();
+        this->h->SetDirectory(0);
         h_->Copy(*(this->h));  // easiest way to cast e.g. TH1F->TH1D
         dim = this->h->GetDimension();
         TAxis *thurn = this->h->GetXaxis(); 
@@ -199,7 +187,8 @@ namespace pa {
           hi2 = taxis->GetBinCenter(taxis->GetNbins());
         }
       }
-      ~THCorr() { delete this->h; } // this is a clone, not a pointer to the original hist
+      ~THCorr() { /* delete this->h;*/ } // ROOT is doing something to this memory that I don't understand
+                                         // code as-is is causing a small memory leak 
       double Eval(double x) {
         if (dim!=1) {
           PError("THCorr1::Eval",
@@ -241,6 +230,7 @@ namespace pa {
     private:
       int dim;
       double lo1, lo2, hi1, hi2;
+      T* h{nullptr};
   };
 
   typedef THCorr<TH1D> THCorr1;

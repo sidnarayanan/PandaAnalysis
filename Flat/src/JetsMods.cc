@@ -250,6 +250,7 @@ void JetMod::do_execute()
     }
 
     gt.nJot[shift] = jets.cleaned.size();
+    gt.nJotMax = max(gt.nJot[shift], gt.nJotMax);
     if (metShift) {
       switch (gt.whichRecoil) {
         case 0: // MET

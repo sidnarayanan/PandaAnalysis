@@ -12,7 +12,7 @@ namespace pa {
               Utils& utils_,                
               GeneralTree& gt_) :                 
       AnalysisMod("btagsf", event_, cfg_, utils_, gt_) { }
-    ~BTagSFMod () { }
+    virtual ~BTagSFMod () { }
 
     bool on() { return !analysis.genOnly && analysis.btagSFs; }
 
@@ -33,7 +33,7 @@ namespace pa {
               Utils& utils_,                
               GeneralTree& gt_) :                 
       AnalysisMod("btagweight", event_, cfg_, utils_, gt_) { }
-    ~BTagWeightMod () { }
+    virtual ~BTagWeightMod () { }
 
     bool on() { return !analysis.genOnly && analysis.btagWeights; }
 

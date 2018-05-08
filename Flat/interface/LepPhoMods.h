@@ -72,7 +72,7 @@ namespace pa {
                          Utils& utils_,
                          GeneralTree& gt_) : 
       SimpleLeptonMod(event_, cfg_, utils_, gt_) { name = "complep"; }
-    ~ComplicatedLeptonMod () { delete rochesterCorrection; }
+    virtual ~ComplicatedLeptonMod () { delete rochesterCorrection; }
 
     virtual bool on() { return !analysis.genOnly && analysis.complicatedLeptons; }
     
@@ -123,7 +123,7 @@ namespace pa {
                          Utils& utils_,
                          GeneralTree& gt_) : 
       SimplePhotonMod(event_, cfg_, utils_, gt_) { name="comppho"; }
-    ~ComplicatedPhotonMod () { }
+    virtual ~ComplicatedPhotonMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.complicatedPhotons; }
     
@@ -146,7 +146,7 @@ namespace pa {
            Utils& utils_,
            GeneralTree& gt_) : 
       AnalysisMod("tau", event_, cfg_, utils_, gt_) { }
-    ~TauMod () { }
+    virtual ~TauMod () { }
 
     virtual bool on() { return !analysis.genOnly; }
     
@@ -166,7 +166,7 @@ namespace pa {
               Utils& utils_,
               GeneralTree& gt_) : 
       AnalysisMod("genlep", event_, cfg_, utils_, gt_) { }
-    ~GenLepMod () { }
+    virtual ~GenLepMod () { }
 
     virtual bool on() { return analysis.vbf && !analysis.isData; }
     

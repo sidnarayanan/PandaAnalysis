@@ -12,7 +12,7 @@ namespace pa {
               Utils& utils_,                
               GeneralTree& gt_) :                 
       AnalysisMod("recoil", event_, cfg_, utils_, gt_) { }
-    ~RecoilMod () { }
+    virtual ~RecoilMod () { }
 
     bool on() { return !analysis.genOnly && analysis.recoil; }
 
@@ -40,7 +40,7 @@ namespace pa {
                GeneralTree& gt_) :                 
       AnalysisMod("trigger", event_, cfg_, utils_, gt_),
       triggerHandlers(kNTrig) { }
-    ~TriggerMod () { }
+    virtual ~TriggerMod () { }
 
     bool on() { return !analysis.genOnly && (analysis.isData || analysis.mcTriggers); }
 
@@ -59,7 +59,7 @@ namespace pa {
                Utils& utils_,                
                GeneralTree& gt_) :                 
       AnalysisMod("triggereff", event_, cfg_, utils_, gt_) { }
-    ~TriggerEffMod () { }
+    virtual ~TriggerEffMod () { }
 
     bool on() { return !analysis.genOnly && !analysis.isData; }
 
@@ -86,7 +86,7 @@ namespace pa {
           jesShifts[shift].shift_idx = shift;
         }
       }
-    ~GlobalMod () { }
+    virtual ~GlobalMod () { }
     
   protected:
     void do_init(Registry& registry) { registry.publish("jesShifts", &jesShifts); }
@@ -106,7 +106,7 @@ namespace pa {
             Utils& utils_,                
             GeneralTree& gt_) :                 
       AnalysisMod("gendup", event_, cfg_, utils_, gt_) { }
-    ~GenPMod () { }
+    virtual ~GenPMod () { }
 
     bool on() { return !analysis.isData; }
     

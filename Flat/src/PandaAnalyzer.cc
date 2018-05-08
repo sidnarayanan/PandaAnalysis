@@ -63,8 +63,15 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   event.setStatus(*tIn, {"!*"});
   event.setAddress(*tIn, cfgmod.get_inputBranches());
 
-  hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
+  TH1D* hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
+  TH1D* hDNPUWeight = nullptr; {
+    TH1D* hbase = static_cast<TH1D*>(fIn->Get("hNPVTrue"));
+    if (hbase != nullptr) {
+      hDNPUWeight = static_cast<TH1D*>(hbase->Clone("hDNPUWeight"));
+      hDNPUWeight->SetDirectory(0);
+    }
+  }
 
   TTree* tW = static_cast<TTree*>(fIn->Get("weights"));
   if (tW && analysis.processType == kSignal) {
@@ -103,7 +110,12 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   fOut = TFile::Open(analysis.outpath, "RECREATE");
   fOut->cd();
   tOut = new TTree("events", "events");
-  fOut->WriteTObject(hDTotalMCWeight);
+
+  fOut->WriteTObject(hDTotalMCWeight); delete hDTotalMCWeight; hDTotalMCWeight = nullptr; 
+  if (hDNPUWeight != nullptr) {
+    fOut->WriteTObject(hDNPUWeight); delete hDNPUWeight; hDNPUWeight = nullptr; 
+  }
+
   registry.publish("fOut", fOut); 
 
   gt.WriteTree(tOut);
@@ -112,6 +124,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
 
   // read input data 
+  cfgmod.readData(analysis.datapath); 
   for (auto* mod : mods_all)
     mod->readData(analysis.datapath);
 
@@ -126,7 +139,11 @@ PandaAnalyzer::~PandaAnalyzer()
   for (auto* mod : mods_all)
     delete mod; 
 
+  for (auto* s : selections)
+    delete s; 
+
   fIn->Close();
+  if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Called destructor");
 
 }
 

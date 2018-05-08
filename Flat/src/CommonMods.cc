@@ -332,8 +332,8 @@ void TriggerEffMod::do_execute()
   gt.sf_metTrig = utils.getCorr(cTrigMET,gt.pfmetnomu[jes2i(shiftjes::kNominal)]);
   gt.sf_metTrigZmm = utils.getCorr(cTrigMETZmm,gt.pfmetnomu[jes2i(shiftjes::kNominal)]);
 
-  auto* lep0 = (*looseLeps)[0];
-  auto* lep1 = (*looseLeps)[1];
+  auto* lep0 = looseLeps->size()>0 ? (*looseLeps)[0] : nullptr;
+  auto* lep1 = looseLeps->size()>1 ? (*looseLeps)[1] : nullptr;
 
   if (gt.nLooseElectron>0) {
     panda::Electron *ele1=nullptr, *ele2=nullptr;
