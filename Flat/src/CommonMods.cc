@@ -170,6 +170,26 @@ void TriggerMod::do_init(Registry& registry)
 void TriggerMod::do_execute()
 {
   for (unsigned iT = 0; iT != kNTrig; ++iT) {
+    // Ugly hack for the Ele32 trigger in 2017
+    if (analysis.year==2017 && analysis.hbb && iT==kSingleEleTrig) {    
+      panda::HLTObjectStore::HLTObjectVector filter1Objects, filter2Objects;
+      filter1Objects=event.triggerObjects.filterObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
+      filter2Objects=event.triggerObjects.filterObjects("hltEGL1SingleEGOrFilter");
+      if (filter1Objects.size()==0 && filter2Objects.size()==0) 
+        continue;
+      TLorentzVector filter1ObjectP4, filter2ObjectP4;
+      filter1ObjectP4.SetPtEtaPhiM(filter1Objects[0]->pt(), filter1Objects[0]->eta(), filter1Objects[0]->phi(), filter1Objects[0]->m());
+      filter2ObjectP4.SetPtEtaPhiM(filter2Objects[0]->pt(), filter2Objects[0]->eta(), filter2Objects[0]->phi(), filter2Objects[0]->m());
+      bool matchedToTriggerObject=false;
+      for (auto& ele : event.electrons) {
+        if(!ele.tight && !ele.mvaWP80) continue;
+        if(filter1ObjectP4.DeltaR(ele.p4())<0.1 && filter2ObjectP4.DeltaR(ele.p4())<0.1)
+          matchedToTriggerObject=true;
+      }
+      if (matchedToTriggerObject) 
+        gt.trigger |= (1 << iT);
+      continue;
+    }
     auto &th = triggerHandlers.at(iT);
     for (auto iP : th.indices) {
       if (event.triggerFired(iP)) {
