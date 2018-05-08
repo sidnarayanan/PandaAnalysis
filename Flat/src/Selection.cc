@@ -87,7 +87,7 @@ bool VHbbSel::do_accept() const
 
   // WlnHbb
   if (bestJet1>25 && bestJet2>25 &&
-      ((gt->nTightElectron>0 && gt->electronPt[0]>25) ||
+      ((gt->nTightElectron>0 && gt->electronPt[0]>30) ||
        (gt->nTightMuon>0 && gt->muonPt[0]>25)) &&
       (gt->hbbpt[0]>50 || gt->nFatjet>0)) 
   {
@@ -96,9 +96,9 @@ bool VHbbSel::do_accept() const
 
   // ZllHbb
   if (bestJet1>25 && bestJet2>25 && 
-      ((gt->nTightElectron>0 && gt->nLooseElectron>1 && gt->electronPt[0]>25 && gt->electronPt[1]>20) ||
-       (gt->nTightMuon>0 && gt->nLooseMuon>1 && gt->muonPt[0]>25 && gt->muonPt[1]>20)) &&
-      (gt->hbbpt[0]>50 || gt->nFatjet>0))
+      ((gt->nLooseElectron>1 && gt->electronPt[0]>20 && gt->electronPt[1]>15) ||
+       (gt->nLooseMuon>1 && gt->muonPt[0]>20 && gt->muonPt[1]>10)) &&
+      (gt->hbbpt[0]>0 || gt->nFatjet>0))
   {
     return true;
   }
