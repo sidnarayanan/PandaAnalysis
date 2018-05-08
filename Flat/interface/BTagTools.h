@@ -41,6 +41,7 @@ namespace pa {
       ~BTagCorrs() { 
         for (auto* r : readers)
           delete r;
+        delete reshaper;
         delete calib;
         delete sj_calib;
         delete reshaper_calib;
