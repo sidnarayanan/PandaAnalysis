@@ -85,7 +85,8 @@ namespace pa {
     void do_execute(); 
     void do_init(Registry& registry) {
       SimpleLeptonMod::do_init(registry);
-      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      if (!analysis.isData)
+        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
   private:
     RoccoR *rochesterCorrection{nullptr};
@@ -177,8 +178,7 @@ namespace pa {
   protected:
     void do_execute(); 
     void do_init(Registry& registry) {
-      if (!analysis.isData) 
-        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
   private:
     const std::vector<panda::Particle*> *genP{nullptr};
