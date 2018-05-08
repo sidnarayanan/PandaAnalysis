@@ -264,7 +264,7 @@ void PandaAnalyzer::Run()
   for (auto* mod : mods_all)
     mod->initialize(registry); 
 
-  ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,10);
+  ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
   TimeReporter& tr = cfgmod.cfg.tr; 
 
   // EVENTLOOP --------------------------------------------------------------------------

@@ -313,15 +313,15 @@ def record_inputs(outfilename,processed):
 # classify a sample based on its name
 def classify_sample(full_path, isData):
     _classification = [
-                (root.kSignal , ['Vector_', 'Scalar_']),
-                (root.kTop    , ['ST_', 'ZprimeToTT']),
-                (root.kZEWK   , 'EWKZ2Jets'),
-                (root.kWEWK   , 'EWKW'),
-                (root.kZ      , ['ZJets', 'DY']),
-                (root.kW      , 'WJets'),
-                (root.kA      , 'GJets'),
-                (root.kTT     , ['TTJets', 'TT_', 'TTTo']),
-                (root.kH      , 'HTo'),
+                (root.pa.kSignal , ['Vector_', 'Scalar_']),
+                (root.pa.kTop    , ['ST_', 'ZprimeToTT']),
+                (root.pa.kZEWK   , 'EWKZ2Jets'),
+                (root.pa.kWEWK   , 'EWKW'),
+                (root.pa.kZ      , ['ZJets', 'DY']),
+                (root.pa.kW      , 'WJets'),
+                (root.pa.kA      , 'GJets'),
+                (root.pa.kTT     , ['TTJets', 'TT_', 'TTTo']),
+                (root.pa.kH      , 'HTo'),
             ]
     if not isData:
         for e,pattern in _classification:
@@ -331,7 +331,7 @@ def classify_sample(full_path, isData):
             else:
                 if any([x in full_path for x in pattern]):
                     return e
-    return root.kNoProcess
+    return root.pa.kNoProcess
 
 
 # read a CERT json and add it to the skimmer
@@ -353,35 +353,9 @@ def add_json(skimmer):
 
 
 # some common stuff that doesn't need to be configured
-def run_PandaAnalyzer(skimmer, isData, input_name):
-    # read the inputs
-    try:
-        fin = root.TFile.Open(input_name)
-        tree = fin.FindObjectAny("events")
-        weight_table = fin.FindObjectAny('weights')
-        hweights = fin.FindObjectAny("hSumW")
-    except:
-        PError(_sname+'.run_PandaAnalyzer','Could not read %s'%input_name)
-        return False # file open error => xrootd?
-    if not tree:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover tree in %s'%input_name)
-        return False
-    if not hweights:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover hweights in %s'%input_name)
-        return False
-    if not weight_table:
-        weight_table = None
-
-    output_name = input_to_output(input_name)
-    skimmer.SetDataDir(_data_dir)
+def run_PandaAnalyzer(skimmer, isData, output_name):
     if isData:
         add_json(skimmer)
-
-    rinit = skimmer.Init(tree,hweights,weight_table)
-    if rinit:
-        PError(_sname+'.run_PandaAnalyzer','Failed to initialize %s!'%(input_name))
-        return False 
-    skimmer.SetOutputFile(output_name)
 
     # run and save output
     skimmer.Run()

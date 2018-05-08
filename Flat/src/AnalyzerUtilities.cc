@@ -70,8 +70,6 @@ vector<TLorentzVector>& ParticleGridder::get()
     } else {
       iter->second.push_back(&p);
     }      
-//    PDebug("ParticleGridder in",
-//           Form("pt=%.3f,eta=%.3f,phi=%.3f,m=%.3f in %i,%i", p.Pt(), eta, phi, p.M(), iEta, iPhi));
   }
 
   // grid is filled
