@@ -41,10 +41,10 @@ namespace pa {
       ~BTagCorrs() { 
         for (auto* r : readers)
           delete r;
+        delete reshaper;
         delete calib;
         delete sj_calib;
-        delete csvReweighter;
-        delete cmvaReweighter;
+        delete reshaper_calib;
       }
     
       void evalSF(std::vector<btagcand> &cands, std::vector<double> &sfs,
@@ -52,10 +52,11 @@ namespace pa {
       void calcSF(BTagType bt, int flavor, double eta, double pt, 
                   double eff, double uncFactor, double &sf, double &sfUp, double &sfDown);
       std::vector<BTagCalibrationReader*> readers = std::vector<BTagCalibrationReader*>(bN,nullptr);
-      CSVHelper *csvReweighter{nullptr}, *cmvaReweighter{nullptr};
+      BTagCalibrationReader *reshaper{nullptr};
+      
     private:
-      BTagCalibration *calib{nullptr}, *sj_calib{nullptr};
-      GeneralTree& gt; 
+      BTagCalibration *calib{nullptr}, *sj_calib{nullptr}, *reshaper_calib{nullptr};
+      GeneralTree& gt;
   };
 
 }

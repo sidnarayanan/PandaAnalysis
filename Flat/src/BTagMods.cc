@@ -68,45 +68,42 @@ void BTagWeightMod::do_execute()
     return;
 
   //get vectors of jet properties
-  vector<double> jetPts, jetEtas, jetCSVs, jetCMVAs;
+  vector<double> jetPts, jetEtas, jetDiscrs;
   vector<int> jetFlavors;
   unsigned int nJ = bcands.size();
   jetPts.reserve(nJ);
   jetEtas.reserve(nJ);
-  jetCSVs.reserve(nJ);
-  jetCMVAs.reserve(nJ);
+  jetDiscrs.reserve(nJ);
   jetFlavors.reserve(nJ);
   for (unsigned int iJ=0; iJ!=nJ; ++iJ) {
     auto* jw = bcands[iJ];
     auto& jet = jw->get_base();
     jetPts.push_back(jw->pt);
     jetEtas.push_back(jet.eta());
-    jetCSVs.push_back(jet.csv);
-    jetCMVAs.push_back(jet.cmva);
     jetFlavors.push_back(jw->flavor);
+    if (analysis.year==2016) {
+      if (analysis.useCMVA)
+        jetDiscrs.push_back(jet.cmva);
+      else
+        jetDiscrs.push_back(jet.csv);
+    } else {
+      jetDiscrs.push_back(jet.deepCSVb);
+    }
   }
-  // throwaway addresses
-  double csvWgtHF, csvWgtLF, csvWgtCF, cmvaWgtHF, cmvaWgtLF, cmvaWgtCF;
   for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
     GeneralTree::csvShift shift = gt.csvShifts[iShift];
-    if (analysis.useCMVA) {
-      gt.sf_csvWeights[shift] = utils.btag->cmvaReweighter->getCSVWeight(jetPts,
-                                                                        jetEtas,
-                                                                        jetCMVAs,
-                                                                        jetFlavors, 
-                                                                        shift, 
-                                                                        cmvaWgtHF, 
-                                                                        cmvaWgtLF, 
-                                                                        cmvaWgtCF);
+    gt.sf_csvWeights[shift]=1;
+    for (unsigned iJ=0; iJ!=nJ; ++iJ) {
+      BTagEntry::JetFlavor flav;
+      unsigned absid = abs(jetFlavors[iJ]);
+      if     (absid==5) flav=BTagEntry::FLAV_B;
+      else if(absid==4) flav=BTagEntry::FLAV_C;
+      else              flav=BTagEntry::FLAV_UDSG;
+
+      gt.sf_csvWeights[shift] *= utils.btag->reshaper->eval_auto_bounds(
+          GeneralTree::csvShiftName(shift).Data(),
+          flav, jetEtas[iJ], jetPts[iJ], jetDiscrs[iJ]
+        );
     }
-    else 
-      gt.sf_csvWeights[shift] = utils.btag->csvReweighter->getCSVWeight(jetPts,
-                                                                       jetEtas,
-                                                                       jetCSVs,
-                                                                       jetFlavors, 
-                                                                       shift, 
-                                                                       csvWgtHF, 
-                                                                       csvWgtLF, 
-                                                                       csvWgtCF);
   }
 }

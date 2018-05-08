@@ -1,4 +1,5 @@
 #include "../interface/LepPhoMods.h"
+#include "PandaAnalysis/Utilities/interface/Helicity.h"
 
 using namespace pa;
 using namespace std;
@@ -69,6 +70,7 @@ void SimpleLeptonMod::do_execute()
     gt.electronSelBit[iL]       = eleSelBit;
     gt.electronPdgId[iL]        = ele.charge*-11;
     looseLeps.push_back(&ele);
+    matchLeps.push_back(&ele); 
     gt.nLooseElectron++;
     if (gt.nLooseElectron>=2) 
       break;
@@ -99,6 +101,7 @@ void SimpleLeptonMod::do_execute()
     gt.muonSelBit[iL]               = muSelBit;
     gt.muonPdgId[iL]                = mu.charge*-13;
     looseLeps.push_back(&mu);
+    matchLeps.push_back(&mu); 
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
     METLOOP {
       (*jesShifts)[shift].vpfMETNoMu += vMu;
@@ -143,7 +146,8 @@ void SimpleLeptonMod::do_execute()
     Lepton *lep1=looseLeps[0], *lep2=looseLeps[1];
     v1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
     v2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-    gt.diLepMass = (v1+v2).M();
+    dilep = v1+v2;
+    gt.diLepMass = dilep.M();
   } else {
     gt.diLepMass = -1;
   }
@@ -159,16 +163,19 @@ void ComplicatedLeptonMod::do_readData(TString dirPath)
 void ComplicatedLeptonMod::do_execute()
 {
   for (auto& ele : event.electrons) {
-    float pt = ele.smearedPt; float eta = ele.eta(); float aeta = fabs(eta);
+    float pt = ele.pt(); float eta = ele.eta(); float aeta = fabs(eta);
     if (analysis.hbb) {
+      // Use the unsmeared/uncorrected electron pT for this loose isolation cut
+      // because the electron pT assignment can be funky if it's inside a jet
       if (pt<7 || aeta>2.4 || fabs(ele.dxy)>0.05 || fabs(ele.dz)>0.2 || ele.combIso()>0.4*pt) 
         continue;
     } else {
       if (pt<10 || aeta>2.5 || !ele.veto) 
         continue;
     }
+    pt = ele.smearedPt;
     ele.setPtEtaPhiM(pt,eta,ele.phi(),511e-6);
-    int iL=gt.nLooseElectron;
+    matchLeps.push_back(&ele);
     bool isFake   = ele.hltsafe;
     bool isMedium = ele.medium;
     bool isTight  = ele.tight;
@@ -191,7 +198,6 @@ void ComplicatedLeptonMod::do_execute()
         ele.hcalIso < 0.28*pt &&
         ele.trackIso < 0.18*pt
     ));
-    if (isTight) gt.nTightElectron++;
     int eleSelBit            = kLoose;
     if (isFake  ) eleSelBit |= kFake;
     if (isMedium) eleSelBit |= kMedium;
@@ -199,6 +205,13 @@ void ComplicatedLeptonMod::do_execute()
     if (isDxyz  ) eleSelBit |= kDxyz;
     if (ele.mvaWP90 && eleMVAPresel) eleSelBit |= kEleMvaWP90;
     if (ele.mvaWP80 && eleMVAPresel) eleSelBit |= kEleMvaWP80;
+
+    // For HBB analysis, need to count as loose leptons, only the MVA90 ones
+    if (analysis.hbb && !(ele.mvaWP90 && eleMVAPresel && pt>15))
+      continue;
+    
+    if (isTight) gt.nTightElectron++;
+    int iL=gt.nLooseElectron;
     gt.electronPt[iL]           = pt;
     gt.electronEta[iL]          = eta;
     gt.electronPhi[iL]          = ele.phi();
@@ -268,6 +281,8 @@ void ComplicatedLeptonMod::do_execute()
       if (pt<10 || aeta>2.4 || !mu.loose) continue;
     }
     mu.setPtEtaPhiM(pt,eta,mu.phi(),0.106);
+    matchLeps.push_back(&mu); // Muon jet cleaning and loose cuts are equivalent in HBB land
+
     bool isFake   = mu.tight  && mu.combIso()/mu.pt() < 0.4 && mu.chIso/mu.pt() < 0.4;
     bool isMedium = mu.medium && mu.combIso()/mu.pt() < 0.15;
     bool isTight  = mu.tight  && mu.combIso()/mu.pt() < 0.15;
@@ -339,15 +354,27 @@ void ComplicatedLeptonMod::do_execute()
       lepPdgId[i] = ele->charge * -11;
     }
   }
-  if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
+  
+  if (gt.nLooseLep>1) {
     TLorentzVector v1,v2;
     Lepton *lep1=looseLeps[0], *lep2=looseLeps[1];
     v1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
     v2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-    gt.diLepMass = (v1+v2).M();
-  } else {
-    gt.diLepMass = -1;
-  }
+    dilep = v1+v2;
+    if (lepPdgId[0]+lepPdgId[1]==0)  // Strict sign/flavor 
+      gt.diLepMass = dilep.M();
+  
+    // Also allow for opposite flavor or same sign selection:
+    gt.ZBosonPt  = dilep.Pt();
+    gt.ZBosonEta = dilep.Eta();
+    gt.ZBosonPhi = dilep.Phi();
+    gt.ZBosonM   = dilep.M();
+    gt.ZBosonLep1CosThetaCS = CosThetaCollinsSoper(v1,v2);
+    // ZBosonLep1CosThetaStar, ZBosonLep1CosThetaStarFJ
+    // are not calculated here, we need the Z(ll)H(bb) system in JetsMods
+    
+  } 
+
 }
 
 

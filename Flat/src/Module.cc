@@ -149,6 +149,7 @@ void ConfigMod::set_outputBranches()
   }
   if (!analysis.hbb) 
     gt.RemoveBranches({".*JES.*"},{".*JESTotal.*"});
+  //gt.RemoveBranches({"sf_cmva.*"},{"sf_cmva_Central"});
 }
 
 void ConfigMod::readData(TString dirPath)

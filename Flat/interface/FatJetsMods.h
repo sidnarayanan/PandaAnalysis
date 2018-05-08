@@ -54,8 +54,10 @@ namespace pa {
     void do_init(Registry& registry) {
       registry.publishConst("fj1", &fj1);
       registry.publishConst("fatjets", &fatjets);
-      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); 
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
+      dilep = registry.accessConst<TLorentzVector>("dilep"); 
     }
     void do_execute();  
     float getMSDCorr(float,float);
@@ -65,8 +67,10 @@ namespace pa {
     panda::FatJet *fj1{nullptr}; 
     panda::FatJetCollection &fatjets;
 
-    const std::vector<panda::Lepton*>* matchLeps;
-    const std::vector<panda::Photon*>* matchPhos;
+    const std::vector<panda::Lepton*>* matchLeps{nullptr};
+    const std::vector<panda::Lepton*>* looseLeps{nullptr};
+    const std::vector<panda::Photon*>* matchPhos{nullptr};
+    const TLorentzVector *dilep{nullptr};
 
     FatJetReclusterMod *recluster{nullptr};
   };

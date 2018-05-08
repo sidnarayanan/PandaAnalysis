@@ -26,6 +26,16 @@ inline bool csvMed(float csv)
   return csv > 0.8484;
 }
 
+bool deepCsvLoose(float csv)
+{
+  return csv > 0.2219;
+}
+
+bool deepCsvMed(float csv)
+{ 
+  return csv > 0.6324;
+}
+
 
 JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear) 
 {
@@ -47,7 +57,7 @@ void BaseJetMod::do_readData(TString dirPath)
     return;
 
   TString jecVFull = jecReco+spacer+jecV;
-
+  
   TString basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecVFull;
   vector<JECParams> params = {
     JECParams((basePath+"_MC_L1FastJet_"+jetType+".txt").Data()),
@@ -573,6 +583,15 @@ void HbbSystemMod::do_execute()
     gt.topWBosonPt  = WP4.Pt();
     gt.topWBosonEta = WP4.Eta();
     gt.topWBosonPhi = WP4.Phi();
+  }
+  if (dilep && gt.hbbm > 0) {
+    TLorentzVector HP4;
+    if (analysis.bjetRegression)
+      HP4.SetPtEtaPhiM(gt.hbbpt_reg[0], gt.hbbeta[0], gt.hbbphi[0], gt.hbbm_reg[0]);
+    else
+      HP4.SetPtEtaPhiM(gt.hbbpt[0], gt.hbbeta[0], gt.hbbphi[0], gt.hbbm[0]);
+    TLorentzVector ZHP4 = (*dilep) + HP4;
+    gt.ZBosonLep1CosThetaStar = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
   }
 }
 

@@ -186,6 +186,7 @@ class GeneralTree : public genericTree {
     std::map<BTagParams,float> sf_alt_btags;
     std::map<TString,float> signal_weights;
     std::map<csvShift,float> sf_csvWeights;
+    static TString csvShiftName(csvShift shift);
 // ENDCUSTOM
   private:
 // STARTCUSTOM PRIVATE
@@ -546,6 +547,7 @@ class GeneralTree : public genericTree {
   float hbbm[43];
   float hbbm_reg[43];
   float hbbpt_reg[43];
+  float sumEtSoft1;
   int nSoft2;
   int nSoft5;
   int nSoft10;
@@ -556,7 +558,13 @@ class GeneralTree : public genericTree {
   float topWBosonPt;
   float topWBosonEta;
   float topWBosonPhi;
-  float sumEtSoft1;
+  float ZBosonPt;
+  float ZBosonEta;
+  float ZBosonPhi;
+  float ZBosonM;
+  float ZBosonLep1CosThetaCS;
+  float ZBosonLep1CosThetaStar;
+  float ZBosonLep1CosThetaStarFJ;
   float scaleUp;
   float scaleDown;
   float pdfUp;
