@@ -539,7 +539,7 @@ class GeneralTree : public genericTree {
   int looseGenLep4PdgId;
   float diLepMass;
   int nTau;
-  float mT[43];
+  float mT[3];
   int hbbjtidx[43][2];
   float hbbpt[43];
   float hbbeta[43];
@@ -553,8 +553,8 @@ class GeneralTree : public genericTree {
   int nSoft10;
   float hbbCosThetaJJ[43];
   float hbbCosThetaCSJ1[43];
-  float topMassLep1Met[43];
-  float topWBosonCosThetaCS[43];
+  float topMassLep1Met[3];
+  float topWBosonCosThetaCS[3];
   float topWBosonPt;
   float topWBosonEta;
   float topWBosonPhi;

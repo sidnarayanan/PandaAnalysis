@@ -96,16 +96,19 @@ void FatJetMod::do_execute()
       for (int iS(0); iS != fj.subjets.size(); ++iS)
         subjets.push_back(&fj.subjets.objAt(iS));
 
-      auto csvsort = [](MicroJet const* j1, MicroJet const* j2) -> bool {
-              return j1->csv > j2->csv;
+
+      auto& mya = analysis; // local scope
+      auto mycsv = [&mya](const MicroJet& j) { return (mya.year == 2016 ? j.csv : j.deepCSVb); };
+      auto csvsort = [&mycsv](MicroJet const* j1, MicroJet const* j2) -> bool {
+              return mycsv(*j1) > mycsv(*j2);
             };
 
       std::sort(subjets.begin(),subjets.end(),csvsort);
       if (subjets.size()>0) {
-        gt.fjMaxCSV = subjets.at(0)->csv;
-        gt.fjMinCSV = subjets.back()->csv;
+        gt.fjMaxCSV = mycsv(*(subjets[0]));
+        gt.fjMinCSV = mycsv(*(subjets.back()));
         if (subjets.size()>1) {
-          gt.fjSubMaxCSV = subjets.at(1)->csv;
+          gt.fjSubMaxCSV = mycsv(*(subjets[1]));
         }
       }
 
@@ -117,7 +120,7 @@ void FatJetMod::do_execute()
           gt.fjsjEta[iSJ]=subjet.eta();
           gt.fjsjPhi[iSJ]=subjet.phi();
           gt.fjsjM[iSJ]=subjet.m();
-          gt.fjsjCSV[iSJ]=subjet.csv;
+          gt.fjsjCSV[iSJ]=mycsv(subjet);
           gt.fjsjQGL[iSJ]=subjet.qgl;
         }
       }
@@ -128,7 +131,7 @@ void FatJetMod::do_execute()
       gt.fjGenNumB = 0;
   }
 
-  if (gt.nFatjet>0 && dilep) {
+  if (gt.nFatjet > 0 && gt.nLooseLep > 1) {
     TLorentzVector HP4;
     HP4.SetPtEtaPhiM(gt.fjPt,gt.fjEta,gt.fjPhi,gt.fjMSD_corr);
     TLorentzVector ZHP4 = (*dilep) + HP4;

@@ -15,26 +15,6 @@ inline float centralOnly(float x, float aeta, float def = -1)
 }
 
 
-inline bool csvLoose(float csv) 
-{
-  return csv > 0.5426;
-}
-
-
-inline bool csvMed(float csv) 
-{
-  return csv > 0.8484;
-}
-
-bool deepCsvLoose(float csv)
-{
-  return csv > 0.2219;
-}
-
-bool deepCsvMed(float csv)
-{ 
-  return csv > 0.6324;
-}
 
 
 JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear) 
@@ -171,7 +151,7 @@ void JetMod::do_execute()
 
       flavor->execute();
 
-      float csv = centralOnly(jet.csv, aeta);
+      float csv = centralOnly(analysis.year==2016 ? jet.csv : jet.deepCSVb, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
       if (pt > cfg.minBJetPt && aeta < 2.4) { // b jets
@@ -584,7 +564,7 @@ void HbbSystemMod::do_execute()
     gt.topWBosonEta = WP4.Eta();
     gt.topWBosonPhi = WP4.Phi();
   }
-  if (dilep && gt.hbbm > 0) {
+  if (gt.nLooseLep > 1 && gt.hbbm > 0) {
     TLorentzVector HP4;
     if (analysis.bjetRegression)
       HP4.SetPtEtaPhiM(gt.hbbpt_reg[0], gt.hbbeta[0], gt.hbbphi[0], gt.hbbm_reg[0]);

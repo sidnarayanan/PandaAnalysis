@@ -139,12 +139,14 @@ namespace pa {
           jerV = "Spring16_25nsV10";
           eraGroups = {"BCD","EF","G","H"};
           spacer = "";
+          csvL = 0.5426; csvM = 0.8484;
         } else {
           jecV = "V8"; jecReco = "17Nov2017"; 
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
           eraGroups = {"B","C","D","E","F"};
           spacer = "_";
+          csvL = 0.2219; csvM = 0.6324;
         }
       }
     virtual ~BaseJetMod () { 
@@ -160,6 +162,8 @@ namespace pa {
         }
       }
     }
+    bool csvLoose (float csv) { return csv > csvL; }
+    bool csvMed (float csv) { return csv > csvM; }
   protected:
     virtual void do_execute() = 0;
     virtual void do_readData(TString path);
@@ -173,6 +177,7 @@ namespace pa {
     
     TString jecV, jecReco, jetType, campaign, spacer, jerV;
     std::vector<TString> eraGroups;
+    float csvL, csvM; 
   private:
     void setScaleUnc(TString, TString);
   };
