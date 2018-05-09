@@ -58,7 +58,7 @@ namespace pa {
         outputName = "ffwd_out/BiasAdd";
       }
 
-    virtual bool on() { return !analysis.genOnly && analysis.hbb; }
+    virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetRegression; }
   protected:
     void do_readData(TString dirPath) {
       TString modelfile = dirPath+"/trainings/breg_training_2017.pb";
@@ -66,7 +66,13 @@ namespace pa {
                    modelfile);
       build(modelfile);
     }
+    virtual void do_init(Registry& registry) {
+      TFInferMod::do_init(registry);
+      currentJet = registry.access<JetWrapper*>("higgsDaughterJet");
+    }
     void do_execute(); 
+  private:
+    JetWrapper **currentJet{nullptr};
   };
 
   template <typename GENP>

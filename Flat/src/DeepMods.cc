@@ -8,7 +8,64 @@ namespace tf = tensorflow;
 
 void BRegDeepMod::do_execute()
 {
+  auto& jw = **currentJet; 
+  auto& jet = jw.get_base();
+  int N = jw.user_idx; 
+
+  TLorentzVector vRaw;
+  vRaw.SetPtEtaPhiM(jet.rawPt, jet.eta(), jet.phi(), jet.m());
+
+  // defined in data/trainings/breg_training_2017.cfg
+  inputs[ 0] = jet.rawPt; 
+  inputs[ 1] = jet.eta();
+  inputs[ 2] = event.rho;
+  inputs[ 3] = vRaw.Mt();
+  inputs[ 4] = gt.jotTrk1Pt[N];
+  inputs[ 5] = gt.jotLep1PtRel[N];
+  inputs[ 6] = gt.jotLep1DeltaR[N];
+  inputs[ 7] = 0;
+  inputs[ 8] = 0;
+  inputs[ 9] = gt.jotVtxPt[N];
+  inputs[10] = gt.jotVtxMass[N];
+  inputs[11] = gt.jotVtx3DVal[N];
+  inputs[12] = gt.jotVtxNtrk[N]; 
+  inputs[13] = gt.jotVtx3DErr[N];
+  inputs[14] = 0; 
+  inputs[15] = 0;
+  inputs[16] = 0;
+  inputs[17] = 0;
+  inputs[18] = 0;
+  inputs[19] = 0;
+  inputs[20] = 0;
+  inputs[21] = 0;
+  inputs[22] = 0;
+  inputs[23] = 0;
+  inputs[24] = 0;
+  inputs[25] = 0;
+  inputs[26] = 0;
+  inputs[27] = 0;
+  inputs[28] = 0;
+  inputs[29] = 0;
+  inputs[30] = 0;
+  inputs[31] = 0;
+  inputs[32] = 0;
+  inputs[33] = 0;
+  inputs[34] = 0;
+  inputs[35] = 0;
+  inputs[36] = 0;
+  inputs[37] = 0;
+  inputs[38] = 0;
+  inputs[39] = 0;
+  inputs[40] = 0;
+  inputs[41] = 0;
+  inputs[42] = jet.m(); 
+  inputs[43] = 0;
+
   eval();
+
+  jet.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
+  jet.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
+
 }
 
 void TFInferMod::build(TString weightpath)

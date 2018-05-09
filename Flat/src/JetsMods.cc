@@ -217,7 +217,6 @@ void JetMod::do_execute()
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
 
             bjetreg->execute();
-            dnnbreg->execute();
           }
         }
 
@@ -465,13 +464,12 @@ void HbbSystemMod::do_execute()
     order[jets.cleaned[i]] = i;
  
 
-  gt.hbbjtidx[shift][0] = order[btagsorted[0]];
-  gt.hbbjtidx[shift][1] = order[btagsorted[1]];
-
-  vector<TLorentzVector> hbbd(2);
-  for (int i = 0; i != 2; ++i) {
+  array<TLorentzVector,2> hbbd;
+  for (int i = 0; i != 2; ++i)  {
+    gt.hbbjtidx[shift][i] = order[btagsorted[i]]; 
     btagsorted[i]->p4(hbbd[i]);
   }
+
   TLorentzVector hbbsystem = hbbd[0] + hbbd[1];
 
   gt.hbbpt[shift] = hbbsystem.Pt();
@@ -479,10 +477,25 @@ void HbbSystemMod::do_execute()
   gt.hbbphi[shift] = hbbsystem.Phi();
   gt.hbbm[shift] = hbbsystem.M();
 
-  array<TLorentzVector,2> hbbd_corr;
+  array<TLorentzVector,2> hbbd_corr, hbbd_dcorr;
   if (analysis.bjetRegression && gt.hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
+      hbbdJet = jets.cleaned[idx];
+      hbbdJet->user_idx = idx; 
+
+      if (shift == jes2i(shiftjes::kNominal)) {
+        deepreg->execute();
+        gt.jotDeepBReg[i] = hbbdJet->breg;
+        gt.jotDeepBRegWidth[i] = hbbdJet->bregwidth;
+      } 
+      hbbd_dcorr[i].SetPtEtaPhiM(
+          gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
+            gt.jotEta[idx],
+            gt.jotPhi[idx],
+            gt.jotM[idx]
+          );
+
       // Shifted values for the jet energies to perform the b-jet regression
       bjetreg_vars[0] = gt.jotPt[shift][idx];
       bjetreg_vars[1] = gt.jotEta[idx];
@@ -512,6 +525,10 @@ void HbbSystemMod::do_execute()
     TLorentzVector hbbsystem_corr = hbbd_corr[0] + hbbd_corr[1];
     gt.hbbm_reg[shift] = hbbsystem_corr.M(); 
     gt.hbbpt_reg[shift] = hbbsystem_corr.Pt();
+
+    TLorentzVector hbbsystem_dcorr = hbbd_dcorr[0] + hbbd_dcorr[1];
+    gt.hbbm_dreg[shift] = hbbsystem_dcorr.M(); 
+    gt.hbbpt_dreg[shift] = hbbsystem_dcorr.Pt();
 
   } // regression
 

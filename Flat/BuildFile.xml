@@ -15,4 +15,4 @@
 <export>
   <lib   name="1"/>
 </export>
-<flags CXXFLAGS="-Wno-expansion-to-defined -g -O2"/> 
+<flags CXXFLAGS="-g -O2"/> 
