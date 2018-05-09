@@ -1691,6 +1691,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("hbbpt_reg_JESSinglePionHCALDown",&(hbbpt_reg[40]),"hbbpt_reg_JESSinglePionHCALDown/F");
     Book("hbbpt_reg_JESTimePtEtaUp",&(hbbpt_reg[41]),"hbbpt_reg_JESTimePtEtaUp/F");
     Book("hbbpt_reg_JESTimePtEtaDown",&(hbbpt_reg[42]),"hbbpt_reg_JESTimePtEtaDown/F");
+    /*
     Book("hbbm_dreg",&(hbbm_dreg[0]),"hbbm_dreg/F");
     Book("hbbm_dreg_JESTotalUp",&(hbbm_dreg[1]),"hbbm_dreg_JESTotalUp/F");
     Book("hbbm_dreg_JESTotalDown",&(hbbm_dreg[2]),"hbbm_dreg_JESTotalDown/F");
@@ -1777,6 +1778,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("hbbpt_dreg_JESSinglePionHCALDown",&(hbbpt_dreg[40]),"hbbpt_dreg_JESSinglePionHCALDown/F");
     Book("hbbpt_dreg_JESTimePtEtaUp",&(hbbpt_dreg[41]),"hbbpt_dreg_JESTimePtEtaUp/F");
     Book("hbbpt_dreg_JESTimePtEtaDown",&(hbbpt_dreg[42]),"hbbpt_dreg_JESTimePtEtaDown/F");
+    */
     Book("sumEtSoft1",&sumEtSoft1,"sumEtSoft1/F");
     Book("nSoft2",&nSoft2,"nSoft2/I");
     Book("nSoft5",&nSoft5,"nSoft5/I");

@@ -22,7 +22,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear)
     bool isUp = !(ishift % 2 == 0); 
     (*scaleUnc)[ishift]->setJetPt(pt);
     (*scaleUnc)[ishift]->setJetEta(jet.eta());
-    pt *= (*scaleUnc)[ishift]->getUncertainty(isUp);
+    pt *= (1.+ (*scaleUnc)[ishift]->getUncertainty(isUp));
   }
   return JetWrapper(pt, jet);
 }
@@ -117,9 +117,10 @@ void JetMod::varyJES()
     nominal->nominal = nominal;
     nominal->maxpt = nominal->pt; 
     JESLOOP {
+      if (shift==0) continue; // Already set the nominal
       auto* jet = &((*jesShifts)[shift].all[iJ]);
       jet->nominal = nominal; 
-      if (jet->pt > nominal->maxpt)
+      if (jet->pt > nominal->maxpt) 
         nominal->maxpt = jet->pt; 
     }
   }
@@ -174,7 +175,7 @@ void JetMod::do_execute()
       } 
 
 
-      if (jet.nominal->maxpt > cfg.minJetPt) {
+      if (jw.nominal->maxpt > cfg.minJetPt) {
         // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
@@ -494,9 +495,10 @@ void HbbSystemMod::do_execute()
   if (analysis.bjetRegression && gt.hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
-      hbbdJet = jets.cleaned[idx];
-      hbbdJet->user_idx = idx; 
+      //hbbdJet = jets.cleaned[idx];
+      //hbbdJet->user_idx = idx; 
 
+      /*
       if (shift == jes2i(shiftjes::kNominal)) {
         deepreg->execute();
         gt.jotDeepBReg[i] = hbbdJet->breg;
@@ -508,6 +510,7 @@ void HbbSystemMod::do_execute()
             gt.jotPhi[idx],
             gt.jotM[idx]
           );
+      */
 
       // Shifted values for the jet energies to perform the b-jet regression
       bjetreg_vars[0] = gt.jotPt[shift][idx];
@@ -539,9 +542,9 @@ void HbbSystemMod::do_execute()
     gt.hbbm_reg[shift] = hbbsystem_corr.M(); 
     gt.hbbpt_reg[shift] = hbbsystem_corr.Pt();
 
-    TLorentzVector hbbsystem_dcorr = hbbd_dcorr[0] + hbbd_dcorr[1];
-    gt.hbbm_dreg[shift] = hbbsystem_dcorr.M(); 
-    gt.hbbpt_dreg[shift] = hbbsystem_dcorr.Pt();
+    //TLorentzVector hbbsystem_dcorr = hbbd_dcorr[0] + hbbd_dcorr[1];
+    //gt.hbbm_dreg[shift] = hbbsystem_dcorr.M(); 
+    //gt.hbbpt_dreg[shift] = hbbsystem_dcorr.Pt();
 
   } // regression
 
