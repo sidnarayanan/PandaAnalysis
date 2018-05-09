@@ -185,7 +185,7 @@ void ConfigMod::readData(TString dirPath)
       utils.openCorr(cEleTight,
                      dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root",
                      "EGamma_SF2D",2);
-      utils.openCorr(cEleMvaWP90,
+      utils.openCorr(cEleMvaWP80,
                      dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingMVA94Xwp80iso.root",
                      "EGamma_SF2D",2);
       utils.openCorr(cEleMvaWP90,
