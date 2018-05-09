@@ -360,10 +360,10 @@ void ConfigMod::readData(TString dirPath)
                    dirPath+"trigger_eff/muon_trig_Run2016BtoF.root",
                    "IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesDATA/abseta_pt_DATA",2);
     utils.openCorr(cTrigDoubleEleLeg1,
-                   dirPath+"leptonic/triggers_76x_hww.root",
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
                    "h2_results_electron_double_leadingleg",2);
     utils.openCorr(cTrigDoubleEleLeg2,
-                   dirPath+"leptonic/triggers_76x_hww.root",
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
                    "h2_results_electron_double_trailingleg",2);
     utils.openCorr(cTrigDoubleMuLeg1,
                    dirPath+"trigger_eff/triggers_76x_hww.root",
