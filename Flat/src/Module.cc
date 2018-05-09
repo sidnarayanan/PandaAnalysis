@@ -174,7 +174,7 @@ void ConfigMod::readData(TString dirPath)
     // https://github.com/GuillelmoGomezCeballos/MitAnalysisRunII/tree/master/data/80x
     if (analysis.year==2017) {
       utils.openCorr(cEleVeto,
-                     dirPath+"moriond17/egammaEffi.txt_EGM2D_runBCDEF_passingVeto94X.root",
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingVeto94X.root",
                      "EGamma_SF2D",2);
       utils.openCorr(cEleLoose,
                      dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingLoose94X.root",
@@ -366,10 +366,10 @@ void ConfigMod::readData(TString dirPath)
                    dirPath+"leptonic/triggers_76x_hww.root",
                    "h2_results_electron_double_trailingleg",2);
     utils.openCorr(cTrigDoubleMuLeg1,
-                   dirPath+"leptonic/triggers_76x_hww.root",
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
                    "h2_results_muon_double_leadingleg",2);
     utils.openCorr(cTrigDoubleMuLeg2,
-                   dirPath+"leptonic/triggers_76x_hww.root",
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
                    "h2_results_muon_double_trailingleg",2);
   }
   // Currently out of date for 2017
@@ -385,10 +385,10 @@ void ConfigMod::readData(TString dirPath)
                  dirPath+"moriond17/metTriggerEfficiency_zmm_recoil_monojet_TH1F.root",
                  "hden_monojet_recoil_clone_passed",1);
   utils.openCorr(cTrigDoubleMuLeg1,
-                 dirPath+"leptonic/triggers_76x_hww.root",
+                 dirPath+"trigger_eff/triggers_76x_hww.root",
                  "h2_results_muon_double_leadingleg",2);
   utils.openCorr(cTrigDoubleMuLeg2,
-                 dirPath+"leptonic/triggers_76x_hww.root",
+                 dirPath+"trigger_eff/triggers_76x_hww.root",
                  "h2_results_muon_double_trailingleg",2);
 
   // kfactors
