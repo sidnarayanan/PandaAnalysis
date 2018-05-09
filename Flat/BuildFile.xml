@@ -10,6 +10,9 @@
 <use   name="CondFormats/JetMETObjects"/>
 <use   name="fastjet"/>
 <use   name="fastjet-contrib"/>
+<use   name="tensorflow-cc"/>
+<use   name="PhysicsTools/TensorFlow"/>
 <export>
   <lib   name="1"/>
 </export>
+<flags CXXFLAGS="-Wno-expansion-to-defined -g -O2"/> 

@@ -6,6 +6,18 @@ using namespace std;
 using namespace pa;
 using namespace panda;
 
+
+void pa::downloadData(TString url, TString outpath, TString opts) 
+{
+  if (!gSystem->AccessPathName(outpath))
+    return; // "Attention, bizarre convention of return value!!" -ROOT docs for this function
+  TString cmd = "wget ";
+  cmd += opts + " ";
+  cmd += "-O " + outpath;
+  cmd += " \"" + url + "\"";
+  gSystem->Exec(cmd);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 
 JetTree::Node::Node(PseudoJet& pj_):

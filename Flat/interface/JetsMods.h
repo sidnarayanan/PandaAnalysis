@@ -3,6 +3,7 @@
 
 #include "Module.h"
 #include "TMVA/Reader.h"
+#include "DeepMods.h"
 
 namespace pa {
   class HbbSystemMod : public AnalysisMod {
@@ -196,6 +197,7 @@ namespace pa {
         bjetreg = new BJetRegMod(event_, cfg_, utils_, gt_); subMods.push_back(bjetreg);
         vbf = new VBFSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(vbf);
         hbb = new HbbSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(hbb);
+        dnnbreg = new BRegDeepMod(event_, cfg_, utils_, gt_); subMods.push_back(dnnbreg);
 
         jetType = "AK4PFchs";
       }
@@ -219,6 +221,7 @@ namespace pa {
     BJetRegMod *bjetreg{nullptr};
     VBFSystemMod *vbf{nullptr};
     HbbSystemMod *hbb{nullptr};
+    BRegDeepMod *dnnbreg{nullptr};
 
     std::vector<JESHandler>* jesShifts{nullptr}; 
 

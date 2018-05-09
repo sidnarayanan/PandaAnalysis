@@ -4,6 +4,42 @@ using namespace pa;
 using namespace std;
 using namespace panda;
 using namespace fastjet;
+namespace tf = tensorflow; 
+
+void BRegDeepMod::do_execute()
+{
+  eval();
+}
+
+void TFInferMod::build(TString weightpath)
+{
+  tf::setLogging("3");
+  graph = tf::loadGraphDef(weightpath.Data());
+  tf::SessionOptions opts; tf::setThreading(opts, 1, "no_threads");
+  sess = tf::createSession(graph, opts); 
+
+  inputs.resize(n_inputs); outputs.resize(n_outputs); 
+  outputNames[0] = outputName.Data();
+}
+
+void TFInferMod::eval()
+{
+  // build the input tensor 
+  // might be better to put this on the heap but need to check how it moves between sessions
+  tf::NamedTensorList t_i; 
+  t_i.resize(1);
+  t_i[0] = tf::NamedTensor(inputName.Data(),
+                           tf::Tensor(tf::DT_FLOAT, 
+                                      tf::TensorShape({1, (long long int)n_inputs})));
+  for (int idx = 0; idx != n_inputs; ++idx) 
+    t_i[0].second.matrix<float>()(0, idx) = inputs[idx];
+
+  // set up output and run
+  vector<tf::Tensor> t_o; 
+  tf::run(sess, t_i, outputNames, &t_o);
+  for (int idx = 0; idx != n_outputs; ++idx)
+    outputs[idx] = t_o[0].matrix<float>()(0, idx);
+}
 
 template <typename GENP>
 DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_, 

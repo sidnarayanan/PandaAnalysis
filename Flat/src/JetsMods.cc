@@ -438,9 +438,8 @@ void HbbSystemMod::do_readData(TString dirPath)
   bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
                              &(bjetreg_vars[14]) );
 
-  gSystem->Exec(
-      Form("wget -nv -O %s/trainings/bjetregression.weights.xml http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",dirPath.Data())
-    );
+  downloadData("http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",
+               Form("%s/trainings/bjetregression.weights.xml" ,dirPath.Data()));
   bjetregReader->BookMVA("BDT method", 
                          dirPath+"trainings/bjetregression.weights.xml" );
 
