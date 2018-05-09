@@ -63,8 +63,8 @@ void BRegDeepMod::do_execute()
 
   eval();
 
-  jet.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
-  jet.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
+  jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
+  jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
 
 }
 
