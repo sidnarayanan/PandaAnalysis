@@ -112,6 +112,17 @@ void JetMod::varyJES()
     }
     jets.sort();
   }
+  for (size_t iJ = 0; iJ != (*jesShifts)[0].all.size(); ++iJ) {
+    auto* nominal = &((*jesShifts)[0].all[iJ]);
+    nominal->nominal = nominal;
+    nominal->maxpt = nominal->pt; 
+    JESLOOP {
+      auto* jet = &((*jesShifts)[shift].all[iJ]);
+      jet->nominal = nominal; 
+      if (jet->pt > nominal->maxpt)
+        nominal->maxpt = jet->pt; 
+    }
+  }
 }
 
 
@@ -163,7 +174,7 @@ void JetMod::do_execute()
       } 
 
 
-      if (pt > cfg.minJetPt) {
+      if (jet.nominal->maxpt > cfg.minJetPt) {
         // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
@@ -186,7 +197,8 @@ void JetMod::do_execute()
           jets.central.push_back(&jw);
           
           int njet = jets.central.size() - 1;
-          gt.nJet[shift] = njet + 1;
+          if (pt > cfg.minJetPt)
+            gt.nJet[shift]++;
           if (isNominal) {
             if (njet < 2) {
               gt.jetPt[njet] = pt;
@@ -219,9 +231,11 @@ void JetMod::do_execute()
             bjetreg->execute();
           }
         }
+        if (pt > cfg.minJetPt)
+          gt.nJot[shift]++;
 
         TLorentzVector vJet; vJet.SetPtEtaPhiM(pt, jet.eta(), jet.phi(), jet.m());
-        if (metShift && njet < nJetDPhi) { // only do this for fully-correlated shifts
+        if (metShift && njet < nJetDPhi && pt > cfg.minJetPt) { // only do this for fully-correlated shifts
           gt.dphipuppimet[shift] = min(fabs(vJet.DeltaPhi(jets.vpuppiMET)), (double)gt.dphipuppimet[shift]);
           gt.dphipfmet[shift]    = min(fabs(vJet.DeltaPhi(jets.vpfMET)),    (double)gt.dphipfmet[shift]);
           if (analysis.recoil) {
@@ -236,7 +250,6 @@ void JetMod::do_execute()
       }
     }
 
-    gt.nJot[shift] = jets.cleaned.size();
     gt.nJotMax = max(gt.nJot[shift], gt.nJotMax);
     if (metShift) {
       switch (gt.whichRecoil) {
@@ -438,9 +451,8 @@ void HbbSystemMod::do_readData(TString dirPath)
   bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
                              &(bjetreg_vars[14]) );
 
-  gSystem->Exec(
-      Form("wget -nv -O %s/trainings/bjetregression.weights.xml http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",dirPath.Data())
-    );
+  downloadData("http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",
+               Form("%s/trainings/bjetregression.weights.xml" ,dirPath.Data()));
   bjetregReader->BookMVA("BDT method", 
                          dirPath+"trainings/bjetregression.weights.xml" );
 
@@ -465,13 +477,12 @@ void HbbSystemMod::do_execute()
     order[jets.cleaned[i]] = i;
  
 
-  gt.hbbjtidx[shift][0] = order[btagsorted[0]];
-  gt.hbbjtidx[shift][1] = order[btagsorted[1]];
-
-  vector<TLorentzVector> hbbd(2);
-  for (int i = 0; i != 2; ++i) {
+  array<TLorentzVector,2> hbbd;
+  for (int i = 0; i != 2; ++i)  {
+    gt.hbbjtidx[shift][i] = order[btagsorted[i]]; 
     btagsorted[i]->p4(hbbd[i]);
   }
+
   TLorentzVector hbbsystem = hbbd[0] + hbbd[1];
 
   gt.hbbpt[shift] = hbbsystem.Pt();
@@ -479,10 +490,25 @@ void HbbSystemMod::do_execute()
   gt.hbbphi[shift] = hbbsystem.Phi();
   gt.hbbm[shift] = hbbsystem.M();
 
-  array<TLorentzVector,2> hbbd_corr;
+  array<TLorentzVector,2> hbbd_corr, hbbd_dcorr;
   if (analysis.bjetRegression && gt.hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
+      hbbdJet = jets.cleaned[idx];
+      hbbdJet->user_idx = idx; 
+
+      if (shift == jes2i(shiftjes::kNominal)) {
+        deepreg->execute();
+        gt.jotDeepBReg[i] = hbbdJet->breg;
+        gt.jotDeepBRegWidth[i] = hbbdJet->bregwidth;
+      } 
+      hbbd_dcorr[i].SetPtEtaPhiM(
+          gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
+            gt.jotEta[idx],
+            gt.jotPhi[idx],
+            gt.jotM[idx]
+          );
+
       // Shifted values for the jet energies to perform the b-jet regression
       bjetreg_vars[0] = gt.jotPt[shift][idx];
       bjetreg_vars[1] = gt.jotEta[idx];
@@ -512,6 +538,10 @@ void HbbSystemMod::do_execute()
     TLorentzVector hbbsystem_corr = hbbd_corr[0] + hbbd_corr[1];
     gt.hbbm_reg[shift] = hbbsystem_corr.M(); 
     gt.hbbpt_reg[shift] = hbbsystem_corr.Pt();
+
+    TLorentzVector hbbsystem_dcorr = hbbd_dcorr[0] + hbbd_dcorr[1];
+    gt.hbbm_dreg[shift] = hbbsystem_dcorr.M(); 
+    gt.hbbpt_dreg[shift] = hbbsystem_dcorr.Pt();
 
   } // regression
 

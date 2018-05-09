@@ -10,12 +10,15 @@
 
 // root, stl
 #include "TRotation.h"
+#include "TSystem.h"
 #include <set>
 #include <stdexcept>
 
 #include "Common.h"
 
 namespace pa { 
+  void downloadData(TString url, TString outpath, TString opts="-nv"); 
+
   // semi-temporary measure to deal with v009 gen duplication issue
   inline const panda::GenParticle* pToGPtr(const panda::Particle* p)
   {
@@ -291,8 +294,12 @@ namespace pa {
     float pt; 
     int flavor{0};
     float genpt{0};
+    float maxpt{0}; 
     bool iso{false};
+    int user_idx{-1};
+    float breg{-1}, bregwidth{-1}; 
     const panda::Jet* base;
+    const JetWrapper* nominal{nullptr}; 
 
     JetWrapper(float pt_, const panda::Jet& j): pt(pt_), base(&j) { }
 
@@ -311,11 +318,11 @@ namespace pa {
 
   struct JESHandler {
     std::vector<JetWrapper> all; // all jets 
-    std::vector<const JetWrapper*> cleaned;
-    std::vector<const JetWrapper*> cleaned_sorted; // pt-sorted
-    std::vector<const JetWrapper*> iso;   // cleaned that do not overlap with fj
-    std::vector<const JetWrapper*> central; // cleaned that are central
-    std::vector<const JetWrapper*> bcand;   // all that are b candidates
+    std::vector<JetWrapper*> cleaned;
+    std::vector<JetWrapper*> cleaned_sorted; // pt-sorted
+    std::vector<JetWrapper*> iso;   // cleaned that do not overlap with fj
+    std::vector<JetWrapper*> central; // cleaned that are central
+    std::vector<JetWrapper*> bcand;   // all that are b candidates
 
     TLorentzVector vpfMET, vpuppiMET;
     TVector2 vpfMETNoMu;

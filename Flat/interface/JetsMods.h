@@ -3,6 +3,7 @@
 
 #include "Module.h"
 #include "TMVA/Reader.h"
+#include "DeepMods.h"
 
 namespace pa {
   class HbbSystemMod : public AnalysisMod {
@@ -11,7 +12,9 @@ namespace pa {
                  Config& cfg_,                 
                  Utils& utils_,                
                  GeneralTree& gt_) :                 
-      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_) { }
+      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_) { 
+        deepreg = new BRegDeepMod(event_, cfg_, utils_, gt_); subMods.push_back(deepreg);
+      }
     virtual ~HbbSystemMod () {
       delete bjetregReader;
       delete[] bjetreg_vars;
@@ -25,13 +28,17 @@ namespace pa {
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); 
       dilep = registry.accessConst<TLorentzVector>("dilep"); 
       registry.publishConst("btagsortedjets", &btagsorted);
+      registry.publish("higgsDaughterJet", &hbbdJet); 
     }
     void do_execute();
   private:
     JESHandler **currentJES{nullptr};
-    std::vector<const JetWrapper*> btagsorted;
+    std::vector<JetWrapper*> btagsorted;
     const std::vector<panda::Lepton*>* looseLeps{nullptr};
     const TLorentzVector *dilep{nullptr};
+    
+    JetWrapper* hbbdJet{nullptr};
+    BRegDeepMod *deepreg{nullptr};
 
     TMVA::Reader *bjetregReader{nullptr}; 
     float *bjetreg_vars{nullptr};

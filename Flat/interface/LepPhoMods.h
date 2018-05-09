@@ -44,7 +44,7 @@ namespace pa {
     
   protected:
     virtual void do_init(Registry& registry) {
-      registry.publishConst("looseLeps", &looseLeps);
+      registry.publishConst("looseLeps", &looseLeps); // sink sheps 
       registry.publishConst("tightLeps", &tightLeps);
       registry.publishConst("matchLeps", &matchLeps);
       registry.publishConst("lepPdgId", &lepPdgId);
