@@ -37,8 +37,8 @@ skimmer.lastEvent=10
 if a.isData:
     utils.add_json(skimmer)
 
-skimmer.AddPresel(root.pa.VHbbSel())
-skimmer.AddPresel(root.pa.TriggerSel())
+# skimmer.AddPresel(root.pa.VHbbSel())
+# skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()
 skimmer.Terminate()

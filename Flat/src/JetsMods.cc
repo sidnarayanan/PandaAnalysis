@@ -112,6 +112,17 @@ void JetMod::varyJES()
     }
     jets.sort();
   }
+  for (size_t iJ = 0; iJ != (*jesShifts)[0].all.size(); ++iJ) {
+    auto* nominal = &((*jesShifts)[0].all[iJ]);
+    nominal->nominal = nominal;
+    nominal->maxpt = nominal->pt; 
+    JESLOOP {
+      auto* jet = &((*jesShifts)[shift].all[iJ]);
+      jet->nominal = nominal; 
+      if (jet->pt > nominal->maxpt)
+        nominal->maxpt = jet->pt; 
+    }
+  }
 }
 
 
@@ -163,7 +174,7 @@ void JetMod::do_execute()
       } 
 
 
-      if (pt > cfg.minJetPt) {
+      if (jet.nominal->maxpt > cfg.minJetPt) {
         // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
@@ -186,7 +197,8 @@ void JetMod::do_execute()
           jets.central.push_back(&jw);
           
           int njet = jets.central.size() - 1;
-          gt.nJet[shift] = njet + 1;
+          if (pt > cfg.minJetPt)
+            gt.nJet[shift]++;
           if (isNominal) {
             if (njet < 2) {
               gt.jetPt[njet] = pt;
@@ -219,9 +231,11 @@ void JetMod::do_execute()
             bjetreg->execute();
           }
         }
+        if (pt > cfg.minJetPt)
+          gt.nJot[shift]++;
 
         TLorentzVector vJet; vJet.SetPtEtaPhiM(pt, jet.eta(), jet.phi(), jet.m());
-        if (metShift && njet < nJetDPhi) { // only do this for fully-correlated shifts
+        if (metShift && njet < nJetDPhi && pt > cfg.minJetPt) { // only do this for fully-correlated shifts
           gt.dphipuppimet[shift] = min(fabs(vJet.DeltaPhi(jets.vpuppiMET)), (double)gt.dphipuppimet[shift]);
           gt.dphipfmet[shift]    = min(fabs(vJet.DeltaPhi(jets.vpfMET)),    (double)gt.dphipfmet[shift]);
           if (analysis.recoil) {
@@ -236,7 +250,6 @@ void JetMod::do_execute()
       }
     }
 
-    gt.nJot[shift] = jets.cleaned.size();
     gt.nJotMax = max(gt.nJot[shift], gt.nJotMax);
     if (metShift) {
       switch (gt.whichRecoil) {

@@ -294,10 +294,12 @@ namespace pa {
     float pt; 
     int flavor{0};
     float genpt{0};
+    float maxpt{0}; 
     bool iso{false};
     int user_idx{-1};
     float breg{-1}, bregwidth{-1}; 
     const panda::Jet* base;
+    const JetWrapper* nominal{nullptr}; 
 
     JetWrapper(float pt_, const panda::Jet& j): pt(pt_), base(&j) { }
 

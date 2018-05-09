@@ -9,6 +9,35 @@
 
 namespace pa {
 
+  /*
+  class BRegBDTMod : public Analysis {
+  public:
+    BRegBDTMod(panda::EventAnalysis& event_,
+                Config& cfg_,
+                Utils& utils_,
+                GeneralTree& gt_) :
+      AnalysisMod("bregbdt", event_, cfg_, utils_, gt_) { 
+      }
+
+    virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetRegression; }
+  protected:
+    void do_readData(TString dirPath) {
+      TString modelfile = dirPath+"/trainings/breg_training_2017.pb";
+      downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg_training_2017.pb",
+                   modelfile);
+      build(modelfile);
+    }
+    virtual void do_init(Registry& registry) {
+      TFInferMod::do_init(registry);
+      currentJet = registry.access<JetWrapper*>("higgsDaughterJet");
+    }
+    void do_execute(); 
+  private:
+    JetWrapper **currentJet{nullptr};
+  };
+
+    */
+
   class TFInferMod : public AnalysisMod {
   public:
     TFInferMod(TString name_,
