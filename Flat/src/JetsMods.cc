@@ -217,6 +217,7 @@ void JetMod::do_execute()
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
 
             bjetreg->execute();
+            dnnbreg->execute();
           }
         }
 

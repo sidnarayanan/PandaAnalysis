@@ -107,7 +107,7 @@ namespace pa {
         analysis(cfg.analysis),
         gt(gt_) { }
       virtual ~AnalysisMod() { 
-        if (cfg.DEBUG)
+        if (cfg.DEBUG > 1)
           PDebug("AnalysisMod::~AnalysisMod", name);
         for (auto* m : subMods) 
           delete m; 

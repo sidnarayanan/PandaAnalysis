@@ -466,7 +466,7 @@ void AnalysisMod::reset()
 {
   if (!on())
     return;
-  if (cfg.DEBUG) 
+  if (cfg.DEBUG > 1) 
     PDebug("AnalysisMod::reset", name);
   do_reset();
   for (auto* mod : subMods)
@@ -477,7 +477,7 @@ void AnalysisMod::terminate()
 {
   if (!on())
     return;
-  if (cfg.DEBUG) 
+  if (cfg.DEBUG > 1) 
     PDebug("AnalysisMod::terminate", name);
   do_terminate();
   for (auto* mod : subMods)
