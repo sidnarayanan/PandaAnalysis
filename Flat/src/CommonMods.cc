@@ -277,13 +277,12 @@ void TriggerMod::do_execute()
   for (unsigned iT = 0; iT != kNTrig; ++iT) {
     if (analysis.hbb && analysis.year==2017 && iT==kSingleEleTrig) {
       checkEle32();
-    } else {
-      auto &th = triggerHandlers.at(iT);
-      for (auto iP : th.indices) {
-        if (event.triggerFired(iP)) {
-            gt.trigger |= (1 << iT);
-            break;
-        }
+    } 
+    auto &th = triggerHandlers.at(iT);
+    for (auto iP : th.indices) {
+      if (event.triggerFired(iP)) {
+          gt.trigger |= (1 << iT);
+          break;
       }
     }
   }
