@@ -172,6 +172,8 @@ void GenJetNuMod::do_execute()
     for (auto &gen : genJetsNu) {
       if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
         gt.jotGenPt[i] = gen.pt();
+        gt.jotGenEta[i] = gen.eta();
+        gt.jotGenPhi[i] = gen.phi();
         gt.jotFlav[i] = gen.pdgid;
         break;
       }
