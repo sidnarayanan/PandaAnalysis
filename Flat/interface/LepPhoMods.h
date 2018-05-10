@@ -5,6 +5,8 @@
 #include "AnalyzerUtilities.h"
 #include "array"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
+#include "PandaAnalysis/Utilities/interface/EtaPhiMap.h"
+#include "PandaAnalysis/Utilities/interface/RelIso.h"
 
 namespace pa {
 
@@ -66,7 +68,7 @@ namespace pa {
     std::array<int,4> lepPdgId;
     std::vector<JESHandler> *jesShifts{nullptr};
     TLorentzVector dilep;
-    
+    EtaPhiMap<panda::PFCand> pfCandsMap {0.1}; 
   };
 
   class ComplicatedLeptonMod : public SimpleLeptonMod {

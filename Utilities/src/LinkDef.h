@@ -1,6 +1,8 @@
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
+#include "PandaAnalysis/Utilities/interface/RelIso.h"
+#include "PandaAnalysis/Utilities/interface/EtaPhiMap.h"
 #include "PandaAnalysis/Utilities/interface/PackingHelperStandalone.h"
 #include "PandaAnalysis/Utilities/interface/JetCorrector.h"
 
@@ -18,6 +20,8 @@
 #pragma link C++ class pa::RocOne;
 #pragma link C++ class pa::RoccoR;
 #pragma link C++ class pa::CSVHelper;
+#pragma link C++ class pa::EtaPhiMap;
+#pragma link C++ class pa::MiniIsoParams;
 #pragma link C++ class pa::PackingHelperStandalone;
 #pragma link C++ class pa::JetCorrector;
 

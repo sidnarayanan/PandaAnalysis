@@ -162,12 +162,20 @@ void ComplicatedLeptonMod::do_readData(TString dirPath)
 
 void ComplicatedLeptonMod::do_execute()
 {
+  if (analysis.hbb) 
+    // Populate the grid of pf cands, needed for mini rel iso
+    pfCandsMap.AddParticles(event.pfCandidates);
+  
   for (auto& ele : event.electrons) {
     float pt = ele.pt(); float eta = ele.eta(); float aeta = fabs(eta);
+    float miniRelIso;
     if (analysis.hbb) {
       // Use the unsmeared/uncorrected electron pT for this loose isolation cut
       // because the electron pT assignment can be funky if it's inside a jet
-      if (pt<7 || aeta>2.4 || fabs(ele.dxy)>0.05 || fabs(ele.dz)>0.2 || ele.combIso()>0.4*pt) 
+      if (pt<7 || aeta>2.4 || fabs(ele.dxy)>0.05 || fabs(ele.dz)>0.2)
+        continue;
+      miniRelIso = MiniRelIso(ele, &pfCandsMap);
+      if(ele.combIso()>0.4*pt && miniRelIso>0.4) 
         continue;
     } else {
       if (pt<10 || aeta>2.5 || !ele.veto) 
@@ -275,8 +283,13 @@ void ComplicatedLeptonMod::do_execute()
       }
     }
     pt *= ptCorrection;
+    float miniRelIso;
     if (analysis.hbb) {
-      if (pt<5 || aeta>2.4 || !mu.loose || fabs(mu.dxy)>0.5 || fabs(mu.dz)>1.0 || mu.combIso()>0.4*pt) continue;
+      if (pt<5 || aeta>2.4 || !mu.loose || fabs(mu.dxy)>0.5 || fabs(mu.dz)>1.0) 
+        continue;
+      miniRelIso = MiniRelIso(mu, &pfCandsMap, event.rho);
+      if(mu.combIso()>0.4*pt && miniRelIso>0.4) 
+        continue;
     } else {
       if (pt<10 || aeta>2.4 || !mu.loose) continue;
     }
