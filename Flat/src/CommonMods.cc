@@ -61,7 +61,8 @@ void TriggerMod::do_init(Registry& registry)
 
     // SingleEle    
     if (analysis.complicatedLeptons) {
-      paths = {
+      if (analysis.year == 2016) {
+        paths = {
           "HLT_Ele25_eta2p1_WPTight_Gsf",
           "HLT_Ele27_eta2p1_WPLoose_Gsf",
           "HLT_Ele27_WPTight_Gsf",
@@ -74,19 +75,29 @@ void TriggerMod::do_init(Registry& registry)
           "HLT_Ele27_eta2p1_WPTight_Gsf",
           "HLT_Ele32_eta2p1_WPTight_Gsf",
           "HLT_ECALHT800"
-      };
+        };
+      } else if (analysis.year == 2017) {
+        paths = {
+          "HLT_Ele115_CaloIdVT_GsfTrkIdT",
+          "HLT_Ele27_WPTight_Gsf",
+          "HLT_Ele32_WPTight_Gsf",
+          "HLT_Ele35_WPTight_Gsf",
+          "HLT_Ele32_WPTight_Gsf_L1DoubleEG",
+          "HLT_Photon200"
+        };
+      }
     } else {
       if (analysis.year == 2016) {
         paths = {
-              "HLT_Ele27_WP85_Gsf",
-              "HLT_Ele27_WPLoose_Gsf",
-              "HLT_Ele105_CaloIdVT_GsfTrkIdT",
-              "HLT_Ele27_WPTight_Gsf",
-              "HLT_Ele30_WPTight_Gsf",
-              "HLT_Ele27_eta2p1_WPTight_Gsf",
-              "HLT_Ele32_eta2p1_WPTight_Gsf",
-              "HLT_Ele35_WPLoose_Gsf",
-              "HLT_ECALHT800"
+          "HLT_Ele27_WP85_Gsf",
+          "HLT_Ele27_WPLoose_Gsf",
+          "HLT_Ele105_CaloIdVT_GsfTrkIdT",
+          "HLT_Ele27_WPTight_Gsf",
+          "HLT_Ele30_WPTight_Gsf",
+          "HLT_Ele27_eta2p1_WPTight_Gsf",
+          "HLT_Ele32_eta2p1_WPTight_Gsf",
+          "HLT_Ele35_WPLoose_Gsf",
+          "HLT_ECALHT800"
         };
       } else if (analysis.year == 2017) {
         paths = {
@@ -117,32 +128,32 @@ void TriggerMod::do_init(Registry& registry)
     if (analysis.complicatedLeptons) {
       if (analysis.year == 2016)
         paths = {
-            "HLT_IsoMu24",
-            "HLT_IsoTkMu24"
+          "HLT_IsoMu24",
+          "HLT_IsoTkMu24",
+          "HLT_IsoMu22",
+          "HLT_IsoTkMu22",
+          "HLT_Mu45_eta2p1",
+          "HLT_Mu50"
         };
       else if (analysis.year == 2017)
         paths = {
-            "HLT_IsoMu27"
+          "HLT_IsoMu27"
+          "HLT_IsoMu24",      
+          "HLT_IsoMu27",
+          "HLT_IsoMu30"
+          "HLT_Mu50"
         };
-      //paths = {
-      //    "HLT_IsoMu24",
-      //    "HLT_IsoTkMu24",
-      //    "HLT_IsoMu22",
-      //    "HLT_IsoTkMu22",
-      //    "HLT_Mu45_eta2p1",
-      //    "HLT_Mu50"
-      //};
     } else {
       if (analysis.year == 2016)
         paths = {
-              "HLT_IsoMu20",
-              "HLT_IsoMu22",
-              "HLT_IsoMu24",
+          "HLT_IsoMu20",
+          "HLT_IsoMu22",
+          "HLT_IsoMu24",
         };
       else if (analysis.year == 2017)
         paths = {
-              "HLT_IsoMu24",
-              "HLT_IsoMu27"
+          "HLT_IsoMu24",
+          "HLT_IsoMu27"
         };
     }
     triggerHandlers[kSingleMuTrig].addTriggers(paths);
@@ -150,15 +161,17 @@ void TriggerMod::do_init(Registry& registry)
     // double muon
     if (analysis.year==2016) 
       paths = {
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL",
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ"
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL",
+        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL",
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
+        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ"
       };
     else if (analysis.year==2017)
       paths = {
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8",
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8"
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8",
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8",
+        "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass3p8",
+        "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass8"
       };
     triggerHandlers[kDoubleMuTrig].addTriggers(paths);
 
@@ -170,22 +183,39 @@ void TriggerMod::do_init(Registry& registry)
       };
     else if (analysis.year==2017)
       paths = {
-            "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
-            "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_DiEle27_WPTightCaloOnly_L1DoubleEG",
+        "HLT_DoubleEle33_CaloIdL_MW",
+        "HLT_DoubleEle25_CaloIdL_MW",
+        "HLT_DoublePhoton70"
       };
     triggerHandlers[kDoubleEleTrig].addTriggers(paths);
     
     // emu
-    paths = {
-          "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL",
-          "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
-          "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL",
-          "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
-          "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
-    };
+    if (analysis.year==2016) {
+      paths = {
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
+      };
+    } else if (analysis.year==2017) {
+      paths = {
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
+      };
+    }
     triggerHandlers[kEMuTrig].addTriggers(paths);
 
     // JetHT
