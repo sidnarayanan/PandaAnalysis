@@ -375,7 +375,7 @@ class GeneralTree : public genericTree {
   int jetIsTight[2];
   int jetIsIso[2];
   float jotPt[43][20];
-  float jotBReg[43][2];
+  float jotBReg[2];
   float jotDeepBReg[2];
   float jotDeepBRegWidth[2];
   float jotEta[20];

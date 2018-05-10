@@ -4,6 +4,7 @@ d = {
     'MET'                 : ['MET'],
     'SingleElectron'      : ['SingleElectron'],
     'DoubleEG'            : ['DoubleEG'],
+    'DoubleMuon'          : ['DoubleMuon'],
     'SinglePhoton'        : ['SinglePhoton'],
 
     'Diboson'             : ['Diboson_ww','Diboson_wz','Diboson_zz'],

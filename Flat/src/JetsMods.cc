@@ -513,25 +513,26 @@ void HbbSystemMod::do_execute()
       */
 
       // Shifted values for the jet energies to perform the b-jet regression
-      bjetreg_vars[0] = gt.jotPt[shift][idx];
-      bjetreg_vars[1] = gt.jotEta[idx];
-      bjetreg_vars[2] = gt.jotTrk1Pt[idx];
-      bjetreg_vars[3] = gt.jotLep1Pt[idx];
-      bjetreg_vars[4] = gt.jotEMF[idx];
-      bjetreg_vars[5] = gt.jotHF[idx];
-      bjetreg_vars[6] = gt.jotLep1DeltaR[idx];
-      bjetreg_vars[7] = gt.jotLep1PtRel[idx];
-      bjetreg_vars[8] = gt.jotVtxPt[idx];
-      bjetreg_vars[9] = gt.jotVtxMass[idx];
-      bjetreg_vars[10]= gt.jotVtx3DVal[idx];
-      bjetreg_vars[11]= gt.jotVtx3DErr[idx];
-      bjetreg_vars[12]= gt.jotVtxNtrk[idx];
-      bjetreg_vars[13]= hbbd[i].Et();
-      bjetreg_vars[14]= hbbd[i].Mt();
-
-      gt.jotBReg[shift][i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
+      if (shift == jes2i(shiftjes::kNominal)) {
+        bjetreg_vars[0] = gt.jotPt[shift][idx];
+        bjetreg_vars[1] = gt.jotEta[idx];
+        bjetreg_vars[2] = gt.jotTrk1Pt[idx];
+        bjetreg_vars[3] = gt.jotLep1Pt[idx];
+        bjetreg_vars[4] = gt.jotEMF[idx];
+        bjetreg_vars[5] = gt.jotHF[idx];
+        bjetreg_vars[6] = gt.jotLep1DeltaR[idx];
+        bjetreg_vars[7] = gt.jotLep1PtRel[idx];
+        bjetreg_vars[8] = gt.jotVtxPt[idx];
+        bjetreg_vars[9] = gt.jotVtxMass[idx];
+        bjetreg_vars[10]= gt.jotVtx3DVal[idx];
+        bjetreg_vars[11]= gt.jotVtx3DErr[idx];
+        bjetreg_vars[12]= gt.jotVtxNtrk[idx];
+        bjetreg_vars[13]= hbbd[i].Et();
+        bjetreg_vars[14]= hbbd[i].Mt();
+        gt.jotBReg[i] = (bjetregReader->EvaluateRegression("BDT method"))[0];
+      }
       hbbd_corr[i].SetPtEtaPhiM(
-            gt.jotBReg[shift][i] * gt.jotPt[shift][idx],
+            gt.jotBReg[i] * gt.jotPt[shift][idx],
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]

@@ -329,6 +329,46 @@ void GeneralTree::Reset() {
   pdfDown = 1;
   lheHT = -99;
   isGS = 0;
+  for (int iA=0; iA!=20; ++iA) {
+    jotEta[iA] = -99;
+    jotPhi[iA] = -99;
+    jotCSV[iA] = -99;
+    jotVBFID[iA] = 0;
+    jotM[iA] = -99;
+    jotCMVA[iA] = -99;
+    jotIso[iA] = 0;
+    jotQGL[iA] = -99;
+    jotLep1Pt[iA] = -99;
+    jotLep1PtRel[iA] = -99;
+    jotLep1DeltaR[iA] = -99;
+    jotTrk1Pt[iA] = -99;
+    jotVtxPt[iA] = -99;
+    jotVtxMass[iA] = -99;
+    jotVtx3DVal[iA] = -99;
+    jotVtx3DErr[iA] = -99;
+    jotVtxNtrk[iA] = 0;
+    jotEMF[iA] = -99;
+    jotHF[iA] = -99;
+    jotNLep[iA] = 0;
+    jotGenPt[iA] = -99;
+    jotFlav[iA] = 0;
+  }
+  for (int iA=0; iA!=6; ++iA) {
+    scale[iA] = 1;
+  }
+  for (int iA=0; iA!=2; ++iA) {
+    jetPt[iA] = -99;
+    jetEta[iA] = -99;
+    jetPhi[iA] = -99;
+    jetGenPt[iA] = -99;
+    jetCSV[iA] = -99;
+    jetFlav[iA] = 0;
+    jetIsTight[iA] = 0;
+    jetIsIso[iA] = 0;
+    jotBReg[iA] = -99;
+    jotDeepBReg[iA] = -99;
+    jotDeepBRegWidth[iA] = -99;
+  }
   for (int iA=0; iA!=4; ++iA) {
     electronPt[iA] = -99;
     electronEta[iA] = -99;
@@ -361,45 +401,6 @@ void GeneralTree::Reset() {
     muonDZ[iA] = -99;
     muonIsSoftMuon[iA] = 0;
     muonCombIso[iA] = -99;
-  }
-  for (int iA=0; iA!=6; ++iA) {
-    scale[iA] = 1;
-  }
-  for (int iA=0; iA!=2; ++iA) {
-    jetPt[iA] = -99;
-    jetEta[iA] = -99;
-    jetPhi[iA] = -99;
-    jetGenPt[iA] = -99;
-    jetCSV[iA] = -99;
-    jetFlav[iA] = 0;
-    jetIsTight[iA] = 0;
-    jetIsIso[iA] = 0;
-    jotDeepBReg[iA] = -99;
-    jotDeepBRegWidth[iA] = -99;
-  }
-  for (int iA=0; iA!=20; ++iA) {
-    jotEta[iA] = -99;
-    jotPhi[iA] = -99;
-    jotCSV[iA] = -99;
-    jotVBFID[iA] = 0;
-    jotM[iA] = -99;
-    jotCMVA[iA] = -99;
-    jotIso[iA] = 0;
-    jotQGL[iA] = -99;
-    jotLep1Pt[iA] = -99;
-    jotLep1PtRel[iA] = -99;
-    jotLep1DeltaR[iA] = -99;
-    jotTrk1Pt[iA] = -99;
-    jotVtxPt[iA] = -99;
-    jotVtxMass[iA] = -99;
-    jotVtx3DVal[iA] = -99;
-    jotVtx3DErr[iA] = -99;
-    jotVtxNtrk[iA] = 0;
-    jotEMF[iA] = -99;
-    jotHF[iA] = -99;
-    jotNLep[iA] = 0;
-    jotGenPt[iA] = -99;
-    jotFlav[iA] = 0;
   }
   for (int iA=0; iA!=2; ++iA) {
     fjsjPt[iA] = -99;
@@ -475,14 +476,13 @@ void GeneralTree::Reset() {
     topWBosonCosThetaCS[iS] = -99;
   }
   for (int iS=0; iS!=43; ++iS) {
-    for (int iA=0; iA!=20; ++iA) {
-      jotPt[iS][iA] = -99;
+    for (int iA=0; iA!=2; ++iA) {
+      hbbjtidx[iS][iA] = 0;
     }
   }
   for (int iS=0; iS!=43; ++iS) {
-    for (int iA=0; iA!=2; ++iA) {
-      jotBReg[iS][iA] = -99;
-      hbbjtidx[iS][iA] = 0;
+    for (int iA=0; iA!=20; ++iA) {
+      jotPt[iS][iA] = -99;
     }
   }
 }
@@ -1318,54 +1318,14 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("fjPartonEta",&fjPartonEta,"fjPartonEta/F");
     Book("fjGenNumB",&fjGenNumB,"fjGenNumB/I");
   }
+  if (false) {
+    Book("jotDeepBReg",jotDeepBReg,"jotDeepBReg["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
+    Book("jotDeepBRegWidth",jotDeepBRegWidth,"jotDeepBRegWidth["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
+  }
   if (is_monohiggs||is_hbb) {
     Book("pfmetsig",&pfmetsig,"pfmetsig/F");
     Book("puppimetsig",&puppimetsig,"puppimetsig/F");
-    Book("jotBReg",jotBReg[0],"jotBReg["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESTotalUp",jotBReg[1],"jotBReg_JESTotalUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESTotalDown",jotBReg[2],"jotBReg_JESTotalDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESAbsoluteMPFBiasUp",jotBReg[3],"jotBReg_JESAbsoluteMPFBiasUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESAbsoluteMPFBiasDown",jotBReg[4],"jotBReg_JESAbsoluteMPFBiasDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESAbsoluteScaleUp",jotBReg[5],"jotBReg_JESAbsoluteScaleUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESAbsoluteScaleDown",jotBReg[6],"jotBReg_JESAbsoluteScaleDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESAbsoluteStatUp",jotBReg[7],"jotBReg_JESAbsoluteStatUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESAbsoluteStatDown",jotBReg[8],"jotBReg_JESAbsoluteStatDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESFlavorQCDUp",jotBReg[9],"jotBReg_JESFlavorQCDUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESFlavorQCDDown",jotBReg[10],"jotBReg_JESFlavorQCDDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESFragmentationUp",jotBReg[11],"jotBReg_JESFragmentationUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESFragmentationDown",jotBReg[12],"jotBReg_JESFragmentationDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpDataMCUp",jotBReg[13],"jotBReg_JESPileUpDataMCUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpDataMCDown",jotBReg[14],"jotBReg_JESPileUpDataMCDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtBBUp",jotBReg[15],"jotBReg_JESPileUpPtBBUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtBBDown",jotBReg[16],"jotBReg_JESPileUpPtBBDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtEC1Up",jotBReg[17],"jotBReg_JESPileUpPtEC1Up["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtEC1Down",jotBReg[18],"jotBReg_JESPileUpPtEC1Down["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtEC2Up",jotBReg[19],"jotBReg_JESPileUpPtEC2Up["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtEC2Down",jotBReg[20],"jotBReg_JESPileUpPtEC2Down["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtRefUp",jotBReg[21],"jotBReg_JESPileUpPtRefUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESPileUpPtRefDown",jotBReg[22],"jotBReg_JESPileUpPtRefDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeFSRUp",jotBReg[23],"jotBReg_JESRelativeFSRUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeFSRDown",jotBReg[24],"jotBReg_JESRelativeFSRDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeJEREC1Up",jotBReg[25],"jotBReg_JESRelativeJEREC1Up["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeJEREC1Down",jotBReg[26],"jotBReg_JESRelativeJEREC1Down["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativePtBBUp",jotBReg[27],"jotBReg_JESRelativePtBBUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativePtBBDown",jotBReg[28],"jotBReg_JESRelativePtBBDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativePtEC1Up",jotBReg[29],"jotBReg_JESRelativePtEC1Up["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativePtEC1Down",jotBReg[30],"jotBReg_JESRelativePtEC1Down["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativePtEC2Up",jotBReg[31],"jotBReg_JESRelativePtEC2Up["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativePtEC2Down",jotBReg[32],"jotBReg_JESRelativePtEC2Down["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeStatECUp",jotBReg[33],"jotBReg_JESRelativeStatECUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeStatECDown",jotBReg[34],"jotBReg_JESRelativeStatECDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeStatFSRUp",jotBReg[35],"jotBReg_JESRelativeStatFSRUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESRelativeStatFSRDown",jotBReg[36],"jotBReg_JESRelativeStatFSRDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESSinglePionECALUp",jotBReg[37],"jotBReg_JESSinglePionECALUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESSinglePionECALDown",jotBReg[38],"jotBReg_JESSinglePionECALDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESSinglePionHCALUp",jotBReg[39],"jotBReg_JESSinglePionHCALUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESSinglePionHCALDown",jotBReg[40],"jotBReg_JESSinglePionHCALDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESTimePtEtaUp",jotBReg[41],"jotBReg_JESTimePtEtaUp["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotBReg_JESTimePtEtaDown",jotBReg[42],"jotBReg_JESTimePtEtaDown["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotDeepBReg",jotDeepBReg,"jotDeepBReg["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
-    Book("jotDeepBRegWidth",jotDeepBRegWidth,"jotDeepBRegWidth["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
+    Book("jotBReg",jotBReg,"jotBReg["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotM",jotM,"jotM["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotCMVA",jotCMVA,"jotCMVA["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotIso",jotIso,"jotIso["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/I");
@@ -1691,7 +1651,6 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("hbbpt_reg_JESSinglePionHCALDown",&(hbbpt_reg[40]),"hbbpt_reg_JESSinglePionHCALDown/F");
     Book("hbbpt_reg_JESTimePtEtaUp",&(hbbpt_reg[41]),"hbbpt_reg_JESTimePtEtaUp/F");
     Book("hbbpt_reg_JESTimePtEtaDown",&(hbbpt_reg[42]),"hbbpt_reg_JESTimePtEtaDown/F");
-    /*
     Book("hbbm_dreg",&(hbbm_dreg[0]),"hbbm_dreg/F");
     Book("hbbm_dreg_JESTotalUp",&(hbbm_dreg[1]),"hbbm_dreg_JESTotalUp/F");
     Book("hbbm_dreg_JESTotalDown",&(hbbm_dreg[2]),"hbbm_dreg_JESTotalDown/F");
@@ -1778,7 +1737,6 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("hbbpt_dreg_JESSinglePionHCALDown",&(hbbpt_dreg[40]),"hbbpt_dreg_JESSinglePionHCALDown/F");
     Book("hbbpt_dreg_JESTimePtEtaUp",&(hbbpt_dreg[41]),"hbbpt_dreg_JESTimePtEtaUp/F");
     Book("hbbpt_dreg_JESTimePtEtaDown",&(hbbpt_dreg[42]),"hbbpt_dreg_JESTimePtEtaDown/F");
-    */
     Book("sumEtSoft1",&sumEtSoft1,"sumEtSoft1/F");
     Book("nSoft2",&nSoft2,"nSoft2/I");
     Book("nSoft5",&nSoft5,"nSoft5/I");
