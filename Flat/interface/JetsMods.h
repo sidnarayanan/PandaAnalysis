@@ -2,55 +2,52 @@
 #define JETSMODS
 
 #include "Module.h"
-#include "TMVA/Reader.h"
 #include "DeepMods.h"
 
 namespace pa {
   class HbbSystemMod : public AnalysisMod {
   public:
-    HbbSystemMod(panda::EventAnalysis& event_, 
-                 Config& cfg_,                 
-                 Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_) { 
-        deepreg = new BRegDeepMod(event_, cfg_, utils_, gt_); subMods.push_back(deepreg);
+    HbbSystemMod(panda::EventAnalysis& event_,
+                 Config& cfg_,
+                 Utils& utils_,
+                 GeneralTree& gt_,
+                 int level_=0) :
+      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_, level_) {
+        deepreg = new BRegDeepMod(event_, cfg_, utils_, gt_, level_); subMods.push_back(deepreg);
+        bdtreg = new BRegBDTMod(event_, cfg_, utils_, gt_, level_); subMods.push_back(bdtreg);
       }
-    virtual ~HbbSystemMod () {
-      delete bjetregReader;
-      delete[] bjetreg_vars;
-    }
+    virtual ~HbbSystemMod() { }
 
     bool on() { return analysis.hbb; }
   protected:
-    void do_readData(TString dirPath);
     void do_init(Registry& registry) {
       currentJES = registry.access<JESHandler*>("currentJES");
-      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); 
-      dilep = registry.accessConst<TLorentzVector>("dilep"); 
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      dilep = registry.accessConst<TLorentzVector>("dilep");
       registry.publishConst("btagsortedjets", &btagsorted);
-      registry.publish("higgsDaughterJet", &hbbdJet); 
+      registry.publish("higgsDaughterJet", &hbbdJet);
     }
     void do_execute();
+    void do_reset() { btagsorted.clear(); }
   private:
     JESHandler **currentJES{nullptr};
     std::vector<JetWrapper*> btagsorted;
     const std::vector<panda::Lepton*>* looseLeps{nullptr};
     const TLorentzVector *dilep{nullptr};
-    
+
     JetWrapper* hbbdJet{nullptr};
     BRegDeepMod *deepreg{nullptr};
-
-    TMVA::Reader *bjetregReader{nullptr}; 
-    float *bjetreg_vars{nullptr};
+    BRegBDTMod *bdtreg{nullptr};
   };
 
   class JetFlavorMod : public AnalysisMod {
   public:
-    JetFlavorMod(panda::EventAnalysis& event_, 
-                 Config& cfg_,                 
-                 Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("jetflavor", event_, cfg_, utils_, gt_) { }
+    JetFlavorMod(panda::EventAnalysis& event_,
+                 Config& cfg_,
+                 Utils& utils_,
+                 GeneralTree& gt_,
+                 int level_=0) :
+      AnalysisMod("jetflavor", event_, cfg_, utils_, gt_, level_) { }
     virtual ~JetFlavorMod () {}
 
     bool on() { return analysis.jetFlavorPartons || analysis.jetFlavorJets; }
@@ -71,11 +68,12 @@ namespace pa {
 
   class IsoJetMod : public AnalysisMod {
   public:
-    IsoJetMod(panda::EventAnalysis& event_, 
-              Config& cfg_,                 
-              Utils& utils_,                
-              GeneralTree& gt_) :                 
-      AnalysisMod("isojet", event_, cfg_, utils_, gt_) { }
+    IsoJetMod(panda::EventAnalysis& event_,
+              Config& cfg_,
+              Utils& utils_,
+              GeneralTree& gt_,
+              int level_=0) :
+      AnalysisMod("isojet", event_, cfg_, utils_, gt_, level_) { }
     virtual ~IsoJetMod () {}
 
     bool on() { return analysis.fatjet; }
@@ -89,19 +87,20 @@ namespace pa {
   private:
     JetWrapper **currentJet{nullptr};
     JESHandler **currentJES{nullptr};
-    panda::FatJet *const *fj1{nullptr}; 
+    panda::FatJet *const *fj1{nullptr};
   };
 
   class BJetRegMod : public AnalysisMod {
   public:
-    BJetRegMod(panda::EventAnalysis& event_, 
-                  Config& cfg_,                 
-                  Utils& utils_,                
-                  GeneralTree& gt_) :                 
-      AnalysisMod("bjetreg", event_, cfg_, utils_, gt_) { }
+    BJetRegMod(panda::EventAnalysis& event_,
+                  Config& cfg_,
+                  Utils& utils_,
+                  GeneralTree& gt_,
+                  int level_=0) :
+      AnalysisMod("bjetreg", event_, cfg_, utils_, gt_, level_) { }
     virtual ~BJetRegMod () {}
 
-    bool on() { return analysis.bjetRegression; }
+    bool on() { return analysis.bjetBDTReg; }
   protected:
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");
@@ -115,11 +114,12 @@ namespace pa {
 
   class VBFSystemMod : public AnalysisMod {
   public:
-    VBFSystemMod(panda::EventAnalysis& event_, 
-                 Config& cfg_,                 
-                 Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("vbfsystem", event_, cfg_, utils_, gt_) { }
+    VBFSystemMod(panda::EventAnalysis& event_,
+                 Config& cfg_,
+                 Utils& utils_,
+                 GeneralTree& gt_,
+                 int level_=0) :
+      AnalysisMod("vbfsystem", event_, cfg_, utils_, gt_, level_) { }
     virtual ~VBFSystemMod () {}
 
     bool on() { return analysis.vbf; }
@@ -133,22 +133,23 @@ namespace pa {
   };
 
   class BaseJetMod : public AnalysisMod {
-  public: 
+  public:
     BaseJetMod(TString name,
                panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
-               GeneralTree& gt_) :
-      AnalysisMod(name, event_, cfg_, utils_, gt_) { 
+               GeneralTree& gt_,
+               int level_=0) :
+      AnalysisMod(name, event_, cfg_, utils_, gt_, level_) {
         if (analysis.year == 2016) {
-          jecV = "V4"; jecReco = "23Sep2016"; 
+          jecV = "V4"; jecReco = "23Sep2016";
           campaign = "Summer16";
           jerV = "Spring16_25nsV10";
           eraGroups = {"BCD","EF","G","H"};
           spacer = "";
           csvL = 0.5426; csvM = 0.8484;
         } else {
-          jecV = "V8"; jecReco = "17Nov2017"; 
+          jecV = "V8"; jecReco = "17Nov2017";
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
           eraGroups = {"B","C","D","E","F"};
@@ -156,7 +157,7 @@ namespace pa {
           csvL = 0.2219; csvM = 0.6324;
         }
       }
-    virtual ~BaseJetMod () { 
+    virtual ~BaseJetMod () {
       delete jer;
       for (auto& iter : scales) {
         delete iter.second;
@@ -176,40 +177,41 @@ namespace pa {
     virtual void do_readData(TString path);
     JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false);
 
-    std::map<TString,FactorizedJetCorrector*> scales; // era/MC -> scale 
+    std::map<TString,FactorizedJetCorrector*> scales; // era/MC -> scale
     std::map<TString,std::vector<JetCorrectionUncertainty*>> scaleUncs; // era/MC -> (src -> unc)
     JERReader *jer{nullptr}; //!< fatjet jet energy resolution reader
-    std::vector<JetCorrectionUncertainty*> *scaleUnc  {nullptr}; // src -> unc 
-    FactorizedJetCorrector   *scale{nullptr};        
-    
+    std::vector<JetCorrectionUncertainty*> *scaleUnc  {nullptr}; // src -> unc
+    FactorizedJetCorrector   *scale{nullptr};
+
     TString jecV, jecReco, jetType, campaign, spacer, jerV;
     std::vector<TString> eraGroups;
-    float csvL, csvM; 
+    float csvL, csvM;
   private:
     void setScaleUnc(TString, TString);
   };
 
   class JetMod : public BaseJetMod {
-  public: 
-    JetMod(panda::EventAnalysis& event_, 
-           Config& cfg_,                 
-           Utils& utils_,                
-           GeneralTree& gt_) :                 
-      BaseJetMod("jet", event_, cfg_, utils_, gt_) { 
-        ak4Jets = &(event.chsAK4Jets); 
+  public:
+    JetMod(panda::EventAnalysis& event_,
+           Config& cfg_,
+           Utils& utils_,
+           GeneralTree& gt_,
+           int level_=0) :
+      BaseJetMod("jet", event_, cfg_, utils_, gt_, level_) {
+        ak4Jets = &(event.chsAK4Jets);
 
-        flavor = new JetFlavorMod(event_, cfg_, utils_, gt_); subMods.push_back(flavor);
-        isojet = new IsoJetMod(event_, cfg_, utils_, gt_); subMods.push_back(isojet);
-        bjetreg = new BJetRegMod(event_, cfg_, utils_, gt_); subMods.push_back(bjetreg);
-        vbf = new VBFSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(vbf);
-        hbb = new HbbSystemMod(event_, cfg_, utils_, gt_); subMods.push_back(hbb);
+        flavor = addSubMod<JetFlavorMod>();
+        isojet = addSubMod<IsoJetMod>();
+        bjetreg = addSubMod<BJetRegMod>();
+        vbf = addSubMod<VBFSystemMod>();
+        hbb = addSubMod<HbbSystemMod>();
 
         jetType = "AK4PFchs";
       }
     virtual ~JetMod () { }
 
     virtual bool on() { return !analysis.genOnly; }
-    
+
   protected:
     void do_init(Registry& registry) {
       registry.publish("currentJet", &currentJet);
@@ -218,7 +220,7 @@ namespace pa {
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
     }
-    void do_execute();  
+    void do_execute();
 
   private:
     JetFlavorMod *flavor{nullptr};
@@ -227,7 +229,7 @@ namespace pa {
     VBFSystemMod *vbf{nullptr};
     HbbSystemMod *hbb{nullptr};
 
-    std::vector<JESHandler>* jesShifts{nullptr}; 
+    std::vector<JESHandler>* jesShifts{nullptr};
 
     const std::vector<panda::Lepton*>* matchLeps{nullptr};
     const std::vector<panda::Photon*>* matchPhos{nullptr};

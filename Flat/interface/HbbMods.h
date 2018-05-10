@@ -9,8 +9,9 @@ namespace pa {
     HbbMiscMod(panda::EventAnalysis& event_, 
                Config& cfg_,
                Utils& utils_,
-               GeneralTree& gt_) : 
-      AnalysisMod("hbbmisc", event_, cfg_, utils_, gt_) { }
+               GeneralTree& gt_,
+               int level_=0) : 
+      AnalysisMod("hbbmisc", event_, cfg_, utils_, gt_, level_) { }
     virtual ~HbbMiscMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb; }
@@ -24,8 +25,9 @@ namespace pa {
     SoftActivityMod(panda::EventAnalysis& event_, 
                     Config& cfg_,                 
                     Utils& utils_,                
-                    GeneralTree& gt_) :                 
-      AnalysisMod("softactivity", event_, cfg_, utils_, gt_) { 
+                    GeneralTree& gt_,
+                    int level_=0) :                 
+      AnalysisMod("softactivity", event_, cfg_, utils_, gt_, level_) { 
       }
     virtual ~SoftActivityMod () { 
       delete jetDefSoftTrack;
@@ -53,8 +55,9 @@ namespace pa {
     GenJetNuMod(panda::EventAnalysis& event_, 
                  Config& cfg_,                 
                  Utils& utils_,                
-                 GeneralTree& gt_) :                 
-      AnalysisMod("genjetnu", event_, cfg_, utils_, gt_) { 
+                 GeneralTree& gt_,
+                 int level_=0) :                 
+      AnalysisMod("genjetnu", event_, cfg_, utils_, gt_, level_) { 
         jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm,0.4);
       }
     virtual ~GenJetNuMod () { delete jetDef; }

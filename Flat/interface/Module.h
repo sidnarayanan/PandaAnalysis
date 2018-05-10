@@ -17,7 +17,7 @@ namespace pa {
       public:
         BaseContainer() { }
         virtual ~BaseContainer() { }
-      }; 
+      };
       template <typename T>
       class Container : public BaseContainer {
       public:
@@ -41,18 +41,18 @@ namespace pa {
       template <typename T>
         void publishConst(TString name, const T* ptr) { _objs[name] = new ConstContainer<T>(ptr); }
       template <typename T>
-        T* access(TString name) { 
+        T* access(TString name) {
           try {
-            return dynamic_cast<Container<T>*>(_objs.at(name))->ptr; 
+            return dynamic_cast<Container<T>*>(_objs.at(name))->ptr;
           } catch (std::exception& e) {
             PError("Registry::access","Could not access "+name+"!");
             throw;
           }
         }
       template <typename T>
-        const T* accessConst(TString name) { 
+        const T* accessConst(TString name) {
           try{
-            return dynamic_cast<ConstContainer<T>*>(_objs.at(name))->ptr; 
+            return dynamic_cast<ConstContainer<T>*>(_objs.at(name))->ptr;
           } catch (std::exception& e) {
             PError("Registry::access","Could not access "+name+"!");
             throw;
@@ -85,34 +85,36 @@ namespace pa {
 
     protected:
       const Analysis& analysis;
-      GeneralTree& gt; 
+      GeneralTree& gt;
       panda::utils::BranchList bl;
 
     private:
-      void set_inputBranches(); 
+      void set_inputBranches();
       void set_outputBranches();
   };
 
   class AnalysisMod : public BaseModule {
     public:
-      AnalysisMod(TString name, 
-                  panda::EventAnalysis& event_, 
-                  Config& cfg_, 
+      AnalysisMod(TString name,
+                  panda::EventAnalysis& event_,
+                  Config& cfg_,
                   Utils& utils_,
-                  GeneralTree& gt_) : 
-        BaseModule(name), 
-        event(event_), 
+                  GeneralTree& gt_,
+                  int level_=0) :
+        BaseModule(name),
+        event(event_),
         cfg(cfg_),
         utils(utils_),
         analysis(cfg.analysis),
-        gt(gt_) { }
-      virtual ~AnalysisMod() { 
+        gt(gt_),
+        level(level_) { }
+      virtual ~AnalysisMod() {
         if (cfg.DEBUG > 1)
           PDebug("AnalysisMod::~AnalysisMod", name);
-        for (auto* m : subMods) 
-          delete m; 
+        for (auto* m : subMods)
+          delete m;
       }
-      
+
       // cascading calls to protected functions
       void initialize(Registry& registry);
       void readData(TString path);
@@ -121,18 +123,30 @@ namespace pa {
       // to allow for more flexibility
       void execute();
       void reset();
-      void terminate(); 
+      void terminate();
+      void print();
 
       virtual bool on() { return true; }
 
+      template <typename MOD>
+      MOD* addSubMod() {
+        // add a sub module that takes a specific constructor signature
+        auto* mod = new MOD(event, cfg, utils, gt, level + 1);
+        subMods.push_back(mod); 
+        return mod; 
+      }
+
     protected:
+
       panda::EventAnalysis& event;
       Config& cfg;
       Utils& utils;
       const Analysis& analysis;
-      GeneralTree& gt; 
+      GeneralTree& gt;
       std::vector<AnalysisMod*> subMods; // memory management is done by parent
+      int level;
 
+      std::vector<TString> dump(); 
       // here, the module can publish and access data
       virtual void do_init(Registry& registry) { }
       virtual void do_readData(TString path) { }
@@ -141,6 +155,21 @@ namespace pa {
       // reset objects between events, if needed
       virtual void do_reset() { }
       virtual void do_terminate() { }
+  };
+
+  // a completely empty mod
+  class ContainerMod : public AnalysisMod {
+    public:
+      ContainerMod(TString name,
+                   panda::EventAnalysis& event_,
+                   Config& cfg_,
+                   Utils& utils_,
+                   GeneralTree& gt_,
+                   int level_=0) :
+        AnalysisMod(name, event_, cfg_, utils_, gt_, level_) { }
+      ~ContainerMod() { }
+    protected:
+      void do_execute() { } 
   };
 }
 

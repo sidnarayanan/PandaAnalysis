@@ -6,60 +6,62 @@
 
 using namespace panda;
 using namespace std;
-using namespace pa; 
+using namespace pa;
 
-#define ADDRECO(X) mods_reco.push_back(new X(event, cfg, utils, gt)); 
-#define ADDGEN(X) mods_gen.push_back(new X(event, cfg, utils, gt)); 
+#define ADDMOD(X) mods_all.back()->addSubMod<X>();
 
 
-PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) : 
+PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   DEBUG(debug_),
-  analysis(*a), 
+  analysis(*a),
   cfgmod(analysis, gt, DEBUG)
 {
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
- 
+
   Config& cfg = cfgmod.cfg;
-  Utils& utils = cfgmod.utils; 
+  Utils& utils = cfgmod.utils;
 
   gblmod = new GlobalMod(event, cfg, utils, gt);
   mods_all.push_back(gblmod);
 
-  // Define analyses 
-  ADDRECO(GenPMod)
+  // Define analyses
+  preselmod = new ContainerMod("pre-selection", event, cfg, utils, gt);
+  mods_all.push_back(preselmod);
+  ADDMOD(GenPMod)
   if (analysis.unpackedGen)
-    ADDRECO(DeepGenMod<UnpackedGenParticle>)
+    ADDMOD(DeepGenMod<UnpackedGenParticle>)
   else
-    ADDRECO(DeepGenMod<GenParticle>)
-  ADDRECO(TriggerMod)
-  ADDRECO(SimpleLeptonMod)
-  ADDRECO(ComplicatedLeptonMod)
-  ADDRECO(SimplePhotonMod)
-  ADDRECO(ComplicatedPhotonMod)
-  ADDRECO(RecoilMod)
-  ADDRECO(FatJetMod)
-  ADDRECO(JetMod)
-  ADDRECO(TauMod)
+    ADDMOD(DeepGenMod<GenParticle>)
+  ADDMOD(TriggerMod)
+  ADDMOD(SimpleLeptonMod)
+  ADDMOD(ComplicatedLeptonMod)
+  ADDMOD(SimplePhotonMod)
+  ADDMOD(ComplicatedPhotonMod)
+  ADDMOD(RecoilMod)
+  ADDMOD(FatJetMod)
+  ADDMOD(JetMod)
+  ADDMOD(TauMod)
 
-  ADDGEN(HbbMiscMod)
-  ADDGEN(InclusiveLeptonMod)
-  ADDGEN(SoftActivityMod)
-  ADDGEN(FatJetMatchingMod)
-  ADDGEN(BTagSFMod)
-  ADDGEN(BTagWeightMod)
-  ADDGEN(TriggerEffMod)
-  ADDGEN(GenStudyEWKMod)
-  ADDGEN(QCDUncMod)
-  ADDGEN(GenLepMod)
-  ADDGEN(GenJetNuMod)
-  ADDGEN(HFCountingMod)
-  ADDGEN(KFactorMod)
+  postselmod = new ContainerMod("post-selection", event, cfg, utils, gt);
+  mods_all.push_back(postselmod);
+  ADDMOD(HbbMiscMod)
+  ADDMOD(InclusiveLeptonMod)
+  ADDMOD(SoftActivityMod)
+  ADDMOD(FatJetMatchingMod)
+  ADDMOD(BTagSFMod)
+  ADDMOD(BTagWeightMod)
+  ADDMOD(TriggerEffMod)
+  ADDMOD(GenStudyEWKMod)
+  ADDMOD(QCDUncMod)
+  ADDMOD(GenLepMod)
+  ADDMOD(GenJetNuMod)
+  ADDMOD(HFCountingMod)
+  ADDMOD(KFactorMod)
 
-  mods_all.insert(mods_all.end(), mods_reco.begin(), mods_reco.end());
-  mods_all.insert(mods_all.end(), mods_gen.begin(), mods_gen.end());
-  
+  for (auto* mod : mods_all)
+    mod->print(); 
 
-  // Read inputs 
+  // Read inputs
   fIn = TFile::Open(analysis.inpath);
   tIn = static_cast<TTree*>(fIn->Get("events"));
   event.setStatus(*tIn, {"!*"});
@@ -99,7 +101,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   registry.publishConst("wIDs", &wIDs);
 
   // Define outputs
-  
+
   gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
   gt.is_vbf            = analysis.vbf;
   gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
@@ -109,26 +111,26 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   gt.btagWeights       = analysis.btagWeights;
   gt.useCMVA           = analysis.useCMVA;
   for (auto& id : wIDs)
-    gt.signal_weights[id] = 1; 
+    gt.signal_weights[id] = 1;
 
   fOut = TFile::Open(analysis.outpath, "RECREATE");
   fOut->cd();
   tOut = new TTree("events", "events");
 
-  fOut->WriteTObject(hDTotalMCWeight); delete hDTotalMCWeight; hDTotalMCWeight = nullptr; 
+  fOut->WriteTObject(hDTotalMCWeight); delete hDTotalMCWeight; hDTotalMCWeight = nullptr;
   if (hDNPUWeight != nullptr) {
-    fOut->WriteTObject(hDNPUWeight); delete hDNPUWeight; hDNPUWeight = nullptr; 
+    fOut->WriteTObject(hDNPUWeight); delete hDNPUWeight; hDNPUWeight = nullptr;
   }
 
-  registry.publish("fOut", fOut); 
+  registry.publish("fOut", fOut);
 
   gt.WriteTree(tOut);
 
   event.rng.setSize(20);
 
 
-  // read input data 
-  cfgmod.readData(analysis.datapath); 
+  // read input data
+  cfgmod.readData(analysis.datapath);
   for (auto* mod : mods_all)
     mod->readData(analysis.datapath);
 
@@ -136,22 +138,22 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 }
 
 
-PandaAnalyzer::~PandaAnalyzer() 
+PandaAnalyzer::~PandaAnalyzer()
 {
   if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
-  
+
   for (auto* mod : mods_all)
-    delete mod; 
+    delete mod;
 
   for (auto* s : selections)
-    delete s; 
+    delete s;
 
   fIn->Close();
   if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Called destructor");
 
 }
 
-void PandaAnalyzer::AddGoodLumiRange(int run, int l0, int l1) 
+void PandaAnalyzer::AddGoodLumiRange(int run, int l0, int l1)
 {
   auto run_ = goodLumis.find(run);
   if (run_==goodLumis.end()) { // don't know about this run yet
@@ -164,12 +166,12 @@ void PandaAnalyzer::AddGoodLumiRange(int run, int l0, int l1)
 }
 
 
-bool PandaAnalyzer::PassGoodLumis(int run, int lumi) 
+bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
 {
   auto run_ = goodLumis.find(run);
   if (run_==goodLumis.end()) {
     // matched no run
-    if (DEBUG) 
+    if (DEBUG)
       PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i",run));
     return false;
   }
@@ -177,20 +179,20 @@ bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
   // found the run, now look for a lumi range
   for (auto &range : run_->second) {
     if (range.Contains(lumi)) {
-      if (DEBUG) 
+      if (DEBUG)
         PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Accepting run=%i, lumi=%i",run,lumi));
       return true;
     }
   }
 
   // matched no lumi range
-  if (DEBUG) 
+  if (DEBUG)
     PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i, lumi=%i",run,lumi));
   return false;
 }
 
 
-bool PandaAnalyzer::PassPresel(Selection::Stage stage) 
+bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 {
   if (selections.size() == 0)
     return true;
@@ -220,32 +222,32 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 
 
 
-void PandaAnalyzer::Reset() 
+void PandaAnalyzer::Reset()
 {
   gt.Reset();
-  
+
   for (auto* mod : mods_all)
-    mod->reset(); 
+    mod->reset();
   if (DEBUG) PDebug("PandaAnalyzer::Reset","Reset");
 }
 
 
 
-void PandaAnalyzer::Terminate() 
+void PandaAnalyzer::Terminate()
 {
   fOut->WriteTObject(tOut);
   fOut->Close();
   fOut = 0; tOut = 0;
 
   for (auto* mod : mods_all)
-    mod->terminate(); 
+    mod->terminate();
 
   if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
 }
 
 
 // run
-void PandaAnalyzer::Run() 
+void PandaAnalyzer::Run()
 {
 
   // INITIALIZE --------------------------------------------------------------------------
@@ -266,10 +268,10 @@ void PandaAnalyzer::Run()
   fOut->cd(); // to be absolutely sure
 
   for (auto* mod : mods_all)
-    mod->initialize(registry); 
+    mod->initialize(registry);
 
   ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
-  TimeReporter& tr = cfgmod.cfg.tr; 
+  TimeReporter& tr = cfgmod.cfg.tr;
 
   // EVENTLOOP --------------------------------------------------------------------------
   for (iE=nZero; iE!=nEvents; ++iE) {
@@ -285,14 +287,12 @@ void PandaAnalyzer::Run()
     if (analysis.isData && !PassGoodLumis(gt.runNumber,gt.lumiNumber))
         continue;
 
-    for (auto* mod : mods_reco)
-      mod->execute();
+    preselmod->execute();
 
     if (!PassPresel(Selection::sReco))
       continue;
 
-    for (auto* mod : mods_gen)
-      mod->execute();
+    postselmod->execute();
 
     if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
@@ -311,13 +311,12 @@ void PandaAnalyzer::Run()
 
     tr.TriggerEvent("fill");
 
-  } 
+  }
 
   tr.Summary();
-  for (auto* s : selections) 
-    s->report(); 
+  for (auto* s : selections)
+    s->report();
 
   if (DEBUG) { PDebug("PandaAnalyzer::Run","Done with entry loop"); }
 
 } // Run()
-

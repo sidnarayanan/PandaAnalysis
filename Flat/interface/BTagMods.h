@@ -10,8 +10,9 @@ namespace pa {
     BTagSFMod(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
-              GeneralTree& gt_) :                 
-      AnalysisMod("btagsf", event_, cfg_, utils_, gt_) { }
+              GeneralTree& gt_,
+              int level_=0) :                 
+      AnalysisMod("btagsf", event_, cfg_, utils_, gt_, level_) { }
     virtual ~BTagSFMod () { }
 
     bool on() { return !analysis.genOnly && analysis.btagSFs; }
@@ -31,8 +32,9 @@ namespace pa {
     BTagWeightMod(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
-              GeneralTree& gt_) :                 
-      AnalysisMod("btagweight", event_, cfg_, utils_, gt_) { }
+              GeneralTree& gt_,
+              int level_=0) :                 
+      AnalysisMod("btagweight", event_, cfg_, utils_, gt_, level_) { }
     virtual ~BTagWeightMod () { }
 
     bool on() { return !analysis.genOnly && analysis.btagWeights; }

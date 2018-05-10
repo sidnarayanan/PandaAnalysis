@@ -18,7 +18,7 @@
 #include "HbbMods.h"
 
 
-namespace pa { 
+namespace pa {
 
     class PandaAnalyzer {
     public :
@@ -43,7 +43,7 @@ namespace pa {
         // IO for the analyzer
         TFile *fOut{nullptr};     // output file is owned by PandaAnalyzer
         TTree *tOut{nullptr};
-        GeneralTree gt; 
+        GeneralTree gt;
 
         TFile *fIn{nullptr};
         TTree *tIn{nullptr};    // input tree to read
@@ -54,12 +54,12 @@ namespace pa {
         int DEBUG; //!< debug verbosity level
         Analysis& analysis; //!< configure what to run
         Registry registry;
-        std::vector<AnalysisMod*> mods_reco, mods_gen, mods_all; 
+        std::vector<AnalysisMod*> mods_all;
         GlobalMod *gblmod{nullptr};
-        ConfigMod cfgmod; 
+        ContainerMod *preselmod{nullptr}, *postselmod{nullptr};
+        ConfigMod cfgmod;
 
     };
 }
 
 #endif
-

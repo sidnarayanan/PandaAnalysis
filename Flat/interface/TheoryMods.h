@@ -9,8 +9,9 @@ namespace pa {
     GenStudyEWKMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("genstudyewk", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("genstudyewk", event_, cfg_, utils_, gt_, level_) { }
     virtual ~GenStudyEWKMod () { }
 
     virtual bool on() { return !analysis.isData && (analysis.complicatedLeptons || analysis.complicatedPhotons); }
@@ -37,8 +38,9 @@ namespace pa {
     QCDUncMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("qcdunc", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("qcdunc", event_, cfg_, utils_, gt_, level_) { }
     virtual ~QCDUncMod () { }
 
     virtual bool on() { return !analysis.isData; }
@@ -53,8 +55,9 @@ namespace pa {
     SignalGenMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("signalweight", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("signalweight", event_, cfg_, utils_, gt_, level_) { }
     virtual ~SignalGenMod () { }
 
     virtual bool on() { return !analysis.isData && analysis.processType==kSignal; }
@@ -76,8 +79,9 @@ namespace pa {
     HFCountingMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("hfcounting", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("hfcounting", event_, cfg_, utils_, gt_, level_) { }
     virtual ~HFCountingMod () { }
 
     virtual bool on() { return !analysis.isData; }
@@ -96,8 +100,9 @@ namespace pa {
     KFactorMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("kfactor", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("kfactor", event_, cfg_, utils_, gt_, level_) { }
     virtual ~KFactorMod () { }
 
     virtual bool on() { return !analysis.isData; }

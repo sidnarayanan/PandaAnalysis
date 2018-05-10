@@ -13,8 +13,9 @@ namespace pa {
     InclusiveLeptonMod(panda::EventAnalysis& event_, 
                        Config& cfg_,
                        Utils& utils_,
-                       GeneralTree& gt_) : 
-      AnalysisMod("inclep", event_, cfg_, utils_, gt_) { }
+                       GeneralTree& gt_,
+                       int level_=0) : 
+      AnalysisMod("inclep", event_, cfg_, utils_, gt_, level_) { }
     virtual ~InclusiveLeptonMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb; }
@@ -36,8 +37,9 @@ namespace pa {
     SimpleLeptonMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("simplep", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("simplep", event_, cfg_, utils_, gt_, level_) { }
     virtual ~SimpleLeptonMod () { }
 
     virtual bool on() { return !analysis.genOnly && !analysis.complicatedLeptons; }
@@ -74,8 +76,9 @@ namespace pa {
     ComplicatedLeptonMod(panda::EventAnalysis& event_, 
                          Config& cfg_,
                          Utils& utils_,
-                         GeneralTree& gt_) : 
-      SimpleLeptonMod(event_, cfg_, utils_, gt_) { name = "complep"; }
+                         GeneralTree& gt_,
+                         int level_=0) : 
+      SimpleLeptonMod(event_, cfg_, utils_, gt_, level_) { name = "complep"; }
     virtual ~ComplicatedLeptonMod () { delete rochesterCorrection; }
 
     virtual bool on() { return !analysis.genOnly && analysis.complicatedLeptons; }
@@ -99,8 +102,9 @@ namespace pa {
     SimplePhotonMod(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
-                    GeneralTree& gt_) : 
-      AnalysisMod("simplepho", event_, cfg_, utils_, gt_) { }
+                    GeneralTree& gt_,
+                    int level_=0) : 
+      AnalysisMod("simplepho", event_, cfg_, utils_, gt_, level_) { }
     virtual ~SimplePhotonMod () { }
 
     virtual bool on() { return !analysis.genOnly && !analysis.complicatedPhotons; }
@@ -126,8 +130,9 @@ namespace pa {
     ComplicatedPhotonMod(panda::EventAnalysis& event_, 
                          Config& cfg_,
                          Utils& utils_,
-                         GeneralTree& gt_) : 
-      SimplePhotonMod(event_, cfg_, utils_, gt_) { name="comppho"; }
+                         GeneralTree& gt_,
+                         int level_=0) : 
+      SimplePhotonMod(event_, cfg_, utils_, gt_, level_) { name="comppho"; }
     virtual ~ComplicatedPhotonMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.complicatedPhotons; }
@@ -149,8 +154,9 @@ namespace pa {
     TauMod(panda::EventAnalysis& event_, 
            Config& cfg_,
            Utils& utils_,
-           GeneralTree& gt_) : 
-      AnalysisMod("tau", event_, cfg_, utils_, gt_) { }
+           GeneralTree& gt_,
+           int level_=0) : 
+      AnalysisMod("tau", event_, cfg_, utils_, gt_, level_) { }
     virtual ~TauMod () { }
 
     virtual bool on() { return !analysis.genOnly; }
@@ -169,8 +175,9 @@ namespace pa {
     GenLepMod(panda::EventAnalysis& event_, 
               Config& cfg_,
               Utils& utils_,
-              GeneralTree& gt_) : 
-      AnalysisMod("genlep", event_, cfg_, utils_, gt_) { }
+              GeneralTree& gt_,
+              int level_=0) : 
+      AnalysisMod("genlep", event_, cfg_, utils_, gt_, level_) { }
     virtual ~GenLepMod () { }
 
     virtual bool on() { return analysis.vbf && !analysis.isData; }

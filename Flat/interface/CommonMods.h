@@ -10,8 +10,9 @@ namespace pa {
     RecoilMod(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
-              GeneralTree& gt_) :                 
-      AnalysisMod("recoil", event_, cfg_, utils_, gt_) { }
+              GeneralTree& gt_,
+              int level_=0) :                 
+      AnalysisMod("recoil", event_, cfg_, utils_, gt_, level_) { }
     virtual ~RecoilMod () { }
 
     bool on() { return !analysis.genOnly && analysis.recoil; }
@@ -37,8 +38,9 @@ namespace pa {
     TriggerMod(panda::EventAnalysis& event_, 
                Config& cfg_,                 
                Utils& utils_,                
-               GeneralTree& gt_) :                 
-      AnalysisMod("trigger", event_, cfg_, utils_, gt_),
+               GeneralTree& gt_,
+               int level_=0) :                 
+      AnalysisMod("trigger", event_, cfg_, utils_, gt_, level_),
       triggerHandlers(kNTrig) { }
     virtual ~TriggerMod () { }
 
@@ -58,8 +60,9 @@ namespace pa {
     TriggerEffMod(panda::EventAnalysis& event_, 
                Config& cfg_,                 
                Utils& utils_,                
-               GeneralTree& gt_) :                 
-      AnalysisMod("triggereff", event_, cfg_, utils_, gt_) { }
+               GeneralTree& gt_,
+               int level_=0) :                 
+      AnalysisMod("triggereff", event_, cfg_, utils_, gt_, level_) { }
     virtual ~TriggerEffMod () { }
 
     bool on() { return !analysis.genOnly && !analysis.isData; }
@@ -80,8 +83,9 @@ namespace pa {
     GlobalMod(panda::EventAnalysis& event_, 
                Config& cfg_,                 
                Utils& utils_,                
-               GeneralTree& gt_) :                 
-      AnalysisMod("global", event_, cfg_, utils_, gt_),
+               GeneralTree& gt_,
+               int level_=0) :                 
+      AnalysisMod("global", event_, cfg_, utils_, gt_, level_),
       jesShifts(jes2i(shiftjes::N)) { 
         JESLOOP {
           jesShifts[shift].shift_idx = shift;
@@ -105,8 +109,9 @@ namespace pa {
     GenPMod(panda::EventAnalysis& event_, 
             Config& cfg_,                 
             Utils& utils_,                
-            GeneralTree& gt_) :                 
-      AnalysisMod("gendup", event_, cfg_, utils_, gt_) { }
+            GeneralTree& gt_,
+            int level_=0) :                 
+      AnalysisMod("gendup", event_, cfg_, utils_, gt_, level_) { }
     virtual ~GenPMod () { }
 
     bool on() { return !analysis.isData; }

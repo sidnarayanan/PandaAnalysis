@@ -101,15 +101,15 @@ void ConfigMod::set_inputBranches()
       if (analysis.hbb)
         bl.push_back("ca15GenJets");
     }
-    if (analysis.recluster || analysis.bjetRegression || 
+    if (analysis.recluster || analysis.bjetBDTReg || 
         analysis.deep || analysis.hbb || analysis.complicatedPhotons) {
       bl.push_back("pfCandidates");
     }
-    if (analysis.deepTracks || analysis.bjetRegression || analysis.hbb) {
+    if (analysis.deepTracks || analysis.bjetBDTReg || analysis.hbb) {
       bl += {"tracks","vertices"};
     }
 
-    if (analysis.bjetRegression || analysis.deepSVs)
+    if (analysis.bjetBDTReg || analysis.deepSVs)
       bl.push_back("secondaryVertices");
 
     if (cfg.isData || analysis.mcTriggers) {
@@ -431,7 +431,7 @@ void AnalysisMod::initialize(Registry& registry)
 {
   if (!on())
     return;
-  if (cfg.DEBUG) 
+  if (cfg.DEBUG > level) 
     PDebug("AnalysisMod::initialize", name);
   do_init(registry);
   for (auto* mod: subMods)
@@ -442,7 +442,7 @@ void AnalysisMod::readData(TString path)
 {
   if (!on())
     return;
-  if (cfg.DEBUG) 
+  if (cfg.DEBUG > level) 
     PDebug("AnalysisMod::readData", name);
   do_readData(path+"/");
   for (auto* mod: subMods)
@@ -456,7 +456,7 @@ void AnalysisMod::execute()
 {
   if (!on())
     return;
-  if (cfg.DEBUG>1)
+  if (cfg.DEBUG > level)
     PDebug("AnalysisMod::execute", name);
   do_execute();
   cfg.tr.TriggerEvent("execute "+name);
@@ -466,7 +466,7 @@ void AnalysisMod::reset()
 {
   if (!on())
     return;
-  if (cfg.DEBUG > 1) 
+  if (cfg.DEBUG > level+1) 
     PDebug("AnalysisMod::reset", name);
   do_reset();
   for (auto* mod : subMods)
@@ -477,9 +477,30 @@ void AnalysisMod::terminate()
 {
   if (!on())
     return;
-  if (cfg.DEBUG > 1) 
+  if (cfg.DEBUG > level+1) 
     PDebug("AnalysisMod::terminate", name);
   do_terminate();
   for (auto* mod : subMods)
     mod->terminate();
+}
+
+vector<TString> AnalysisMod::dump()
+{
+  vector<TString> v;
+  if (!on()) 
+    return v; 
+  v.push_back("-> " + name);
+  for (auto* m : subMods) {
+    vector<TString> vtmp = m->dump();
+    for (auto& s : vtmp) 
+      v.push_back("      " + s);
+  }
+  return v; 
+}
+
+void AnalysisMod::print()
+{
+  auto v = dump();
+  for (auto& s : v)
+    PInfo("AnalysisMod::print", s.Data());
 }

@@ -56,7 +56,8 @@ namespace pa {
     bool isData;
     
     bool ak8 = false;
-    bool bjetRegression = false;
+    bool bjetBDTReg = false;
+    bool bjetDeepReg = false; 
     bool btagSFs = true;
     bool btagWeights = false;
     bool complicatedLeptons = false;

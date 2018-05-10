@@ -4,19 +4,93 @@ using namespace pa;
 using namespace std;
 using namespace panda;
 using namespace fastjet;
-namespace tf = tensorflow; 
+namespace tf = tensorflow;
+
+void BRegBDTMod::do_readData(TString dirPath)
+{
+  delete[] bjetreg_vars;
+  delete bjetregReader; // we're going to recreate these guys
+
+  bjetreg_vars = new float[15];
+  bjetregReader = new TMVA::Reader("!Color:!Silent");
+  bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 0]) );
+  bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 1]) );
+  bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
+                              &(bjetreg_vars[ 2]) );
+  bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 3]) );
+  bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 4]) );
+  bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 5]) );
+  bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 6]) );
+  bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 7]) );
+  bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 8]) );
+  bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 9]) );
+  bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
+                             &(bjetreg_vars[10]) );
+  bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
+                             &(bjetreg_vars[11]) );
+  bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
+                             &(bjetreg_vars[12]) );
+  bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                             &(bjetreg_vars[13]) );
+  bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                             &(bjetreg_vars[14]) );
+
+  TString modelPath = dirPath + "/trainings/bjetregression.weights.xml";
+  downloadData(
+    "http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",
+    modelPath.Data()
+  );
+  bjetregReader->BookMVA("BDT method", modelPath);
+}
+
+void BRegBDTMod::do_execute()
+{
+  auto& jw = **currentJet;
+  int idx = jw.user_idx;
+
+  TLorentzVector v = jw.p4();
+
+  // Shifted values for the jet energies to perform the b-jet regression
+  bjetreg_vars[0] = jw.pt; // shifted pT
+  bjetreg_vars[1] = gt.jotEta[idx];
+  bjetreg_vars[2] = gt.jotTrk1Pt[idx];
+  bjetreg_vars[3] = gt.jotLep1Pt[idx];
+  bjetreg_vars[4] = gt.jotEMF[idx];
+  bjetreg_vars[5] = gt.jotHF[idx];
+  bjetreg_vars[6] = gt.jotLep1DeltaR[idx];
+  bjetreg_vars[7] = gt.jotLep1PtRel[idx];
+  bjetreg_vars[8] = gt.jotVtxPt[idx];
+  bjetreg_vars[9] = gt.jotVtxMass[idx];
+  bjetreg_vars[10]= gt.jotVtx3DVal[idx];
+  bjetreg_vars[11]= gt.jotVtx3DErr[idx];
+  bjetreg_vars[12]= gt.jotVtxNtrk[idx];
+  bjetreg_vars[13]= v.Et();
+  bjetreg_vars[14]= v.Mt();
+
+  jw.breg = (bjetregReader->EvaluateRegression("BDT method"))[0];
+  jw.bregwidth = 0;
+}
 
 void BRegDeepMod::do_execute()
 {
-  auto& jw = **currentJet; 
+  auto& jw = **currentJet;
   auto& jet = jw.get_base();
-  int N = jw.user_idx; 
+  int N = jw.user_idx;
 
   TLorentzVector vRaw;
   vRaw.SetPtEtaPhiM(jet.rawPt, jet.eta(), jet.phi(), jet.m());
 
   // defined in data/trainings/breg_training_2017.cfg
-  inputs[ 0] = jet.rawPt; 
+  inputs[ 0] = jet.rawPt;
   inputs[ 1] = jet.eta();
   inputs[ 2] = event.rho;
   inputs[ 3] = vRaw.Mt();
@@ -28,9 +102,9 @@ void BRegDeepMod::do_execute()
   inputs[ 9] = gt.jotVtxPt[N];
   inputs[10] = gt.jotVtxMass[N];
   inputs[11] = gt.jotVtx3DVal[N];
-  inputs[12] = gt.jotVtxNtrk[N]; 
+  inputs[12] = gt.jotVtxNtrk[N];
   inputs[13] = gt.jotVtx3DErr[N];
-  inputs[14] = 0; 
+  inputs[14] = 0;
   inputs[15] = 0;
   inputs[16] = 0;
   inputs[17] = 0;
@@ -58,7 +132,7 @@ void BRegDeepMod::do_execute()
   inputs[39] = 0;
   inputs[40] = 0;
   inputs[41] = 0;
-  inputs[42] = jet.m(); 
+  inputs[42] = jet.m();
   inputs[43] = 0;
 
   eval();
@@ -73,38 +147,39 @@ void TFInferMod::build(TString weightpath)
   tf::setLogging("3");
   graph = tf::loadGraphDef(weightpath.Data());
   tf::SessionOptions opts; tf::setThreading(opts, 1, "no_threads");
-  sess = tf::createSession(graph, opts); 
+  sess = tf::createSession(graph, opts);
 
-  inputs.resize(n_inputs); outputs.resize(n_outputs); 
+  inputs.resize(n_inputs); outputs.resize(n_outputs);
   outputNames[0] = outputName.Data();
 }
 
 void TFInferMod::eval()
 {
-  // build the input tensor 
+  // build the input tensor
   // might be better to put this on the heap but need to check how it moves between sessions
-  tf::NamedTensorList t_i; 
+  tf::NamedTensorList t_i;
   t_i.resize(1);
   t_i[0] = tf::NamedTensor(inputName.Data(),
-                           tf::Tensor(tf::DT_FLOAT, 
+                           tf::Tensor(tf::DT_FLOAT,
                                       tf::TensorShape({1, (long long int)n_inputs})));
-  for (int idx = 0; idx != n_inputs; ++idx) 
+  for (int idx = 0; idx != n_inputs; ++idx)
     t_i[0].second.matrix<float>()(0, idx) = inputs[idx];
 
   // set up output and run
-  vector<tf::Tensor> t_o; 
+  vector<tf::Tensor> t_o;
   tf::run(sess, t_i, outputNames, &t_o);
   for (int idx = 0; idx != n_outputs; ++idx)
     outputs[idx] = t_o[0].matrix<float>()(0, idx);
 }
 
 template <typename GENP>
-DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_, 
+DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
            Config& cfg_,
            Utils& utils_,
-           GeneralTree& gt_) :
-  AnalysisMod("deepgen", event_, cfg_, utils_, gt_) 
-{ 
+           GeneralTree& gt_,
+           int level_) :
+  AnalysisMod("deepgen", event_, cfg_, utils_, gt_, level_)
+{
   if (!on())
     return;
 
@@ -113,9 +188,9 @@ DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
   if (analysis.ak8) {
     radius = 0.8;
     algo = antikt_algorithm;
-  } 
+  }
   jetDef = new JetDefinition(algo,radius);
-  tauN = new contrib::Njettiness(contrib::OnePass_KT_Axes(), 
+  tauN = new contrib::Njettiness(contrib::OnePass_KT_Axes(),
                                           contrib::NormalizedMeasure(1., radius));
   ecfcalc = new ECFCalculator();
   if (analysis.deepGenGrid) {
@@ -125,7 +200,7 @@ DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
 }
 
 template <typename GENP>
-void DeepGenMod<GENP>::do_execute() 
+void DeepGenMod<GENP>::do_execute()
 {
   gt.genFatJetPt = 0;
   gt.genFatJetNProngs = -1;
@@ -143,7 +218,7 @@ void DeepGenMod<GENP>::do_execute()
     if (apdgid == 12 ||
         apdgid == 14 ||
         apdgid == 16)
-      continue; 
+      continue;
     if (p->pt() > 0.001 && fabs(p->eta()) < 5) {
       if (!analysis.deepGenGrid || (utils.pdgToQ[apdgid] != 0)) { // it's charged, so we have tracking
         finalStates.emplace_back(p->px(), p->py(), p->pz(), p->e());
@@ -160,7 +235,7 @@ void DeepGenMod<GENP>::do_execute()
             if (!foundW) {
               if (parent_apdgid == 24) {
                 foundW = true;
-                continue; 
+                continue;
               } else if (parent_apdgid != apdgid) {
                 break; // if it's not a W, must be a parent of the particle we care about
               }
@@ -189,10 +264,10 @@ void DeepGenMod<GENP>::do_execute()
       finalStates.emplace_back(v.Px(), v.Py(), v.Pz(), v.E());
       finalStates.back().set_user_index(user_idx); // not associated with a real particle
       --user_idx;
-    } 
+    }
   }
 
-  // cluster the  jet 
+  // cluster the  jet
   ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
   vector<PseudoJet> allJets(sorted_by_pt(seq.inclusive_jets(0.)));
 
@@ -241,13 +316,13 @@ void DeepGenMod<GENP>::do_execute()
     survived[iC] = false;
     for (auto& sdc : sdConstituents) {
       if (idx == sdc.user_index()) {
-        survived[iC] = true; 
+        survived[iC] = true;
         break;
       }
     }
   }
 
-  // get tau  
+  // get tau
   genJetInfo.tau1 = tauN->getTau(1, allConstituents);
   genJetInfo.tau2 = tauN->getTau(2, allConstituents);
   genJetInfo.tau3 = tauN->getTau(3, allConstituents);
@@ -275,14 +350,14 @@ void DeepGenMod<GENP>::do_execute()
     ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
     gt.fjECFNs[ep] = ecf;
   }
-  
-  // now we have to count the number of prongs 
-  unordered_set<const GENP*> partons; 
+
+  // now we have to count the number of prongs
+  unordered_set<const GENP*> partons;
   countGenPartons(partons); // fill the parton set
 
   map<const GENP*, unsigned> partonToIdx;
-  for (auto* parton : partons) 
-    partonToIdx[parton] = partonToIdx.size(); // just some arbitrary ordering 
+  for (auto* parton : partons)
+    partonToIdx[parton] = partonToIdx.size(); // just some arbitrary ordering
 
   // get the hardest particle with angle wrt jet axis > 0.1
   PseudoJet* axis2 = NULL;
@@ -312,7 +387,7 @@ void DeepGenMod<GENP>::do_execute()
                                  JetTree::compare(uidx));
         if (iter == allConstituents.end())
           continue;
-        
+
         int idx = static_cast<int>(iter - allConstituents.begin());
         indices.push_back(idx);
         mask[idx] = true;
@@ -345,7 +420,7 @@ void DeepGenMod<GENP>::do_execute()
 
     float angle = DeltaR2(c.eta(), c.phi(), genJetInfo.eta, genJetInfo.phi);
     float x=c.px(), y=c.py(), z=c.pz();
-    rot.Rotate(x, y, z);  // perform two rotations on the jet 
+    rot.Rotate(x, y, z);  // perform two rotations on the jet
     genJetInfo.particles[iC][0] = x;
     genJetInfo.particles[iC][1] = y;
     genJetInfo.particles[iC][2] = z;
@@ -369,11 +444,11 @@ void DeepGenMod<GENP>::do_execute()
         float q = utils.pdgToQ[apdgid];
         if (apdgid != pdgid)
           q *= -1;
-        if (q == 0) 
+        if (q == 0)
           ptype = 4;
-        else if (q > 0) 
+        else if (q > 0)
           ptype = 5;
-        else 
+        else
           ptype = 6;
       }
 
@@ -393,13 +468,13 @@ void DeepGenMod<GENP>::do_execute()
 
   if (gt.genFatJetPt > 450) {
     tAux->Fill();
-    if (tAux->GetEntries() == 2500) 
+    if (tAux->GetEntries() == 2500)
       incrementAux(false);
   }
 }
 
 template <typename GENP>
-void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons) 
+void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
 {
   float dR2 = cfg.FATJETMATCHDR2;
   float base_eta = genJetInfo.eta, base_phi = genJetInfo.phi;
@@ -410,15 +485,15 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
   for (auto* gen_ : *genP) {
     auto* gen = dynamic_cast<const GENP*>(gen_);
     unsigned apdgid = abs(gen->pdgid);
-    if (apdgid > 5 && 
+    if (apdgid > 5 &&
         apdgid != 21 &&
         apdgid != 15 &&
-        apdgid != 11 && 
+        apdgid != 11 &&
         apdgid != 13)
-      continue; 
+      continue;
 
     if (gen->pt() < threshold)
-      continue; 
+      continue;
 
     if (!matchJet(*gen))
       continue;
@@ -435,18 +510,18 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
 
     const GENP *dau1 = NULL, *dau2 = NULL;
     for (const auto* child_ : *genP) {
-      auto* child = dynamic_cast<const GENP*>(child_); 
-      if (!(child->parent.isValid() && 
+      auto* child = dynamic_cast<const GENP*>(child_);
+      if (!(child->parent.isValid() &&
             child->parent.get() == gen))
-        continue; 
-      
+        continue;
+
       unsigned child_apdgid = abs(child->pdgid);
-      if (child_apdgid > 5 && 
+      if (child_apdgid > 5 &&
           child_apdgid != 21 &&
           child_apdgid != 15 &&
-          child_apdgid != 11 && 
+          child_apdgid != 11 &&
           child_apdgid != 13)
-        continue; 
+        continue;
 
       if (dau1)
         dau2 = child;
@@ -457,8 +532,8 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
         break;
     }
 
-    if (dau1 && dau2 && 
-        dau1->pt() > threshold && dau2->pt() > threshold && 
+    if (dau1 && dau2 &&
+        dau1->pt() > threshold && dau2->pt() > threshold &&
         matchJet(*dau1) && matchJet(*dau2)) {
       if (foundParent) {
         partons.erase(partons.find(foundParent));
@@ -466,7 +541,7 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
       partons.insert(dau1);
       partons.insert(dau2);
     } else if (foundParent) {
-      continue; 
+      continue;
     } else {
       partons.insert(gen);
     }
@@ -499,7 +574,7 @@ void DeepGenMod<GENP>::incrementAux(bool close)
   TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter++);
   fAux = TFile::Open(path.Data(), "RECREATE");
   tAux = new TTree("inputs","inputs");
-  
+
   genJetInfo.particles.resize(cfg.NMAXPF);
   for (int i = 0; i != cfg.NMAXPF; ++i) {
     genJetInfo.particles[i].resize(cfg.NGENPROPS);

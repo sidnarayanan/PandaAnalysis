@@ -10,8 +10,9 @@ namespace pa {
     FatJetReclusterMod(panda::EventAnalysis& event_, 
                        Config& cfg_,                 
                        Utils& utils_,                
-                       GeneralTree& gt_) :                 
-      AnalysisMod("fjrecluster", event_, cfg_, utils_, gt_) { 
+                       GeneralTree& gt_,
+                       int level_=0) :                 
+      AnalysisMod("fjrecluster", event_, cfg_, utils_, gt_, level_) { 
         if (!on())
           return;
         jetDef = new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm : 
@@ -40,10 +41,11 @@ namespace pa {
     FatJetMod(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
-              GeneralTree& gt_) :                 
-      BaseJetMod("fatjet", event_, cfg_, utils_, gt_),
+              GeneralTree& gt_,
+              int level_=0) :                 
+      BaseJetMod("fatjet", event_, cfg_, utils_, gt_, level_),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
-        recluster = new FatJetReclusterMod(event_, cfg_, utils_, gt_); subMods.push_back(recluster);
+        recluster = addSubMod<FatJetReclusterMod>(); 
         jetType = "AK8PFPuppi";
       }
     virtual ~FatJetMod () { }
@@ -80,8 +82,9 @@ namespace pa {
     FatJetMatchingMod(panda::EventAnalysis& event_, 
                       Config& cfg_,                 
                       Utils& utils_,                
-                      GeneralTree& gt_) :                 
-      AnalysisMod("fjmatching", event_, cfg_, utils_, gt_) { }
+                      GeneralTree& gt_,
+                      int level_=0) :                 
+      AnalysisMod("fjmatching", event_, cfg_, utils_, gt_, level_) { }
     virtual ~FatJetMatchingMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet && !analysis.isData; }
