@@ -36,28 +36,29 @@ namespace pa {
         bool PassPresel(Selection::Stage stage);
 
         //////////////////////////////////////////////////////////////////////////////////////
+        GeneralTree gt;
+        int DEBUG; //!< debug verbosity level
+        Analysis& analysis; //!< configure what to run
+        Registry registry;
+
+        std::vector<AnalysisMod*> mods_all;
+        GlobalMod *gblmod{nullptr};
+        ContainerMod *preselmod{nullptr}, *postselmod{nullptr};
+        ConfigMod cfgmod;
 
         std::map<int,std::vector<LumiRange>> goodLumis;
         std::vector<Selection*> selections;
 
         // IO for the analyzer
-        TFile *fOut{nullptr};     // output file is owned by PandaAnalyzer
+        // output file is owned by PandaAnalyzer, but we use it elsewhere
+        std::shared_ptr<TFile> fOut{nullptr};     
         TTree *tOut{nullptr};
-        GeneralTree gt;
 
-        TFile *fIn{nullptr};
+        std::unique_ptr<TFile> fIn{nullptr};
         TTree *tIn{nullptr};    // input tree to read
         panda::EventAnalysis event;
 
-        std::vector<TString> wIDs;
-
-        int DEBUG; //!< debug verbosity level
-        Analysis& analysis; //!< configure what to run
-        Registry registry;
-        std::vector<AnalysisMod*> mods_all;
-        GlobalMod *gblmod{nullptr};
-        ContainerMod *preselmod{nullptr}, *postselmod{nullptr};
-        ConfigMod cfgmod;
+        std::shared_ptr<std::vector<TString>> wIDs;
 
     };
 }

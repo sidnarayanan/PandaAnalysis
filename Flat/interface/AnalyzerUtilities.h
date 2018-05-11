@@ -16,6 +16,11 @@
 
 #include "Common.h"
 
+namespace std{
+  template <typename T>
+    inline shared_ptr<vector<T>> v_make_shared(int n = 0) { return make_shared<vector<T>>(n); }
+};
+
 namespace pa { 
   void downloadData(TString url, TString outpath, TString opts="-nv"); 
 

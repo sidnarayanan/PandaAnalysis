@@ -4,7 +4,7 @@
 using namespace pa;
 using namespace std;
 using namespace panda;
-using namespace fastjet;
+namespace fj = fastjet;
 
 void HbbMiscMod::do_execute()
 {
@@ -57,7 +57,7 @@ void SoftActivityMod::do_execute()
 
     // Get vector of pseudo jets for clustering
     panda::PFCandCollection &allTracks = event.pfCandidates;
-    vector<PseudoJet> softTracksPJ;
+    vector<fj::PseudoJet> softTracksPJ;
     softTracksPJ.reserve(allTracks.size());
     panda::PFCand *softTrack=0;
     for (auto &softTrackRef : allTracks) {
@@ -118,10 +118,10 @@ void SoftActivityMod::do_execute()
       } if (trackIsInHbbEllipse) continue;
       softTracksPJ.emplace_back(softTrack->px(),softTrack->py(),softTrack->pz(),softTrack->e());
     }
-    ClusterSequenceArea softTrackSequence(softTracksPJ, *jetDefSoftTrack, *(utils.areaDef));
+    fj::ClusterSequenceArea softTrackSequence(softTracksPJ, *jetDefSoftTrack, *(utils.areaDef));
     
-    vector<PseudoJet> softTrackJets(softTrackSequence.inclusive_jets(1.));
-    for (vector<PseudoJet>::size_type iSTJ=0; iSTJ<softTrackJets.size(); iSTJ++) {
+    vector<fj::PseudoJet> softTrackJets(softTrackSequence.inclusive_jets(1.));
+    for (vector<fj::PseudoJet>::size_type iSTJ=0; iSTJ<softTrackJets.size(); iSTJ++) {
       if (fabs(softTrackJets[iSTJ].eta()) > 4.7) continue;
       gt.sumEtSoft1 += softTrackJets[iSTJ].Et(); 
       if (softTrackJets[iSTJ].pt() >  2.)  gt.nSoft2++; else continue;
@@ -133,7 +133,7 @@ void SoftActivityMod::do_execute()
 
 void GenJetNuMod::do_execute()
 {
-  vector<PseudoJet> finalStates;
+  vector<fj::PseudoJet> finalStates;
   vector<const panda::GenParticle*> bcs;
   for (auto* pptr : *genP) {
     auto& p = pToGRef(pptr);
@@ -147,8 +147,8 @@ void GenJetNuMod::do_execute()
     }
   }
 
-  ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
-  vector<PseudoJet> allJets(seq.inclusive_jets(0.01));
+  fj::ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
+  vector<fj::PseudoJet> allJets(seq.inclusive_jets(0.01));
 
   vector<panda::GenJet> genJetsNu; 
   genJetsNu.reserve(allJets.size());

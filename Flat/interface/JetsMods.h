@@ -12,7 +12,8 @@ namespace pa {
                  Utils& utils_,
                  GeneralTree& gt_,
                  int level_=0) :
-      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_, level_) {
+      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_, level_),
+      hbbdJet(std::make_shared<JetWrapper*>(nullptr)) {
         deepreg = new BRegDeepMod(event_, cfg_, utils_, gt_, level_); subMods.push_back(deepreg);
         bdtreg = new BRegBDTMod(event_, cfg_, utils_, gt_, level_); subMods.push_back(bdtreg);
       }
@@ -24,18 +25,18 @@ namespace pa {
       currentJES = registry.access<JESHandler*>("currentJES");
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       dilep = registry.accessConst<TLorentzVector>("dilep");
-      registry.publishConst("btagsortedjets", &btagsorted);
-      registry.publish("higgsDaughterJet", &hbbdJet);
+      registry.publish("higgsDaughterJet", hbbdJet);
     }
     void do_execute();
     void do_reset() { btagsorted.clear(); }
   private:
-    JESHandler **currentJES{nullptr};
-    std::vector<JetWrapper*> btagsorted;
-    const std::vector<panda::Lepton*>* looseLeps{nullptr};
-    const TLorentzVector *dilep{nullptr};
+    std::shared_ptr<JESHandler*> currentJES{nullptr};
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
+    std::shared_ptr<const TLorentzVector> dilep{nullptr};
 
-    JetWrapper* hbbdJet{nullptr};
+    std::vector<JetWrapper*> btagsorted;
+
+    std::shared_ptr<JetWrapper*> hbbdJet;
     BRegDeepMod *deepreg{nullptr};
     BRegBDTMod *bdtreg{nullptr};
   };
@@ -59,8 +60,8 @@ namespace pa {
     }
     void do_execute();
   private:
-    JetWrapper **currentJet{nullptr};
-    const std::vector<panda::Particle*> *genP;
+    std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
 
     void partonFlavor();
     void clusteredFlavor();
@@ -81,13 +82,14 @@ namespace pa {
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");
       currentJES = registry.access<JESHandler*>("currentJES");
-      fj1 = registry.accessConst<panda::FatJet*>("fj1");
+
+      fj1 = registry.accessConst<const panda::FatJet*>("fj1");
     }
     void do_execute();
   private:
-    JetWrapper **currentJet{nullptr};
-    JESHandler **currentJES{nullptr};
-    panda::FatJet *const *fj1{nullptr};
+    std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
+    std::shared_ptr<JESHandler*> currentJES{nullptr};
+    std::shared_ptr<const panda::FatJet* const> fj1{nullptr}; 
   };
 
   class BJetRegMod : public AnalysisMod {
@@ -108,8 +110,8 @@ namespace pa {
     }
     void do_execute();
   private:
-    JetWrapper **currentJet{nullptr};
-    JESHandler **currentJES{nullptr};
+    std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
+    std::shared_ptr<JESHandler*> currentJES{nullptr};
   };
 
   class VBFSystemMod : public AnalysisMod {
@@ -129,7 +131,7 @@ namespace pa {
     }
     void do_execute();
   private:
-    JESHandler **currentJES{nullptr};
+    std::shared_ptr<JESHandler*> currentJES{nullptr};
   };
 
   class BaseJetMod : public AnalysisMod {
@@ -157,19 +159,7 @@ namespace pa {
           csvL = 0.2219; csvM = 0.6324;
         }
       }
-    virtual ~BaseJetMod () {
-      delete jer;
-      for (auto& iter : scales) {
-        delete iter.second;
-      }
-      for (auto& iter : scaleUncs) {
-        for (size_t i = 0; i != iter.second.size(); ++i) {
-          if (i % 2 == 0)
-            continue; // avoid double-freeing memory
-          delete iter.second[i];
-        }
-      }
-    }
+    virtual ~BaseJetMod () { }
     bool csvLoose (float csv) { return csv > csvL; }
     bool csvMed (float csv) { return csv > csvM; }
   protected:
@@ -177,11 +167,12 @@ namespace pa {
     virtual void do_readData(TString path);
     JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false);
 
-    std::map<TString,FactorizedJetCorrector*> scales; // era/MC -> scale
-    std::map<TString,std::vector<JetCorrectionUncertainty*>> scaleUncs; // era/MC -> (src -> unc)
-    JERReader *jer{nullptr}; //!< fatjet jet energy resolution reader
-    std::vector<JetCorrectionUncertainty*> *scaleUnc  {nullptr}; // src -> unc
-    FactorizedJetCorrector   *scale{nullptr};
+    std::map<TString,std::unique_ptr<FactorizedJetCorrector>> scales; // era/MC -> scale
+    std::map<TString,std::vector<std::shared_ptr<JetCorrectionUncertainty>>> scaleUncs; // era/MC -> (src -> unc)
+    std::unique_ptr<JERReader> jer{nullptr}; //!< fatjet jet energy resolution reader
+
+    std::vector<std::shared_ptr<JetCorrectionUncertainty>> *scaleUnc  {nullptr}; // src -> unc
+    FactorizedJetCorrector *scale{nullptr};
 
     TString jecV, jecReco, jetType, campaign, spacer, jerV;
     std::vector<TString> eraGroups;
@@ -197,7 +188,9 @@ namespace pa {
            Utils& utils_,
            GeneralTree& gt_,
            int level_=0) :
-      BaseJetMod("jet", event_, cfg_, utils_, gt_, level_) {
+      BaseJetMod("jet", event_, cfg_, utils_, gt_, level_),
+      currentJet(std::make_shared<JetWrapper*>(nullptr)),
+      currentJES(std::make_shared<JESHandler*>(nullptr)) {
         ak4Jets = &(event.chsAK4Jets);
 
         flavor = addSubMod<JetFlavorMod>();
@@ -207,15 +200,15 @@ namespace pa {
         hbb = addSubMod<HbbSystemMod>();
 
         jetType = "AK4PFchs";
-      }
+    }
     virtual ~JetMod () { }
 
     virtual bool on() { return !analysis.genOnly; }
 
   protected:
     void do_init(Registry& registry) {
-      registry.publish("currentJet", &currentJet);
-      registry.publish("currentJES", &currentJES);
+      registry.publish("currentJet", currentJet);
+      registry.publish("currentJES", currentJES);
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
@@ -229,15 +222,15 @@ namespace pa {
     VBFSystemMod *vbf{nullptr};
     HbbSystemMod *hbb{nullptr};
 
-    std::vector<JESHandler>* jesShifts{nullptr};
+    std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
 
-    const std::vector<panda::Lepton*>* matchLeps{nullptr};
-    const std::vector<panda::Photon*>* matchPhos{nullptr};
+    std::shared_ptr<const std::vector<panda::Lepton*>> matchLeps{nullptr};
+    std::shared_ptr<const std::vector<panda::Photon*>> matchPhos{nullptr};
 
     panda::JetCollection *ak4Jets{nullptr};
 
-    JetWrapper *currentJet{nullptr};
-    JESHandler *currentJES{nullptr};
+    std::shared_ptr<JetWrapper*> currentJet; // shared ptr to a bare address
+    std::shared_ptr<JESHandler*> currentJES;
 
     void setupJES();
     void varyJES();

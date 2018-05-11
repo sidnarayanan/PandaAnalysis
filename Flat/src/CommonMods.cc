@@ -293,7 +293,7 @@ void GlobalMod::do_execute()
   gt.puppimetsig = event.puppiMet.significance; 
   
   METLOOP {
-    auto& jets = jesShifts[shift];
+    auto& jets = (*jesShifts)[shift];
     // PF 
     shiftMET(event.pfMet, jets.vpfMET, i2jes(shift));
     gt.pfmet[shift] = jets.vpfMET.Pt();

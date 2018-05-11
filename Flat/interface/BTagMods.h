@@ -19,12 +19,12 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
+      jesShifts = registry.accessConst<std::vector<JESHandler>>("jesShifts");
     }
     void do_execute();
 
   private:
-    const std::vector<JESHandler> *jesShifts{nullptr};
+    std::shared_ptr<const std::vector<JESHandler>> jesShifts{nullptr};
   };
 
   class BTagWeightMod : public AnalysisMod {
@@ -41,12 +41,12 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
+      jesShifts = registry.accessConst<std::vector<JESHandler>>("jesShifts");
     }
     void do_execute();
 
   private:
-    const std::vector<JESHandler> *jesShifts{nullptr};
+    std::shared_ptr<const std::vector<JESHandler>> jesShifts{nullptr};
   };
  
 }

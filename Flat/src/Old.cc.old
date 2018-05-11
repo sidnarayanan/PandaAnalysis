@@ -189,11 +189,11 @@ void PandaAnalyzer::FillPFTree()
 
   std::vector<const PFCand*> sortedC;
   if (analysis->deepKtSort || analysis->deepAntiKtSort) {
-    VPseudoJet particles = ConvertPFCands(fj1->constituents,analysis->puppiJets,0.001);
-    fastjet::ClusterSequenceArea seq(particles,
+    Vfj::PseudoJet particles = ConvertPFCands(fj1->constituents,analysis->puppiJets,0.001);
+    fastjet::fj::ClusterSequenceArea seq(particles,
                                      *(analysis->deepKtSort ? jetDefKt : jetDef),
                                      *areaDef);
-    VPseudoJet allJets(seq.inclusive_jets(0.));
+    Vfj::PseudoJet allJets(seq.inclusive_jets(0.));
   
     auto &history = seq.history();
     auto &jets = seq.jets();

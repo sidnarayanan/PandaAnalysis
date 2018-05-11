@@ -7,11 +7,11 @@
 namespace pa {
   class RecoilMod : public AnalysisMod {
   public:
-    RecoilMod(panda::EventAnalysis& event_, 
-              Config& cfg_,                 
-              Utils& utils_,                
+    RecoilMod(panda::EventAnalysis& event_,
+              Config& cfg_,
+              Utils& utils_,
               GeneralTree& gt_,
-              int level_=0) :                 
+              int level_=0) :
       AnalysisMod("recoil", event_, cfg_, utils_, gt_, level_) { }
     virtual ~RecoilMod () { }
 
@@ -27,19 +27,19 @@ namespace pa {
     void do_execute();
 
   private:
-    const std::vector<panda::Lepton*> *looseLeps{nullptr};
-    const std::vector<panda::Photon*> *loosePhos{nullptr};
-    const std::array<int,4> *lepPdgId {nullptr};
-    std::vector<JESHandler> *jesShifts{nullptr};
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
+    std::shared_ptr<const std::vector<panda::Photon*>> loosePhos{nullptr};
+    std::shared_ptr<const std::array<int,4>> lepPdgId {nullptr};
+    std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
   };
 
   class TriggerMod : public AnalysisMod {
   public:
-    TriggerMod(panda::EventAnalysis& event_, 
-               Config& cfg_,                 
-               Utils& utils_,                
+    TriggerMod(panda::EventAnalysis& event_,
+               Config& cfg_,
+               Utils& utils_,
                GeneralTree& gt_,
-               int level_=0) :                 
+               int level_=0) :
       AnalysisMod("trigger", event_, cfg_, utils_, gt_, level_),
       triggerHandlers(kNTrig) { }
     virtual ~TriggerMod () { }
@@ -52,16 +52,16 @@ namespace pa {
 
   private:
     void checkEle32();
-    std::vector<TriggerHandler> triggerHandlers; 
+    std::vector<TriggerHandler> triggerHandlers;
   };
 
   class TriggerEffMod : public AnalysisMod {
   public:
-    TriggerEffMod(panda::EventAnalysis& event_, 
-               Config& cfg_,                 
-               Utils& utils_,                
+    TriggerEffMod(panda::EventAnalysis& event_,
+               Config& cfg_,
+               Utils& utils_,
                GeneralTree& gt_,
-               int level_=0) :                 
+               int level_=0) :
       AnalysisMod("triggereff", event_, cfg_, utils_, gt_, level_) { }
     virtual ~TriggerEffMod () { }
 
@@ -69,72 +69,76 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); 
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
     }
     void do_execute();
 
   private:
-    const std::vector<panda::Lepton*> *looseLeps{nullptr};
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
   };
 
 
   class GlobalMod : public AnalysisMod {
   public:
-    GlobalMod(panda::EventAnalysis& event_, 
-               Config& cfg_,                 
-               Utils& utils_,                
+    GlobalMod(panda::EventAnalysis& event_,
+               Config& cfg_,
+               Utils& utils_,
                GeneralTree& gt_,
-               int level_=0) :                 
+               int level_=0) :
       AnalysisMod("global", event_, cfg_, utils_, gt_, level_),
-      jesShifts(jes2i(shiftjes::N)) { 
+      jesShifts(std::v_make_shared<JESHandler>(jes2i(shiftjes::N))) {
         JESLOOP {
-          jesShifts[shift].shift_idx = shift;
+          (*jesShifts)[shift].shift_idx = shift;
         }
       }
     virtual ~GlobalMod () { }
-    
+
   protected:
-    void do_init(Registry& registry) { registry.publish("jesShifts", &jesShifts); }
-    void do_execute();  
-    void do_reset() { 
-      for (auto& s : jesShifts)
+    void do_init(Registry& registry) {
+      registry.publish("jesShifts", jesShifts);
+      auto dummy = registry.access<std::vector<JESHandler>>("jesShifts");
+    }
+    void do_execute();
+    void do_reset() {
+      for (auto& s : *jesShifts)
         s.clear();
     }
   private:
-    std::vector<JESHandler> jesShifts;
+    std::shared_ptr<std::vector<JESHandler>> jesShifts;
   };
 
   class GenPMod : public AnalysisMod {
   public:
-    GenPMod(panda::EventAnalysis& event_, 
-            Config& cfg_,                 
-            Utils& utils_,                
+    GenPMod(panda::EventAnalysis& event_,
+            Config& cfg_,
+            Utils& utils_,
             GeneralTree& gt_,
-            int level_=0) :                 
-      AnalysisMod("gendup", event_, cfg_, utils_, gt_, level_) { }
+            int level_=0) :
+      AnalysisMod("gendup", event_, cfg_, utils_, gt_, level_),
+      genP(std::v_make_shared<panda::Particle*>()) { }
     virtual ~GenPMod () { }
 
     bool on() { return !analysis.isData; }
-    
+
   protected:
     void do_init(Registry& registry) {
-      registry.publishConst("genP", &genP);
+      registry.publishConst("genP", genP);
     }
-    void do_execute();  
+    void do_execute();
     void do_reset() {
-      genP.clear();
+      genP->clear();
     }
   private:
-    std::vector<panda::Particle*> genP;
+    std::shared_ptr<std::vector<panda::Particle*>> genP;
 
     template <typename T>
     void merge_particles(panda::Collection<T>& genParticles) {
-      genP.reserve(genParticles.size()); // approx
+      genP->reserve(genParticles.size()); // approx
       for (auto& g : genParticles) {
         bool foundDup = false;
         if (g.finalState) {
           float ptThreshold = g.pt() * 0.01;
-          for (auto* pPtr : genP) {
+          for (auto* pPtr : *genP) {
             const T* gPtr = static_cast<const T*>(pPtr);
             if (!gPtr->finalState)
               continue;
@@ -153,9 +157,9 @@ namespace pa {
           } // genP loop
         } // if final state
         if (!foundDup) {
-          genP.push_back(&g);
+          genP->push_back(&g);
         }
-      } 
+      }
     }
   };
 }

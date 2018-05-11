@@ -1,7 +1,7 @@
 #include "../interface/AnalyzerUtilities.h"
 #include <cassert>
 
-using namespace fastjet;
+namespace fj = fastjet;
 using namespace std;
 using namespace pa;
 using namespace panda;
@@ -20,10 +20,10 @@ void pa::downloadData(TString url, TString outpath, TString opts)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-JetTree::Node::Node(PseudoJet& pj_):
+JetTree::Node::Node(fj::PseudoJet& pj_):
   _pj(pj_)
 {
-  PseudoJet dau1, dau2;
+  fj::PseudoJet dau1, dau2;
   if (_pj.has_parents(dau1, dau2)) {
     l = new Node(dau1);
     r = new Node(dau2);

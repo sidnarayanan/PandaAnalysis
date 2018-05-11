@@ -3,16 +3,14 @@
 using namespace pa;
 using namespace std;
 using namespace panda;
-using namespace fastjet;
+namespace fj = fastjet;
 namespace tf = tensorflow;
 
 void BRegBDTMod::do_readData(TString dirPath)
 {
-  delete[] bjetreg_vars;
-  delete bjetregReader; // we're going to recreate these guys
+  bjetreg_vars.reset(new float[15]);
 
-  bjetreg_vars = new float[15];
-  bjetregReader = new TMVA::Reader("!Color:!Silent");
+  bjetregReader.reset(new TMVA::Reader("!Color:!Silent"));
   bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
                              &(bjetreg_vars[ 0]) );
   bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
@@ -184,17 +182,17 @@ DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
     return;
 
   double radius = 1.5;
-  auto algo = cambridge_algorithm;
+  auto algo = fj::cambridge_algorithm;
   if (analysis.ak8) {
     radius = 0.8;
-    algo = antikt_algorithm;
+    algo = fj::antikt_algorithm;
   }
-  jetDef = new JetDefinition(algo,radius);
-  tauN = new contrib::Njettiness(contrib::OnePass_KT_Axes(),
-                                          contrib::NormalizedMeasure(1., radius));
-  ecfcalc = new ECFCalculator();
+  jetDef.reset(new fj::JetDefinition(algo,radius));
+  tauN.reset(new fj::contrib::Njettiness(fj::contrib::OnePass_KT_Axes(),
+                                         fj::contrib::NormalizedMeasure(1., radius)));
+  ecfcalc.reset(new ECFCalculator());
   if (analysis.deepGenGrid) {
-    grid = new ParticleGridder(2500,1570,5); // 0.002x0.002
+    grid.reset(new ParticleGridder(2500,1570,5)); // 0.002x0.002
     grid->_etaphi = false;
   }
 }
@@ -206,7 +204,7 @@ void DeepGenMod<GENP>::do_execute()
   gt.genFatJetNProngs = -1;
 
   set<int> leptonIndices; // hard leptons from t->W->lv ecay
-  vector<PseudoJet> finalStates;
+  vector<fj::PseudoJet> finalStates;
 
   int idx = -1;
   for (auto* p_ : *genP) {
@@ -268,10 +266,10 @@ void DeepGenMod<GENP>::do_execute()
   }
 
   // cluster the  jet
-  ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
-  vector<PseudoJet> allJets(sorted_by_pt(seq.inclusive_jets(0.)));
+  fj::ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
+  vector<fj::PseudoJet> allJets(sorted_by_pt(seq.inclusive_jets(0.)));
 
-  PseudoJet* fullJet = NULL;
+  fj::PseudoJet* fullJet = NULL;
   for (auto& testJet : allJets) {
     if (testJet.perp() < cfg.minGenFatJetPt)
       break;
@@ -306,7 +304,7 @@ void DeepGenMod<GENP>::do_execute()
   genJetInfo.phi = fullJet->phi();
 
   // softdrop the jet
-  PseudoJet sdJet = (*utils.softDrop)(*fullJet);
+  fj::PseudoJet sdJet = (*utils.softDrop)(*fullJet);
   VPseudoJet sdConstituents = sorted_by_pt(sdJet.constituents());
   genJetInfo.msd = sdJet.m();
   vector<bool> survived(allConstituents.size());
@@ -360,7 +358,7 @@ void DeepGenMod<GENP>::do_execute()
     partonToIdx[parton] = partonToIdx.size(); // just some arbitrary ordering
 
   // get the hardest particle with angle wrt jet axis > 0.1
-  PseudoJet* axis2 = NULL;
+  fj::PseudoJet* axis2 = NULL;
   for (auto& c : allConstituents) {
     if (DeltaR2(c.eta(), c.phi(), genJetInfo.eta, genJetInfo.phi) > 0.01) {
       if (!axis2 || (c.perp() > axis2->perp())) {
@@ -413,7 +411,7 @@ void DeepGenMod<GENP>::do_execute()
         iC_ = unclustered.at(iC - indices.size());
       }
     }
-    PseudoJet &c = allConstituents.at(iC_);
+    fj::PseudoJet &c = allConstituents.at(iC_);
 
     if (c.perp() < 0.001) // not a real particle
       continue;
@@ -564,7 +562,7 @@ template <typename GENP>
 void DeepGenMod<GENP>::incrementAux(bool close)
 {
   if (fAux) {
-    fAux->WriteTObject(tAux, "inputs", "Overwrite");
+    fAux->WriteTObject(tAux.get(), "inputs", "Overwrite");
     TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter);
     fAux->Close();
   }
@@ -572,8 +570,8 @@ void DeepGenMod<GENP>::incrementAux(bool close)
     return;
 
   TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter++);
-  fAux = TFile::Open(path.Data(), "RECREATE");
-  tAux = new TTree("inputs","inputs");
+  fAux.reset(TFile::Open(path.Data(), "RECREATE"));
+  tAux.reset(new TTree("inputs","inputs"));
 
   genJetInfo.particles.resize(cfg.NMAXPF);
   for (int i = 0; i != cfg.NMAXPF; ++i) {

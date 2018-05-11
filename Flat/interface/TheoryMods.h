@@ -25,10 +25,10 @@ namespace pa {
     }
     virtual void do_execute(); 
   private:
-    const std::vector<panda::Particle*> *genP{nullptr};
-    const std::vector<panda::Lepton*> *looseLeps{nullptr}; 
-    const std::vector<panda::Photon*> *loosePhos{nullptr}; 
-    const std::array<int,4> *lepPdgId{nullptr};
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr}; 
+    std::shared_ptr<const std::vector<panda::Photon*>> loosePhos{nullptr}; 
+    std::shared_ptr<const std::array<int,4>> lepPdgId{nullptr};
     
   };
 
@@ -69,8 +69,8 @@ namespace pa {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
   private:
-    const std::vector<TString> *wIDs {nullptr};
-    const std::vector<panda::Particle*> *genP{nullptr};
+    std::shared_ptr<const std::vector<TString>> wIDs {nullptr};
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
   };
 
 
@@ -92,7 +92,7 @@ namespace pa {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
   private:
-    const std::vector<panda::Particle*> *genP{nullptr};
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
   };
 
   class KFactorMod : public AnalysisMod {
@@ -117,8 +117,8 @@ namespace pa {
     void toppt(); 
     void vpt(); 
 
-    const std::vector<panda::Particle*> *genP{nullptr};
-    const std::vector<panda::Lepton*> *looseLeps{nullptr}; 
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr}; 
   };
 }
 

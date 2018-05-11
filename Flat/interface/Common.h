@@ -7,6 +7,7 @@
 #include "map"
 #include <string>
 #include <cmath>
+#include "memory"
 
 // ROOT
 #include <TTree.h>
@@ -23,7 +24,6 @@
 // macros
 #define JESLOOP for (int shift = 0; shift != cfg.maxshiftJES; ++shift)
 #define METLOOP for (int shift = 0; shift != 3; ++shift)
-
 
 namespace pa {
   inline int jes2i(shiftjes i) { return static_cast<int>(i); }

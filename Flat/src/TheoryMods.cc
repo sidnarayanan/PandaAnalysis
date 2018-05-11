@@ -722,7 +722,7 @@ void KFactorMod::vpt()
 
           //ideally you want to have dressed leptons (lepton + photon), 
           //but we have in any ways have a photon veto in the analysis
-          if (isMatched(looseLeps,0.01,part.eta(),part.phi()))
+          if (isMatched(looseLeps.get(),0.01,part.eta(),part.phi()))
             vpt += part.p4();
         }
         

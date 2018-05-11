@@ -4,6 +4,7 @@
 #include "TString.h"
 #include "vector"
 #include "map"
+#include "memory.h"
 
 #include "AnalyzerUtilities.h"
 #include "Common.h"
@@ -59,11 +60,14 @@ namespace pa {
 
   class Utils {
   public:
-    Utils() : 
-      fCorrs(cN,nullptr),
-      f1Corrs(cN,nullptr),
-      h1Corrs(cN,nullptr),
-      h2Corrs(cN,nullptr)   { }
+    Utils() : fCorrs(cN), f1Corrs(cN), h1Corrs(cN), h2Corrs(cN) { 
+      for (unsigned i = 0; i != cN; ++i) {
+        fCorrs[i].reset(nullptr);
+        f1Corrs[i].reset(nullptr);
+        h1Corrs[i].reset(nullptr);
+        h2Corrs[i].reset(nullptr);
+      }
+    }
     ~Utils(); 
 
     double getCorr(CorrectionType ct, double x, double y=0);
@@ -73,23 +77,23 @@ namespace pa {
     std::map<int, int> pdgToQ; 
     
     // fastjet reclustering
-    fastjet::AreaDefinition    *areaDef         {nullptr};
-    fastjet::GhostedAreaSpec   *activeArea      {nullptr};
-    fastjet::contrib::SoftDrop   *softDrop      {nullptr};
+    std::unique_ptr<fastjet::AreaDefinition> areaDef{nullptr};
+    std::unique_ptr<fastjet::GhostedAreaSpec> activeArea{nullptr};
+    std::unique_ptr<fastjet::contrib::SoftDrop> softDrop{nullptr};
 
-    EraHandler *eras{nullptr}; //!< determining data-taking era, to be used for era-dependent JEC
+    std::unique_ptr<EraHandler> eras{nullptr}; //!< determining data-taking era, to be used for era-dependent JEC
 
-    std::vector<TFile*> fCorrs;
-    std::vector<TF1Corr*> f1Corrs;
-    std::vector<THCorr1*> h1Corrs;
-    std::vector<THCorr2*> h2Corrs;
+    std::vector<std::unique_ptr<TFile>> fCorrs;
+    std::vector<std::unique_ptr<TF1Corr>> f1Corrs;
+    std::vector<std::unique_ptr<THCorr1>> h1Corrs;
+    std::vector<std::unique_ptr<THCorr2>> h2Corrs;
 
-    TFile   *fMSDcorr       {nullptr};
+    std::unique_ptr<TFile>fMSDcorr{nullptr};
     TF1     *puppisd_corrGEN    {nullptr};
     TF1     *puppisd_corrRECO_cen {nullptr};
     TF1     *puppisd_corrRECO_for {nullptr};
 
-    BTagCorrs *btag{nullptr};
+    std::unique_ptr<BTagCorrs>btag{nullptr};
 
   };
 

@@ -3,29 +3,34 @@
 using namespace pa;
 using namespace std;
 
-BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_) : gt(gt_)
+BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_) : 
+  readers(bN),
+  gt(gt_)
 {
+    for (auto& r : readers)
+      r.reset(nullptr); 
+
     if (analysis.btagSFs) {
-        calib = new BTagCalibration("csvv2",
-                                    (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data());
-        readers[bJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
+        calib.reset(new BTagCalibration("csvv2",
+                                        (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data()));
+        readers[bJetL].reset(new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"}));
         readers[bJetL]->load(*(calib),BTagEntry::FLAV_B,"comb");
         readers[bJetL]->load(*(calib),BTagEntry::FLAV_C,"comb");
         readers[bJetL]->load(*(calib),BTagEntry::FLAV_UDSG,"incl");
 
-        sj_calib = new BTagCalibration("csvv2",
-                                       (dirPath+"moriond17/subjet_CSVv2_Moriond17_B_H.csv").Data());
-        readers[bSubJetL] = new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"});
+        sj_calib.reset(new BTagCalibration("csvv2",
+                                           (dirPath+"moriond17/subjet_CSVv2_Moriond17_B_H.csv").Data()));
+        readers[bSubJetL].reset(new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"}));
         readers[bSubJetL]->load(*(sj_calib),BTagEntry::FLAV_B,"lt");
         readers[bSubJetL]->load(*(sj_calib),BTagEntry::FLAV_C,"lt");
         readers[bSubJetL]->load(*(sj_calib),BTagEntry::FLAV_UDSG,"incl");
 
-        readers[bJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
+        readers[bJetM].reset(new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"}));
         readers[bJetM]->load(*(calib),BTagEntry::FLAV_B,"comb");
         readers[bJetM]->load(*(calib),BTagEntry::FLAV_C,"comb");
         readers[bJetM]->load(*(calib),BTagEntry::FLAV_UDSG,"incl");
         
-        readers[bSubJetM] = new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
+        readers[bSubJetM].reset(new BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"}));
         readers[bSubJetM]->load(*(sj_calib),BTagEntry::FLAV_B,"lt");
         readers[bSubJetM]->load(*(sj_calib),BTagEntry::FLAV_C,"lt");
         readers[bSubJetM]->load(*(sj_calib),BTagEntry::FLAV_UDSG,"incl");
@@ -37,20 +42,24 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
       systNames.reserve(GeneralTree::nCsvShifts);
       for (unsigned iShift=0; iShift<GeneralTree::nCsvShifts; iShift++) {
         GeneralTree::csvShift shift = gt.csvShifts[iShift];
-        if (shift==GeneralTree::csvCent) continue;
+        if (shift==GeneralTree::csvCent) 
+          continue;
         systNames.push_back(GeneralTree::csvShiftName(shift).Data());
       }    
-      reshaper = new BTagCalibrationReader(BTagEntry::OP_RESHAPING,
-                                           GeneralTree::csvShiftName(GeneralTree::csvCent).Data(), 
-                                           systNames);
+      reshaper.reset(new BTagCalibrationReader(BTagEntry::OP_RESHAPING,
+                                               GeneralTree::csvShiftName(GeneralTree::csvCent).Data(), 
+                                               systNames));
 
       if (analysis.year==2016) {
         if (analysis.useCMVA) 
-          reshaper_calib = new BTagCalibration("csvv2", (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data());
+          reshaper_calib.reset(new BTagCalibration("csvv2", 
+                                                   (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data()));
         else
-          reshaper_calib = new BTagCalibration("cMVAv2", (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data());
+          reshaper_calib.reset(new BTagCalibration("cMVAv2", 
+                                                   (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data()));
       } else if (analysis.year==2017) {
-        reshaper_calib = new BTagCalibration("DeepCSV", (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data());
+        reshaper_calib.reset(new BTagCalibration("DeepCSV", 
+                                                 (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data()));
       }
       reshaper->load(*(reshaper_calib), BTagEntry::FLAV_B, "iterativeFit");
       reshaper->load(*(reshaper_calib), BTagEntry::FLAV_C, "iterativeFit");

@@ -18,10 +18,7 @@ namespace pa {
                 GeneralTree& gt_,
                 int level_=0) :
       AnalysisMod("bregbdt", event_, cfg_, utils_, gt_, level_) { }
-    ~BRegBDTMod() {
-      delete bjetregReader;
-      delete[] bjetreg_vars;
-    }
+    ~BRegBDTMod() { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetBDTReg; }
   protected:
@@ -31,9 +28,9 @@ namespace pa {
     }
     void do_execute();
   private:
-    JetWrapper **currentJet{nullptr};
-    TMVA::Reader *bjetregReader{nullptr};
-    float *bjetreg_vars{nullptr};
+    std::shared_ptr<JetWrapper*> currentJet{nullptr};
+    std::unique_ptr<TMVA::Reader> bjetregReader;
+    std::unique_ptr<float[]> bjetreg_vars; 
   };
 
 
@@ -46,14 +43,18 @@ namespace pa {
                GeneralTree& gt_,
                int level_=0) :
       AnalysisMod(name_, event_, cfg_, utils_,  gt_),
+      p_inputs(std::v_make_shared<float>()),
+      p_outputs(std::v_make_shared<float>()),
+      inputs(*p_inputs),
+      outputs(*p_outputs),
       outputNames(1) { }
     ~TFInferMod() { }
 
   protected:
     virtual void do_init(Registry& registry) {
       // just in case you want to set these in other modules
-      registry.publishConst(name+"_outputs", &outputs);
-      registry.publish(name+"_inputs", &inputs);
+      registry.publishConst(name+"_outputs", p_outputs);
+      registry.publish(name+"_inputs", p_inputs);
     }
     virtual void do_readData(TString dirPath) = 0; // must call build(weightpath)
     virtual void do_execute() = 0; // must call eval()
@@ -67,9 +68,11 @@ namespace pa {
 
     tensorflow::GraphDef* graph{nullptr}; // need to figure out if these are owned by tf or not
     tensorflow::Session* sess{nullptr};
-    TString inputName, outputName;
+    TString inputName{0}, outputName{0};
     int n_inputs{0}, n_outputs{0};
-    std::vector<float> inputs, outputs;
+    std::shared_ptr<std::vector<float>> p_inputs, p_outputs; // keep this around for publication
+    std::vector<float>& inputs;
+    std::vector<float>& outputs;
   private:
     std::vector<std::string> outputNames;
   };
@@ -102,7 +105,7 @@ namespace pa {
     }
     void do_execute();
   private:
-    JetWrapper **currentJet{nullptr};
+    std::shared_ptr<JetWrapper*> currentJet{nullptr};
   };
 
   template <typename GENP>
@@ -113,10 +116,7 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0);
-    virtual ~DeepGenMod () {
-      delete jetDef; delete tauN;
-      delete ecfcalc; delete grid;
-    }
+    virtual ~DeepGenMod () { }
 
     virtual bool on() { return !analysis.isData && analysis.deepGen; }
 
@@ -138,15 +138,17 @@ namespace pa {
     void countGenPartons(std::unordered_set<const GENP*>&);
     void incrementAux(bool close = false);
   private:
-    const std::vector<panda::Particle*> *genP{nullptr};
-    fastjet::JetDefinition       *jetDef                {nullptr};
-    fastjet::contrib::Njettiness *tauN                  {nullptr};
-    ECFCalculator *ecfcalc{nullptr};
-    ParticleGridder *grid{nullptr};
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    std::shared_ptr<TFile> fOut{nullptr};
+
+    std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
+    std::unique_ptr<fastjet::contrib::Njettiness>tauN{nullptr};
+    std::unique_ptr<ECFCalculator>ecfcalc{nullptr};
+    std::unique_ptr<ParticleGridder>grid{nullptr};
     GenJetInfo genJetInfo;
-    TFile *fAux{nullptr};
-    TTree *tAux{nullptr};
-    TFile *fOut{nullptr};
+
+    std::unique_ptr<TFile>fAux{nullptr};
+    std::unique_ptr<TTree>tAux{nullptr};
     int auxCounter{0};
   };
 

@@ -14,8 +14,8 @@
 
 class genericTree {
   public:
-    genericTree() {};
-    virtual ~genericTree() {};
+    genericTree() {  }
+    virtual ~genericTree() {}
     TTree *treePtr{0};
     virtual void WriteTree(TTree *t)=0;
     virtual void RemoveBranches(std::vector<TString> droppable,

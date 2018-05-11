@@ -14,7 +14,7 @@ void SimpleLeptonMod::scaleFactors()
   // leptons in the event. Cool guyz get per-leg scalefactors
   // computed in ComplicatedLeptonMod
   for (int iL=0; iL!=TMath::Min(gt.nLooseLep,2); ++iL) {
-    auto* lep = looseLeps.at(iL);
+    auto* lep = (*looseLeps)[iL];
     float pt = lep->pt(), eta = lep->eta(), aeta = TMath::Abs(eta);
     Muon* mu = dynamic_cast<Muon*>(lep);
     if (mu!=nullptr) {
@@ -69,8 +69,8 @@ void SimpleLeptonMod::do_execute()
     gt.electronPhi[iL]          = ele.phi();
     gt.electronSelBit[iL]       = eleSelBit;
     gt.electronPdgId[iL]        = ele.charge*-11;
-    looseLeps.push_back(&ele);
-    matchLeps.push_back(&ele); 
+    looseLeps->push_back(&ele);
+    matchLeps->push_back(&ele); 
     gt.nLooseElectron++;
     if (gt.nLooseElectron>=2) 
       break;
@@ -100,8 +100,8 @@ void SimpleLeptonMod::do_execute()
     gt.muonPhi[iL]                  = mu.phi();
     gt.muonSelBit[iL]               = muSelBit;
     gt.muonPdgId[iL]                = mu.charge*-13;
-    looseLeps.push_back(&mu);
-    matchLeps.push_back(&mu); 
+    looseLeps->push_back(&mu);
+    matchLeps->push_back(&mu); 
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
     METLOOP {
       (*jesShifts)[shift].vpfMETNoMu += vMu;
@@ -115,7 +115,7 @@ void SimpleLeptonMod::do_execute()
   }
 
   // now consider all leptons
-  gt.nLooseLep = looseLeps.size();
+  gt.nLooseLep = looseLeps->size();
   gt.nTightLep = gt.nTightElectron + gt.nTightMuon;
 
   if (gt.nLooseLep>0) {
@@ -123,31 +123,31 @@ void SimpleLeptonMod::do_execute()
       return l1->pt() > l2->pt();
     });
     int nToSort = TMath::Min(4,gt.nLooseLep);
-    std::partial_sort(looseLeps.begin(),looseLeps.begin()+nToSort,looseLeps.end(),ptsort);
+    std::partial_sort(looseLeps->begin(),looseLeps->begin()+nToSort,looseLeps->end(),ptsort);
 
-    Lepton* lep1 = looseLeps[0];
+    Lepton* lep1 = (*looseLeps)[0];
     METLOOP {
       gt.mT[shift] = MT(lep1->pt(),lep1->phi(),gt.pfmet[shift],gt.pfmetphi[shift]);
     }
   }  
 
   for (int i = 0; i != min(4, gt.nLooseLep); ++i) {
-    Muon *mu = dynamic_cast<Muon*>(looseLeps[i]);
+    Muon *mu = dynamic_cast<Muon*>((*looseLeps)[i]);
     if (mu != nullptr) {
-      lepPdgId[i] = mu->charge * -13;
+      (*lepPdgId)[i] = mu->charge * -13;
     } else {
-      Electron *ele = dynamic_cast<Electron*>(looseLeps[i]);
-      lepPdgId[i] = ele->charge * -11;
+      Electron *ele = dynamic_cast<Electron*>((*looseLeps)[i]);
+      (*lepPdgId)[i] = ele->charge * -11;
     }
   }
   
-  if (gt.nLooseLep>1 && lepPdgId[0]+lepPdgId[1]==0) {
+  if (gt.nLooseLep>1 && (*lepPdgId)[0]+(*lepPdgId)[1]==0) {
     TLorentzVector v1,v2;
-    Lepton *lep1=looseLeps[0], *lep2=looseLeps[1];
+    Lepton *lep1=(*looseLeps)[0], *lep2=(*looseLeps)[1];
     v1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
     v2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-    dilep = v1+v2;
-    gt.diLepMass = dilep.M();
+    *dilep = v1+v2;
+    gt.diLepMass = dilep->M();
   } else {
     gt.diLepMass = -1;
   }
@@ -157,7 +157,7 @@ void SimpleLeptonMod::do_execute()
 
 void ComplicatedLeptonMod::do_readData(TString dirPath)
 {
-  rochesterCorrection = new RoccoR(Form("%s/rcdata.2016.v3", dirPath.Data()));
+  rochesterCorrection.reset(new RoccoR(Form("%s/rcdata.2016.v3", dirPath.Data())));
 }
 
 void ComplicatedLeptonMod::do_execute()
@@ -175,7 +175,7 @@ void ComplicatedLeptonMod::do_execute()
     }
     pt = ele.smearedPt;
     ele.setPtEtaPhiM(pt,eta,ele.phi(),511e-6);
-    matchLeps.push_back(&ele);
+    matchLeps->push_back(&ele);
     bool isFake   = ele.hltsafe;
     bool isMedium = ele.medium;
     bool isTight  = ele.tight;
@@ -229,7 +229,7 @@ void ComplicatedLeptonMod::do_execute()
     gt.electronNMissingHits[iL] = ele.nMissingHits;
     gt.electronTripleCharge[iL] = ele.tripleCharge;
     gt.electronCombIso[iL] = ele.combIso();
-    looseLeps.push_back(&ele);
+    looseLeps->push_back(&ele);
     // WARNING: The definition of "loose" here may not match your analysis 
     // definition of a loose electron for lepton multiplicity or jet cleaning 
     // considerations. It is the user's responsibility to make sure they are 
@@ -281,7 +281,7 @@ void ComplicatedLeptonMod::do_execute()
       if (pt<10 || aeta>2.4 || !mu.loose) continue;
     }
     mu.setPtEtaPhiM(pt,eta,mu.phi(),0.106);
-    matchLeps.push_back(&mu); // Muon jet cleaning and loose cuts are equivalent in HBB land
+    matchLeps->push_back(&mu); // Muon jet cleaning and loose cuts are equivalent in HBB land
 
     bool isFake   = mu.tight  && mu.combIso()/mu.pt() < 0.4 && mu.chIso/mu.pt() < 0.4;
     bool isMedium = mu.medium && mu.combIso()/mu.pt() < 0.15;
@@ -311,7 +311,7 @@ void ComplicatedLeptonMod::do_execute()
     gt.muonPdgId[iL]                = mu.charge*-13;
     gt.muonIsSoftMuon[iL]           = mu.soft;
     gt.muonCombIso[iL]              = mu.combIso();
-    looseLeps.push_back(&mu);
+    looseLeps->push_back(&mu);
     TVector2 vMu; vMu.SetMagPhi(pt,mu.phi());
     METLOOP {
       (*jesShifts)[shift].vpfMETNoMu += vMu;
@@ -330,45 +330,45 @@ void ComplicatedLeptonMod::do_execute()
   }
 
   // now consider all leptons
-  gt.nLooseLep = looseLeps.size();
+  gt.nLooseLep = looseLeps->size();
   gt.nTightLep = gt.nTightElectron + gt.nTightMuon;
   if (gt.nLooseLep>0) {
     auto ptsort([](Lepton const* l1, Lepton const* l2)->bool {
       return l1->pt() > l2->pt();
     });
     int nToSort = TMath::Min(12,gt.nLooseLep);
-    std::partial_sort(looseLeps.begin(),looseLeps.begin()+nToSort,looseLeps.end(),ptsort);
+    std::partial_sort(looseLeps->begin(),looseLeps->begin()+nToSort,looseLeps->end(),ptsort);
 
-    Lepton* lep1 = looseLeps[0];
+    Lepton* lep1 = (*looseLeps)[0];
     METLOOP {
       gt.mT[shift] = MT(lep1->pt(),lep1->phi(),gt.pfmet[shift],gt.pfmetphi[shift]);
     }
   }
 
   for (int i = 0; i != min(4, gt.nLooseLep); ++i) {
-    Muon *mu = dynamic_cast<Muon*>(looseLeps[i]);
+    Muon *mu = dynamic_cast<Muon*>((*looseLeps)[i]);
     if (mu != nullptr) {
-      lepPdgId[i] = mu->charge * -13;
+      (*lepPdgId)[i] = mu->charge * -13;
     } else {
-      Electron *ele = dynamic_cast<Electron*>(looseLeps[i]);
-      lepPdgId[i] = ele->charge * -11;
+      Electron *ele = dynamic_cast<Electron*>((*looseLeps)[i]);
+      (*lepPdgId)[i] = ele->charge * -11;
     }
   }
   
   if (gt.nLooseLep>1) {
     TLorentzVector v1,v2;
-    Lepton *lep1=looseLeps[0], *lep2=looseLeps[1];
+    Lepton *lep1=(*looseLeps)[0], *lep2=(*looseLeps)[1];
     v1.SetPtEtaPhiM(lep1->pt(),lep1->eta(),lep1->phi(),lep1->m());
     v2.SetPtEtaPhiM(lep2->pt(),lep2->eta(),lep2->phi(),lep2->m());
-    dilep = v1+v2;
-    if (lepPdgId[0]+lepPdgId[1]==0)  // Strict sign/flavor 
-      gt.diLepMass = dilep.M();
+    *dilep = v1+v2;
+    if ((*lepPdgId)[0]+(*lepPdgId)[1]==0)  // Strict sign/flavor 
+      gt.diLepMass = dilep->M();
   
     // Also allow for opposite flavor or same sign selection:
-    gt.ZBosonPt  = dilep.Pt();
-    gt.ZBosonEta = dilep.Eta();
-    gt.ZBosonPhi = dilep.Phi();
-    gt.ZBosonM   = dilep.M();
+    gt.ZBosonPt  = dilep->Pt();
+    gt.ZBosonEta = dilep->Eta();
+    gt.ZBosonPhi = dilep->Phi();
+    gt.ZBosonM   = dilep->M();
     gt.ZBosonLep1CosThetaCS = CosThetaCollinsSoper(v1,v2);
     // ZBosonLep1CosThetaStar, ZBosonLep1CosThetaStarFJ
     // are not calculated here, we need the Z(ll)H(bb) system in JetsMods
@@ -390,7 +390,7 @@ void InclusiveLeptonMod::do_execute()
       continue;
     if (ele.nMissingHits>1) 
       continue;
-    inclusiveLeps.push_back(&ele);
+    inclusiveLeps->push_back(&ele);
   }
   for (auto& mu : event.muons) {
     if (!mu.loose) 
@@ -400,7 +400,7 @@ void InclusiveLeptonMod::do_execute()
       continue;
     if (fabs(mu.dxy)>0.5 || fabs(mu.dz)>1.0) 
       continue;
-    inclusiveLeps.push_back(&mu);
+    inclusiveLeps->push_back(&mu);
   }
 }
 
@@ -429,7 +429,7 @@ void SimplePhotonMod::do_execute()
     float eta = pho.eta(), phi = pho.phi();
     if (pt<15 || fabs(eta)>2.5)
       continue;
-    loosePhos.push_back(&pho);
+    loosePhos->push_back(&pho);
     gt.nLoosePhoton++;
     if (gt.nLoosePhoton==1) {
       gt.loosePho1Pt = pt;
@@ -441,7 +441,7 @@ void SimplePhotonMod::do_execute()
       if (gt.nLoosePhoton==1)
         gt.loosePho1IsTight=1;
       gt.nTightPhoton++;
-      tightPhos.push_back(&pho);
+      tightPhos->push_back(&pho);
     }
   }
 
@@ -460,9 +460,9 @@ void ComplicatedPhotonMod::do_execute()
     float eta = pho.eta(), phi = pho.phi();
     if (pt<25 || fabs(eta)>2.5)
       continue;
-    if (isMatched(matchLeps,0.16,pho.eta(),pho.phi()))
+    if (isMatched(matchLeps.get(),0.16,pho.eta(),pho.phi()))
       continue;
-    loosePhos.push_back(&pho);
+    loosePhos->push_back(&pho);
     gt.nLoosePhoton++;
     if (gt.loosePho1Pt < pt) {
       gt.loosePho1Pt = pt;
@@ -482,7 +482,7 @@ void ComplicatedPhotonMod::do_execute()
     }
     if ( pho.medium && pho.csafeVeto && pho.pixelVeto) { // apply eta cut offline
       gt.nTightPhoton++;
-      tightPhos.push_back(&pho);
+      tightPhos->push_back(&pho);
     }
   }
 
@@ -525,7 +525,7 @@ void TauMod::do_execute()
     }
     if (tau.pt()<18 || fabs(tau.eta())>2.3)
       continue;
-    if (isMatched(matchLeps,0.16,tau.eta(),tau.phi()))
+    if (isMatched(matchLeps.get(),0.16,tau.eta(),tau.phi()))
       continue;
     gt.nTau++;
   }

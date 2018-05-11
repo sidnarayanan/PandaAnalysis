@@ -6,7 +6,7 @@
 using namespace pa;
 using namespace std;
 using namespace panda;
-using namespace fastjet;
+namespace fj = fastjet;
 using JECParams = JetCorrectorParameters;
 
 inline float centralOnly(float x, float aeta, float def = -1)
@@ -42,7 +42,7 @@ void BaseJetMod::do_readData(TString dirPath)
     JECParams((basePath+"_MC_L3Absolute_"+jetType+".txt").Data()),
     JECParams((basePath+"_MC_L2L3Residual_"+jetType+".txt").Data())
   };
-  scales["MC"] = new FactorizedJetCorrector(params);
+  scales["MC"].reset(new FactorizedJetCorrector(params));
   for (auto e : eraGroups) {
     basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_"+jecReco+e+spacer+jecV;
     params = {
@@ -51,11 +51,11 @@ void BaseJetMod::do_readData(TString dirPath)
       JECParams((basePath+"_DATA_L3Absolute_"+jetType+".txt").Data()),
       JECParams((basePath+"_DATA_L2L3Residual_"+jetType+".txt").Data())
     };
-    scales["data"+e] = new FactorizedJetCorrector(params);
+    scales["data"+e].reset(new FactorizedJetCorrector(params));
   }
 
-  jer = new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
-                      dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt");
+  jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
+                          dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt"));
 
 
   basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_";
@@ -68,14 +68,14 @@ void BaseJetMod::do_readData(TString dirPath)
 
 void BaseJetMod::setScaleUnc(TString tag, TString path)
 {
-  scaleUncs[tag] = std::vector<JetCorrectionUncertainty*>(jes2i(shiftjes::N),nullptr);
+  scaleUncs[tag] = std::vector<std::shared_ptr<JetCorrectionUncertainty>>(jes2i(shiftjes::N),nullptr);
   JESLOOP {
     if (shift % 2 == 0)
       continue;
     TString shiftName = jesName(i2jes(shift));
     shiftName.ReplaceAll("JES","");
     shiftName = shiftName(0,shiftName.Length()-2);
-    scaleUncs[tag][shift] = new JetCorrectionUncertainty(JECParams(path.Data(), shiftName.Data()));
+    scaleUncs[tag][shift] = make_shared<JetCorrectionUncertainty>(JECParams(path.Data(), shiftName.Data()));
     scaleUncs[tag][shift+1] = scaleUncs[tag][shift]; // Down = Up
   }
 }
@@ -91,13 +91,13 @@ void JetMod::setupJES()
         continue;
       if (iter.first.Contains(thisEra)) {
         scaleUnc = &(scaleUncs[iter.first]);
-        scale = scales[iter.first];
+        scale = scales[iter.first].get();
         return;
       }
     }
   } else {
     scaleUnc = &(scaleUncs["MC"]);
-    scale = scales["MC"];
+    scale = scales["MC"].get();
   }
 }
 
@@ -141,17 +141,17 @@ void JetMod::do_execute()
     bool isNominal = (shift == jes2i(shiftjes::kNominal));
     bool metShift = (i2jes(shift) <= shiftjes::kJESTotalDown);
     JESHandler& jets = (*jesShifts)[shift];
-    currentJES = &jets;
+    (*currentJES) = &jets;
     for (auto& jw : jets.all) {
-      currentJet = &jw;
+      (*currentJet) = &jw;
       auto& jet = jw.get_base();
       float aeta = abs(jet.eta());
       float pt = jw.pt;
       if (aeta > maxJetEta || pt < minMinJetPt)
         continue;
-      if (isMatched(matchLeps,0.16,jet.eta(),jet.phi()))
+      if (isMatched(matchLeps.get(),0.16,jet.eta(),jet.phi()))
         continue;
-      if (!analysis.hbb && isMatched(matchPhos,0.16,jet.eta(),jet.phi()))
+      if (!analysis.hbb && isMatched(matchPhos.get(),0.16,jet.eta(),jet.phi()))
         continue;
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
@@ -448,13 +448,14 @@ void HbbSystemMod::do_execute()
   if (gt.hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
-      hbbdJet = jets.cleaned[idx];
-      hbbdJet->user_idx = idx;
+      (*hbbdJet) = jets.cleaned[idx];
+      auto& hbbdJetRef = **hbbdJet; 
+      hbbdJetRef.user_idx = idx;
 
       if (shift == jes2i(shiftjes::kNominal)) {
         deepreg->execute();
-        gt.jotDeepBReg[i] = hbbdJet->breg;
-        gt.jotDeepBRegWidth[i] = hbbdJet->bregwidth;
+        gt.jotDeepBReg[i] = hbbdJetRef.breg;
+        gt.jotDeepBRegWidth[i] = hbbdJetRef.bregwidth;
       }
       hbbd_dcorr[i].SetPtEtaPhiM(
           gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
@@ -464,7 +465,7 @@ void HbbSystemMod::do_execute()
           );
 
       bdtreg->execute();
-      gt.jotBReg[shift][i] = hbbdJet->breg;
+      gt.jotBReg[shift][i] = hbbdJetRef.breg;
       hbbd_corr[i].SetPtEtaPhiM(
             gt.jotBReg[shift][i] * gt.jotPt[shift][idx],
             gt.jotEta[idx],

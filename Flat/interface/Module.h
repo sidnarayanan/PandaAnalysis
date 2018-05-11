@@ -5,6 +5,7 @@
 #include "vector"
 #include "map"
 #include "stdexcept"
+#include "memory"
 
 #include "Common.h"
 #include "Config.h"
@@ -21,51 +22,70 @@ namespace pa {
       template <typename T>
       class Container : public BaseContainer {
       public:
-        Container(T* ptr_) : ptr(ptr_) { }
+        Container(std::shared_ptr<T> ptr_) : ptr(ptr_) { }
         ~Container() { }
-        T* ptr;
+        const std::shared_ptr<T> ptr; // don't ask me why this is a copy and not a reference
+                                      // when I tried using a reference the use_count went negative
+                                      // ???
       };
       template <typename T>
-      class ConstContainer : public BaseContainer {
-      public:
-        ConstContainer(const T* ptr_) : ptr(ptr_) { }
-        ~ConstContainer() { }
-        const T* ptr;
-      };
+        Container<T>* safe_cast(std::unique_ptr<BaseContainer>& base, TString name) {
+          auto* cntr = dynamic_cast<Container<T>*>(base.get());
+          if (cntr == nullptr) {
+            PError("Registry::safe_cast", "Requesting object of wrong type: "+name+"!");
+            throw std::runtime_error("");
+          }
+          return cntr;
+        }
 
     public:
       Registry() { }
-      ~Registry() { for (auto& iter : _objs) { delete iter.second; } }
+      ~Registry() { }
       template <typename T>
-        void publish(TString name, T* ptr) { _objs[name] = new Container<T>(ptr); }
-      template <typename T>
-        void publishConst(TString name, const T* ptr) { _objs[name] = new ConstContainer<T>(ptr); }
-      template <typename T>
-        T* access(TString name) {
-          try {
-            return dynamic_cast<Container<T>*>(_objs.at(name))->ptr;
-          } catch (std::exception& e) {
-            PError("Registry::access","Could not access "+name+"!");
-            throw;
-          }
+        void publish(TString name, std::shared_ptr<T>& ptr) {
+          if (exists(name))
+            PWarning("Registry::publish","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
+          _objs[name].reset(new Container<T>(ptr));
         }
       template <typename T>
-        const T* accessConst(TString name) {
-          try{
-            return dynamic_cast<ConstContainer<T>*>(_objs.at(name))->ptr;
-          } catch (std::exception& e) {
-            PError("Registry::access","Could not access "+name+"!");
-            throw;
-          }
+        void publishConst(TString name, std::shared_ptr<T>& ptr) {
+          if (exists(name))
+            PWarning("Registry::publishConst","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
+          _const_objs[name].reset(new Container<T>(ptr));
         }
-      bool exists(TString name) { return _objs.find(name) != _objs.end(); }
+      template <typename T>
+        std::shared_ptr<T> access(TString name) {
+          auto iter = _objs.find(name);
+          if (iter == _objs.end()) {
+            PError("Registry::access", "Could not access"+name+"!");
+            throw std::runtime_error("");
+          }
+          auto* cntr = safe_cast<T>(iter->second, name);
+          return cntr->ptr;
+        }
+      template <typename T>
+        std::shared_ptr<const T> accessConst(TString name) {
+          auto iter = _objs.find(name);
+          if (iter == _objs.end()) {
+            iter = _const_objs.find(name);
+            if (iter == _const_objs.end()) {
+              PError("Registry::access", "Could not access"+name+"!");
+              throw std::runtime_error("");
+            }
+          }
+          auto* cntr = safe_cast<T>(iter->second, name);
+          return std::const_pointer_cast<const T>(cntr->ptr);
+        }
+      bool exists(TString name) { return !( _objs.find(name) == _objs.end()
+                                            && _const_objs.find(name) == _const_objs.end() ); }
     private:
-      std::map<TString, BaseContainer*> _objs;
+      // _objs can be accessed through access or accessConst; _const_objs only through accessConst
+      std::map<TString, std::unique_ptr<BaseContainer>> _objs, _const_objs;
   };
 
   class BaseModule {
     public:
-      BaseModule(TString name_): name(name_) { }
+      BaseModule(TString name_): name(name_) {  }
       virtual ~BaseModule() { }
 
     protected:
@@ -132,8 +152,8 @@ namespace pa {
       MOD* addSubMod() {
         // add a sub module that takes a specific constructor signature
         auto* mod = new MOD(event, cfg, utils, gt, level + 1);
-        subMods.push_back(mod); 
-        return mod; 
+        subMods.push_back(mod);
+        return mod;
       }
 
     protected:
@@ -146,7 +166,7 @@ namespace pa {
       std::vector<AnalysisMod*> subMods; // memory management is done by parent
       int level;
 
-      std::vector<TString> dump(); 
+      std::vector<TString> dump();
       // here, the module can publish and access data
       virtual void do_init(Registry& registry) { }
       virtual void do_readData(TString path) { }
@@ -168,8 +188,15 @@ namespace pa {
                    int level_=0) :
         AnalysisMod(name, event_, cfg_, utils_, gt_, level_) { }
       ~ContainerMod() { }
+      virtual bool on() { return true; }
     protected:
-      void do_execute() { } 
+      virtual void do_execute() {
+        for (auto* m : subMods)
+          m->execute();
+      }
+      virtual void do_init(Registry& registry) {
+        registry.access<std::vector<JESHandler>>("jesShifts");
+      }
   };
 }
 

@@ -14,7 +14,8 @@ using namespace pa;
 PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   DEBUG(debug_),
   analysis(*a),
-  cfgmod(analysis, gt, DEBUG)
+  cfgmod(analysis, gt, DEBUG),
+  wIDs(v_make_shared<TString>())
 {
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
 
@@ -62,7 +63,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
     mod->print(); 
 
   // Read inputs
-  fIn = TFile::Open(analysis.inpath);
+  fIn.reset(TFile::Open(analysis.inpath));
   tIn = static_cast<TTree*>(fIn->Get("events"));
   event.setStatus(*tIn, {"!*"});
   event.setAddress(*tIn, cfgmod.get_inputBranches());
@@ -92,13 +93,13 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
     unsigned nW = tW->GetEntriesFast();
     for (unsigned iW=0; iW!=nW; ++iW) {
       tW->GetEntry(iW);
-      wIDs.push_back(*id);
+      wIDs->push_back(*id);
     }
   } else if (analysis.processType==kSignal) {
     PError("PandaAnalyzer::PandaAnalyzer","This is a signal file, but the weights are missing!");
     throw runtime_error("");
   }
-  registry.publishConst("wIDs", &wIDs);
+  registry.publishConst("wIDs", wIDs);
 
   // Define outputs
 
@@ -110,10 +111,10 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   gt.is_monotop        = !(analysis.monoh || analysis.hbb || analysis.vbf);
   gt.btagWeights       = analysis.btagWeights;
   gt.useCMVA           = analysis.useCMVA;
-  for (auto& id : wIDs)
+  for (auto& id : *wIDs)
     gt.signal_weights[id] = 1;
 
-  fOut = TFile::Open(analysis.outpath, "RECREATE");
+  fOut.reset(TFile::Open(analysis.outpath, "RECREATE"));
   fOut->cd();
   tOut = new TTree("events", "events");
 

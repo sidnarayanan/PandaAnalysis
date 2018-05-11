@@ -4,7 +4,7 @@
 using namespace pa;
 using namespace std;
 using namespace panda; 
-using namespace fastjet;
+namespace fj = fastjet;
 
 void FatJetMod::setupJES()
 {
@@ -50,14 +50,14 @@ void FatJetMod::do_execute()
       continue;
 
     float phi = fj.phi();
-    if (isMatched(matchLeps,cfg.FATJETMATCHDR2,eta,phi) || 
-        isMatched(matchPhos,cfg.FATJETMATCHDR2,eta,phi)) {
+    if (isMatched(matchLeps.get(),cfg.FATJETMATCHDR2,eta,phi) || 
+        isMatched(matchPhos.get(),cfg.FATJETMATCHDR2,eta,phi)) {
       continue;
     }
 
     gt.nFatjet++;
     if (gt.nFatjet==1) {
-      fj1 = &fj;
+      *fj1 = &fj;
       gt.fjIsClean = fatjet_counter==0 ? 1 : 0;
       gt.fjEta = eta;
       gt.fjPhi = phi;
@@ -172,9 +172,9 @@ void FatJetReclusterMod::do_execute()
     return;
 
   VPseudoJet particles = convertPFCands(event.pfCandidates,analysis.puppiJets,0);
-  ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
+  fj::ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
   VPseudoJet allJets(seq.inclusive_jets(0.));
-  fastjet::PseudoJet *pj1=0;
+  fj::PseudoJet *pj1=0;
   double minDR2 = 999;
   for (auto &jet : allJets) {
     double dr2 = DeltaR2(jet.eta(),jet.phi_std(),(*fj1)->eta(),(*fj1)->phi());
@@ -195,7 +195,7 @@ void FatJetReclusterMod::do_execute()
     }
 
 
-    fastjet::PseudoJet sdJet = (*utils.softDrop)(*pj1);
+    fj::PseudoJet sdJet = (*utils.softDrop)(*pj1);
     VPseudoJet sdConstituents = fastjet::sorted_by_pt(sdJet.constituents());
     eTot=0; eTrunc=0;
     for (unsigned iC=0; iC!=sdConstituents.size(); ++iC) {

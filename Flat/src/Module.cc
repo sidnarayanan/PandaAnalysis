@@ -3,7 +3,7 @@
 using namespace pa;
 using namespace panda;
 using namespace std;
-using namespace fastjet; 
+namespace fj = fastjet; 
 
 ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   BaseModule("config"),
@@ -14,7 +14,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
 {
 
   cfg.isData = analysis.isData;
-  utils.eras = new EraHandler(analysis.year);  
+  utils.eras.reset(new EraHandler(analysis.year));  
   cfg.auxFilePath = analysis.outpath;
   cfg.auxFilePath.ReplaceAll(".root","_aux%i.root");
 
@@ -30,8 +30,8 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
     int activeAreaRepeats = 1;
     double ghostArea = 0.01;
     double ghostEtaMax = 7.0;
-    utils.activeArea = new GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
-    utils.areaDef = new AreaDefinition(active_area_explicit_ghosts,*(utils.activeArea));
+    utils.activeArea.reset(new fj::GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea));
+    utils.areaDef.reset(new fj::AreaDefinition(fj::active_area_explicit_ghosts,*(utils.activeArea)));
   }
 
   double radius = 1.5;
@@ -42,7 +42,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
     sdZcut = 0.1;
     sdBeta = 0.;
   } 
-  utils.softDrop = new contrib::SoftDrop(sdBeta,sdZcut,radius);
+  utils.softDrop.reset(new fj::contrib::SoftDrop(sdBeta,sdZcut,radius));
 
   if (analysis.deepTracks) {
     cfg.NPFPROPS += 7;
@@ -332,19 +332,19 @@ void ConfigMod::readData(TString dirPath)
   TFile *fKFactor = analysis.vbf ?
                     new TFile(dirPath+"vbf16/kqcd/kfactor_24bins.root") :
                     new TFile(dirPath+"kfactors.root"); 
-  utils.fCorrs[cZNLO] = fKFactor; // just for garbage collection
+  utils.fCorrs[cZNLO].reset(fKFactor); // just for garbage collection
 
   TH1F *hZLO    = (TH1F*)fKFactor->Get("ZJets_LO/inv_pt");
   TH1F *hWLO    = (TH1F*)fKFactor->Get("WJets_LO/inv_pt");
   TH1F *hALO    = (TH1F*)fKFactor->Get("GJets_LO/inv_pt_G");
 
-  utils.h1Corrs[cZNLO] = new THCorr1(fKFactor->Get("ZJets_012j_NLO/nominal"));
-  utils.h1Corrs[cWNLO] = new THCorr1(fKFactor->Get("WJets_012j_NLO/nominal"));
-  utils.h1Corrs[cANLO] = new THCorr1(fKFactor->Get("GJets_1j_NLO/nominal_G"));
+  utils.h1Corrs[cZNLO].reset(new THCorr1(fKFactor->Get("ZJets_012j_NLO/nominal")));
+  utils.h1Corrs[cWNLO].reset(new THCorr1(fKFactor->Get("WJets_012j_NLO/nominal")));
+  utils.h1Corrs[cANLO].reset(new THCorr1(fKFactor->Get("GJets_1j_NLO/nominal_G")));
 
-  utils.h1Corrs[cZEWK] = new THCorr1(fKFactor->Get("EWKcorr/Z"));
-  utils.h1Corrs[cWEWK] = new THCorr1(fKFactor->Get("EWKcorr/W"));
-  utils.h1Corrs[cAEWK] = new THCorr1(fKFactor->Get("EWKcorr/photon"));
+  utils.h1Corrs[cZEWK].reset(new THCorr1(fKFactor->Get("EWKcorr/Z")));
+  utils.h1Corrs[cWEWK].reset(new THCorr1(fKFactor->Get("EWKcorr/W")));
+  utils.h1Corrs[cAEWK].reset(new THCorr1(fKFactor->Get("EWKcorr/photon")));
 
   utils.h1Corrs[cZEWK]->GetHist()->Divide(utils.h1Corrs[cZNLO]->GetHist());     
   utils.h1Corrs[cWEWK]->GetHist()->Divide(utils.h1Corrs[cWNLO]->GetHist());     
@@ -402,12 +402,12 @@ void ConfigMod::readData(TString dirPath)
   utils.openCorr(cCSVBL,dirPath+"csv/csv_effLoose.root","B",2);
   utils.openCorr(cCSVCL,dirPath+"csv/csv_effLoose.root","C",2);
   utils.openCorr(cCSVLL,dirPath+"csv/csv_effLoose.root","L",2);
-  utils.btag = new BTagCorrs(dirPath, analysis, gt); 
+  utils.btag.reset(new BTagCorrs(dirPath, analysis, gt)); 
 
 
   // TODO move these into a getCorr-accessible correction
   // mSD corr
-  utils.fMSDcorr = new TFile(dirPath+"/puppiCorr.root");
+  utils.fMSDcorr.reset(new TFile(dirPath+"/puppiCorr.root"));
   utils.puppisd_corrGEN = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_gen");;
   utils.puppisd_corrRECO_cen = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_reco_0eta1v3");
   utils.puppisd_corrRECO_for = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
