@@ -129,10 +129,8 @@ namespace pa {
         gt(gt_),
         level(level_) { }
       virtual ~AnalysisMod() {
-        if (cfg.DEBUG > 1)
+        if (cfg.DEBUG > level + 2)
           PDebug("AnalysisMod::~AnalysisMod", name);
-        for (auto* m : subMods)
-          delete m;
       }
 
       // cascading calls to protected functions
@@ -152,18 +150,17 @@ namespace pa {
       MOD* addSubMod() {
         // add a sub module that takes a specific constructor signature
         auto* mod = new MOD(event, cfg, utils, gt, level + 1);
-        subMods.push_back(mod);
+        subMods.emplace_back(mod);
         return mod;
       }
 
     protected:
-
       panda::EventAnalysis& event;
       Config& cfg;
       Utils& utils;
       const Analysis& analysis;
       GeneralTree& gt;
-      std::vector<AnalysisMod*> subMods; // memory management is done by parent
+      std::vector<std::unique_ptr<AnalysisMod>> subMods; // memory management is done by parent
       int level;
 
       std::vector<TString> dump();
@@ -191,7 +188,7 @@ namespace pa {
       virtual bool on() { return true; }
     protected:
       virtual void do_execute() {
-        for (auto* m : subMods)
+        for (auto& m : subMods)
           m->execute();
       }
       virtual void do_init(Registry& registry) {

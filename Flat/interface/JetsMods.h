@@ -14,8 +14,8 @@ namespace pa {
                  int level_=0) :
       AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_, level_),
       hbbdJet(std::make_shared<JetWrapper*>(nullptr)) {
-        deepreg = new BRegDeepMod(event_, cfg_, utils_, gt_, level_); subMods.push_back(deepreg);
-        bdtreg = new BRegBDTMod(event_, cfg_, utils_, gt_, level_); subMods.push_back(bdtreg);
+        deepreg = addSubMod<BRegDeepMod>();
+        bdtreg = addSubMod<BRegBDTMod>();
       }
     virtual ~HbbSystemMod() { }
 

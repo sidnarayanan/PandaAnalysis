@@ -27,7 +27,7 @@ namespace pa {
         void Reset();
         void Run();
         void Terminate();
-        void AddPresel(Selection *s) { s->set_gt(&gt); selections.push_back(s); }
+        void AddPresel(Selection *s) { s->set_gt(&gt); selections.emplace_back(s); }
         void AddGoodLumiRange(int run, int l0, int l1);
 
         int firstEvent{0}, lastEvent{-1};
@@ -41,17 +41,17 @@ namespace pa {
         Analysis& analysis; //!< configure what to run
         Registry registry;
 
-        std::vector<AnalysisMod*> mods_all;
+        std::vector<std::unique_ptr<AnalysisMod>> mods_all;
         GlobalMod *gblmod{nullptr};
         ContainerMod *preselmod{nullptr}, *postselmod{nullptr};
         ConfigMod cfgmod;
 
         std::map<int,std::vector<LumiRange>> goodLumis;
-        std::vector<Selection*> selections;
+        std::vector<std::unique_ptr<Selection>> selections;
 
         // IO for the analyzer
         // output file is owned by PandaAnalyzer, but we use it elsewhere
-        std::shared_ptr<TFile> fOut{nullptr};     
+        std::shared_ptr<TFile> fOut{nullptr};
         TTree *tOut{nullptr};
 
         std::unique_ptr<TFile> fIn{nullptr};

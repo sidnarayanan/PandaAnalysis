@@ -3,7 +3,7 @@
 using namespace pa;
 using namespace panda;
 using namespace std;
-namespace fj = fastjet; 
+namespace fj = fastjet;
 
 ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   BaseModule("config"),
@@ -14,18 +14,18 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
 {
 
   cfg.isData = analysis.isData;
-  utils.eras.reset(new EraHandler(analysis.year));  
+  utils.eras.reset(new EraHandler(analysis.year));
   cfg.auxFilePath = analysis.outpath;
   cfg.auxFilePath.ReplaceAll(".root","_aux%i.root");
 
   // configuration of objects
   if (analysis.ak8)
     cfg.FATJETMATCHDR2 = 0.8*0.8;
-  if ((analysis.fatjet || analysis.ak8) || 
+  if ((analysis.fatjet || analysis.ak8) ||
       (analysis.recluster || analysis.deep || analysis.deepGen)) {
   }
 
-  if (analysis.recluster || analysis.reclusterGen || 
+  if (analysis.recluster || analysis.reclusterGen ||
       analysis.deep || analysis.deepGen || analysis.hbb) {
     int activeAreaRepeats = 1;
     double ghostArea = 0.01;
@@ -41,7 +41,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
     radius = 0.8;
     sdZcut = 0.1;
     sdBeta = 0.;
-  } 
+  }
   utils.softDrop.reset(new fj::contrib::SoftDrop(sdBeta,sdZcut,radius));
 
   if (analysis.deepTracks) {
@@ -59,16 +59,16 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
     cfg.minJetPt = analysis.ZllHbb ? 20 : 25;
     cfg.minGenFatJetPt = 200;
   }
-  if (analysis.vbf || analysis.hbb || analysis.complicatedLeptons) 
+  if (analysis.vbf || analysis.hbb || analysis.complicatedLeptons)
     cfg.minBJetPt = 20;
   if (analysis.hbb || analysis.monoh)
     cfg.NJETSAVED = NJET;
 
-  cfg.maxshiftJES = analysis.varyJES ? 
-                      (analysis.hbb ? 
-                        jes2i(shiftjes::N) : 
+  cfg.maxshiftJES = analysis.varyJES ?
+                      (analysis.hbb ?
+                        jes2i(shiftjes::N) :
                         jes2i(shiftjes::kJESTotalDown) + 1) :
-                      1; 
+                      1;
 
   cfg.ibetas = gt.get_ibetas();
   cfg.Ns = gt.get_Ns();
@@ -85,11 +85,11 @@ void ConfigMod::set_inputBranches()
 
   if (analysis.genOnly) {
     bl += {"genParticles","genReweight","ak4GenJets","genMet","genParticlesU","electrons"};
-  } else { 
-    bl += {"runNumber", "lumiNumber", "eventNumber", "rho", 
-           "isData", "npv", "npvTrue", "weight", "chsAK4Jets", 
-           "electrons", "muons", "taus", "photons", 
-           "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet", 
+  } else {
+    bl += {"runNumber", "lumiNumber", "eventNumber", "rho",
+           "isData", "npv", "npvTrue", "weight", "chsAK4Jets",
+           "electrons", "muons", "taus", "photons",
+           "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet",
            "recoil","metFilters","trkMet"};
 
     if (analysis.ak8) {
@@ -101,7 +101,7 @@ void ConfigMod::set_inputBranches()
       if (analysis.hbb)
         bl.push_back("ca15GenJets");
     }
-    if (analysis.recluster || analysis.bjetBDTReg || 
+    if (analysis.recluster || analysis.bjetBDTReg ||
         analysis.deep || analysis.hbb || analysis.complicatedPhotons) {
       bl.push_back("pfCandidates");
     }
@@ -121,12 +121,12 @@ void ConfigMod::set_inputBranches()
     if (!cfg.isData) {
       bl += {"genParticles","genReweight","ak4GenJets","genMet"};
       if (analysis.hbb)
-        bl.push_back("partons"); 
+        bl.push_back("partons");
     }
   }
 }
 
-void ConfigMod::set_outputBranches() 
+void ConfigMod::set_outputBranches()
 {
   // manipulate the output tree
   if (cfg.isData) {
@@ -153,7 +153,7 @@ void ConfigMod::set_outputBranches()
   if (analysis.complicatedLeptons) {
     gt.RemoveBranches({"genJet.*","puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*"});
   }
-  if (!analysis.hbb) 
+  if (!analysis.hbb)
     gt.RemoveBranches({".*JES.*"},{".*JESTotal.*"});
   //gt.RemoveBranches({"sf_cmva.*"},{"sf_cmva_Central"});
 }
@@ -220,7 +220,7 @@ void ConfigMod::readData(TString dirPath)
     utils.openCorr(cEleReco,
                    dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                    "scalefactors_Reco_Electron",2);
-    // EWK corrections 
+    // EWK corrections
     utils.openCorr(cWZEwkCorr,
                    dirPath+"leptonic/data.root","hEWKWZCorr",1);
     utils.openCorr(cqqZZQcdCorr,
@@ -331,7 +331,7 @@ void ConfigMod::readData(TString dirPath)
   // kfactors
   TFile *fKFactor = analysis.vbf ?
                     new TFile(dirPath+"vbf16/kqcd/kfactor_24bins.root") :
-                    new TFile(dirPath+"kfactors.root"); 
+                    new TFile(dirPath+"kfactors.root");
   utils.fCorrs[cZNLO].reset(fKFactor); // just for garbage collection
 
   TH1F *hZLO    = (TH1F*)fKFactor->Get("ZJets_LO/inv_pt");
@@ -346,16 +346,16 @@ void ConfigMod::readData(TString dirPath)
   utils.h1Corrs[cWEWK].reset(new THCorr1(fKFactor->Get("EWKcorr/W")));
   utils.h1Corrs[cAEWK].reset(new THCorr1(fKFactor->Get("EWKcorr/photon")));
 
-  utils.h1Corrs[cZEWK]->GetHist()->Divide(utils.h1Corrs[cZNLO]->GetHist());     
-  utils.h1Corrs[cWEWK]->GetHist()->Divide(utils.h1Corrs[cWNLO]->GetHist());     
+  utils.h1Corrs[cZEWK]->GetHist()->Divide(utils.h1Corrs[cZNLO]->GetHist());
+  utils.h1Corrs[cWEWK]->GetHist()->Divide(utils.h1Corrs[cWNLO]->GetHist());
   utils.h1Corrs[cAEWK]->GetHist()->Divide(utils.h1Corrs[cANLO]->GetHist());
 
-  utils.h1Corrs[cZNLO]->GetHist()->Divide(hZLO);    
-  utils.h1Corrs[cWNLO]->GetHist()->Divide(hWLO);    
+  utils.h1Corrs[cZNLO]->GetHist()->Divide(hZLO);
+  utils.h1Corrs[cWNLO]->GetHist()->Divide(hWLO);
   utils.h1Corrs[cANLO]->GetHist()->Divide(hALO);
 
   cfg.minGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(1);
-  cfg.maxGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(utils.h1Corrs[cZNLO]->GetHist()->GetNbinsX()); 
+  cfg.maxGenBosonPt = utils.h1Corrs[cZNLO]->GetHist()->GetBinCenter(utils.h1Corrs[cZNLO]->GetHist()->GetNbinsX());
 
   utils.openCorr(cANLO2j,dirPath+"moriond17/histo_photons_2jet.root","Func",1);
 
@@ -402,7 +402,7 @@ void ConfigMod::readData(TString dirPath)
   utils.openCorr(cCSVBL,dirPath+"csv/csv_effLoose.root","B",2);
   utils.openCorr(cCSVCL,dirPath+"csv/csv_effLoose.root","C",2);
   utils.openCorr(cCSVLL,dirPath+"csv/csv_effLoose.root","L",2);
-  utils.btag.reset(new BTagCorrs(dirPath, analysis, gt)); 
+  utils.btag.reset(new BTagCorrs(dirPath, analysis, gt));
 
 
   // TODO move these into a getCorr-accessible correction
@@ -431,10 +431,10 @@ void AnalysisMod::initialize(Registry& registry)
 {
   if (!on())
     return;
-  if (cfg.DEBUG > level) 
+  if (cfg.DEBUG > level)
     PDebug("AnalysisMod::initialize", name);
   do_init(registry);
-  for (auto* mod: subMods)
+  for (auto& mod : subMods)
     mod->initialize(registry);
 }
 
@@ -442,10 +442,10 @@ void AnalysisMod::readData(TString path)
 {
   if (!on())
     return;
-  if (cfg.DEBUG > level) 
+  if (cfg.DEBUG > level)
     PDebug("AnalysisMod::readData", name);
   do_readData(path+"/");
-  for (auto* mod: subMods)
+  for (auto& mod : subMods)
     mod->readData(path);
 }
 
@@ -466,10 +466,10 @@ void AnalysisMod::reset()
 {
   if (!on())
     return;
-  if (cfg.DEBUG > level+1) 
+  if (cfg.DEBUG > level+1)
     PDebug("AnalysisMod::reset", name);
   do_reset();
-  for (auto* mod : subMods)
+  for (auto& mod : subMods)
     mod->reset();
 }
 
@@ -477,25 +477,25 @@ void AnalysisMod::terminate()
 {
   if (!on())
     return;
-  if (cfg.DEBUG > level+1) 
+  if (cfg.DEBUG > level+1)
     PDebug("AnalysisMod::terminate", name);
   do_terminate();
-  for (auto* mod : subMods)
+  for (auto& mod : subMods)
     mod->terminate();
 }
 
 vector<TString> AnalysisMod::dump()
 {
   vector<TString> v;
-  if (!on()) 
-    return v; 
+  if (!on())
+    return v;
   v.push_back("-> " + name);
-  for (auto* m : subMods) {
+  for (auto& m : subMods) {
     vector<TString> vtmp = m->dump();
-    for (auto& s : vtmp) 
+    for (auto& s : vtmp)
       v.push_back("      " + s);
   }
-  return v; 
+  return v;
 }
 
 void AnalysisMod::print()

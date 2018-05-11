@@ -23,11 +23,11 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   Utils& utils = cfgmod.utils;
 
   gblmod = new GlobalMod(event, cfg, utils, gt);
-  mods_all.push_back(gblmod);
+  mods_all.emplace_back(gblmod);
 
   // Define analyses
   preselmod = new ContainerMod("pre-selection", event, cfg, utils, gt);
-  mods_all.push_back(preselmod);
+  mods_all.emplace_back(preselmod);
   ADDMOD(GenPMod)
   if (analysis.unpackedGen)
     ADDMOD(DeepGenMod<UnpackedGenParticle>)
@@ -44,7 +44,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDMOD(TauMod)
 
   postselmod = new ContainerMod("post-selection", event, cfg, utils, gt);
-  mods_all.push_back(postselmod);
+  mods_all.emplace_back(postselmod);
   ADDMOD(HbbMiscMod)
   ADDMOD(InclusiveLeptonMod)
   ADDMOD(SoftActivityMod)
@@ -59,8 +59,8 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDMOD(HFCountingMod)
   ADDMOD(KFactorMod)
 
-  for (auto* mod : mods_all)
-    mod->print(); 
+  for (auto& mod : mods_all)
+    mod->print();
 
   // Read inputs
   fIn.reset(TFile::Open(analysis.inpath));
@@ -132,7 +132,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // read input data
   cfgmod.readData(analysis.datapath);
-  for (auto* mod : mods_all)
+  for (auto& mod : mods_all)
     mod->readData(analysis.datapath);
 
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Called constructor");
@@ -142,12 +142,6 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 PandaAnalyzer::~PandaAnalyzer()
 {
   if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
-
-  for (auto* mod : mods_all)
-    delete mod;
-
-  for (auto* s : selections)
-    delete s;
 
   fIn->Close();
   if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Called destructor");
@@ -199,7 +193,7 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
     return true;
 
   bool pass = false;
-  for (auto* s : selections) {
+  for (auto& s : selections) {
     if (s->anded())
       continue;
     if (DEBUG>1)
@@ -210,7 +204,7 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
     }
   }
 
-  for (auto* s : selections) {
+  for (auto& s : selections) {
     if (s->anded()) {
       if (DEBUG>1)
         PDebug("PandaAnalyzer::PassPresel",s->get_name());
@@ -227,7 +221,7 @@ void PandaAnalyzer::Reset()
 {
   gt.Reset();
 
-  for (auto* mod : mods_all)
+  for (auto& mod : mods_all)
     mod->reset();
   if (DEBUG) PDebug("PandaAnalyzer::Reset","Reset");
 }
@@ -240,7 +234,7 @@ void PandaAnalyzer::Terminate()
   fOut->Close();
   fOut = 0; tOut = 0;
 
-  for (auto* mod : mods_all)
+  for (auto& mod : mods_all)
     mod->terminate();
 
   if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
@@ -268,7 +262,7 @@ void PandaAnalyzer::Run()
 
   fOut->cd(); // to be absolutely sure
 
-  for (auto* mod : mods_all)
+  for (auto& mod : mods_all)
     mod->initialize(registry);
 
   ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
@@ -315,7 +309,7 @@ void PandaAnalyzer::Run()
   }
 
   tr.Summary();
-  for (auto* s : selections)
+  for (auto& s : selections)
     s->report();
 
   if (DEBUG) { PDebug("PandaAnalyzer::Run","Done with entry loop"); }
