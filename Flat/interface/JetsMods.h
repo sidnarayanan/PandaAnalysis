@@ -89,7 +89,7 @@ namespace pa {
   private:
     std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
     std::shared_ptr<JESHandler*> currentJES{nullptr};
-    std::shared_ptr<const panda::FatJet* const> fj1{nullptr}; 
+    std::shared_ptr<const panda::FatJet* const> fj1{nullptr};
   };
 
   class BJetRegMod : public AnalysisMod {
@@ -109,7 +109,23 @@ namespace pa {
       currentJES = registry.access<JESHandler*>("currentJES");
     }
     void do_execute();
+    void do_reset() { energies.clear(); }
   private:
+    struct Energies {
+      static const std::vector<double> dr_bins;
+      enum pftype {
+        pem, pch, pmu, pne, pN
+      };
+      using contents = std::array<std::vector<TLorentzVector>, 5>;
+      std::array<contents, pN> pf; // pf[pftype][bin_idx]
+      void clear() {
+        for (auto& i : pf)
+          for (auto& j : i)
+            j.clear();
+      }
+    };
+
+    Energies energies;
     std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
     std::shared_ptr<JESHandler*> currentJES{nullptr};
   };

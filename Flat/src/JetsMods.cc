@@ -355,6 +355,11 @@ void IsoJetMod::do_execute()
     jets.iso.push_back(&jw);
 }
 
+
+const vector<double> BJetRegMod::Energies::dr_bins {
+  std::pow(0.05, 2), std::pow(0.1, 2), std::pow(0.2, 2), std::pow(0.3, 2), std::pow(0.4, 2)
+};
+
 void BJetRegMod::do_execute()
 {
   auto& jw = **currentJet;
@@ -363,29 +368,52 @@ void BJetRegMod::do_execute()
 
   int N = jets.cleaned.size() - 1;
 
+  TLorentzVector vraw;
+  vraw.SetPtEtaPhiM(jet.rawPt, jet.eta(), jet.phi(), jet.m());
+
   gt.jotEMF[N] = jet.cef + jet.nef;
   gt.jotHF[N] = jet.chf + jet.nhf;
-  gt.jotLep1Pt[N] = 0;
-  gt.jotTrk1Pt[N] = 0;
-  gt.jotNLep[N] = 0;
-  for (const panda::ConstRef<panda::PFCand> &c_iter : jet.constituents) {
-    if (!c_iter.isValid())
-      continue;
-    auto *pf = c_iter.get();
+  gt.jotCEF[N] = jet.cef;
+  gt.jotNEF[N] = jet.nef;
+  gt.jotCHF[N] = jet.chf;
+  gt.jotNHF[N] = jet.nhf;
+
+  float sumpt{0}, sumpt2{0};
+  for (const auto& pf : jet.constituents) {
+    TLorentzVector v(pf->p4() - vraw);
+    float dr2 = pow(v.Eta(),2) + pow(v.Phi(),2);
+    float pt = pf->pt();
+    sumpt += pt; sumpt2 += pow(pt, 2);
+    if (pt > 0.3)
+      gt.jotNPt03[N]++;
+    int pdgid = abs(pf->pdgId());
     if (pf->q() != 0) {
-      float pt = pf->pt();
       gt.jotTrk1Pt[N] = max(pt, gt.jotTrk1Pt[N]);
-      int pdgid = abs(pf->pdgId());
       if (pdgid == 11 || pdgid == 13) {
         gt.jotNLep[N]++;
         if (pt > gt.jotLep1Pt[N]) {
           gt.jotLep1Pt[N] = pt;
-          gt.jotLep1PtRel[N] = pf->p4().Perp(jet.p4().Vect());
-          gt.jotLep1DeltaR[N] = sqrt(DeltaR2(pf->eta(), pf->phi(), jet.eta(), jet.phi()));
+          gt.jotLep1PtRel[N] = pf->p4().Perp(jet.p4().Vect()); // NOT RIGHT!!!
+          gt.jotLep1DeltaR[N] = sqrt(dr2);
         }
       }
     }
+
+    unsigned bin = lower_bound(Energies::dr_bins.begin(), Energies::dr_bins.end(), dr2)
+                   - Energies::dr_bins.begin();
+    if (bin < Energies::dr_bins.size()) {
+      Energies::pftype pf_type{Energies::pne};
+      if (pdgid == 22 || pdgid == 11)
+        pf_type = Energies::pem;
+      else if (pdgid == 13)
+        pf_type = Energies::pmu;
+      else if (pf->q() != 0)
+        pf_type = Energies::pch;
+      energies.pf[pf_type][bin].push_back(v);
+    }
   }
+
+  gt.jotPtD[N] = sumpt > 0 ? sqrt(sumpt2)/sumpt : 0;
 
   auto& vert = jet.secondaryVertex;
   if (vert.isValid()) {
@@ -449,7 +477,7 @@ void HbbSystemMod::do_execute()
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
       (*hbbdJet) = jets.cleaned[idx];
-      auto& hbbdJetRef = **hbbdJet; 
+      auto& hbbdJetRef = **hbbdJet;
       hbbdJetRef.user_idx = idx;
 
       if (shift == jes2i(shiftjes::kNominal)) {

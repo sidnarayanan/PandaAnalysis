@@ -54,8 +54,8 @@ class Shift(Word):
     def __init__(self, line, predef):
         super(Shift, self).__init__(line, predef)
         tmp_expr = self.expr.replace('[','').replace(']','')
-        self.expr = ['']
-        self.expr += ['_'+x.strip() for x in tmp_expr.split(',')]
+        self.expr = []
+        self.expr += [('' if not x.strip() else '_'+x.strip()) for x in tmp_expr.split(',')]
     def __str__(self):
         return '{' + ','.join(['"%s"'%x for x in self.expr]) + '}'
     @property
@@ -150,11 +150,6 @@ class Branch(object):
             self.default = 0 
         else:
             self.default = -99;
-    def _get_branches(self):
-        if not self.shift:
-            return self.name 
-        else:
-            return [self.name + '_' + x for x in (['Nominal'] + self.shift)]
     def write_public(self):
         s = self.ctype + ' ' + self.name 
         if self.shift:
