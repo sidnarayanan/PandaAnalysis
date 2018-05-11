@@ -260,9 +260,6 @@ void GlobalMod::do_execute()
     PDebug("PandaAnalyzer::Run::Dump","");
     event.pfMet.print(std::cout, 2);
     std::cout << std::endl;
-    PDebug("PandaAnalyzer::Run::Dump","");
-    event.metMuOnlyFix.print(std::cout, 2);
-    std::cout << std::endl;
   }
   
   gt.filter_maxRecoil = event.recoil.max;

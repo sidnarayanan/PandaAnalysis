@@ -188,7 +188,7 @@ class GeneralTree : public genericTree {
     // public config
     bool is_monohiggs=false, is_vbf=false, is_fatjet=true, 
          is_leptonic=false, is_photonic=false, is_monotop=true,
-         is_hbb=false;
+         is_hbb=false, is_breg=false;
     bool btagWeights=false, useCMVA=false;
     std::map<ECFParams,float> fjECFNs;
     std::map<BTagParams,float> sf_btags;
@@ -397,6 +397,8 @@ class GeneralTree : public genericTree {
   float jotQGL[20];
   float jotLep1Pt[20];
   float jotLep1PtRel[20];
+  float jotLep1PtRelRaw[20];
+  float jotLep1PtRelRawInv[20];
   float jotLep1DeltaR[20];
   float jotTrk1Pt[20];
   float jotVtxPt[20];
@@ -412,15 +414,28 @@ class GeneralTree : public genericTree {
   float jotNHF[20];
   int jotNLep[20];
   float jotGenPt[20];
+  int jotFlav[20];
   float jotGenEta[20];
   float jotGenPhi[20];
-  int jotFlav[20];
+  float jotGenM[20];
   int jotNPt03[20];
   float jotPtD[20];
   float jotEMRing[5][20];
   float jotChRing[5][20];
   float jotMuRing[5][20];
   float jotNeRing[5][20];
+  float jotEMEta[5][20];
+  float jotChEta[5][20];
+  float jotMuEta[5][20];
+  float jotNeEta[5][20];
+  float jotEMPhi[5][20];
+  float jotChPhi[5][20];
+  float jotMuPhi[5][20];
+  float jotNePhi[5][20];
+  float jotEMDR[5][20];
+  float jotChDR[5][20];
+  float jotMuDR[5][20];
+  float jotNeDR[5][20];
   float barrelJet1Pt;
   float barrelJet1Eta;
   float barrelHT;

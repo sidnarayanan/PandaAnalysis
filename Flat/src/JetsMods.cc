@@ -370,6 +370,7 @@ void BJetRegMod::do_execute()
 
   TLorentzVector vraw;
   vraw.SetPtEtaPhiM(jet.rawPt, jet.eta(), jet.phi(), jet.m());
+  TLorentzVector vjet(jet.p4());
 
   gt.jotEMF[N] = jet.cef + jet.nef;
   gt.jotHF[N] = jet.chf + jet.nhf;
@@ -380,8 +381,9 @@ void BJetRegMod::do_execute()
 
   float sumpt{0}, sumpt2{0};
   for (const auto& pf : jet.constituents) {
-    TLorentzVector v(pf->p4() - vraw);
-    float dr2 = pow(v.Eta(),2) + pow(v.Phi(),2);
+    TLorentzVector v(pf->p4()), vcent(v);
+    vcent.SetPtEtaPhiM(v.Pt(), v.Eta()-vraw.Eta(), SignedDeltaPhi(v.Phi(), vraw.Phi()), v.M());
+    float dr2 = pow(vcent.Eta(),2) + pow(vcent.Phi(),2);
     float pt = pf->pt();
     sumpt += pt; sumpt2 += pow(pt, 2);
     if (pt > 0.3)
@@ -393,7 +395,9 @@ void BJetRegMod::do_execute()
         gt.jotNLep[N]++;
         if (pt > gt.jotLep1Pt[N]) {
           gt.jotLep1Pt[N] = pt;
-          gt.jotLep1PtRel[N] = pf->p4().Perp(jet.p4().Vect()); // NOT RIGHT!!!
+          gt.jotLep1PtRel[N] = v.Perp(vjet.Vect()); 
+          gt.jotLep1PtRelRaw[N] = v.Perp(vraw.Vect()); 
+          gt.jotLep1PtRelRawInv[N] = vraw.Perp(v.Vect());
           gt.jotLep1DeltaR[N] = sqrt(dr2);
         }
       }
@@ -409,11 +413,56 @@ void BJetRegMod::do_execute()
         pf_type = Energies::pmu;
       else if (pf->q() != 0)
         pf_type = Energies::pch;
-      energies.pf[pf_type][bin].push_back(v);
+      energies.pf[pf_type][bin].push_back(vcent);
     }
   }
 
   gt.jotPtD[N] = sumpt > 0 ? sqrt(sumpt2)/sumpt : 0;
+  for (unsigned b = 0; b != Energies::dr_bins.size(); ++b) {
+    gt.jotEMRing[b][N] = energies.get_e(b, Energies::pem);
+    gt.jotChRing[b][N] = energies.get_e(b, Energies::pch);
+    gt.jotMuRing[b][N] = energies.get_e(b, Energies::pmu);
+    gt.jotNeRing[b][N] = energies.get_e(b, Energies::pne);
+  }
+  for (int pf_type = Energies::pne; pf_type != (int)Energies::pN; ++pf_type) {
+    static std::array<float, static_cast<long unsigned>(shiftjetrings::N)> moments;
+    // eta first
+    energies.get_moments(pf_type, &TLorentzVector::Eta, moments);
+    auto eta_array = [&] () {
+      switch (pf_type) {
+        case Energies::pem: return &GeneralTree::jotEMEta;
+        case Energies::pch: return &GeneralTree::jotChEta;
+        case Energies::pmu: return &GeneralTree::jotMuEta;
+        default:            return &GeneralTree::jotNeEta;
+      }
+    } ();
+    for (int i = 0; i != static_cast<int>(shiftjetrings::N); ++i)
+      (gt.*eta_array)[i][N] = moments[i];
+
+    // phi second
+    energies.get_moments(pf_type, &TLorentzVector::Phi, moments);
+    auto phi_array = [&] () {
+      switch (pf_type) {
+        case Energies::pem: return &GeneralTree::jotEMPhi;
+        case Energies::pch: return &GeneralTree::jotChPhi;
+        case Energies::pmu: return &GeneralTree::jotMuPhi;
+        default:            return &GeneralTree::jotNePhi;
+      }
+    } ();
+    for (int i = 0; i != static_cast<int>(shiftjetrings::N); ++i)
+      (gt.*phi_array)[i][N] = moments[i];
+
+    auto dr_array = [&] () {
+      switch (pf_type) {
+        case Energies::pem: return &GeneralTree::jotEMDR;
+        case Energies::pch: return &GeneralTree::jotChDR;
+        case Energies::pmu: return &GeneralTree::jotMuDR;
+        default:            return &GeneralTree::jotNeDR;
+      }
+    } ();
+    for (int i = 0; i != static_cast<int>(shiftjetrings::N); ++i)
+      (gt.*dr_array)[i][N] = sqrt(pow((gt.*eta_array)[i][N],2) + pow((gt.*phi_array)[i][N],2));
+  }
 
   auto& vert = jet.secondaryVertex;
   if (vert.isValid()) {

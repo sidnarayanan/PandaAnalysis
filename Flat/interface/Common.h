@@ -56,6 +56,7 @@ namespace pa {
     bool isData;
     
     bool ak8 = false;
+    bool bjetRegTraining = false;
     bool bjetBDTReg = false;
     bool bjetDeepReg = false; 
     bool btagSFs = true;

@@ -456,8 +456,6 @@ void AnalysisMod::execute()
 {
   if (!on())
     return;
-  if (cfg.DEBUG > level)
-    PDebug("AnalysisMod::execute", name);
   do_execute();
   cfg.tr.TriggerEvent("execute "+name);
 }

@@ -25,6 +25,8 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   gblmod = new GlobalMod(event, cfg, utils, gt);
   mods_all.emplace_back(gblmod);
 
+  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
+
   // Define analyses
   preselmod = new ContainerMod("pre-selection", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
@@ -62,6 +64,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   for (auto& mod : mods_all)
     mod->print();
 
+  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
   // Read inputs
   fIn.reset(TFile::Open(analysis.inpath));
   tIn = static_cast<TTree*>(fIn->Get("events"));
@@ -103,12 +106,14 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // Define outputs
 
+  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
   gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
   gt.is_vbf            = analysis.vbf;
   gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
   gt.is_leptonic       = analysis.complicatedLeptons;
   gt.is_photonic       = analysis.complicatedPhotons;
   gt.is_monotop        = !(analysis.monoh || analysis.hbb || analysis.vbf);
+  gt.is_breg           = analysis.bjetRegTraining;
   gt.btagWeights       = analysis.btagWeights;
   gt.useCMVA           = analysis.useCMVA;
   for (auto& id : *wIDs)

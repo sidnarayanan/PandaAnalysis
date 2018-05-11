@@ -24,6 +24,7 @@ Load('PandaAnalyzer')
 
 a = wlnhbb()
 a.bjetDeepReg = True
+a.bjetRegTrain = True
 a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
@@ -34,7 +35,7 @@ utils.set_year(a, 2017)
 skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
 skimmer.firstEvent=0
-skimmer.lastEvent=10
+skimmer.lastEvent=1
 if a.isData:
     utils.add_json(skimmer)
 
