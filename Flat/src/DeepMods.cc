@@ -143,9 +143,9 @@ void BRegDeepMod::do_execute()
 void TFInferMod::build(TString weightpath)
 {
   tf::setLogging("3");
-  graph = tf::loadGraphDef(weightpath.Data());
+  graph.reset(tf::loadGraphDef(weightpath.Data()));
   tf::SessionOptions opts; tf::setThreading(opts, 1, "no_threads");
-  sess = tf::createSession(graph, opts);
+  sess.reset(tf::createSession(graph.get(), opts));
 
   inputs.resize(n_inputs); outputs.resize(n_outputs);
   outputNames[0] = outputName.Data();
@@ -154,7 +154,7 @@ void TFInferMod::build(TString weightpath)
 void TFInferMod::eval()
 {
   // build the input tensor
-  // might be better to put this on the heap but need to check how it moves between sessions
+  // might be better to put this on the heap 
   tf::NamedTensorList t_i;
   t_i.resize(1);
   t_i[0] = tf::NamedTensor(inputName.Data(),
@@ -165,7 +165,7 @@ void TFInferMod::eval()
 
   // set up output and run
   vector<tf::Tensor> t_o;
-  tf::run(sess, t_i, outputNames, &t_o);
+  tf::run(sess.get(), t_i, outputNames, &t_o);
   for (int idx = 0; idx != n_outputs; ++idx)
     outputs[idx] = t_o[0].matrix<float>()(0, idx);
 }

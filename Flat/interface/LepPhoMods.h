@@ -5,6 +5,7 @@
 #include "AnalyzerUtilities.h"
 #include "array"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
+#include "PandaAnalysis/Utilities/interface/RelIso.h"
 
 namespace pa {
 
@@ -67,7 +68,7 @@ namespace pa {
     }
     void scaleFactors();
 
-    std::shared_ptr<std::vector<panda::Lepton*>> looseLeps, matchLeps;
+   std::shared_ptr<std::vector<panda::Lepton*>> looseLeps, matchLeps;
     std::shared_ptr<std::array<int,4>> lepPdgId;
     std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
     std::shared_ptr<TLorentzVector> dilep;
@@ -93,10 +94,13 @@ namespace pa {
       SimpleLeptonMod::do_init(registry);
       if (!analysis.isData)
         genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      if (analysis.hbb) 
+        pfCandsMap = registry.access<EtaPhiMap<panda::PFCand>>("pfCandMap"); 
     }
   private:
     std::unique_ptr<RoccoR> rochesterCorrection{nullptr};
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    std::shared_ptr<EtaPhiMap<panda::PFCand>> pfCandsMap{nullptr}; 
   };
 
 

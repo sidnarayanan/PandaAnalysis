@@ -31,6 +31,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   preselmod = new ContainerMod("pre-selection", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
   ADDMOD(GenPMod)
+  ADDMOD(MapMod)
   if (analysis.unpackedGen)
     ADDMOD(DeepGenMod<UnpackedGenParticle>)
   else

@@ -174,7 +174,7 @@ void JetMod::do_execute()
 
 
       if (jw.nominal->maxpt > cfg.minJetPt) {
-        // for H->bb, don't consider any jet based NJETSAVED,
+        // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
           continue;
@@ -535,16 +535,19 @@ void HbbSystemMod::do_execute()
         gt.jotDeepBRegWidth[i] = hbbdJetRef.bregwidth;
       }
       hbbd_dcorr[i].SetPtEtaPhiM(
-          gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
+            gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]
           );
 
-      bdtreg->execute();
-      gt.jotBReg[shift][i] = hbbdJetRef.breg;
+      // Shifted values for the jet energies to perform the b-jet regression
+      if (shift == jes2i(shiftjes::kNominal)) {
+        bdtreg->execute();
+        gt.jotBReg[i] = hbbdJetRef.breg;
+      }
       hbbd_corr[i].SetPtEtaPhiM(
-            gt.jotBReg[shift][i] * gt.jotPt[shift][idx],
+            gt.jotBReg[i] * gt.jotPt[shift][idx],
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]

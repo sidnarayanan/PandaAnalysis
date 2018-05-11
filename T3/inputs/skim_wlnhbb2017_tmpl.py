@@ -31,7 +31,7 @@ def fn(input_name, isData, full_path):
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
     a.isData = isData
-    utils.set_year(a, 2016)
+    utils.set_year(a, 2017)
     a.processType = utils.classify_sample(full_path, isData)	
     if a.processType in {root.pa.kTT, root.pa.kH}:
         a.reclusterGen = True # only turn on if necessary

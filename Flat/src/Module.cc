@@ -172,82 +172,145 @@ void ConfigMod::readData(TString dirPath)
   if (analysis.complicatedLeptons) {
     // Corrections checked out from Gui's repository on Nov 12, 2017 ~DGH
     // https://github.com/GuillelmoGomezCeballos/MitAnalysisRunII/tree/master/data/80x
-    utils.openCorr(cMuLooseID,
-                   dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                   "scalefactors_MuonLooseId_Muon",2);
-    utils.openCorr(cMuMediumID,
-                   dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
-                   "scalefactors_Medium_Muon",2);
-    utils.openCorr(cMuTightID,
-                   dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                   "scalefactors_TightId_Muon",2);
-    utils.openCorr(cMuLooseIso,
-                   dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                   "scalefactors_Iso_MuonLooseId",2);
-    utils.openCorr(cMuMediumIso,
-                   dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                   "scalefactors_Iso_MuonMediumId",2);
-    utils.openCorr(cMuTightIso,
-                   dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                   "scalefactors_Iso_MuonTightId",2);
-    utils.openCorr(cMuReco,
-                   dirPath+"leptonic/Tracking_EfficienciesAndSF_BCDEFGH.root",
-                   "ratio_eff_eta3_dr030e030_corr",1);
-    utils.openCorr(cEleVeto,
-                   dirPath+"moriond17/scaleFactor_electron_summer16.root",
-                   "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
-    utils.openCorr(cEleLoose,
-                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
-                   "scalefactors_Loose_Electron",2);
-    utils.openCorr(cEleMedium,
-                   dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
-                   "scalefactors_Medium_Electron",2);
-    utils.openCorr(cEleTight,
-                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
-                   "scalefactors_Tight_Electron",2);
     if (analysis.year==2017) {
+      utils.openCorr(cEleVeto,
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingVeto94X.root",
+                     "EGamma_SF2D",2);
+      utils.openCorr(cEleLoose,
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingLoose94X.root",
+                     "EGamma_SF2D",2);
+      utils.openCorr(cEleMedium,
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingMedium94X.root",
+                     "EGamma_SF2D",2);
+      utils.openCorr(cEleTight,
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingTight94X.root",
+                     "EGamma_SF2D",2);
+      utils.openCorr(cEleMvaWP80,
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingMVA94Xwp80iso.root",
+                     "EGamma_SF2D",2);
       utils.openCorr(cEleMvaWP90,
-                     dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
-                     "scalefactors_MediumMVA_Electron",2);
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingMVA94Xwp90iso.root",
+                     "EGamma_SF2D",2);
+      utils.openCorr(cEleReco,
+                     dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root",
+                     "EGamma_SF2D",2);
+      // NEED TO UPDATE THESE!
+      utils.openCorr(cMuLooseID,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_MuonLooseId_Muon",2);
+      utils.openCorr(cMuMediumID,
+                     dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
+                     "scalefactors_Medium_Muon",2);
+      utils.openCorr(cMuTightID,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_TightId_Muon",2);
+      utils.openCorr(cMuLooseIso,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonLooseId",2);
+      utils.openCorr(cMuMediumIso,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonMediumId",2);
+      utils.openCorr(cMuTightIso,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonTightId",2);
+      utils.openCorr(cMuReco,
+                     dirPath+"leptonic/Tracking_EfficienciesAndSF_BCDEFGH.root",
+                     "ratio_eff_eta3_dr030e030_corr",1);
     } else {
+      utils.openCorr(cMuLooseID,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_MuonLooseId_Muon",2);
+      utils.openCorr(cMuMediumID,
+                     dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
+                     "scalefactors_Medium_Muon",2);
+      utils.openCorr(cMuTightID,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_TightId_Muon",2);
+      utils.openCorr(cMuLooseIso,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonLooseId",2);
+      utils.openCorr(cMuMediumIso,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonMediumId",2);
+      utils.openCorr(cMuTightIso,
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonTightId",2);
+      utils.openCorr(cMuReco,
+                     dirPath+"leptonic/Tracking_EfficienciesAndSF_BCDEFGH.root",
+                     "ratio_eff_eta3_dr030e030_corr",1);
+      utils.openCorr(cEleVeto,
+                     dirPath+"moriond17/scaleFactor_electron_summer16.root",
+                     "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
+      utils.openCorr(cEleLoose,
+                     dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                     "scalefactors_Loose_Electron",2);
+      utils.openCorr(cEleMedium,
+                     dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
+                     "scalefactors_Medium_Electron",2);
+      utils.openCorr(cEleTight,
+                     dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                     "scalefactors_Tight_Electron",2);
       utils.openCorr(cEleMvaWP90,
                      dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                      "scalefactors_MediumMVA_Electron",2);
+      utils.openCorr(cEleMvaWP80,
+                     dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                     "scalefactors_TightMVA_Electron",2);
+      utils.openCorr(cEleReco,
+                     dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
+                     "scalefactors_Reco_Electron",2);
+      utils.openCorr(cEleVeto,
+                     dirPath+"moriond17/scaleFactor_electron_summer16.root",
+                     "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
+      utils.openCorr(cEleTight,
+                     dirPath+"moriond17/scaleFactor_electron_summer16.root",
+                     "scaleFactor_electron_tightid_RooCMSShape_pu_0_100",2);
+      utils.openCorr(cEleReco,
+                     dirPath+"moriond17/scaleFactor_electron_reco_summer16.root",
+                     "scaleFactor_electron_reco_RooCMSShape_pu_0_100",2);
+      utils.openCorr(cMuLooseID,
+                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
+                     "scalefactors_MuonLooseId_Muon",2);
+      utils.openCorr(cMuLooseIso,
+                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonLooseId",2);
+      utils.openCorr(cMuTightID,
+                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
+                     "scalefactors_TightId_Muon",2);
+      utils.openCorr(cMuTightIso,
+                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
+                     "scalefactors_Iso_MuonTightId",2);
+      utils.openCorr(cMuReco,
+                     dirPath+"moriond17/Tracking_12p9.root","htrack2",1);
     }
-    utils.openCorr(cEleMvaWP80,
-                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
-                   "scalefactors_TightMVA_Electron",2);
-    utils.openCorr(cEleReco,
-                   dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
-                   "scalefactors_Reco_Electron",2);
-    // EWK corrections
+    // EWK corrections 
     utils.openCorr(cWZEwkCorr,
                    dirPath+"leptonic/data.root","hEWKWZCorr",1);
     utils.openCorr(cqqZZQcdCorr,
                    dirPath+"leptonic/data.root","hqqZZKfactor",2);
   } else {
-    utils.openCorr(cEleVeto,
-                   dirPath+"moriond17/scaleFactor_electron_summer16.root",
-                   "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
-    utils.openCorr(cEleTight,
-                   dirPath+"moriond17/scaleFactor_electron_summer16.root",
-                   "scaleFactor_electron_tightid_RooCMSShape_pu_0_100",2);
-    utils.openCorr(cEleReco,
-                   dirPath+"moriond17/scaleFactor_electron_reco_summer16.root",
-                   "scaleFactor_electron_reco_RooCMSShape_pu_0_100",2);
-    utils.openCorr(cMuLooseID,
-                   dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                   "scalefactors_MuonLooseId_Muon",2);
-    utils.openCorr(cMuLooseIso,
-                   dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                   "scalefactors_Iso_MuonLooseId",2);
-    utils.openCorr(cMuTightID,
-                   dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                   "scalefactors_TightId_Muon",2);
-    utils.openCorr(cMuTightIso,
-                   dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                   "scalefactors_Iso_MuonTightId",2);
-    utils.openCorr(cMuReco,
+    utils.openCorr(cEleVeto,   
+                   dirPath+"moriond17/scaleFactor_electron_summer16.root", 
+                   "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);  
+    utils.openCorr(cEleTight,  
+                   dirPath+"moriond17/scaleFactor_electron_summer16.root", 
+                   "scaleFactor_electron_tightid_RooCMSShape_pu_0_100",2); 
+    utils.openCorr(cEleReco,   
+                   dirPath+"moriond17/scaleFactor_electron_reco_summer16.root",    
+                   "scaleFactor_electron_reco_RooCMSShape_pu_0_100",2);    
+    utils.openCorr(cMuLooseID, 
+                   dirPath+"moriond17/muon_scalefactors_37ifb.root",   
+                   "scalefactors_MuonLooseId_Muon",2); 
+    utils.openCorr(cMuLooseIso,    
+                   dirPath+"moriond17/muon_scalefactors_37ifb.root",   
+                   "scalefactors_Iso_MuonLooseId",2);  
+    utils.openCorr(cMuTightID, 
+                   dirPath+"moriond17/muon_scalefactors_37ifb.root",   
+                   "scalefactors_TightId_Muon",2); 
+    utils.openCorr(cMuTightIso,    
+                   dirPath+"moriond17/muon_scalefactors_37ifb.root",   
+                   "scalefactors_Iso_MuonTightId",2);  
+    utils.openCorr(cMuReco,    
                    dirPath+"moriond17/Tracking_12p9.root","htrack2",1);
   }
   // Differential Electroweak VH Corrections
@@ -305,20 +368,6 @@ void ConfigMod::readData(TString dirPath)
                  "sf",1);
 
   // triggers
-  utils.openCorr(cTrigMET,
-                 dirPath+"moriond17/metTriggerEfficiency_recoil_monojet_TH1F.root",
-                 "hden_monojet_recoil_clone_passed",1);
-  utils.openCorr(cTrigEle,
-                 dirPath+"moriond17/eleTrig.root","hEffEtaPt",2);
-  utils.openCorr(cTrigMu,
-                 dirPath+"trigger_eff/muon_trig_Run2016BtoF.root",
-                 "IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesDATA/abseta_pt_DATA",2);
-  utils.openCorr(cTrigPho,
-                 dirPath+"moriond17/photonTriggerEfficiency_photon_TH1F.root",
-                 "hden_photonpt_clone_passed",1);
-  utils.openCorr(cTrigMETZmm,
-                 dirPath+"moriond17/metTriggerEfficiency_zmm_recoil_monojet_TH1F.root",
-                 "hden_monojet_recoil_clone_passed",1);
   if (analysis.year==2017) {
     utils.openCorr(cTrigDoubleEleLeg1,
                    dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
@@ -326,7 +375,44 @@ void ConfigMod::readData(TString dirPath)
     utils.openCorr(cTrigDoubleEleLeg2,
                    dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
                    "scalefactors_doubleEleTriggerLeg2",2);
+    utils.openCorr(cTrigMu,
+                   dirPath+"trigger_eff/SingleMuonTrigger94x_EfficienciesAndSF_RunBtoF_Nov17Nov2017.root",
+                   "IsoMu27_PtEtaBins/abseta_pt_ratio",2);
+  } else {
+    utils.openCorr(cTrigMu,
+                   dirPath+"trigger_eff/muon_trig_Run2016BtoF.root",
+                   "IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesDATA/abseta_pt_DATA",2);
+    utils.openCorr(cTrigDoubleEleLeg1,
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
+                   "h2_results_electron_double_leadingleg",2);
+    utils.openCorr(cTrigDoubleEleLeg2,
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
+                   "h2_results_electron_double_trailingleg",2);
+    utils.openCorr(cTrigDoubleMuLeg1,
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
+                   "h2_results_muon_double_leadingleg",2);
+    utils.openCorr(cTrigDoubleMuLeg2,
+                   dirPath+"trigger_eff/triggers_76x_hww.root",
+                   "h2_results_muon_double_trailingleg",2);
   }
+  // Currently out of date for 2017
+  utils.openCorr(cTrigMET,
+                 dirPath+"moriond17/metTriggerEfficiency_recoil_monojet_TH1F.root",
+                 "hden_monojet_recoil_clone_passed",1);
+  utils.openCorr(cTrigEle,
+                 dirPath+"moriond17/eleTrig.root","hEffEtaPt",2);
+  utils.openCorr(cTrigPho,
+                 dirPath+"moriond17/photonTriggerEfficiency_photon_TH1F.root",
+                 "hden_photonpt_clone_passed",1);
+  utils.openCorr(cTrigMETZmm,
+                 dirPath+"moriond17/metTriggerEfficiency_zmm_recoil_monojet_TH1F.root",
+                 "hden_monojet_recoil_clone_passed",1);
+  utils.openCorr(cTrigDoubleMuLeg1,
+                 dirPath+"trigger_eff/triggers_76x_hww.root",
+                 "h2_results_muon_double_leadingleg",2);
+  utils.openCorr(cTrigDoubleMuLeg2,
+                 dirPath+"trigger_eff/triggers_76x_hww.root",
+                 "h2_results_muon_double_trailingleg",2);
 
   // kfactors
   TFile *fKFactor = analysis.vbf ?

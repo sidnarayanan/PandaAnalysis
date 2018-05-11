@@ -3,8 +3,50 @@
 
 #include "Module.h"
 #include "AnalyzerUtilities.h"
+#include "PandaAnalysis/Utilities/interface/EtaPhiMap.h"
 
 namespace pa {
+  class MapMod : public AnalysisMod {
+  public:
+    MapMod(panda::EventAnalysis& event_,
+              Config& cfg_,
+              Utils& utils_,
+              GeneralTree& gt_,
+              int level_=0) :
+      AnalysisMod("map", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~MapMod () { }
+
+    bool on() { return true; }
+
+  protected:
+    void do_init(Registry& registry) {
+      if (analysis.hbb) {
+        pfCandsMap = std::make_shared<EtaPhiMap<panda::PFCand>>(0.1);
+        registry.publish("pfCandsMap", pfCandsMap);
+      }
+      if (!analysis.isData && false) { // figure out if this is useful first
+        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+        genPMap = std::make_shared<EtaPhiMap<panda::Particle*>>(0.3, 5.0,
+                                    [] (panda::Particle*const* p)->double { return (*p)->eta(); },
+                                    [] (panda::Particle*const* p)->double { return (*p)->phi(); });
+        registry.publish("genPMap", genPMap);
+      }
+    }
+    void do_execute() {
+      if (pfCandsMap.get() != nullptr) {
+        pfCandsMap->AddParticles(event.pfCandidates);
+      }
+      if (genPMap.get() != nullptr) {
+        genPMap->AddParticles(*(genP.get()));
+      }
+    }
+
+  private:
+    std::shared_ptr<EtaPhiMap<panda::PFCand>> pfCandsMap{nullptr}; 
+    std::shared_ptr<EtaPhiMap<panda::Particle*>> genPMap{nullptr}; 
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+  };
+
   class RecoilMod : public AnalysisMod {
   public:
     RecoilMod(panda::EventAnalysis& event_,

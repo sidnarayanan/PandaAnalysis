@@ -66,8 +66,8 @@ namespace pa {
     virtual void build(TString weightpath) final;
     virtual void eval() final;
 
-    tensorflow::GraphDef* graph{nullptr}; // need to figure out if these are owned by tf or not
-    tensorflow::Session* sess{nullptr};
+    std::unique_ptr<tensorflow::GraphDef> graph{nullptr}; 
+    std::unique_ptr<tensorflow::Session> sess{nullptr};
     TString inputName{0}, outputName{0};
     int n_inputs{0}, n_outputs{0};
     std::shared_ptr<std::vector<float>> p_inputs, p_outputs; // keep this around for publication
