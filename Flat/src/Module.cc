@@ -25,7 +25,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
       (analysis.recluster || analysis.deep || analysis.deepGen)) {
   }
 
-  if (analysis.recluster || analysis.reclusterGen ||
+  if (analysis.recluster || analysis.bjetRegTraining ||
       analysis.deep || analysis.deepGen || analysis.hbb) {
     int activeAreaRepeats = 1;
     double ghostArea = 0.01;
@@ -543,7 +543,10 @@ void AnalysisMod::execute()
   if (!on())
     return;
   do_execute();
-  cfg.tr.TriggerEvent("execute "+name);
+  if (level > 1)
+    cfg.tr.TriggerSubEvent("execute "+name);
+  else
+    cfg.tr.TriggerEvent("execute "+name);
 }
 
 void AnalysisMod::reset()
@@ -573,7 +576,7 @@ vector<TString> AnalysisMod::dump()
   vector<TString> v;
   if (!on())
     return v;
-  v.push_back("-> " + name);
+  v.push_back("-> " + name + Form(" (%i)", level));
   for (auto& m : subMods) {
     vector<TString> vtmp = m->dump();
     for (auto& s : vtmp)

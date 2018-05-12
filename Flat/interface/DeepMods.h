@@ -42,7 +42,7 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod(name_, event_, cfg_, utils_,  gt_),
+      AnalysisMod(name_, event_, cfg_, utils_,  gt_, level_),
       p_inputs(std::v_make_shared<float>()),
       p_outputs(std::v_make_shared<float>()),
       inputs(*p_inputs),

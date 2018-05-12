@@ -119,6 +119,8 @@ namespace pa {
       };
       using contents = std::array<std::vector<TLorentzVector>, static_cast<int>(shiftjetrings::N)>;
       std::array<contents, pN> pf; // pf[pftype][bin_idx]
+      float jet_e; 
+
       void clear() {
         for (auto& i : pf)
           for (auto& j : i)
@@ -128,7 +130,7 @@ namespace pa {
         float sum = 0;
         for (auto& v : pf[pft][bin])
           sum += v.E();
-        return sum;
+        return sum / jet_e;
       }
 
       typedef double (TLorentzVector::*vec_func) () const;
@@ -136,26 +138,29 @@ namespace pa {
       void get_moments(int pft, vec_func f, std::array<float,I>& moments ) {
         std::fill(moments.begin(), moments.end(), 0);
         // first get the mean
-        int ntotal{0};
-        std::vector<float> x;
-        for (auto& bin : pf) {
-          x.reserve(x.size() + bin[pft].size());
-          for (auto& v : bin[pft]) {
-            x.push_back((v.*f)());
-            ntotal++;
+        float sumw{0};
+        std::vector<std::pair<float,float>> x;
+        for (auto& bin : pf[pft]) {
+          x.reserve(x.size() + bin.size());
+          for (auto& v : bin) {
+            x.emplace_back((v.*f)(),v.E());
+            sumw += v.E();
           }
         }
 
-        if (ntotal == 0)
+        if (sumw == 0)
           return;
 
-        moments[0] = std::accumulate(x.begin(), x.end(), 0) / ntotal;
+        for (auto& xx : x)
+          moments[0] += (xx.first * xx.second); 
+        moments[0] /= sumw;
 
         for (unsigned ex = 1; ex != I; ++ ex) {
-          for (auto xx : x) {
-            moments[ex] += pow(xx - moments[0], ex + 1);
+          for (auto& xx : x) {
+            // dividing by sumw here is not optimal but prevents a very large sum
+            moments[ex] += std::pow(xx.second / sumw * (xx.first - moments[0]), ex + 1);
           }
-          moments[ex] = pow(moments[ex], 1./(ex + 1)) / ntotal;
+          moments[ex] = std::pow(std::fabs(moments[ex]), 1./(ex + 1));
         }
       }
     };

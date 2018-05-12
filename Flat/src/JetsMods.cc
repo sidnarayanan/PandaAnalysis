@@ -156,7 +156,8 @@ void JetMod::do_execute()
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
-      flavor->execute();
+      if (isNominal)
+        flavor->execute();
 
       float csv = centralOnly(analysis.year==2016 ? jet.csv : jet.deepCSVb, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
@@ -169,7 +170,8 @@ void JetMod::do_execute()
           }
         }
 
-        jets.bcand.push_back(&jw);
+        if (isNominal)
+          jets.bcand.push_back(&jw);
       }
 
 
@@ -186,7 +188,7 @@ void JetMod::do_execute()
             gt.badECALFilter = 0;
         }
 
-        if (analysis.fatjet) {
+        if (isNominal && analysis.fatjet) {
           isojet->execute();
           if (jw.iso && csvLoose(csv))
             ++(gt.isojetNBtags[shift]);
@@ -220,6 +222,8 @@ void JetMod::do_execute()
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
           gt.jotPt[shift][njet] = pt;
           if (isNominal) {
+            if (jet.matchedGenJet.isValid())
+              gt.jotGenPt[njet] = jet.matchedGenJet->pt(); 
             gt.jotEta[njet] = jet.eta();
             gt.jotPhi[njet] = jet.phi();
             gt.jotM[njet] = jet.m();
@@ -368,9 +372,8 @@ void BJetRegMod::do_execute()
 
   int N = jets.cleaned.size() - 1;
 
-  TLorentzVector vraw;
-  vraw.SetPtEtaPhiM(jet.rawPt, jet.eta(), jet.phi(), jet.m());
   TLorentzVector vjet(jet.p4());
+  TLorentzVector vraw(vjet); vraw *= jet.rawPt / jet.pt(); 
 
   gt.jotEMF[N] = jet.cef + jet.nef;
   gt.jotHF[N] = jet.chf + jet.nhf;
@@ -378,8 +381,15 @@ void BJetRegMod::do_execute()
   gt.jotNEF[N] = jet.nef;
   gt.jotCHF[N] = jet.chf;
   gt.jotNHF[N] = jet.nhf;
+  gt.jotRawPt[N] = vraw.Pt();
+  gt.jotRawMt[N] = vraw.Mt();
+  gt.jotRawEt[N] = vraw.Et();
+  gt.jotRawM[N] = vraw.M();
+  gt.jotRawE[N] = vraw.E();
+  energies.jet_e = gt.jotRawE[N];
 
   float sumpt{0}, sumpt2{0};
+  int leading_pdgid = 0;
   for (const auto& pf : jet.constituents) {
     TLorentzVector v(pf->p4()), vcent(v);
     vcent.SetPtEtaPhiM(v.Pt(), v.Eta()-vraw.Eta(), SignedDeltaPhi(v.Phi(), vraw.Phi()), v.M());
@@ -399,9 +409,16 @@ void BJetRegMod::do_execute()
           gt.jotLep1PtRelRaw[N] = v.Perp(vraw.Vect()); 
           gt.jotLep1PtRelRawInv[N] = vraw.Perp(v.Vect());
           gt.jotLep1DeltaR[N] = sqrt(dr2);
+          leading_pdgid = pdgid;
+          gt.jotLep1IsOther[N] = 0; 
         }
       }
     }
+
+    if (leading_pdgid == 11) 
+      gt.jotLep1IsEle[N] = 1; 
+    else if (leading_pdgid == 13)
+      gt.jotLep1IsMu[N] = 1;  // if neither, then the default is IsOther == 1
 
     unsigned bin = lower_bound(Energies::dr_bins.begin(), Energies::dr_bins.end(), dr2)
                    - Energies::dr_bins.begin();
@@ -424,7 +441,7 @@ void BJetRegMod::do_execute()
     gt.jotMuRing[b][N] = energies.get_e(b, Energies::pmu);
     gt.jotNeRing[b][N] = energies.get_e(b, Energies::pne);
   }
-  for (int pf_type = Energies::pne; pf_type != (int)Energies::pN; ++pf_type) {
+  for (int pf_type = Energies::pem; pf_type != (int)Energies::pN; ++pf_type) {
     static std::array<float, static_cast<long unsigned>(shiftjetrings::N)> moments;
     // eta first
     energies.get_moments(pf_type, &TLorentzVector::Eta, moments);

@@ -57,7 +57,7 @@ namespace pa {
         std::shared_ptr<T> access(TString name) {
           auto iter = _objs.find(name);
           if (iter == _objs.end()) {
-            PError("Registry::access", "Could not access"+name+"!");
+            PError("Registry::access", "Could not accessi "+name+"!");
             throw std::runtime_error("");
           }
           auto* cntr = safe_cast<T>(iter->second, name);
@@ -69,7 +69,7 @@ namespace pa {
           if (iter == _objs.end()) {
             iter = _const_objs.find(name);
             if (iter == _const_objs.end()) {
-              PError("Registry::access", "Could not access"+name+"!");
+              PError("Registry::access", "Could not access "+name+"!");
               throw std::runtime_error("");
             }
           }

@@ -57,7 +57,7 @@ namespace pa {
       AnalysisMod("genjetnu", event_, cfg_, utils_, gt_, level_) { }
     virtual ~GenJetNuMod () { }
 
-    bool on() { return !analysis.isData && analysis.reclusterGen && analysis.hbb; }
+    bool on() { return !analysis.isData && analysis.bjetRegTraining && analysis.hbb; }
   protected:
     void do_init(Registry& registry) {
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");

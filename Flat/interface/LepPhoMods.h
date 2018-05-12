@@ -95,7 +95,7 @@ namespace pa {
       if (!analysis.isData)
         genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
       if (analysis.hbb) 
-        pfCandsMap = registry.access<EtaPhiMap<panda::PFCand>>("pfCandMap"); 
+        pfCandsMap = registry.access<EtaPhiMap<panda::PFCand>>("pfCandsMap"); 
     }
   private:
     std::unique_ptr<RoccoR> rochesterCorrection{nullptr};

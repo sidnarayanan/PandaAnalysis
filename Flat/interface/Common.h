@@ -82,7 +82,6 @@ namespace pa {
     bool monoh = false;
     bool puppiJets = true;
     bool recluster = false;
-    bool reclusterGen = false;
     bool recoil = true;
     bool rerunJES = false;
     bool useCMVA = false;

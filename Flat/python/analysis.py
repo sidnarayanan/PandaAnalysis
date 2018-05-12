@@ -83,6 +83,26 @@ deepgen = lambda v=False : _analysis(
         genOnly = True,
     )
 
+breg = lambda v=False : _analysis(
+        name = 'breg',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        fatjet = True,
+        btagSFs = True,
+        btagWeights = True,
+        useCMVA = True,
+        complicatedLeptons = True,
+        hfCounting = True,
+        bjetRegTraining = True,
+        bjetBDTReg = True,
+        bjetDeepReg = True,
+        varyJES = True,
+        rerunJES = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+    )
+
 wlnhbb = lambda v=False : _analysis(
         name = 'wlnhbb',
         verbose = v,
@@ -97,7 +117,7 @@ wlnhbb = lambda v=False : _analysis(
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
+        bjetRegTraining = False,
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,
@@ -119,7 +139,7 @@ zllhbb = lambda v=False : _analysis(
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
+        bjetRegTraining = False,
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,
@@ -140,7 +160,7 @@ wlnhbb_ca15 = lambda v=False : _analysis(
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
+        bjetRegTraining = False,
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,

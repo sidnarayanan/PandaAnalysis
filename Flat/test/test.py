@@ -29,13 +29,13 @@ a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 a.processType = root.pa.kH
-a.isData = True
+a.isData = False
 utils.set_year(a, 2017)
 
 skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
 skimmer.firstEvent=0
-skimmer.lastEvent=1
+skimmer.lastEvent=10
 if a.isData:
     utils.add_json(skimmer)
 

@@ -322,6 +322,7 @@ void GlobalMod::do_execute()
   gt.eventNumber = event.eventNumber;
   gt.isData = analysis.isData ?  1 : 0; 
   gt.npv = event.npv;
+  gt.rho = event.rho;
   gt.pu = event.npvTrue;
   gt.metFilter = (event.metFilters.pass()) ? 1 : 0;
   gt.metFilter = (gt.metFilter==1 && !event.metFilters.badPFMuons) ? 1 : 0;

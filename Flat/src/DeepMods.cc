@@ -81,63 +81,57 @@ void BRegBDTMod::do_execute()
 void BRegDeepMod::do_execute()
 {
   auto& jw = **currentJet;
-  auto& jet = jw.get_base();
   int N = jw.user_idx;
 
-  TLorentzVector vRaw;
-  vRaw.SetPtEtaPhiM(jet.rawPt, jet.eta(), jet.phi(), jet.m());
-
   // defined in data/trainings/breg_training_2017.cfg
-  inputs[ 0] = jet.rawPt;
-  inputs[ 1] = jet.eta();
-  inputs[ 2] = event.rho;
-  inputs[ 3] = vRaw.Mt();
+  inputs[ 0] = gt.jotRawPt[N];
+  inputs[ 1] = gt.jotEta[N];
+  inputs[ 2] = gt.rho;
+  inputs[ 3] = gt.jotRawMt[N];
   inputs[ 4] = gt.jotTrk1Pt[N];
-  inputs[ 5] = gt.jotLep1PtRel[N];
+  inputs[ 5] = gt.jotLep1PtRelRaw[N];
   inputs[ 6] = gt.jotLep1DeltaR[N];
-  inputs[ 7] = 0;
-  inputs[ 8] = 0;
+  inputs[ 7] = gt.jotNHF[N];
+  inputs[ 8] = gt.jotNEF[N];
   inputs[ 9] = gt.jotVtxPt[N];
   inputs[10] = gt.jotVtxMass[N];
   inputs[11] = gt.jotVtx3DVal[N];
   inputs[12] = gt.jotVtxNtrk[N];
   inputs[13] = gt.jotVtx3DErr[N];
-  inputs[14] = 0;
-  inputs[15] = 0;
-  inputs[16] = 0;
-  inputs[17] = 0;
-  inputs[18] = 0;
-  inputs[19] = 0;
-  inputs[20] = 0;
-  inputs[21] = 0;
-  inputs[22] = 0;
-  inputs[23] = 0;
-  inputs[24] = 0;
-  inputs[25] = 0;
-  inputs[26] = 0;
-  inputs[27] = 0;
-  inputs[28] = 0;
-  inputs[29] = 0;
-  inputs[30] = 0;
-  inputs[31] = 0;
-  inputs[32] = 0;
-  inputs[33] = 0;
-  inputs[34] = 0;
-  inputs[35] = 0;
-  inputs[36] = 0;
-  inputs[37] = 0;
-  inputs[38] = 0;
-  inputs[39] = 0;
-  inputs[40] = 0;
-  inputs[41] = 0;
-  inputs[42] = jet.m();
-  inputs[43] = 0;
+  inputs[14] = gt.jotNPt03[N];
+  inputs[15] = gt.jotEMRing[0][N];
+  inputs[16] = gt.jotEMRing[1][N];
+  inputs[17] = gt.jotEMRing[2][N];
+  inputs[18] = gt.jotEMRing[3][N];
+  inputs[19] = gt.jotEMRing[4][N];
+  inputs[20] = gt.jotNeRing[0][N];
+  inputs[21] = gt.jotNeRing[1][N];
+  inputs[22] = gt.jotNeRing[2][N];
+  inputs[23] = gt.jotNeRing[3][N];
+  inputs[24] = gt.jotNeRing[4][N];
+  inputs[25] = gt.jotChRing[0][N];
+  inputs[26] = gt.jotChRing[1][N];
+  inputs[27] = gt.jotChRing[2][N];
+  inputs[28] = gt.jotChRing[3][N];
+  inputs[29] = gt.jotChRing[4][N];
+  inputs[30] = gt.jotMuRing[0][N];
+  inputs[31] = gt.jotMuRing[1][N];
+  inputs[32] = gt.jotMuRing[2][N];
+  inputs[33] = gt.jotMuRing[3][N];
+  inputs[34] = gt.jotMuRing[4][N];
+  inputs[35] = gt.jotCHF[N];
+  inputs[36] = gt.jotCEF[N];
+  inputs[37] = gt.jotLep1PtRelRawInv[N];
+  inputs[38] = gt.jotLep1IsEle[N];
+  inputs[39] = gt.jotLep1IsMu[N];
+  inputs[40] = gt.jotLep1IsOther[N];
+  inputs[41] = gt.jotRawM[N];
+  inputs[42] = gt.jotPtD[N];
 
   eval();
 
   jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
   jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
-
 }
 
 void TFInferMod::build(TString weightpath)

@@ -28,7 +28,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
 
   // Define analyses
-  preselmod = new ContainerMod("pre-selection", event, cfg, utils, gt);
+  preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
   ADDMOD(GenPMod)
   ADDMOD(MapMod)
@@ -46,7 +46,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDMOD(JetMod)
   ADDMOD(TauMod)
 
-  postselmod = new ContainerMod("post-selection", event, cfg, utils, gt);
+  postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
   mods_all.emplace_back(postselmod);
   ADDMOD(HbbMiscMod)
   ADDMOD(InclusiveLeptonMod)
