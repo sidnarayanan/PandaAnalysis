@@ -222,7 +222,7 @@ void JetMod::do_execute()
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
           gt.jotPt[shift][njet] = pt;
           if (isNominal) {
-            if (jet.matchedGenJet.isValid())
+            if (!analysis.hbb && jet.matchedGenJet.isValid())
               gt.jotGenPt[njet] = jet.matchedGenJet->pt(); 
             gt.jotEta[njet] = jet.eta();
             gt.jotPhi[njet] = jet.phi();

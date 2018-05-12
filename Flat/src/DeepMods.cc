@@ -78,6 +78,10 @@ void BRegBDTMod::do_execute()
   jw.bregwidth = 0;
 }
 
+float dnn_clean(float x) { 
+  return fabs(x -  -99.) < 0.1 ? 0 : x; 
+}
+
 void BRegDeepMod::do_execute()
 {
   auto& jw = **currentJet;
@@ -127,6 +131,9 @@ void BRegDeepMod::do_execute()
   inputs[40] = gt.jotLep1IsOther[N];
   inputs[41] = gt.jotRawM[N];
   inputs[42] = gt.jotPtD[N];
+
+  for (auto& i : inputs)
+    i = dnn_clean(i); 
 
   eval();
 

@@ -150,11 +150,8 @@ void GenJetNuMod::do_execute()
   fj::ClusterSequenceArea seq(finalStates, *jetDef, *(utils.areaDef));
   vector<fj::PseudoJet> allJets(seq.inclusive_jets(0.01));
 
-  vector<panda::GenJet> genJetsNu; 
-  genJetsNu.reserve(allJets.size());
+  map<fj::PseudoJet*,int> flavorMap;
   for (auto &pj : allJets) {
-    genJetsNu.emplace_back(panda::GenJet());
-    genJetsNu.back().setXYZE(pj.px(), pj.py(), pj.pz(), pj.e());
     int flavor = 0;
     for (auto *bc : bcs) {
       if (DeltaR2(pj.eta(), pj.phi(), bc->eta(), bc->phi()) < 0.09) {
@@ -162,19 +159,19 @@ void GenJetNuMod::do_execute()
         break;
       }
     }
-    genJetsNu.back().pdgid = flavor;
+    flavorMap[&pj] = flavor;
   }
 
   auto& jets = (*jesShifts)[0];
   unsigned N = jets.cleaned.size();
   for (unsigned i = 0; i != N; ++i) {
     const panda::Jet& reco = jets.cleaned[i]->get_base();
-    for (auto &gen : genJetsNu) {
-      if (DeltaR2(gen.eta(), gen.phi(), reco.eta(), reco.phi()) < 0.09) {
-        gt.jotGenPt[i] = gen.pt();
-        gt.jotGenEta[i] = gen.eta();
-        gt.jotGenPhi[i] = gen.phi();
-        gt.jotFlav[i] = gen.pdgid;
+    for (auto &pf : allJets) {
+      if (DeltaR2(pj.eta(), pj.phi(), reco.eta(), reco.phi()) < 0.09) {
+        gt.jotGenPt[i] = pj.pt();
+        gt.jotGenEta[i] = pj.eta();
+        gt.jotGenPhi[i] = pj.phi();
+        gt.jotFlav[i] = flavorMap[&pj];
         break;
       }
     }
