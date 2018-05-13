@@ -166,7 +166,7 @@ void GenJetNuMod::do_execute()
   unsigned N = jets.cleaned.size();
   for (unsigned i = 0; i != N; ++i) {
     const panda::Jet& reco = jets.cleaned[i]->get_base();
-    for (auto &pf : allJets) {
+    for (auto &pj : allJets) {
       if (DeltaR2(pj.eta(), pj.phi(), reco.eta(), reco.phi()) < 0.09) {
         gt.jotGenPt[i] = pj.pt();
         gt.jotGenEta[i] = pj.eta();
