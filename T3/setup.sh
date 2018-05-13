@@ -3,7 +3,7 @@
 export PATH=${PATH}:${CMSSW_BASE}/src/PandaCore/bin/
 
 export PANDA="${CMSSW_BASE}/src/PandaAnalysis"
-export PANDA_CFG="http://t3serv001.mit.edu/~snarayan/histcatalog/009_ttdilep.cfg" 
+export PANDA_CFG="http://t3serv001.mit.edu/~snarayan/histcatalog/009_training.cfg" 
 export PANDA_FLATDIR="/home/snarayan/home000/store/panda/v_010_2/"
 mkdir -p $PANDA_FLATDIR
 export PANDA_XSECS="/home/snarayan/cms/cmssw/analysis/MonoTop_Xsec/"

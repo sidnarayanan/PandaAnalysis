@@ -171,7 +171,10 @@ void GenJetNuMod::do_execute()
         gt.jotGenPt[i] = pj.pt();
         gt.jotGenEta[i] = pj.eta();
         gt.jotGenPhi[i] = pj.phi();
+        gt.jotGenM[i] = pj.m();
         gt.jotFlav[i] = flavorMap[&pj];
+        gt.jotGenDEta[i] = gt.jotGenEta[i] - gt.jotEta[i];
+        gt.jotGenDPhi[i] = SignedDeltaPhi(gt.jotGenPhi[i], gt.jotPhi[i]);
         break;
       }
     }

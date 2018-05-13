@@ -404,6 +404,8 @@ class GeneralTree : public genericTree {
   int jotNLep[20];
   float jotGenPt[20];
   int jotFlav[20];
+  float jotGenDEta[20];
+  float jotGenDPhi[20];
   float jotQGL[20];
   float jotLep1Pt[20];
   float jotLep1PtRel[20];
