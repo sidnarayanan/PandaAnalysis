@@ -90,55 +90,63 @@ void BRegDeepMod::do_execute()
   // defined in data/trainings/breg_training_2017.cfg
   inputs[ 0] = gt.jotRawPt[N];
   inputs[ 1] = gt.jotEta[N];
-  inputs[ 2] = gt.rho;
+  inputs[ 2] = gt.jotPhi[N];
   inputs[ 3] = gt.jotRawMt[N];
-  inputs[ 4] = gt.jotTrk1Pt[N];
-  inputs[ 5] = gt.jotLep1PtRelRaw[N];
-  inputs[ 6] = gt.jotLep1DeltaR[N];
-  inputs[ 7] = gt.jotNHF[N];
-  inputs[ 8] = gt.jotNEF[N];
-  inputs[ 9] = gt.jotVtxPt[N];
-  inputs[10] = gt.jotVtxMass[N];
-  inputs[11] = gt.jotVtx3DVal[N];
-  inputs[12] = gt.jotVtxNtrk[N];
-  inputs[13] = gt.jotVtx3DErr[N];
-  inputs[14] = gt.jotNPt03[N];
-  inputs[15] = gt.jotEMRing[0][N];
-  inputs[16] = gt.jotEMRing[1][N];
-  inputs[17] = gt.jotEMRing[2][N];
-  inputs[18] = gt.jotEMRing[3][N];
-  inputs[19] = gt.jotEMRing[4][N];
-  inputs[20] = gt.jotNeRing[0][N];
-  inputs[21] = gt.jotNeRing[1][N];
-  inputs[22] = gt.jotNeRing[2][N];
-  inputs[23] = gt.jotNeRing[3][N];
-  inputs[24] = gt.jotNeRing[4][N];
-  inputs[25] = gt.jotChRing[0][N];
-  inputs[26] = gt.jotChRing[1][N];
-  inputs[27] = gt.jotChRing[2][N];
-  inputs[28] = gt.jotChRing[3][N];
-  inputs[29] = gt.jotChRing[4][N];
-  inputs[30] = gt.jotMuRing[0][N];
-  inputs[31] = gt.jotMuRing[1][N];
-  inputs[32] = gt.jotMuRing[2][N];
-  inputs[33] = gt.jotMuRing[3][N];
-  inputs[34] = gt.jotMuRing[4][N];
-  inputs[35] = gt.jotCHF[N];
-  inputs[36] = gt.jotCEF[N];
-  inputs[37] = gt.jotLep1PtRelRawInv[N];
-  inputs[38] = gt.jotLep1IsEle[N];
-  inputs[39] = gt.jotLep1IsMu[N];
-  inputs[40] = gt.jotLep1IsOther[N];
-  inputs[41] = gt.jotRawM[N];
-  inputs[42] = gt.jotPtD[N];
+  inputs[ 4] = gt.jotRawEt[N];
+  inputs[ 5] = gt.jotRawM[N];
+  inputs[ 6] = gt.jotRawE[N];
+  inputs[ 7] = gt.jotPtD[N];
+  inputs[ 8] = gt.jotCEF[N];
+  inputs[ 9] = gt.jotNEF[N];
+  inputs[10] = gt.jotCHF[N];
+  inputs[11] = gt.jotNHF[N];
+  inputs[12] = gt.jotNLep[N];
+  inputs[13] = gt.jotLep1Pt[N];
+  inputs[14] = gt.jotLep1PtRelRaw[N];
+  inputs[15] = gt.jotLep1PtRelRawInv[N];
+  inputs[16] = gt.jotLep1DeltaR[N];
+  inputs[17] = gt.jotTrk1Pt[N];
+  inputs[18] = gt.jotVtxPt[N];
+  inputs[19] = gt.jotVtxMass[N];
+  inputs[20] = gt.jotVtx3DVal[N];
+  inputs[21] = gt.jotVtx3DErr[N];
+  inputs[22] = gt.jotVtxNtrk[N];
+  inputs[23] = gt.jotLep1IsEle[N];
+  inputs[24] = gt.jotLep1IsMu[N];
+  inputs[25] = gt.jotLep1IsOther[N];
+  inputs[26] = gt.jotNPt03[N];
+  inputs[27] = gt.jotEMRing[0][N];
+  inputs[28] = gt.jotEMRing[1][N];
+  inputs[29] = gt.jotEMRing[2][N];
+  inputs[30] = gt.jotEMRing[3][N];
+  inputs[31] = gt.jotEMRing[4][N];
+  inputs[32] = gt.jotChRing[0][N];
+  inputs[33] = gt.jotChRing[1][N];
+  inputs[34] = gt.jotChRing[2][N];
+  inputs[35] = gt.jotChRing[3][N];
+  inputs[36] = gt.jotChRing[4][N];
+  inputs[37] = gt.jotMuRing[0][N];
+  inputs[38] = gt.jotMuRing[1][N];
+  inputs[39] = gt.jotMuRing[2][N];
+  inputs[40] = gt.jotMuRing[3][N];
+  inputs[41] = gt.jotMuRing[4][N];
+  inputs[42] = gt.jotNeRing[0][N];
+  inputs[43] = gt.jotNeRing[1][N];
+  inputs[44] = gt.jotNeRing[2][N];
+  inputs[45] = gt.jotNeRing[3][N];
+  inputs[46] = gt.jotNeRing[4][N];
 
-  for (auto& i : inputs)
-    i = dnn_clean(i); 
+
+  // for (auto& i : inputs)
+  //   i = dnn_clean(i); 
 
   eval();
 
-  jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
-  jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
+  jw.breg = outputs[0];
+  jw.bregwidth = 0.5 * (outputs[2] - outputs[1]);
+
+  // jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
+  // jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
 }
 
 void TFInferMod::build(TString weightpath)
@@ -148,27 +156,25 @@ void TFInferMod::build(TString weightpath)
   tf::SessionOptions opts; tf::setThreading(opts, 1, "no_threads");
   sess.reset(tf::createSession(graph.get(), opts));
 
-  inputs.resize(n_inputs); outputs.resize(n_outputs);
-  outputNames[0] = outputName.Data();
+  inputs.resize(n_inputs); 
+  outputs.resize(n_outputs); 
+  t_i[0] = tf::NamedTensor(inputName.Data(),
+                           tf::Tensor(tf::DT_FLOAT,
+                                      tf::TensorShape({1, (long long int)n_inputs})));
 }
 
 void TFInferMod::eval()
 {
   // build the input tensor
-  // might be better to put this on the heap 
-  tf::NamedTensorList t_i;
-  t_i.resize(1);
-  t_i[0] = tf::NamedTensor(inputName.Data(),
-                           tf::Tensor(tf::DT_FLOAT,
-                                      tf::TensorShape({1, (long long int)n_inputs})));
   for (int idx = 0; idx != n_inputs; ++idx)
     t_i[0].second.matrix<float>()(0, idx) = inputs[idx];
 
   // set up output and run
   vector<tf::Tensor> t_o;
   tf::run(sess.get(), t_i, outputNames, &t_o);
-  for (int idx = 0; idx != n_outputs; ++idx)
-    outputs[idx] = t_o[0].matrix<float>()(0, idx);
+  for (int idx = 0; idx != n_outputs; ++idx) {
+    outputs[idx] = t_o[idx].tensor<float,2>()(0,0);
+  }
 }
 
 template <typename GENP>

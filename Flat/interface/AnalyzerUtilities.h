@@ -22,7 +22,7 @@ namespace std{
 };
 
 namespace pa { 
-  void downloadData(TString url, TString outpath, TString opts="-nv"); 
+  void downloadData(TString url, TString outpath, bool force=true, TString opts="-nv"); 
 
   // semi-temporary measure to deal with v009 gen duplication issue
   inline const panda::GenParticle* pToGPtr(const panda::Particle* p)

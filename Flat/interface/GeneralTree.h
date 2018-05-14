@@ -387,6 +387,7 @@ class GeneralTree : public genericTree {
   float jotBReg[2];
   float jotDeepBReg[2];
   float jotDeepBRegWidth[2];
+  float jotDeepBRegSampled[2];
   float jotPt[43][20];
   float jotEta[20];
   float jotPhi[20];
@@ -404,10 +405,14 @@ class GeneralTree : public genericTree {
   int jotNLep[20];
   float jotGenPt[20];
   int jotFlav[20];
+  float jotRho[20];
+  float jotArea[20];
   float jotGenDEta[20];
   float jotGenDPhi[20];
   float jotQGL[20];
   float jotLep1Pt[20];
+  float jotLep1Eta[20];
+  float jotLep1Phi[20];
   float jotLep1PtRel[20];
   float jotLep1PtRelRaw[20];
   float jotLep1PtRelRawInv[20];
@@ -600,6 +605,8 @@ class GeneralTree : public genericTree {
   float hbbpt_reg[43];
   float hbbm_dreg[43];
   float hbbpt_dreg[43];
+  float hbbm_qreg[43];
+  float hbbpt_qreg[43];
   float sumEtSoft1;
   int nSoft2;
   int nSoft5;

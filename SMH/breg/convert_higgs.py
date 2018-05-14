@@ -44,11 +44,7 @@ xarr = read_files(filenames = [infile],
 flattened = {}
 for b in all_branches:
 #    flattened[b] = np.concatenate(xarr[b])
-    flattened[b] = xarr[b]
-    if b.endswith('Eta'):
-        flattened[b] /= 2.5 
-    elif b.endswith('Phi'):
-        flattened[b] /= 3.2 
+    flattened[b] = xarr[b].astype(float)
 
 # now merge some
 data = {}

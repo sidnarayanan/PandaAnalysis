@@ -26,7 +26,7 @@ for cat in cats:
         else:
             branches[cat].append(x)
 
-cut = 'jotFlav == 5 && fabs(jotEta)<2.5 && jotGenPt>0 && jotGenEta>-10'
+cut = 'jotFlav == 5 && fabs(jotEta)<2.5 && jotGenPt>10 && jotGenEta>-10'
 all_branches = [cut]
 for _,v in branches.iteritems():
     all_branches += v
@@ -38,10 +38,6 @@ xarr = read_files(filenames = [infile],
 flattened = {}
 for b in all_branches:
     flattened[b] = np.concatenate(xarr[b])
-    if b.endswith('Eta'):
-        flattened[b] /= 2.5 
-    elif b.endswith('Phi'):
-        flattened[b] /= 3.2 
 
 mask = flattened[cut].astype(bool)
 

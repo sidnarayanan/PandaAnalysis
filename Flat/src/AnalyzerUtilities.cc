@@ -7,9 +7,9 @@ using namespace pa;
 using namespace panda;
 
 
-void pa::downloadData(TString url, TString outpath, TString opts) 
+void pa::downloadData(TString url, TString outpath, bool force, TString opts) 
 {
-  if (!gSystem->AccessPathName(outpath))
+  if (!force && !gSystem->AccessPathName(outpath))
     return; // "Attention, bizarre convention of return value!!" -ROOT docs for this function
   TString cmd = "wget ";
   cmd += opts + " ";

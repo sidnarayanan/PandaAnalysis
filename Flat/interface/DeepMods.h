@@ -43,11 +43,11 @@ namespace pa {
                GeneralTree& gt_,
                int level_=0) :
       AnalysisMod(name_, event_, cfg_, utils_,  gt_, level_),
+      t_i(1),
       p_inputs(std::v_make_shared<float>()),
       p_outputs(std::v_make_shared<float>()),
       inputs(*p_inputs),
-      outputs(*p_outputs),
-      outputNames(1) { }
+      outputs(*p_outputs) { }
     ~TFInferMod() { }
 
   protected:
@@ -68,13 +68,13 @@ namespace pa {
 
     std::unique_ptr<tensorflow::GraphDef> graph{nullptr}; 
     std::unique_ptr<tensorflow::Session> sess{nullptr};
-    TString inputName{0}, outputName{0};
+    tensorflow::NamedTensorList t_i;
+    TString inputName{0};
+    std::vector<std::string> outputNames;
     int n_inputs{0}, n_outputs{0};
     std::shared_ptr<std::vector<float>> p_inputs, p_outputs; // keep this around for publication
     std::vector<float>& inputs;
     std::vector<float>& outputs;
-  private:
-    std::vector<std::string> outputNames;
   };
 
   class BRegDeepMod : public TFInferMod {
@@ -85,18 +85,20 @@ namespace pa {
                 GeneralTree& gt_,
                 int level_=0) :
       TFInferMod("bregdeep", event_, cfg_, utils_, gt_, level_) {
-        n_inputs = 43;
-        n_outputs = 3;
-        inputName = "ffwd_inp";
-        outputName = "ffwd_out/BiasAdd";
+        n_inputs = 47;
+        n_outputs = 5;
+        inputName = "input";
+        outputNames.reserve(n_outputs);
+        for (int i = 0; i != n_outputs; ++i)
+          outputNames.push_back(Form("output_%i/BiasAdd", i));
       }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetDeepReg; }
   protected:
     void do_readData(TString dirPath) {
-      TString modelfile = dirPath+"/trainings/breg_training_2017.pb";
-      downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg_training_2017.pb",
-                   modelfile);
+      TString modelfile = dirPath+"/trainings/graph.pb";
+      downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg/v2/quantiles/graph.pb",
+                   modelfile, true);
       build(modelfile);
     }
     virtual void do_init(Registry& registry) {

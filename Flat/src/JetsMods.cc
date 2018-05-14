@@ -386,6 +386,8 @@ void BJetRegMod::do_execute()
   gt.jotRawEt[N] = vraw.Et();
   gt.jotRawM[N] = vraw.M();
   gt.jotRawE[N] = vraw.E();
+  gt.jotRho[N] = event.rho;
+  gt.jotArea[N] = jet.area; 
   energies.jet_e = gt.jotRawE[N];
 
   float sumpt{0}, sumpt2{0};
@@ -405,6 +407,8 @@ void BJetRegMod::do_execute()
         gt.jotNLep[N]++;
         if (pt > gt.jotLep1Pt[N]) {
           gt.jotLep1Pt[N] = pt;
+          gt.jotLep1Eta[N] = pf->eta();
+          gt.jotLep1Phi[N] = pf->phi();
           gt.jotLep1PtRel[N] = v.Perp(vjet.Vect()); 
           gt.jotLep1PtRelRaw[N] = v.Perp(vraw.Vect()); 
           gt.jotLep1PtRelRawInv[N] = vraw.Perp(v.Vect());
@@ -538,7 +542,7 @@ void HbbSystemMod::do_execute()
   gt.hbbphi[shift] = hbbsystem.Phi();
   gt.hbbm[shift] = hbbsystem.M();
 
-  array<TLorentzVector,2> hbbd_corr, hbbd_dcorr;
+  array<TLorentzVector,2> hbbd_corr, hbbd_dcorr, hbbd_qcorr;
   if (gt.hbbm[shift] > 0) {
     for (int i = 0; i<2; i++) {
       int idx = gt.hbbjtidx[shift][i];
@@ -550,9 +554,16 @@ void HbbSystemMod::do_execute()
         deepreg->execute();
         gt.jotDeepBReg[i] = hbbdJetRef.breg;
         gt.jotDeepBRegWidth[i] = hbbdJetRef.bregwidth;
+        gt.jotDeepBRegSampled[i] = (event.rng.normal() * hbbdJetRef.bregwidth)  + hbbdJetRef.breg;
       }
       hbbd_dcorr[i].SetPtEtaPhiM(
             gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
+            gt.jotEta[idx],
+            gt.jotPhi[idx],
+            gt.jotM[idx]
+          );
+      hbbd_qcorr[i].SetPtEtaPhiM(
+            gt.jotPt[shift][idx] * gt.jotDeepBRegSampled[i],
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]
@@ -578,6 +589,10 @@ void HbbSystemMod::do_execute()
     TLorentzVector hbbsystem_dcorr = hbbd_dcorr[0] + hbbd_dcorr[1];
     gt.hbbm_dreg[shift] = hbbsystem_dcorr.M();
     gt.hbbpt_dreg[shift] = hbbsystem_dcorr.Pt();
+
+    TLorentzVector hbbsystem_qcorr = hbbd_qcorr[0] + hbbd_qcorr[1];
+    gt.hbbm_qreg[shift] = hbbsystem_qcorr.M();
+    gt.hbbpt_qreg[shift] = hbbsystem_qcorr.Pt();
 
   } // regression
 

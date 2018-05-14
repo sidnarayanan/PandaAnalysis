@@ -9,7 +9,7 @@ mkdir -p $PANDA_FLATDIR
 export PANDA_XSECS="/home/snarayan/cms/cmssw/analysis/MonoTop_Xsec/"
 
 export SUBMIT_TMPL="skim_breg_tmpl.py"
-export SUBMIT_NAME="v_010_2"
+export SUBMIT_NAME="v_010_3"
 export SUBMIT_WORKDIR="/data/t3serv014/snarayan/jobs/"${SUBMIT_NAME}"/work/"
 export SUBMIT_LOGDIR="/data/t3serv014/snarayan/jobs/"${SUBMIT_NAME}"/logs/"
 export SUBMIT_LOCKDIR="/data/t3serv014/snarayan/jobs/"${SUBMIT_NAME}"/locks/"
