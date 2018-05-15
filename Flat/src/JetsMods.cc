@@ -14,11 +14,11 @@ inline float centralOnly(float x, float aeta, float def = -1)
   return  aeta < 2.4 ? x : -1;
 }
 
-JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool isFatJet)
+JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool recalcSmear)
 {
   float pt = jet.pt();
   if (smear) {
-    if (isFatJet) {
+    if (recalcSmear) {
       double smearFac=1, smearFacUp=1, smearFacDown=1;
       jer->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
       pt *= smearFac;
