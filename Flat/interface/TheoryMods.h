@@ -14,7 +14,7 @@ namespace pa {
       AnalysisMod("genstudyewk", event_, cfg_, utils_, gt_, level_) { }
     virtual ~GenStudyEWKMod () { }
 
-    virtual bool on() { return !analysis.isData && (analysis.complicatedLeptons || analysis.complicatedPhotons); }
+    virtual bool on() { return !analysis.isData && !analysis.genOnly && (analysis.complicatedLeptons || analysis.complicatedPhotons); }
     
   protected:
     virtual void do_init(Registry& registry) {
@@ -111,11 +111,11 @@ namespace pa {
     void do_execute(); 
     void do_init(Registry& registry) {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
-      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps", true);
     }
   private:
-    void toppt(); 
-    void vpt(); 
+    void do_toppt(); 
+    void do_vpt(); 
 
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
     std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr}; 

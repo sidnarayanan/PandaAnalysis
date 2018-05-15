@@ -84,7 +84,7 @@ void ConfigMod::set_inputBranches()
   TString jetname = analysis.puppiJets ? "puppi" : "chs";
 
   if (analysis.genOnly) {
-    bl += {"genParticles","genReweight","ak4GenJets","genMet","genParticlesU","electrons"};
+    bl += {"genParticlesU"};
   } else {
     bl += {"runNumber", "lumiNumber", "eventNumber", "rho",
            "isData", "npv", "npvTrue", "weight", "chsAK4Jets",
@@ -118,11 +118,11 @@ void ConfigMod::set_inputBranches()
         bl.push_back("triggerObjects");
     }
 
-    if (!cfg.isData) {
-      bl += {"genParticles","genReweight","ak4GenJets","genMet"};
-      if (analysis.hbb)
-        bl.push_back("partons");
-    }
+  }
+  if (!cfg.isData) {
+    bl += {"genParticles","genReweight","ak4GenJets","genMet"};
+    if (analysis.hbb)
+      bl.push_back("partons");
   }
 }
 
@@ -140,7 +140,7 @@ void ConfigMod::set_outputBranches()
                                      "scaleDown","pdf.*","gen.*",
                                      "sf_tt.*","sf_qcdTT.*",
                                      "trueGenBosonPt","sf_qcd.*","sf_ewk.*",
-                                     "nHF.*", "nB.*"};
+                                     "nHF.*", "nB.*","lheHT"};
     if (analysis.deepGen) {
       keepable.push_back("fjECFN.*");
       keepable.push_back("fjTau.*");

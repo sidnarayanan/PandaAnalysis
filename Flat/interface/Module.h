@@ -54,23 +54,33 @@ namespace pa {
           _const_objs[name].reset(new Container<T>(ptr));
         }
       template <typename T>
-        std::shared_ptr<T> access(TString name) {
+        std::shared_ptr<T> access(TString name, bool silentFail = false) {
           auto iter = _objs.find(name);
           if (iter == _objs.end()) {
-            PError("Registry::access", "Could not accessi "+name+"!");
-            throw std::runtime_error("");
+            if (silentFail) {
+              PWarning("Registry::access", "Could not access "+name+", returning (nil)!");
+              return std::shared_ptr<T>(nullptr);
+            } else {
+              PError("Registry::access", "Could not access "+name+"!");
+              throw std::runtime_error("");
+            }
           }
           auto* cntr = safe_cast<T>(iter->second, name);
           return cntr->ptr;
         }
       template <typename T>
-        std::shared_ptr<const T> accessConst(TString name) {
+        std::shared_ptr<const T> accessConst(TString name, bool silentFail = false) {
           auto iter = _objs.find(name);
           if (iter == _objs.end()) {
             iter = _const_objs.find(name);
             if (iter == _const_objs.end()) {
-              PError("Registry::access", "Could not access "+name+"!");
-              throw std::runtime_error("");
+              if (silentFail) {
+                PWarning("Registry::accessConst", "Could not access "+name+", returning (nil)!");
+                return std::shared_ptr<const T>(nullptr);
+              } else {
+                PError("Registry::accessConst", "Could not access "+name+"!");
+                throw std::runtime_error("");
+              }
             }
           }
           auto* cntr = safe_cast<T>(iter->second, name);

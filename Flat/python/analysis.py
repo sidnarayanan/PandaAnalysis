@@ -83,6 +83,13 @@ deepgen = lambda v=False : _analysis(
         genOnly = True,
     )
 
+kfac = lambda v=False : _analysis(
+        name = 'kfac',
+        verbose = v,
+        hbb = True,
+        genOnly = True,
+    )
+
 breg = lambda v=False : _analysis(
         name = 'breg',
         verbose = v,

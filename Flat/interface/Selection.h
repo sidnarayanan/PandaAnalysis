@@ -65,6 +65,12 @@ namespace pa {
                 true) { }
   };
 
+  class LowGenBosonPtSel: public LambdaSel {
+  public:
+    LowGenBosonPtSel():
+      LambdaSel(Selection::sGen, "LowGenBosonPt", __ACCPFUNC(gt->trueGenBosonPt > 50 && gt->lheHT > 100)) { }
+  };
+
   class GenBosonPtSel: public LambdaSel {
   public:
     GenBosonPtSel():

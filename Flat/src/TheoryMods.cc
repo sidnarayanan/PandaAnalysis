@@ -522,11 +522,11 @@ void HFCountingMod::do_execute()
 
 void KFactorMod::do_execute()
 {
-  toppt();
-  vpt(); 
+  do_toppt();
+  do_vpt(); 
 }
 
-void KFactorMod::toppt()
+void KFactorMod::do_toppt()
 {
     if (analysis.processType != kTT)
       return;
@@ -567,7 +567,7 @@ void KFactorMod::toppt()
     }
 }
 
-void KFactorMod::vpt()
+void KFactorMod::do_vpt()
 {
     if (analysis.processType != kZ && 
         analysis.processType != kZEWK &&
@@ -721,8 +721,9 @@ void KFactorMod::vpt()
              part.statusFlags == GenParticle::kIsDirectPromptTauDecayProduct )) {
 
           //ideally you want to have dressed leptons (lepton + photon), 
-          //but we have in any ways have a photon veto in the analysis
-          if (isMatched(looseLeps.get(),0.01,part.eta(),part.phi()))
+          //but we have in any ways have a photon veto in the analysis.
+          //if it's a gen-only analysis, cannot check wrt reco leps, accept anyway
+          if (analysis.genOnly || isMatched(looseLeps.get(),0.01,part.eta(),part.phi()))
             vpt += part.p4();
         }
         
