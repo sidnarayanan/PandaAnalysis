@@ -20,7 +20,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
   if (smear) {
     if (isFatJet) {
       double smearFac=1, smearFacUp=1, smearFacDown=1;
-      jer.get()->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
+      jer->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
       pt *= smearFac;
     } else {
       pt = jet.ptSmear;
