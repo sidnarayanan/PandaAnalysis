@@ -126,6 +126,7 @@ wlnhbb = lambda v=False : _analysis(
         recluster = False,
         bjetRegTraining = False,
         bjetBDTReg = True,
+        bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
         jetFlavorPartons = False,

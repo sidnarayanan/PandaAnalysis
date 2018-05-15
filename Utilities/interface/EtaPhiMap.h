@@ -50,6 +50,7 @@ namespace pa {
     void clear();
     /// Get the bin number
     unsigned bin(double eta, double phi);
+    unsigned bin(unsigned eta_bin, unsigned phi_bin);
     /// Get eta bin
     unsigned etabin(double eta);
     /// Get phi bin
@@ -79,30 +80,39 @@ namespace pa {
   
     std::vector<const T*> output;
   
-    auto max_eta = eta + dr;
-    auto max_phi = phi + dr;
-  
-    auto running_eta = eta - dr;
-    while (running_eta < max_eta + _spacing) {
-      auto running_phi = phi - dr;
-      while (running_phi < max_phi + _spacing) {  // This is the easiest way to not worry about phi wrapping
+    auto min_eta = etabin(eta - dr);
+    auto max_eta = etabin(eta + dr);
+    auto min_phi = phibin(phi - dr);
+    auto max_phi = phibin(phi + dr);
+    auto running_phi = min_phi;
+    while (true) {
+      for (auto running_eta = min_eta; running_eta <= max_eta; ++running_eta) {
         for (auto* particle : particles[bin(running_eta, running_phi)]) {
           if (DeltaR2(eta, phi, geteta(particle), getphi(particle)) < dr2)
             output.push_back(particle);
         }
-        running_phi += _spacing;
       }
-      running_eta += _spacing;
+      // If at the end of phi, break after processing
+      if (running_phi == max_phi)
+        break;
+      // Increment and go to zero if at the end of phi
+      if (++running_phi == n_phibins)
+        running_phi = 0;
     }
   
     return output;
   
   }
   
-  
+
   template<typename T>
   unsigned EtaPhiMap<T>::bin(double eta, double phi) {
-    return n_etabins * phibin(phi) + etabin(eta);
+    return bin(etabin(eta), phibin(phi));
+  }
+  
+  template<typename T>
+  unsigned EtaPhiMap<T>::bin(unsigned eta_bin, unsigned phi_bin) {
+    return n_etabins * phi_bin + eta_bin;
   }
   
   template<typename T>

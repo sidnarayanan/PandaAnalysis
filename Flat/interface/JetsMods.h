@@ -221,7 +221,7 @@ namespace pa {
   protected:
     virtual void do_execute() = 0;
     virtual void do_readData(TString path);
-    JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false);
+    JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false, bool isFatJet=false);
 
     std::map<TString,std::unique_ptr<FactorizedJetCorrector>> scales; // era/MC -> scale
     std::map<TString,std::vector<std::shared_ptr<JetCorrectionUncertainty>>> scaleUncs; // era/MC -> (src -> unc)

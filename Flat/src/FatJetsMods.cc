@@ -62,8 +62,9 @@ void FatJetMod::do_execute()
       gt.fjEta = eta;
       gt.fjPhi = phi;
       gt.fjRawPt = rawpt;
+      bool doSmear=analysis.hbb && !analysis.isData;
       JESLOOP {
-        JetWrapper jw = shiftJet(fj, i2jes(shift), analysis.hbb && !analysis.isData);
+        JetWrapper jw = shiftJet(fj, i2jes(shift), doSmear, true);
         gt.fjPt[shift] = jw.pt;
         gt.fjM[shift] = mass * jw.scale();
         gt.fjMSD[shift] = fj.mSD * jw.scale();
