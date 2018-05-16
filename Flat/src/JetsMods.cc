@@ -119,7 +119,6 @@ void JetMod::varyJES()
     for (auto &j : *ak4Jets) {
       jets.all.push_back(shiftJet(j, i2jes(shift), analysis.hbb && !analysis.isData));
     }
-    jets.sort();
   }
   for (size_t iJ = 0; iJ != (*jesShifts)[0].all.size(); ++iJ) {
     auto* nominal = &((*jesShifts)[0].all[iJ]);
@@ -287,8 +286,10 @@ void JetMod::do_execute()
     }
 
     // dijet system
-    if (metShift)
+    if (metShift) {
+      jets.sort();
       vbf->execute();
+    }
     hbb->execute();
 
   } // shift loop
@@ -510,9 +511,22 @@ void VBFSystemMod::do_execute()
 
   int shift = jets.shift_idx;
 
-  if (jets.cleaned.size() > 1) {
-    TLorentzVector v0 = jets.cleaned_sorted[0]->p4();
-    TLorentzVector v1 = jets.cleaned_sorted[1]->p4();
+  unsigned idx0=0, idx1=1;
+  if (analysis.hbb && gt.hbbm[shift] > 0) {
+    if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
+      idx0++; idx1++;
+    }
+    if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
+      if (idx0 == 0) 
+        idx1++;
+      else {
+        idx0++; idx1++;
+      }
+    }
+  }
+  if (jets.cleaned.size() > idx1) {
+    TLorentzVector v0 = jets.cleaned_sorted[idx0]->p4();
+    TLorentzVector v1 = jets.cleaned_sorted[idx1]->p4();
     gt.jot12Mass[shift] = (v0 + v1).M();
     gt.jot12DPhi[shift] = v0.DeltaPhi(v1);
     gt.jot12DEta[shift] = fabs(v0.Eta() - v1.Eta());

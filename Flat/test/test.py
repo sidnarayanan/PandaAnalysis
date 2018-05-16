@@ -22,7 +22,7 @@ import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-a = kfac()
+a = vbfhbb()
 #a = breg()
 # a.bjetDeepReg = True
 # a.bjetRegTrain = True
@@ -40,7 +40,7 @@ skimmer.lastEvent=10
 if a.isData:
     utils.add_json(skimmer)
 
-skimmer.AddPresel(root.pa.LowGenBosonPtSel())
+#skimmer.AddPresel(root.pa.LowGenBosonPtSel())
 # skimmer.AddPresel(root.pa.VHbbSel())
 # skimmer.AddPresel(root.pa.TriggerSel())
 

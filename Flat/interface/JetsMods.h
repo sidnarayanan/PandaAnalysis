@@ -103,7 +103,7 @@ namespace pa {
       AnalysisMod("bjetreg", event_, cfg_, utils_, gt_, level_) { }
     virtual ~BJetRegMod () {}
 
-    bool on() { return analysis.bjetBDTReg; }
+    bool on() { return analysis.bjetBDTReg || analysis.bjetDeepReg; }
   protected:
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");
