@@ -83,10 +83,12 @@ namespace pa {
     bool puppiJets = true;
     bool recluster = false;
     bool recoil = true;
+    bool rerunJER = false;
     bool rerunJES = false;
     bool useCMVA = false;
     bool unpackedGen = false; 
     bool varyJES = false;
+    bool varyJESTotal = false;
     bool vbf = false;
     bool ZllHbb = false;
   };

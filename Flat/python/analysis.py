@@ -60,8 +60,10 @@ vbfhbb = lambda v=False : _analysis(
         hfCounting = True,
         bjetBDTReg = False,
         bjetDeepReg = True,
-        varyJES = True,
-        rerunJES = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
         vbf = True,
@@ -125,6 +127,7 @@ breg = lambda v=False : _analysis(
         bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
@@ -148,6 +151,7 @@ wlnhbb = lambda v=False : _analysis(
         bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
@@ -170,6 +174,7 @@ zllhbb = lambda v=False : _analysis(
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
@@ -191,6 +196,7 @@ wlnhbb_ca15 = lambda v=False : _analysis(
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )

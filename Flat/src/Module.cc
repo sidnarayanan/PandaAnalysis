@@ -64,11 +64,8 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   if (analysis.hbb || analysis.monoh)
     cfg.NJETSAVED = NJET;
 
-  cfg.maxshiftJES = analysis.varyJES ?
-                      (analysis.hbb ?
-                        jes2i(shiftjes::N) :
-                        jes2i(shiftjes::kJESTotalDown) + 1) :
-                      1;
+  cfg.maxshiftJES = analysis.varyJESTotal ? jes2i(shiftjes::kJESTotalDown) + 1 :
+                                            (analysis.varyJES ? jes2i(shiftjes::N) : 1);
 
   cfg.ibetas = gt.get_ibetas();
   cfg.Ns = gt.get_Ns();
@@ -154,8 +151,9 @@ void ConfigMod::set_outputBranches()
     gt.RemoveBranches({"genJet.*","puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*"});
   }
   if (!analysis.varyJES)
-    gt.RemoveBranches({".*JES.*"},{".*JESTotal.*"});
-  //gt.RemoveBranches({"sf_cmva.*"},{"sf_cmva_Central"});
+    gt.RemoveBranches({".*JES.*"},{});
+  if (analysis.varyJESTotal)
+    gt.RemoveBranches({},{".*JESTotal.*"});
 }
 
 void ConfigMod::readData(TString dirPath)

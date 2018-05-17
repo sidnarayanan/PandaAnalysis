@@ -63,16 +63,12 @@ void FatJetMod::do_execute()
       gt.fjPhi = phi;
       gt.fjRawPt = rawpt;
       bool doSmear=analysis.hbb && !analysis.isData;
+      float corrweight = getMSDCorr(pt,eta);
       JESLOOP {
         JetWrapper jw = shiftJet(fj, i2jes(shift), doSmear, true);
         gt.fjPt[shift] = jw.pt;
         gt.fjM[shift] = mass * jw.scale();
         gt.fjMSD[shift] = fj.mSD * jw.scale();
-      }
-
-      // mSD correction
-      float corrweight = getMSDCorr(pt,eta);
-      JESLOOP { 
         gt.fjMSD_corr[shift] = corrweight*gt.fjMSD[shift];
       }
 

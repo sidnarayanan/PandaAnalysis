@@ -34,6 +34,7 @@ if any([x is None for x in [lockdir, workdir, logdir, cmssw_base]]):
 # argument parsing:
 parser = argparse.ArgumentParser(description='task')
 parser.add_argument('--kill',action='store_true')
+parser.add_argument('--kill_idle',action='store_true')
 parser.add_argument('--check',action='store_true')
 parser.add_argument('--submit',action='store_true')
 parser.add_argument('--build_only',action='store_true')
@@ -107,12 +108,12 @@ def submit(silent=False):
         for k,v in statii.iteritems():
             print '\t %10s : %5i'%(k,len(v))
 
-def kill():
+def kill(idle=False):
     if path.isfile(workdir+'/submission.pkl'): 
         with open(workdir+'/submission.pkl','rb') as fpkl:
             submissions = pickle.load(fpkl)
             for s in submissions:
-                s.kill()
+                s.kill(idle_only=idle)
             return
     else:
         PWarning('task.py','Trying to kill a task with no submissions!')
@@ -401,8 +402,8 @@ def check(stdscr=None):
             return
 
 ### MAIN ###
-if args.kill:
-    kill()
+if args.kill or args.kill_idle:
+    kill(args.kill_idle)
 if args.clean_output:
     PInfo('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
     sleep(2)

@@ -18,7 +18,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
 {
   float pt = jet.pt();
   if (smear) {
-    if (recalcSmear) {
+    if (recalcSmear && analysis.rerunJER) {
       double smearFac=1, smearFacUp=1, smearFacDown=1;
       jer->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
       pt *= smearFac;
@@ -29,9 +29,13 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
   if (shift != shiftjes::kNominal) {
     int ishift = jes2i(shift);
     bool isUp = !(ishift % 2 == 0);
-    (*scaleUnc)[ishift]->setJetPt(pt);
-    (*scaleUnc)[ishift]->setJetEta(jet.eta());
-    pt *= (1 + (*scaleUnc)[ishift]->getUncertainty(isUp));
+    if (analysis.rerunJES) {
+      (*scaleUnc)[ishift]->setJetPt(pt);
+      (*scaleUnc)[ishift]->setJetEta(jet.eta());
+      pt *= (1 + (*scaleUnc)[ishift]->getUncertainty(isUp));
+    } else {
+      pt = (isUp ? jet.ptCorrUp :  jet.ptCorrDown) * pt / jet.pt();
+    }
   }
   return JetWrapper(pt, jet);
 }
@@ -39,6 +43,11 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
 
 void BaseJetMod::do_readData(TString dirPath)
 {
+  if (analysis.rerunJER) {
+    jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
+                            dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt"));
+  }
+
   if (!analysis.rerunJES)
     return;
 
@@ -62,9 +71,6 @@ void BaseJetMod::do_readData(TString dirPath)
     };
     scales["data"+e].reset(new FactorizedJetCorrector(params));
   }
-
-  jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
-                          dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt"));
 
 
   basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_";
@@ -512,16 +518,39 @@ void VBFSystemMod::do_execute()
   int shift = jets.shift_idx;
 
   unsigned idx0=0, idx1=1;
-  if (analysis.hbb && gt.hbbm[shift] > 0) {
-    if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
-      idx0++; idx1++;
-    }
-    if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
-      if (idx0 == 0) 
-        idx1++;
-      else {
+  if (analysis.hbb) {
+    if (gt.hbbm[shift] > 0) {
+      if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
         idx0++; idx1++;
       }
+      if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
+        if (idx0 == 0) 
+          idx1++;
+        else {
+          idx0++; idx1++;
+        }
+      }
+    }
+    if (analysis.fatjet && ((*fj1) != nullptr)) {
+      const FatJet& fj = **fj1; 
+      int inc1 = 0;
+      if (DeltaR2(jets.cleaned_sorted[idx1]->base->eta(), 
+                  jets.cleaned_sorted[idx1]->base->phi(),
+                  fj.eta(), fj.phi()) < cfg.FATJETMATCHDR2) {
+        inc1++;
+      }
+      if (DeltaR2(jets.cleaned_sorted[idx0]->base->eta(), 
+                  jets.cleaned_sorted[idx0]->base->phi(),
+                  fj.eta(), fj.phi()) < cfg.FATJETMATCHDR2) {
+        if (inc1 == 0) {
+          inc1 = 1;
+          idx0 = idx1; 
+        } else {
+          idx0 = idx1 + inc1;
+          inc1++;
+        }
+      }
+      idx1 += inc1;
     }
   }
   if (jets.cleaned.size() > idx1) {

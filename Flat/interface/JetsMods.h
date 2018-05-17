@@ -184,10 +184,12 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       currentJES = registry.access<JESHandler*>("currentJES");
+      fj1 = registry.accessConst<const panda::FatJet*>("fj1", true); 
     }
     void do_execute();
   private:
     std::shared_ptr<JESHandler*> currentJES{nullptr};
+    std::shared_ptr<const panda::FatJet *const> fj1{nullptr};
   };
 
   class BaseJetMod : public AnalysisMod {
