@@ -378,9 +378,10 @@ if __name__ == '__main__':
     for cond,bs in by_filled.iteritems():
         for i,c in enumerate(cond):
             src_out.append('  ' + ('  ' * i) + 'if (%s) {'%str(c))
-            for b in bs:
-                src_out.extend(['    ' + ('  ' * i) + x for x in  b.write_write()])
-            src_out.append('  ' + ('  ' * i) + '}')
+        for b in bs:
+            src_out.extend(['    ' + ('  ' * i) + x for x in  b.write_write()])
+        for i,c in enumerate(cond):
+            src_out.append('  ' + ('  ' * (len(cond) - i - 1)) + '}')
     src_out.append('}')
     with open(src_path,'w') as fout:
         fout.write('\n'.join(src_out))

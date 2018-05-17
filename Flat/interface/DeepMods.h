@@ -85,13 +85,13 @@ namespace pa {
                 GeneralTree& gt_,
                 int level_=0) :
       TFInferMod("bregdeep", event_, cfg_, utils_, gt_, level_) {
-        n_inputs = 47;
-        n_outputs = 5;
-        inputName = "input";
-        outputNames.reserve(n_outputs);
-        for (int i = 0; i != n_outputs; ++i)
-          outputNames.push_back(Form("output_%i/BiasAdd", i));
-      }
+      n_inputs = 47;
+      n_outputs = 5;
+      inputName = "input";
+      outputNames.reserve(n_outputs);
+      for (int i = 0; i != n_outputs; ++i)
+        outputNames.push_back(Form("output_%i/BiasAdd", i));
+    }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetDeepReg; }
   protected:

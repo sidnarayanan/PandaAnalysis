@@ -48,6 +48,27 @@ vbf = lambda v=False : _analysis(
         puppiJets = False
     )
 
+vbfhbb = lambda v=False : _analysis(
+        name = 'vbfhbb',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        fatjet = True,
+        btagSFs = True,
+        btagWeights = True,
+        useCMVA = True,
+        hfCounting = True,
+        bjetBDTReg = False,
+        bjetDeepReg = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+        vbf = True,
+    )
+
 monoh = lambda v=False : _analysis(
         name = 'monoh',
         verbose = v,
@@ -106,6 +127,7 @@ breg = lambda v=False : _analysis(
         bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
@@ -129,6 +151,7 @@ wlnhbb = lambda v=False : _analysis(
         bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
         mcTriggers = True,
@@ -152,6 +175,7 @@ zllhbb = lambda v=False : _analysis(
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
@@ -173,6 +197,7 @@ wlnhbb_ca15 = lambda v=False : _analysis(
         bjetBDTReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )

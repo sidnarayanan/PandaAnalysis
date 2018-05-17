@@ -71,6 +71,13 @@ namespace pa {
       LambdaSel(Selection::sGen, "LowGenBosonPt", __ACCPFUNC(gt->trueGenBosonPt > 50 && gt->lheHT > 100)) { }
   };
 
+  class VBFHbbSel: public LambdaSel {
+  public:
+    VBFHbbSel():
+      LambdaSel(Selection::sReco, "VBFHbb", 
+                __ACCPFUNC((gt->nJot[0]>3) || (gt->nJot[0]>2 && gt->fjPt[0]>250))) { }
+  };
+
   class GenBosonPtSel: public LambdaSel {
   public:
     GenBosonPtSel():
