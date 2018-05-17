@@ -131,6 +131,7 @@ wlnhbb = lambda v=False : _analysis(
         rerunJES = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
+        mcTriggers = True,
     )
 zllhbb = lambda v=False : _analysis(
         name = 'zllhbb',
