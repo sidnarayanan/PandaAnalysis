@@ -447,9 +447,11 @@ void QCDUncMod::do_execute()
 
   if (analysis.hbb) { 
     gt.lheHT=0;
+    gt.lheNjets=0;
     for (auto& parton : event.partons) {
       if (abs(parton.pdgid)>6 && parton.pdgid!=21) continue;
       gt.lheHT += parton.pt();
+      ++gt.lheNjets;
     }
   }
 }
