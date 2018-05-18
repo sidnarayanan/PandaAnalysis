@@ -2,6 +2,7 @@
 #define HBBMODS
 
 #include "Module.h"
+#include "PandaAnalysis/Utilities/interface/KinematicFit.h"
 
 namespace pa {
   class HbbMiscMod : public AnalysisMod {
@@ -18,6 +19,30 @@ namespace pa {
     
   protected:
     void do_execute(); 
+  };
+
+  class KinFitMod : public AnalysisMod {
+  public: 
+    KinFitMod(panda::EventAnalysis& event_, 
+               Config& cfg_,
+               Utils& utils_,
+               GeneralTree& gt_,
+               int level_=0) : 
+      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_), fit(5, 91) { 
+      fit.setPrintLevel(-1); 
+    }
+    virtual ~KinFitMod () { }
+
+    virtual bool on() { return !analysis.genOnly && analysis.ZllHbb; }
+    
+  protected:
+    void do_init(Registry& registry) {
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+    }
+    void do_execute(); 
+  private:
+    kinfit::Fit fit; 
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
   };
 
   class SoftActivityMod : public AnalysisMod {

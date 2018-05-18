@@ -20,6 +20,38 @@ void HbbMiscMod::do_execute()
   gt.trkmetDZphi = trkmet.Phi();
 }
 
+void KinFitMod::do_execute()
+{
+  if (gt.hbbm[0] <= 0 || looseLeps->size() < 2) {
+    gt.hbbm_fit = gt.hbbm_dreg[0];
+    return;
+  }
+
+  TLorentzVector res; res.SetPtEtaPhiM(gt.pfmet[0], 0, gt.pfmetphi[0], 0);
+  std::array<TLorentzVector, 2> hbb;
+  for (int i = 0; i != 2; ++i) {
+    int idx = gt.hbbjtidx[0][i];
+    hbb[i].SetPtEtaPhiM(gt.jotPt[0][idx],
+                        gt.jotEta[idx],
+                        gt.jotPhi[idx],
+                        gt.jotM[idx]);
+    hbb[i] *= gt.jotDeepBReg[i];
+    res -= hbb[i];
+    res -= (*looseLeps)[i]->p4(); 
+  } 
+
+
+  fit.setParticle(0, (*looseLeps)[0]->p4(), 0.01);
+  fit.setParticle(1, (*looseLeps)[1]->p4(), 0.01);
+  fit.setParticle(2, hbb[0], gt.jotDeepBRegWidth[0]);
+  fit.setParticle(3, hbb[1], gt.jotDeepBRegWidth[1]);
+  fit.setParticle(4, res, res.Pt()/8); // 8 GeV res at 0 MET
+
+  fit.run();
+
+  gt.hbbm_fit = (hbb[0]*fit.getScale(2) + hbb[1]*fit.getScale(3)).M();
+   
+}
 
 void SoftActivityMod::do_execute() 
 {

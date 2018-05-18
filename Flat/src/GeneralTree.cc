@@ -320,6 +320,7 @@ void GeneralTree::Reset() {
   looseGenLep4PdgId = 0;
   diLepMass = -99;
   nTau = 0;
+  hbbm_fit = -99;
   sumEtSoft1 = -99;
   nSoft2 = 0;
   nSoft5 = 0;
@@ -1608,6 +1609,7 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("hbbm_JESSinglePionHCALDown",&(hbbm[40]),"hbbm_JESSinglePionHCALDown/F");
     Book("hbbm_JESTimePtEtaUp",&(hbbm[41]),"hbbm_JESTimePtEtaUp/F");
     Book("hbbm_JESTimePtEtaDown",&(hbbm[42]),"hbbm_JESTimePtEtaDown/F");
+    Book("hbbm_fit",&hbbm_fit,"hbbm_fit/F");
     Book("hbbm_reg",&(hbbm_reg[0]),"hbbm_reg/F");
     Book("hbbm_reg_JESTotalUp",&(hbbm_reg[1]),"hbbm_reg_JESTotalUp/F");
     Book("hbbm_reg_JESTotalDown",&(hbbm_reg[2]),"hbbm_reg_JESTotalDown/F");

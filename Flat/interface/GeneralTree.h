@@ -601,6 +601,7 @@ class GeneralTree : public genericTree {
   float hbbeta[43];
   float hbbphi[43];
   float hbbm[43];
+  float hbbm_fit;
   float hbbm_reg[43];
   float hbbpt_reg[43];
   float hbbm_dreg[43];

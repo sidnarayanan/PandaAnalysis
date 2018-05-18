@@ -22,9 +22,10 @@ import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-a = vbfhbb()
+a = zllhbb()
+a.bjetDeepReg = True
+a.bjetBDTReg = False
 #a = breg()
-# a.bjetDeepReg = True
 # a.bjetRegTrain = True
 a.inpath = torun
 a.outpath = 'testskim.root'
@@ -35,8 +36,8 @@ utils.set_year(a, 2017)
 
 skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
-skimmer.firstEvent=0
-skimmer.lastEvent=1000
+#skimmer.firstEvent=0
+#skimmer.lastEvent=1000
 if a.isData:
     utils.add_json(skimmer)
 
