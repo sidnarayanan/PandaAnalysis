@@ -28,7 +28,7 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) : 
-      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_), fit(5, 91) { 
+      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_), fit(4, 91) { 
       fit.setPrintLevel(-1); 
     }
     virtual ~KinFitMod () { }

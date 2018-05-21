@@ -519,19 +519,7 @@ void VBFSystemMod::do_execute()
 
   unsigned idx0=0, idx1=1;
   if (analysis.hbb) {
-    if (gt.hbbm[shift] > 0) {
-      if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
-        idx0++; idx1++;
-      }
-      if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
-        if (idx0 == 0) 
-          idx1++;
-        else {
-          idx0++; idx1++;
-        }
-      }
-    }
-    if (analysis.fatjet && ((*fj1) != nullptr)) {
+    if (analysis.fatjet && ((*fj1) != nullptr) && (*fj1)->pt() > 400) {
       const FatJet& fj = **fj1; 
       int inc1 = 0;
       if (DeltaR2(jets.cleaned_sorted[idx1]->base->eta(), 
@@ -551,6 +539,17 @@ void VBFSystemMod::do_execute()
         }
       }
       idx1 += inc1;
+    } else if (gt.hbbm[shift] > 0) {
+      if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
+        idx0++; idx1++;
+      }
+      if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
+        if (idx0 == 0) 
+          idx1++;
+        else {
+          idx0++; idx1++;
+        }
+      }
     }
   }
   if (jets.cleaned.size() > idx1) {
