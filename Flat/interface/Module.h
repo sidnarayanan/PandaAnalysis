@@ -185,6 +185,7 @@ namespace pa {
       virtual void do_terminate() { }
   };
   typedef BaseAnalysisMod<GeneralTree> AnalysisMod; 
+  typedef BaseAnalysisMod<HeavyResTree> HRMod; 
 
   // a completely empty mod
   class ContainerMod : public AnalysisMod {

@@ -102,6 +102,37 @@ namespace pa {
     std::map<const panda::GenParticle*,float> genObjects; // gen particle -> pt 
     const panda::GenParticle* matchGen(double eta, double phi, double r2, int pdgid=0) const;  
   };
+
+  class HRTagMod : public HRMod {
+  public: 
+    HRTagMod(panda::EventAnalysis& event_, 
+              Config& cfg_,                 
+              Utils& utils_,                
+              HeavyResTree& gt_,
+              int level_=0) :                 
+      HRMod("tag", event_, cfg_, utils_, gt_, level_),
+      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
+    }
+    virtual ~HRTagMod () { }
+
+    virtual bool on() { return true; }
+    
+  protected:
+    void do_init(Registry& registry) {
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+    }
+    void do_execute();  
+    float getMSDCorr(float,float);
+    bool hasChild(const panda::GenParticle&);
+  private:
+
+    void fillJet(const panda::FatJet&); 
+    const panda::FatJetCollection &fatjets;
+
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr}; 
+
+    FatJetReclusterMod *recluster{nullptr};
+  };
 }
 
 #endif

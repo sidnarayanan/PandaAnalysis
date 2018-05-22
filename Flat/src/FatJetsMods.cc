@@ -498,3 +498,147 @@ void FatJetMatchingMod::do_execute()
 
   }
 }
+
+float HRTagMod::getMSDCorr(float puppipt, float puppieta) 
+{
+
+  float genCorr  = 1.;
+  float recoCorr = 1.;
+  float totalWeight = 1.;
+
+  genCorr = utils.puppisd_corrGEN->Eval( puppipt );
+  if (fabs(puppieta) <= 1.3) {
+    recoCorr = utils.puppisd_corrRECO_cen->Eval(puppipt);
+  } else {
+    recoCorr = utils.puppisd_corrRECO_for->Eval(puppipt);
+  }
+  totalWeight = genCorr * recoCorr;
+
+  return totalWeight;
+}
+
+bool HRTagMod::hasChild(const GenParticle& parent) 
+{
+  for (auto* pptr : *genP) {
+    auto& child = pToGRef(pptr);
+    if (child.pdgid != parent.pdgid)
+      continue;
+    if (child.parent.isValid() &&
+        child.parent.get() == &parent)
+      return true;
+  }
+  return false;
+}
+
+void HRTagMod::do_execute()
+{
+  // first loop through genP and find any partons worth saving
+  // if this is a signal
+  if (analysis.processType == kTop) { 
+    for (auto *pptr : *genP) {
+      auto& p = pToGRef(pptr);
+      if (abs(p.pdgid) != 6) 
+        continue;
+      float pt = p.pt();
+      if (pt < 300 || pt > 1400)
+        continue; 
+      float eta_cut = (pt < 500) ? 2.4 : 1.5; 
+      float eta = p.eta(), phi = p.phi();
+      if (fabs(eta) > eta_cut)
+        continue; 
+      if (hasChild(p))
+        continue;
+      const GenParticle *W{nullptr}, *b{nullptr}, *q0{nullptr}, *q1{nullptr};
+      // first loop through: find W and b
+      for (auto *childptr : *genP) { 
+        auto& child = pToGRef(childptr);
+        if (!child.parent.isValid())
+          continue;
+        int id = abs(child.pdgid);
+        if (id != 5 && id != 24)
+          continue; 
+        auto* parent = child.parent.get();
+        if (id == 5) {
+          if (parent == &p || parent == b) {
+            b = &child;
+          }
+        } else {
+          if (parent == &p || parent == W) {
+            W = &child;
+          }
+        }
+      } // W and b loop
+      if (W == nullptr || b == nullptr) 
+        continue; 
+      // second loop through: find qq'
+      for (auto *childptr : *genP) { 
+        auto& child = pToGRef(childptr);
+        if (!child.parent.isValid() || child.parent.get() != W)
+          continue;
+        int id = abs(child.pdgid);
+        if (id > 5)
+          continue; 
+        if (q0 == nullptr)
+          q0 = &child;
+        else
+          q1 = &child;
+        if (q0 != q1)
+          break;
+      } // qq' loop
+      // now fill the tree
+      gt.i_evt = event.eventNumber;
+      gt.npv = event.npv;
+      gt.sampleType = 2; 
+      gt.gen_pt = pt; gt.gen_eta = eta; gt.gen_phi = p.phi();
+      gt.gen_pdgid = p.pdgid;
+      gt.gen_size = max({DeltaR2(eta, phi, b->eta(), b->phi()), 
+                         DeltaR2(eta, phi, q0->eta(), q0->phi()),
+                         DeltaR2(eta, phi, q1->eta(), q1->phi())}); 
+      if (gt.gen_size > (pt < 500) ? 1.44 : 0.36)
+        continue;
+
+      // now find a good fat jet
+      for (auto& fj : fatjets) {
+        if (DeltaR2(eta, phi, fj.eta(), fj.phi()) > 0.36)
+          continue; 
+        gt.clf_IsMatched = 1; 
+        gt.clf_Pt = fj.pt();
+        gt.clf_Eta = fj.eta();
+        gt.clf_Phi = fj.phi();
+        gt.clf_M = fj.m();
+        gt.clf_Tau32 = clean(fj.tau3 / fj.tau2);
+        gt.clf_Tau21 = clean(fj.tau2 / fj.tau1);
+        gt.clf_Tau32SD = clean(fj.tau3SD / fj.tau2SD);
+        gt.clf_Tau21SD = clean(fj.tau2SD / fj.tau1SD);
+        gt.clf_HTTFRec = fj.htt_frec;
+        gt.clf_MSD = fj.mSD;
+        gt.clf_MSD_corr = fj.mSD * getMSDCorr(fj.pt(),fj.eta());
+
+        std::vector<MicroJet const*> subjets;
+        for (int iS(0); iS != fj.subjets.size(); ++iS)
+          subjets.push_back(&fj.subjets.objAt(iS));
+        auto csvsort = [](MicroJet const* j1, MicroJet const* j2) -> bool {
+                return j1->csv > j2->csv;
+              };
+        std::sort(subjets.begin(),subjets.end(),csvsort);
+        if (subjets.size()>0) 
+          gt.clf_MaxCSV = subjets[0]->csv;
+
+        for (auto ibeta : gt.get_ibetas()) {
+          for (auto N : gt.get_Ns()) {
+            for (auto order : gt.get_orders()) {
+              HeavyResTree::ECFParams p;
+              p.order = order; p.N = N; p.ibeta = ibeta;
+              gt.clf_ECFNs[p] = fj.get_ecf(order,N,ibeta);
+            }
+          }
+        } //loop over betas
+        break;
+      }
+      gt.Fill();
+      gt.Reset();
+    }
+  } else {
+    gt.sampleType = 0;
+  }
+}

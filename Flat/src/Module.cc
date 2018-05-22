@@ -597,3 +597,4 @@ void BaseAnalysisMod<T>::print()
 }
 
 template class BaseAnalysisMod<GeneralTree>;
+template class BaseAnalysisMod<HeavyResTree>;

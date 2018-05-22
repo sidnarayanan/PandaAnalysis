@@ -183,7 +183,6 @@ class GeneralTree : public genericTree {
       csvCErr2up,
       csvCErr2down
     };
-    virtual void SetAuxTree(TTree *t);
 
     // public config
     bool is_monohiggs=false, is_vbf=false, is_fatjet=true, 
@@ -196,6 +195,7 @@ class GeneralTree : public genericTree {
     std::map<TString,float> signal_weights;
     std::map<csvShift,float> sf_csvWeights;
     static TString csvShiftName(csvShift shift);
+    virtual void SetAuxTree(TTree *t);
 // ENDCUSTOM
   private:
 // STARTCUSTOM PRIVATE

@@ -22,6 +22,7 @@ class treeClassTmpl : public genericTree {
     void Reset();
 // STARTCUSTOM PUBLIC
 // ENDCUSTOM
+    virtual void SetAuxTree(TTree *t);
   private:
 // STARTCUSTOM PRIVATE
 // ENDCUSTOM

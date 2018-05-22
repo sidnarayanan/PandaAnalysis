@@ -43,7 +43,8 @@ class HeavyResTree : public genericTree {
         return ! operator<(o);
       }
     };
-    std::map<ECFParams,float> fjECFNs;
+    std::map<ECFParams,float> clf_ECFNs;
+    virtual void SetAuxTree(TTree *t);
 // ENDCUSTOM
   private:
 // STARTCUSTOM PRIVATE
@@ -68,6 +69,7 @@ class HeavyResTree : public genericTree {
   float gen_eta;
   float gen_phi;
   float gen_size;
+  int gen_pdgid;
   float clf_Tau32;
   float clf_Tau21;
   float clf_Tau32SD;
@@ -81,11 +83,5 @@ class HeavyResTree : public genericTree {
   float clf_MaxCSV;
   int clf_IsMatched;
   float clf_HTTFRec;
-  float scaleUp;
-  float scaleDown;
-  float pdfUp;
-  float pdfDown;
-  float scale[6];
-  float lheHT;
 };
 #endif

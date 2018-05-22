@@ -15,7 +15,7 @@ HeavyResTree::HeavyResTree() {
                 p.N = N;
                 p.order = order;
                 ecfParams.push_back(p);
-                fjECFNs[p] = -1;
+                clf_ECFNs[p] = -1;
             }
         }
     }
@@ -33,7 +33,7 @@ void HeavyResTree::SetAuxTree(TTree *t) {
 void HeavyResTree::Reset() {
 // STARTCUSTOM RESET
     for (auto p : ecfParams) {
-        fjECFNs[p] = -1;
+        clf_ECFNs[p] = -1;
     }
 // ENDCUSTOM
   runNumber = 0;
@@ -47,6 +47,7 @@ void HeavyResTree::Reset() {
   gen_eta = -99;
   gen_phi = -99;
   gen_size = -99;
+  gen_pdgid = 0;
   clf_Tau32 = -99;
   clf_Tau21 = -99;
   clf_Tau32SD = -99;
@@ -60,14 +61,6 @@ void HeavyResTree::Reset() {
   clf_MaxCSV = -99;
   clf_IsMatched = 0;
   clf_HTTFRec = -99;
-  scaleUp = 1;
-  scaleDown = 1;
-  pdfUp = 1;
-  pdfDown = 1;
-  lheHT = -99;
-  for (int iA=0; iA!=6; ++iA) {
-    scale[iA] = 1;
-  }
 }
 void HeavyResTree::WriteTree(TTree *t) {
   treePtr = t;
@@ -88,6 +81,7 @@ void HeavyResTree::WriteTree(TTree *t) {
   Book("gen_eta",&gen_eta,"gen_eta/F");
   Book("gen_phi",&gen_phi,"gen_phi/F");
   Book("gen_size",&gen_size,"gen_size/F");
+  Book("gen_pdgid",&gen_pdgid,"gen_pdgid/I");
   Book("clf_Tau32",&clf_Tau32,"clf_Tau32/F");
   Book("clf_Tau21",&clf_Tau21,"clf_Tau21/F");
   Book("clf_Tau32SD",&clf_Tau32SD,"clf_Tau32SD/F");
@@ -101,10 +95,4 @@ void HeavyResTree::WriteTree(TTree *t) {
   Book("clf_MaxCSV",&clf_MaxCSV,"clf_MaxCSV/F");
   Book("clf_IsMatched",&clf_IsMatched,"clf_IsMatched/I");
   Book("clf_HTTFRec",&clf_HTTFRec,"clf_HTTFRec/F");
-  Book("scaleUp",&scaleUp,"scaleUp/F");
-  Book("scaleDown",&scaleDown,"scaleDown/F");
-  Book("pdfUp",&pdfUp,"pdfUp/F");
-  Book("pdfDown",&pdfDown,"pdfDown/F");
-  Book("scale",scale,"scale["+TString("6")+"]/F");
-  Book("lheHT",&lheHT,"lheHT/F");
 }
