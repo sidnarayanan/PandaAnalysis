@@ -510,24 +510,25 @@ void ConfigMod::readData(TString dirPath)
   fcharges->Close();
 }
 
-
-void AnalysisMod::initialize(Registry& registry)
+template<typename T>
+void BaseAnalysisMod<T>::initialize(Registry& registry)
 {
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    PDebug("AnalysisMod::initialize", name);
+    PDebug("BaseAnalysisMod::initialize", name);
   do_init(registry);
   for (auto& mod : subMods)
     mod->initialize(registry);
 }
 
-void AnalysisMod::readData(TString path)
+template<typename T>
+void BaseAnalysisMod<T>::readData(TString path)
 {
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    PDebug("AnalysisMod::readData", name);
+    PDebug("BaseAnalysisMod::readData", name);
   do_readData(path+"/");
   for (auto& mod : subMods)
     mod->readData(path);
@@ -536,7 +537,8 @@ void AnalysisMod::readData(TString path)
 // execute DOES NOT cascade down child modules -
 // calling subMod execution is left up to the caller
 // to allow for more flexibility
-void AnalysisMod::execute()
+template<typename T>
+void BaseAnalysisMod<T>::execute()
 {
   if (!on())
     return;
@@ -547,29 +549,32 @@ void AnalysisMod::execute()
     cfg.tr.TriggerEvent("execute "+name);
 }
 
-void AnalysisMod::reset()
+template<typename T>
+void BaseAnalysisMod<T>::reset()
 {
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    PDebug("AnalysisMod::reset", name);
+    PDebug("BaseAnalysisMod::reset", name);
   do_reset();
   for (auto& mod : subMods)
     mod->reset();
 }
 
-void AnalysisMod::terminate()
+template<typename T>
+void BaseAnalysisMod<T>::terminate()
 {
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    PDebug("AnalysisMod::terminate", name);
+    PDebug("BaseAnalysisMod::terminate", name);
   do_terminate();
   for (auto& mod : subMods)
     mod->terminate();
 }
 
-vector<TString> AnalysisMod::dump()
+template<typename T>
+vector<TString> BaseAnalysisMod<T>::dump()
 {
   vector<TString> v;
   if (!on())
@@ -583,9 +588,12 @@ vector<TString> AnalysisMod::dump()
   return v;
 }
 
-void AnalysisMod::print()
+template<typename T>
+void BaseAnalysisMod<T>::print()
 {
   auto v = dump();
   for (auto& s : v)
-    PInfo("AnalysisMod::print", s.Data());
+    PInfo("BaseAnalysisMod::print", s.Data());
 }
+
+template class BaseAnalysisMod<GeneralTree>;

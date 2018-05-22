@@ -123,13 +123,14 @@ namespace pa {
       void set_outputBranches();
   };
 
-  class AnalysisMod : public BaseModule {
+  template <typename T>
+  class BaseAnalysisMod : public BaseModule {
     public:
-      AnalysisMod(TString name,
+      BaseAnalysisMod(TString name,
                   panda::EventAnalysis& event_,
                   Config& cfg_,
                   Utils& utils_,
-                  GeneralTree& gt_,
+                  T& gt_,
                   int level_=0) :
         BaseModule(name),
         event(event_),
@@ -138,9 +139,9 @@ namespace pa {
         analysis(cfg.analysis),
         gt(gt_),
         level(level_) { }
-      virtual ~AnalysisMod() {
+      virtual ~BaseAnalysisMod() {
         if (cfg.DEBUG > level + 2)
-          PDebug("AnalysisMod::~AnalysisMod", name);
+          PDebug("BaseAnalysisMod::~BaseAnalysisMod", name);
       }
 
       // cascading calls to protected functions
@@ -169,8 +170,8 @@ namespace pa {
       Config& cfg;
       Utils& utils;
       const Analysis& analysis;
-      GeneralTree& gt;
-      std::vector<std::unique_ptr<AnalysisMod>> subMods; // memory management is done by parent
+      T& gt;
+      std::vector<std::unique_ptr<BaseAnalysisMod>> subMods; // memory management is done by parent
       int level;
 
       std::vector<TString> dump();
@@ -183,6 +184,7 @@ namespace pa {
       virtual void do_reset() { }
       virtual void do_terminate() { }
   };
+  typedef BaseAnalysisMod<GeneralTree> AnalysisMod; 
 
   // a completely empty mod
   class ContainerMod : public AnalysisMod {

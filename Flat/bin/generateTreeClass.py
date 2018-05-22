@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sys import argv,exit
-from os import system
+from os import system, path
 from re import sub, match
 import argparse
 import copy
@@ -231,6 +231,14 @@ if __name__ == '__main__':
     cfg_path = args.cfg
     header_path = cfg_path.replace('config','interface').replace('.cfg','.h')
     src_path = cfg_path.replace('config','src').replace('.cfg','.cc')
+    if not path.isfile(header_path):
+        tmpl_path = '/'.join(header_path.split('/')[:-2])
+        tmpl_path += ('bin/treeClassTmpl.h' if len(tmpl_path) == 0 else '/bin/treeClassTmpl.h')
+        system('cp -v %s %s'%(tmpl_path, header_path))
+    if not path.isfile(src_path):
+        tmpl_path = '/'.join(src_path.split('/')[:-2])
+        tmpl_path += ('bin/treeClassTmpl.cc' if len(tmpl_path) == 0 else '/bin/treeClassTmpl.cc')
+        system('cp -v %s %s'%(tmpl_path, src_path))
     class_name = cfg_path.split('/')[-1].replace('.cfg','')
 
     for p in [header_path, src_path]:
