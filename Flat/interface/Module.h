@@ -127,11 +127,11 @@ namespace pa {
   class BaseAnalysisMod : public BaseModule {
     public:
       BaseAnalysisMod(TString name,
-                  panda::EventAnalysis& event_,
-                  Config& cfg_,
-                  Utils& utils_,
-                  T& gt_,
-                  int level_=0) :
+                      panda::EventAnalysis& event_,
+                      Config& cfg_,
+                      Utils& utils_,
+                      T& gt_,
+                      int level_=0) :
         BaseModule(name),
         event(event_),
         cfg(cfg_),

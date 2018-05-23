@@ -357,14 +357,18 @@ void GlobalMod::do_execute()
   }
 }
 
-void GenPMod::do_execute()
+template <typename TREE>
+void BaseGenPMod<TREE>::do_execute()
 {
-  if (event.genParticles.size() > 0) {
-    merge_particles(event.genParticles);
+  if (this->event.genParticles.size() > 0) {
+    merge_particles(this->event.genParticles);
   } else {
-    merge_particles(event.genParticlesU);
+    merge_particles(this->event.genParticlesU);
   }
 }
+
+template class BaseGenPMod<GeneralTree>;
+template class BaseGenPMod<HeavyResTree>;
 
 void RecoilMod::do_execute()
 {

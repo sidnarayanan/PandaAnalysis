@@ -1,14 +1,16 @@
 #include "../interface/FatJetsMods.h"
 #include "PandaAnalysis/Utilities/interface/Helicity.h"
+#include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
+#include "fastjet/contrib/Njettiness.hh"
 
 using namespace pa;
 using namespace std;
-using namespace panda; 
-namespace fj = fastjet;
+using namespace panda;
+using namespace fastjet;
 
 void FatJetMod::setupJES()
 {
-  if (!analysis.rerunJES || (scaleUnc != nullptr)) 
+  if (!analysis.rerunJES || (scaleUnc != nullptr))
     return;
   if (analysis.isData) {
     TString thisEra = utils.eras->getEra(gt.runNumber);
@@ -40,7 +42,7 @@ void FatJetMod::do_execute()
     float ptcut = 200;
     if (analysis.deep)
       ptcut = 400;
-    
+
     float bestPt = pt;
     if (analysis.rerunJES) {
       bestPt = TMath::Max(bestPt, fj.ptCorrUp);
@@ -50,7 +52,7 @@ void FatJetMod::do_execute()
       continue;
 
     float phi = fj.phi();
-    if (isMatched(matchLeps.get(),cfg.FATJETMATCHDR2,eta,phi) || 
+    if (isMatched(matchLeps.get(),cfg.FATJETMATCHDR2,eta,phi) ||
         isMatched(matchPhos.get(),cfg.FATJETMATCHDR2,eta,phi)) {
       continue;
     }
@@ -128,7 +130,7 @@ void FatJetMod::do_execute()
     }
     if (!analysis.isData && fj.matchedGenJet.isValid())
       gt.fjGenNumB = fj.matchedGenJet.get()->numB;
-    else 
+    else
       gt.fjGenNumB = 0;
   }
 
@@ -145,7 +147,7 @@ void FatJetMod::do_execute()
 }
 
 
-float FatJetMod::getMSDCorr(float puppipt, float puppieta) 
+float FatJetMod::getMSDCorr(float puppipt, float puppieta)
 {
 
   float genCorr  = 1.;
@@ -169,9 +171,9 @@ void FatJetReclusterMod::do_execute()
     return;
 
   VPseudoJet particles = convertPFCands(event.pfCandidates,analysis.puppiJets,0);
-  fj::ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
+  ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
   VPseudoJet allJets(seq.inclusive_jets(0.));
-  fj::PseudoJet *pj1=0;
+  PseudoJet *pj1=0;
   double minDR2 = 999;
   for (auto &jet : allJets) {
     double dr2 = DeltaR2(jet.eta(),jet.phi_std(),(*fj1)->eta(),(*fj1)->phi());
@@ -181,7 +183,7 @@ void FatJetReclusterMod::do_execute()
     }
   }
   if (pj1) {
-    VPseudoJet constituents = fastjet::sorted_by_pt(pj1->constituents());
+    VPseudoJet constituents = sorted_by_pt(pj1->constituents());
 
     double eTot=0, eTrunc=0;
     for (unsigned iC=0; iC!=constituents.size(); ++iC) {
@@ -192,8 +194,8 @@ void FatJetReclusterMod::do_execute()
     }
 
 
-    fj::PseudoJet sdJet = (*utils.softDrop)(*pj1);
-    VPseudoJet sdConstituents = fastjet::sorted_by_pt(sdJet.constituents());
+    PseudoJet sdJet = (*utils.softDrop)(*pj1);
+    VPseudoJet sdConstituents = sorted_by_pt(sdJet.constituents());
     eTot=0; eTrunc=0;
     for (unsigned iC=0; iC!=sdConstituents.size(); ++iC) {
       double e = sdConstituents.at(iC).E();
@@ -204,7 +206,7 @@ void FatJetReclusterMod::do_execute()
   }
 }
 
-const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double radius, int pdgid) const 
+const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double radius, int pdgid) const
 {
   const GenParticle* found=NULL;
   double r2 = radius*radius;
@@ -412,7 +414,7 @@ void FatJetMatchingMod::do_execute()
 
       //count bs and cs
       int apdgid = abs(pdgid);
-      if (apdgid!=5 && apdgid!=4) 
+      if (apdgid!=5 && apdgid!=4)
         continue;
 
       if (DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<cfg.FATJETMATCHDR2) {
@@ -499,7 +501,7 @@ void FatJetMatchingMod::do_execute()
   }
 }
 
-float HRTagMod::getMSDCorr(float puppipt, float puppieta) 
+float HRTagMod::getMSDCorr(float puppipt, float puppieta)
 {
 
   float genCorr  = 1.;
@@ -517,14 +519,33 @@ float HRTagMod::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
-bool HRTagMod::hasChild(const GenParticle& parent) 
+bool hard(const GenParticle& p)
+{
+    return p.testFlag(GenParticle::kIsHardProcess) || p.testFlag(GenParticle::kFromHardProcess);
+}
+
+bool HRTagMod::hasChild(const GenParticle& parent, bool beHard)
 {
   for (auto* pptr : *genP) {
     auto& child = pToGRef(pptr);
     if (child.pdgid != parent.pdgid)
       continue;
+    if (beHard && !hard(child))
+      continue;
     if (child.parent.isValid() &&
-        child.parent.get() == &parent)
+        child.parent.get() == &parent) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isAncestor(const GenParticle& child, const GenParticle& ancestor)
+{
+  auto* parent = &child;
+  while (parent->parent.isValid()) {
+    parent = parent->parent.get();
+    if (parent == &ancestor)
       return true;
   }
   return false;
@@ -534,111 +555,193 @@ void HRTagMod::do_execute()
 {
   // first loop through genP and find any partons worth saving
   // if this is a signal
-  if (analysis.processType == kTop) { 
+  if (analysis.processType == kTop) {
     for (auto *pptr : *genP) {
       auto& p = pToGRef(pptr);
-      if (abs(p.pdgid) != 6) 
+      if (abs(p.pdgid) != 6)
         continue;
       float pt = p.pt();
       if (pt < 300 || pt > 1400)
-        continue; 
-      float eta_cut = (pt < 500) ? 2.4 : 1.5; 
+        continue;
+      float eta_cut = (pt < 500) ? 2.4 : 1.5;
       float eta = p.eta(), phi = p.phi();
       if (fabs(eta) > eta_cut)
-        continue; 
+        continue;
       if (hasChild(p))
         continue;
       const GenParticle *W{nullptr}, *b{nullptr}, *q0{nullptr}, *q1{nullptr};
       // first loop through: find W and b
-      for (auto *childptr : *genP) { 
+      for (auto *childptr : *genP) {
         auto& child = pToGRef(childptr);
-        if (!child.parent.isValid())
-          continue;
         int id = abs(child.pdgid);
         if (id != 5 && id != 24)
-          continue; 
-        auto* parent = child.parent.get();
+          continue;
+        if (hasChild(child))
+          continue;
+        if (!isAncestor(child, p))
+          continue;
         if (id == 5) {
-          if (parent == &p || parent == b) {
-            b = &child;
-          }
+          b = &child;
         } else {
-          if (parent == &p || parent == W) {
-            W = &child;
-          }
+          W = &child;
         }
       } // W and b loop
-      if (W == nullptr || b == nullptr) 
-        continue; 
+      if (W == nullptr || b == nullptr)
+        continue;
       // second loop through: find qq'
-      for (auto *childptr : *genP) { 
+      for (auto *childptr : *genP) {
         auto& child = pToGRef(childptr);
         if (!child.parent.isValid() || child.parent.get() != W)
           continue;
         int id = abs(child.pdgid);
         if (id > 5)
-          continue; 
+          continue;
         if (q0 == nullptr)
           q0 = &child;
         else
           q1 = &child;
-        if (q0 != q1)
+        if (q0 != nullptr && q1 != nullptr)
           break;
       } // qq' loop
+      if (q0 == nullptr || q1 == nullptr)
+        continue;
       // now fill the tree
       gt.i_evt = event.eventNumber;
       gt.npv = event.npv;
-      gt.sampleType = 2; 
+      gt.sampleType = 2;
       gt.gen_pt = pt; gt.gen_eta = eta; gt.gen_phi = p.phi();
       gt.gen_pdgid = p.pdgid;
-      gt.gen_size = max({DeltaR2(eta, phi, b->eta(), b->phi()), 
+      gt.gen_size = max({DeltaR2(eta, phi, b->eta(), b->phi()),
                          DeltaR2(eta, phi, q0->eta(), q0->phi()),
-                         DeltaR2(eta, phi, q1->eta(), q1->phi())}); 
-      if (gt.gen_size > (pt < 500) ? 1.44 : 0.36)
+                         DeltaR2(eta, phi, q1->eta(), q1->phi())});
+      if (gt.gen_size > (pt < 500 ? 1.44 : 0.36))
         continue;
 
       // now find a good fat jet
       for (auto& fj : fatjets) {
         if (DeltaR2(eta, phi, fj.eta(), fj.phi()) > 0.36)
-          continue; 
-        gt.clf_IsMatched = 1; 
-        gt.clf_Pt = fj.pt();
-        gt.clf_Eta = fj.eta();
-        gt.clf_Phi = fj.phi();
-        gt.clf_M = fj.m();
-        gt.clf_Tau32 = clean(fj.tau3 / fj.tau2);
-        gt.clf_Tau21 = clean(fj.tau2 / fj.tau1);
-        gt.clf_Tau32SD = clean(fj.tau3SD / fj.tau2SD);
-        gt.clf_Tau21SD = clean(fj.tau2SD / fj.tau1SD);
-        gt.clf_HTTFRec = fj.htt_frec;
-        gt.clf_MSD = fj.mSD;
-        gt.clf_MSD_corr = fj.mSD * getMSDCorr(fj.pt(),fj.eta());
-
-        std::vector<MicroJet const*> subjets;
-        for (int iS(0); iS != fj.subjets.size(); ++iS)
-          subjets.push_back(&fj.subjets.objAt(iS));
-        auto csvsort = [](MicroJet const* j1, MicroJet const* j2) -> bool {
-                return j1->csv > j2->csv;
-              };
-        std::sort(subjets.begin(),subjets.end(),csvsort);
-        if (subjets.size()>0) 
-          gt.clf_MaxCSV = subjets[0]->csv;
-
-        for (auto ibeta : gt.get_ibetas()) {
-          for (auto N : gt.get_Ns()) {
-            for (auto order : gt.get_orders()) {
-              HeavyResTree::ECFParams p;
-              p.order = order; p.N = N; p.ibeta = ibeta;
-              gt.clf_ECFNs[p] = fj.get_ecf(order,N,ibeta);
-            }
-          }
-        } //loop over betas
+          continue;
+        fillJet(fj);
         break;
       }
       gt.Fill();
       gt.Reset();
     }
   } else {
-    gt.sampleType = 0;
+    for (auto *pptr : *genP) {
+      auto& p = pToGRef(pptr);
+      if (abs(p.pdgid) > 5 && abs(p.pdgid) != 21)
+        continue;
+      float pt = p.pt();
+      if (pt < 300 || pt > 1400)
+        continue;
+      float eta_cut = (pt < 500) ? 2.4 : 1.5;
+      float eta = p.eta(), phi = p.phi();
+      if (fabs(eta) > eta_cut)
+        continue;
+      if (!hard(p) || hasChild(p))
+        continue;
+      // now fill the tree
+      gt.i_evt = event.eventNumber;
+      gt.npv = event.npv;
+      gt.sampleType = 0;
+      gt.gen_pt = pt; gt.gen_eta = eta; gt.gen_phi = p.phi();
+      gt.gen_pdgid = p.pdgid;
+      gt.gen_size = 0;
+      // now find a good fat jet
+      for (auto& fj : fatjets) {
+        if (DeltaR2(eta, phi, fj.eta(), fj.phi()) > 0.36)
+          continue;
+        fillJet(fj);
+        break;
+      }
+      gt.Fill();
+      gt.Reset();
+    }
   }
+}
+
+void HRTagMod::doSubstructure(panda::FatJet& fj)
+{
+  VPseudoJet particles = convertPFCands(fj.constituents,true,0);
+  ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
+  VPseudoJet allJets(seq.inclusive_jets(0.));
+  PseudoJet *pj{nullptr};
+  double minDR2 = 999;
+  for (auto &jet : allJets) {
+    double dr2 = DeltaR2(jet.eta(),jet.phi_std(),fj.eta(),fj.phi());
+    if (dr2<minDR2) {
+      minDR2 = dr2;
+      pj = &jet;
+    }
+  }
+  if (pj == nullptr)
+    return;
+  VPseudoJet constituents = sorted_by_pt(pj->constituents());
+
+  PseudoJet sd = (*utils.softDrop)(*pj);
+  VPseudoJet sdConstituents = sorted_by_pt(sd.constituents());
+  fj.mSD = sd.m();
+
+  fj.tau1 = tauN->getTau(1, constituents);
+  fj.tau2 = tauN->getTau(2, constituents);
+  fj.tau3 = tauN->getTau(3, constituents);
+  fj.tau1SD = tauN->getTau(1, sdConstituents);
+  fj.tau2SD = tauN->getTau(2, sdConstituents);
+  fj.tau3SD = tauN->getTau(3, sdConstituents);
+
+  // get ecfs
+  unsigned nFilter = min(100, (int)sdConstituents.size());
+  VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
+
+  ecfcalc->calculate(sdConstsFiltered);
+  for (auto iter = ecfcalc->begin(); iter != ecfcalc->end(); ++iter) {
+    int N = iter.get<pa::ECFCalculator::nP>();
+    int o = iter.get<pa::ECFCalculator::oP>();
+    int beta = iter.get<pa::ECFCalculator::bP>();
+    float ecf(iter.get<pa::ECFCalculator::ecfP>());
+    if (!fj.set_ecf(o+1,N+1,beta,ecf)) {
+      PError("HRTagMod::doSubstructure", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
+      throw std::runtime_error("");
+    }
+  }
+}
+
+void HRTagMod::fillJet(panda::FatJet& fj)
+{
+  if (event.recoil.max < 175) {
+    doSubstructure(fj);
+  }
+  gt.clf_IsMatched = 1;
+  gt.clf_Pt = fj.pt();
+  gt.clf_Eta = fj.eta();
+  gt.clf_Phi = fj.phi();
+  gt.clf_M = fj.m();
+  gt.clf_Tau32 = clean(fj.tau3 / fj.tau2);
+  gt.clf_Tau21 = clean(fj.tau2 / fj.tau1);
+  gt.clf_Tau32SD = clean(fj.tau3SD / fj.tau2SD);
+  gt.clf_Tau21SD = clean(fj.tau2SD / fj.tau1SD);
+  gt.clf_HTTFRec = fj.htt_frec;
+  gt.clf_MSD = fj.mSD;
+  gt.clf_MSD_corr = fj.mSD * getMSDCorr(fj.pt(),fj.eta());
+
+  std::vector<MicroJet const*> subjets;
+  for (int iS(0); iS != fj.subjets.size(); ++iS)
+    subjets.push_back(&fj.subjets.objAt(iS));
+  auto csvsort = [](MicroJet const* j1, MicroJet const* j2) -> bool {
+          return j1->csv > j2->csv;
+        };
+  std::sort(subjets.begin(),subjets.end(),csvsort);
+  if (subjets.size()>0)
+    gt.clf_MaxCSV = subjets[0]->csv;
+
+  for (auto ibeta : gt.get_ibetas()) {
+    for (auto N : gt.get_Ns()) {
+      for (auto order : gt.get_orders()) {
+        HeavyResTree::ECFParams p;
+        p.order = order; p.N = N; p.ibeta = ibeta;
+        gt.clf_ECFNs[p] = fj.get_ecf(order,N,ibeta);
+      }
+    }
+  } //loop ov
 }

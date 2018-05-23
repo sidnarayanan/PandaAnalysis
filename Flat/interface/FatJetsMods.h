@@ -2,32 +2,34 @@
 #define FATJETSMODS
 
 #include "Module.h"
-#include "JetsMods.h" // need BaseJetMod 
+#include "JetsMods.h" // need BaseJetMod
+#include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
+#include "fastjet/contrib/Njettiness.hh"
 
 namespace pa {
   class FatJetReclusterMod : public AnalysisMod {
-  public: 
-    FatJetReclusterMod(panda::EventAnalysis& event_, 
-                       Config& cfg_,                 
-                       Utils& utils_,                
+  public:
+    FatJetReclusterMod(panda::EventAnalysis& event_,
+                       Config& cfg_,
+                       Utils& utils_,
                        GeneralTree& gt_,
-                       int level_=0) :                 
-      AnalysisMod("fjrecluster", event_, cfg_, utils_, gt_, level_) { 
+                       int level_=0) :
+      AnalysisMod("fjrecluster", event_, cfg_, utils_, gt_, level_) {
         if (!on())
           return;
-        jetDef.reset(new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm : 
+        jetDef.reset(new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm :
                                                                fastjet::cambridge_algorithm,
                                                 analysis.ak8 ?  0.8 : 1.5));
     }
     virtual ~FatJetReclusterMod () { }
 
     virtual bool on() { return analysis.recluster; }
-    
+
   protected:
     void do_init(Registry& registry) {
       fj1 = registry.accessConst<const panda::FatJet*>("fj1");
     }
-    void do_execute();  
+    void do_execute();
   private:
     std::shared_ptr<const panda::FatJet *const> fj1{nullptr}; // shared ptr to a const bare address
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
@@ -35,36 +37,36 @@ namespace pa {
 
 
   class FatJetMod : public BaseJetMod {
-  public: 
-    FatJetMod(panda::EventAnalysis& event_, 
-              Config& cfg_,                 
-              Utils& utils_,                
+  public:
+    FatJetMod(panda::EventAnalysis& event_,
+              Config& cfg_,
+              Utils& utils_,
               GeneralTree& gt_,
-              int level_=0) :                 
+              int level_=0) :
       BaseJetMod("fatjet", event_, cfg_, utils_, gt_, level_),
       fj1(std::make_shared<const panda::FatJet*>(nullptr)),
-      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
-        recluster = addSubMod<FatJetReclusterMod>(); 
+      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) {
+        recluster = addSubMod<FatJetReclusterMod>();
         jetType = "AK8PFPuppi";
     }
     virtual ~FatJetMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet; }
-    
+
   protected:
     void do_init(Registry& registry) {
       registry.publishConst("fj1", fj1);
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
-      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps"); 
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
-      dilep = registry.accessConst<TLorentzVector>("dilep"); 
+      dilep = registry.accessConst<TLorentzVector>("dilep");
     }
-    void do_execute();  
+    void do_execute();
     float getMSDCorr(float,float);
   private:
-    void setupJES(); 
+    void setupJES();
 
-    std::shared_ptr<const panda::FatJet*> fj1{nullptr}; 
+    std::shared_ptr<const panda::FatJet*> fj1{nullptr};
     panda::FatJetCollection &fatjets;
 
     std::shared_ptr<const std::vector<panda::Lepton*>> matchLeps{nullptr};
@@ -76,62 +78,73 @@ namespace pa {
   };
 
   class FatJetMatchingMod : public AnalysisMod {
-  public: 
-    FatJetMatchingMod(panda::EventAnalysis& event_, 
-                      Config& cfg_,                 
-                      Utils& utils_,                
+  public:
+    FatJetMatchingMod(panda::EventAnalysis& event_,
+                      Config& cfg_,
+                      Utils& utils_,
                       GeneralTree& gt_,
-                      int level_=0) :                 
+                      int level_=0) :
       AnalysisMod("fjmatching", event_, cfg_, utils_, gt_, level_) { }
     virtual ~FatJetMatchingMod () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet && !analysis.isData; }
-    
+
   protected:
     void do_init(Registry& registry) {
       fjPtr = registry.accessConst<const panda::FatJet*>("fj1");
       if (!analysis.isData)
         genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
-    void do_execute();  
+    void do_execute();
     void do_reset() { genObjects.clear(); }
   private:
-    std::shared_ptr<const panda::FatJet *const> fjPtr{nullptr}; 
-    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr}; 
+    std::shared_ptr<const panda::FatJet *const> fjPtr{nullptr};
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
 
-    std::map<const panda::GenParticle*,float> genObjects; // gen particle -> pt 
-    const panda::GenParticle* matchGen(double eta, double phi, double r2, int pdgid=0) const;  
+    std::map<const panda::GenParticle*,float> genObjects; // gen particle -> pt
+    const panda::GenParticle* matchGen(double eta, double phi, double r2, int pdgid=0) const;
   };
 
   class HRTagMod : public HRMod {
-  public: 
-    HRTagMod(panda::EventAnalysis& event_, 
-              Config& cfg_,                 
-              Utils& utils_,                
+  public:
+    HRTagMod(panda::EventAnalysis& event_,
+              Config& cfg_,
+              Utils& utils_,
               HeavyResTree& gt_,
-              int level_=0) :                 
+              int level_=0) :
       HRMod("tag", event_, cfg_, utils_, gt_, level_),
-      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) { 
+      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) {
+      double radius = analysis.ak8 ? 0.8 : 1.5;
+      jetDef.reset(new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm :
+                                                             fastjet::cambridge_algorithm,
+                                              radius));
+      tauN.reset(new fastjet::contrib::Njettiness(fastjet::contrib::OnePass_KT_Axes(),
+                                             fastjet::contrib::NormalizedMeasure(1., radius)));
+      ecfcalc.reset(new ECFCalculator());
     }
     virtual ~HRTagMod () { }
 
     virtual bool on() { return true; }
-    
+
   protected:
     void do_init(Registry& registry) {
       genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
-    void do_execute();  
-    float getMSDCorr(float,float);
-    bool hasChild(const panda::GenParticle&);
+    void do_execute();
   private:
 
-    void fillJet(const panda::FatJet&); 
-    const panda::FatJetCollection &fatjets;
+    float getMSDCorr(float,float);
+    bool hasChild(const panda::GenParticle& p, bool beHard=false);
+    void fillJet(panda::FatJet&);
+    void doSubstructure(panda::FatJet& fj);
+    panda::FatJetCollection &fatjets;
 
-    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr}; 
+    // TODO : consider what can be moved to utils
+    std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
+    std::unique_ptr<fastjet::contrib::Njettiness>tauN{nullptr};
+    std::unique_ptr<ECFCalculator>ecfcalc{nullptr};
 
-    FatJetReclusterMod *recluster{nullptr};
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
   };
 }
 

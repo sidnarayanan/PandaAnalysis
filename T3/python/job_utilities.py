@@ -369,6 +369,19 @@ def run_PandaAnalyzer(skimmer, isData, output_name):
         PError(_sname+'.run_PandaAnalyzer','Failed in creating %s!'%(output_name))
         return False
 
+def run_HRAnalyzer(skimmer, isData, output_name):
+    # run and save output
+    skimmer.Run()
+    skimmer.Terminate()
+
+    ret = path.isfile(output_name)
+    if ret:
+        PInfo(_sname+'.run_HRAnalyzer','Successfully created %s'%(output_name))
+        return output_name 
+    else:
+        PError(_sname+'.run_HRAnalyzer','Failed in creating %s!'%(output_name))
+        return False
+
 
 # main function to run a skimmer, customizable info 
 # can be put in fn
