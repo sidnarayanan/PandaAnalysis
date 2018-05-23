@@ -19,6 +19,7 @@ _host = socket.gethostname()                                   # where we're run
 _IS_T3 = (_host[:2] == 't3')                                   # are we on the T3?
 REMOTE_READ = True                                             # should we read from hadoop or copy locally?
 local_copy = bool(smart_getenv('SUBMIT_LOCALACCESS', True))    # should we always xrdcp from T2?
+YEAR = 2016                                                    # what year's data is this analysis?
 
 stageout_protocol = None                                       # what stageout should we use?
 if _IS_T3:
@@ -74,6 +75,11 @@ def print_time(label):
            '%.1f s elapsed performing "%s"'%((now_-_stopwatch),label))
     _stopwatch = now_
 
+
+def set_year(analysis, year):
+    global YEAR
+    analysis.year = year
+    YEAR = year
 
 # convert an input name to an output name
 def input_to_output(name):
@@ -306,30 +312,38 @@ def record_inputs(outfilename,processed):
 
 # classify a sample based on its name
 def classify_sample(full_path, isData):
+    _classification = [
+                (root.pa.kSignal , ['Vector_', 'Scalar_']),
+                (root.pa.kTop    , ['ST_', 'ZprimeToTT']),
+                (root.pa.kZEWK   , 'EWKZ2Jets'),
+                (root.pa.kWEWK   , 'EWKW'),
+                (root.pa.kZ      , ['ZJets', 'DY']),
+                (root.pa.kW      , 'WJets'),
+                (root.pa.kA      , 'GJets'),
+                (root.pa.kTT     , ['TTJets', 'TT_', 'TTTo']),
+                (root.pa.kH      , 'HTo'),
+            ]
     if not isData:
-        if any([x in full_path for x in ['Vector_','Scalar_']]):
-            return root.kSignal
-        elif any([x in full_path for x in ['ST_','ZprimeToTT']]):
-            return root.kTop
-        elif 'EWKZ2Jets' in full_path:
-            return root.kZEWK
-        elif 'EWKW' in full_path:
-            return root.kWEWK
-        elif 'ZJets' in full_path or 'DY' in full_path:
-            return root.kZ
-        elif 'WJets' in full_path:
-            return root.kW
-        elif 'GJets' in full_path:
-            return root.kA
-        elif 'TTJets' in full_path or 'TT_' in full_path or 'TTTo' in full_path:
-            return root.kTT
-        elif 'HTo' in full_path:
-            return root.kH
-    return root.kNoProcess
+        for e,pattern in _classification:
+            if type(pattern) == str:
+                if pattern in full_path:
+                    return e 
+            else:
+                if any([x in full_path for x in pattern]):
+                    return e
+    return root.pa.kNoProcess
 
 
 # read a CERT json and add it to the skimmer
-def add_json(skimmer, json_path):
+_jsons = {
+        2016 : '/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt',
+        2017 : '/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt',
+        }
+def add_json(skimmer):
+    json_path = _jsons.get(YEAR, None)
+    if not json_path:
+        PError("T3.job_utilities.add_json", "Unknown key = "+str(YEAR))
+    json_path = _data_dir + json_path
     with open(json_path) as jsonFile:
         payload = json.load(jsonFile)
         for run_str,lumis in payload.iteritems():
@@ -339,35 +353,9 @@ def add_json(skimmer, json_path):
 
 
 # some common stuff that doesn't need to be configured
-def run_PandaAnalyzer(skimmer, isData, input_name):
-    # read the inputs
-    try:
-        fin = root.TFile.Open(input_name)
-        tree = fin.FindObjectAny("events")
-        weight_table = fin.FindObjectAny('weights')
-        hweights = fin.FindObjectAny("hSumW")
-    except:
-        PError(_sname+'.run_PandaAnalyzer','Could not read %s'%input_name)
-        return False # file open error => xrootd?
-    if not tree:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover tree in %s'%input_name)
-        return False
-    if not hweights:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover hweights in %s'%input_name)
-        return False
-    if not weight_table:
-        weight_table = None
-
-    output_name = input_to_output(input_name)
-    skimmer.SetDataDir(_data_dir)
+def run_PandaAnalyzer(skimmer, isData, output_name):
     if isData:
-        add_json(skimmer, _data_dir+'/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt')
-
-    rinit = skimmer.Init(tree,hweights,weight_table)
-    if rinit:
-        PError(_sname+'.run_PandaAnalyzer','Failed to initialize %s!'%(input_name))
-        return False 
-    skimmer.SetOutputFile(output_name)
+        add_json(skimmer)
 
     # run and save output
     skimmer.Run()
@@ -379,6 +367,19 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
         return output_name 
     else:
         PError(_sname+'.run_PandaAnalyzer','Failed in creating %s!'%(output_name))
+        return False
+
+def run_HRAnalyzer(skimmer, isData, output_name):
+    # run and save output
+    skimmer.Run()
+    skimmer.Terminate()
+
+    ret = path.isfile(output_name)
+    if ret:
+        PInfo(_sname+'.run_HRAnalyzer','Successfully created %s'%(output_name))
+        return output_name 
+    else:
+        PError(_sname+'.run_HRAnalyzer','Failed in creating %s!'%(output_name))
         return False
 
 

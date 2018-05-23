@@ -8,11 +8,11 @@
 
 #include <iostream>
 
-using namespace pandaecf;
+using namespace pa;
 using namespace std;
-typedef Calculator C;
+typedef ECFCalculator C;
 
-double pandaecf::DeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2) 
+double pa::jetDeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2) 
 {
     double dEta{j1.eta()-j2.eta()}; 
     double dPhi{j1.phi()-j2.phi()};
@@ -25,7 +25,7 @@ double pandaecf::DeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet&
     return dEta*dEta + dPhi*dPhi;
 }
 
-C::Calculator(int maxN, vector<float> bs):
+C::ECFCalculator(int maxN, vector<float> bs):
   _bs(bs),
   _os({1,2,3}),
   _bN(_bs.size()),
@@ -84,7 +84,7 @@ void C::calculate(const vector<fastjet::PseudoJet>& particles)
         dR[iP][jP] = 0;
       } else { 
         const fastjet::PseudoJet& pj = particles[jP];
-        dR[iP][jP] = DeltaR2(pi,pj);
+        dR[iP][jP] = jetDeltaR2(pi,pj);
       }
     }
   }

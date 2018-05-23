@@ -18,7 +18,7 @@ def _dump(a):
 
 
 def _analysis(name, verbose, **kwargs):
-    a = root.Analysis(name)
+    a = root.pa.Analysis(name)
     for k,v in kwargs.iteritems():
         if not hasattr(a, k):
             PError('PandaAnalysis.Flat.analysis','Could not set property %s'%k)
@@ -46,6 +46,27 @@ vbf = lambda v=False : _analysis(
         fatjet = False,
         btagSFs = False,
         puppiJets = False
+    )
+
+vbfhbb = lambda v=False : _analysis(
+        name = 'vbfhbb',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        fatjet = True,
+        btagSFs = True,
+        btagWeights = True,
+        useCMVA = True,
+        hfCounting = True,
+        bjetBDTReg = False,
+        bjetDeepReg = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+        vbf = True,
     )
 
 monoh = lambda v=False : _analysis(
@@ -83,6 +104,34 @@ deepgen = lambda v=False : _analysis(
         genOnly = True,
     )
 
+kfac = lambda v=False : _analysis(
+        name = 'kfac',
+        verbose = v,
+        hbb = True,
+        genOnly = True,
+    )
+
+breg = lambda v=False : _analysis(
+        name = 'breg',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        fatjet = True,
+        btagSFs = True,
+        btagWeights = True,
+        useCMVA = True,
+        complicatedLeptons = True,
+        hfCounting = True,
+        bjetRegTraining = True,
+        bjetBDTReg = True,
+        bjetDeepReg = True,
+        varyJES = True,
+        rerunJES = True,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+    )
+
 wlnhbb = lambda v=False : _analysis(
         name = 'wlnhbb',
         verbose = v,
@@ -97,10 +146,12 @@ wlnhbb = lambda v=False : _analysis(
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
-        bjetRegression = True,
+        bjetRegTraining = False,
+        bjetBDTReg = True,
+        bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )
@@ -119,31 +170,12 @@ zllhbb = lambda v=False : _analysis(
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
-        bjetRegression = True,
+        bjetRegTraining = False,
+        bjetBDTReg = True,
+        bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
-        jetFlavorPartons = False,
-        jetFlavorJets = True,
-    )
-wlnhbb_ca15 = lambda v=False : _analysis(
-        name = 'wlnhbb',
-        verbose = v,
-        ak8 = False,
-        hbb = True,
-        monoh = False,
-        recoil = True,
-        fatjet = True,
-        btagSFs = True,
-        btagWeights = True,
-        useCMVA = True,
-        complicatedLeptons = True,
-        hfCounting = True,
-        recluster = False,
-        reclusterGen = False,
-        bjetRegression = True,
-        varyJES = True,
-        rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )

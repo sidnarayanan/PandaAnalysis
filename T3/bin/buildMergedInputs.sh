@@ -29,7 +29,7 @@ while getopts ":tn:" opt; do
 done
 
 PInfo -n "$myName" "Acquiring configuration..."
-wget -O ${WD}/list.cfg $PANDA_CFG
+wget -nv -O ${WD}/list.cfg $PANDA_CFG
 ${CMSSW_BASE}/src/PandaAnalysis/T3/bin/configBuilder.py --infile ${WD}/list.cfg --outfile ${WD}/local.cfg --nfiles $filesetSize
 cp -v ${WD}/list.cfg ${WD}/list_all.cfg 
 cp -v ${WD}/local.cfg ${WD}/local_all.cfg 

@@ -1,9 +1,9 @@
 #include "PandaAnalysis/Flat/interface/AnalyzerUtilities.h"
 #include "PandaAnalysis/Flat/interface/GeneralTree.h"
 #include "PandaAnalysis/Flat/interface/TagTree.h"
-#include "PandaAnalysis/Flat/interface/JetCorrector.h"
 #include "PandaAnalysis/Flat/interface/LimitTreeBuilder.h"
 #include "PandaAnalysis/Flat/interface/PandaAnalyzer.h"
+#include "PandaAnalysis/Flat/interface/HRAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/TagAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/genericTree.h"
 #include "PandaAnalysis/Flat/interface/Selection.h"
@@ -15,48 +15,48 @@
 #pragma link off all functions;
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;
+#pragma link C++ namespace pa;
 
-#pragma link C++ enum PandaAnalyzer::ProcessType;
-#pragma link C++ enum PandaAnalyzer::TriggerBits;
-#pragma link C++ enum TagAnalyzer::ProcessType;
+#pragma link C++ enum pa::ProcessType;
+#pragma link C++ enum pa::TriggerBits;
 #pragma link C++ enum GeneralTree::BTagShift;
 #pragma link C++ enum GeneralTree::BTagJet;
 #pragma link C++ enum GeneralTree::BTagTags;
 
-#pragma link C++ class Selection;
-#pragma link C++ class LambdaSel;
-#pragma link C++ class TriggerSel;
-#pragma link C++ class GenBosonPtSel;
-#pragma link C++ class FatjetSel;
-#pragma link C++ class Fatjet450Sel;
-#pragma link C++ class GenFatJetSel;
-#pragma link C++ class LeptonSel;
-#pragma link C++ class LeptonFakeSel;
-#pragma link C++ class RecoilSel;
-#pragma link C++ class MonotopSel;
-#pragma link C++ class MonohiggsSel;
-#pragma link C++ class VHbbSel;
-#pragma link C++ class Analysis;
-#pragma link C++ class LumiRange;
-#pragma link C++ class TCorr;
-#pragma link C++ class THCorr;
-#pragma link C++ class TF1Corr;
-#pragma link C++ class btagcand;
-#pragma link C++ class JetCorrector;
-#pragma link C++ class PandaAnalyzer;
-#pragma link C++ class TagAnalyzer;
-#pragma link C++ class GeneralTree;
-#pragma link C++ class GeneralTree::ECFParams;
-#pragma link C++ class GeneralTree::BTagParams;
-#pragma link C++ class TagTree;
-#pragma link C++ class TagTree::ECFParams;
-#pragma link C++ class genericTree;
-#pragma link C++ class LimitTreeBuilder;
-#pragma link C++ class xformula;
-#pragma link C++ class VariableMap;
-#pragma link C++ class Process;
-#pragma link C++ class Region;
-#pragma link C++ class ParticleGridder;
-#pragma link C++ class JetTree;
+#pragma link C++ class pa::Selection;
+#pragma link C++ class pa::LambdaSel;
+#pragma link C++ class pa::TriggerSel;
+#pragma link C++ class pa::GenBosonPtSel;
+#pragma link C++ class pa::FatjetSel;
+#pragma link C++ class pa::Fatjet450Sel;
+#pragma link C++ class pa::GenFatJetSel;
+#pragma link C++ class pa::LeptonSel;
+#pragma link C++ class pa::LeptonFakeSel;
+#pragma link C++ class pa::RecoilSel;
+#pragma link C++ class pa::MonotopSel;
+#pragma link C++ class pa::MonohiggsSel;
+#pragma link C++ class pa::VHbbSel;
+#pragma link C++ class pa::Analysis;
+#pragma link C++ class pa::LumiRange;
+#pragma link C++ class pa::TCorr;
+#pragma link C++ class pa::THCorr;
+#pragma link C++ class pa::TF1Corr;
+#pragma link C++ class pa::btagcand;
+#pragma link C++ class pa::PandaAnalyzer;
+#pragma link C++ class pa::HRAnalyzer;
+#pragma link C++ class pa::TagAnalyzer;
+#pragma link C++ class pa::GeneralTree;
+#pragma link C++ class pa::GeneralTree::ECFParams;
+#pragma link C++ class pa::GeneralTree::BTagParams;
+#pragma link C++ class pa::TagTree;
+#pragma link C++ class pa::TagTree::ECFParams;
+#pragma link C++ class pa::genericTree;
+#pragma link C++ class pa::LimitTreeBuilder;
+#pragma link C++ class pa::xformula;
+#pragma link C++ class pa::VariableMap;
+#pragma link C++ class pa::Process;
+#pragma link C++ class pa::Region;
+#pragma link C++ class pa::ParticleGridder;
+#pragma link C++ class pa::JetTree;
 
 #endif

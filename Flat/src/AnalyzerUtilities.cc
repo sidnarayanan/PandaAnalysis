@@ -1,15 +1,29 @@
-#include "PandaAnalysis/Flat/interface/AnalyzerUtilities.h"
+#include "../interface/AnalyzerUtilities.h"
 #include <cassert>
 
-using namespace fastjet;
+namespace fj = fastjet;
 using namespace std;
+using namespace pa;
+using namespace panda;
+
+
+void pa::downloadData(TString url, TString outpath, bool force, TString opts) 
+{
+  if (!force && !gSystem->AccessPathName(outpath))
+    return; // "Attention, bizarre convention of return value!!" -ROOT docs for this function
+  TString cmd = "wget ";
+  cmd += opts + " ";
+  cmd += "-O " + outpath;
+  cmd += " \"" + url + "\"";
+  gSystem->Exec(cmd);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-JetTree::Node::Node(PseudoJet& pj_):
+JetTree::Node::Node(fj::PseudoJet& pj_):
   _pj(pj_)
 {
-  PseudoJet dau1, dau2;
+  fj::PseudoJet dau1, dau2;
   if (_pj.has_parents(dau1, dau2)) {
     l = new Node(dau1);
     r = new Node(dau2);
@@ -68,8 +82,6 @@ vector<TLorentzVector>& ParticleGridder::get()
     } else {
       iter->second.push_back(&p);
     }      
-//    PDebug("ParticleGridder in",
-//           Form("pt=%.3f,eta=%.3f,phi=%.3f,m=%.3f in %i,%i", p.Pt(), eta, phi, p.M(), iEta, iPhi));
   }
 
   // grid is filled
@@ -139,7 +151,7 @@ void JetRotation::Rotate(float& x, float& y, float& z)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-VPseudoJet ConvertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
+VPseudoJet pa::convertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi, double minPt) 
 {
   VPseudoJet vpj;
   vpj.reserve(incoll.size());
@@ -156,40 +168,29 @@ VPseudoJet ConvertPFCands(const vector<const panda::PFCand*> &incoll, bool puppi
   return vpj;
 }
 
-VPseudoJet ConvertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
+VPseudoJet pa::convertPFCands(const panda::RefVector<panda::PFCand> &incoll, bool puppi, double minPt) 
 {
   vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
   for (auto incand : incoll)
     outcoll.push_back(incand.get());
 
-  return ConvertPFCands(outcoll, puppi, minPt);
+  return pa::convertPFCands(outcoll, puppi, minPt);
 }
 
-VPseudoJet ConvertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt) 
+VPseudoJet pa::convertPFCands(const panda::PFCandCollection &incoll, bool puppi, double minPt) 
 {
   vector<const panda::PFCand*> outcoll;
   outcoll.reserve(incoll.size());
   for (auto &incand : incoll)
     outcoll.push_back(&incand);
 
-  return ConvertPFCands(outcoll, puppi, minPt);
+  return pa::convertPFCands(outcoll, puppi, minPt);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-double TTNLOToNNLO(double pt) 
-{
-    double a = 0.1102;
-    double b = 0.1566;
-    double c = -3.685e-4;
-    double d = 1.098;
-
-    return TMath::Min(1.25,
-                        a*TMath::Exp(-b*pow(pt,2)+1) + c*pt + d);
-}
-
-bool ElectronIP(double eta, double dxy, double dz) 
+bool pa::ElectronIP(double eta, double dxy, double dz) 
 {
   double aeta = fabs(eta);
   if (aeta<1.4442) {
@@ -199,21 +200,9 @@ bool ElectronIP(double eta, double dxy, double dz)
   }
 }
 
-bool MuonIP(double dxy, double dz) 
+bool pa::MuonIP(double dxy, double dz) 
 {
   return (dxy < 0.02 && dz < 0.10);
-}
-
-bool IsMatched(vector<panda::Particle*>*objects,
-               double deltaR2, double eta, double phi) 
-{
-  for (auto *x : *objects) {
-    if (x->pt()>0) {
-      if ( DeltaR2(x->eta(),x->phi(),eta,phi) < deltaR2 )
-        return true;
-    }
-  }
-  return false;
 }
 
 

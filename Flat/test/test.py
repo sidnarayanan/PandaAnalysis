@@ -18,40 +18,32 @@ argv = []
 import ROOT as root
 from PandaCore.Tools.Load import *
 from PandaAnalysis.Flat.analysis import *
+import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-skimmer = root.PandaAnalyzer(debug_level)
-#gghbb = gghbb()
-#gghbb.reclusterGen = False
-#gghbb.bjetRegression = False
-#gghbb.btagSFs = False
-#gghbb.deep = True
-#gghbb.dump()
-a = vbf()
-a.processType = root.kZ
-skimmer.SetAnalysis(a)
+a = zllhbb()
+a.bjetDeepReg = True
+a.bjetBDTReg = False
+#a = breg()
+# a.bjetRegTrain = True
+a.inpath = torun
+a.outpath = 'testskim.root'
+a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
+a.processType = root.pa.kZ
+a.isData = True
+utils.set_year(a, 2016)
+
+skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
 skimmer.firstEvent=0
 skimmer.lastEvent=1000
-skimmer.isData=False
-if skimmer.isData:
-    with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
-        payload = json.load(jsonFile)
-        for run,lumis in payload.iteritems():
-            for l in lumis:
-                skimmer.AddGoodLumiRange(int(run),l[0],l[1])
-fin = root.TFile.Open(torun)
+if a.isData:
+    utils.add_json(skimmer)
 
-tree = fin.FindObjectAny("events")
-hweights = fin.FindObjectAny("hSumW")
-weights = fin.FindObjectAny('weights')
-if not weights:
-    weights = None
-
-skimmer.SetDataDir(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/')
-skimmer.Init(tree,hweights,weights)
-skimmer.SetOutputFile(output)
+#skimmer.AddPresel(root.pa.LowGenBosonPtSel())
+# skimmer.AddPresel(root.pa.VHbbSel())
+# skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()
 skimmer.Terminate()

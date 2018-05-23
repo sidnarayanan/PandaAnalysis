@@ -6,6 +6,7 @@
 
 using namespace panda;
 using namespace std;
+using namespace pa; 
 
 TagAnalyzer::TagAnalyzer(int debug_/*=0*/) {
   DEBUG = debug_;
@@ -256,9 +257,6 @@ void TagAnalyzer::Run() {
       std::cout << std::endl;
       PDebug("TagAnalyzer::Run::Dump","");
       event.pfMet.print(std::cout, 2);
-      std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
-      event.metMuOnlyFix.print(std::cout, 2);
       std::cout << std::endl;
     }
 

@@ -3,7 +3,7 @@
 #include <cmath>
 
 Double_t
-panda::PackingHelperStandalone::up(UShort_t p) // unpackUnbound
+pa::PackingHelperStandalone::up(UShort_t p) // unpackUnbound
 {
   if(p==0) return 0;
   union {
@@ -51,7 +51,7 @@ panda::PackingHelperStandalone::up(UShort_t p) // unpackUnbound
 }
 
 Double_t
-panda::PackingHelperStandalone::up8(Char_t i, Double_t min, Double_t max, UChar_t baseminus1) // unpack8LogBound
+pa::PackingHelperStandalone::up8(Char_t i, Double_t min, Double_t max, UChar_t baseminus1) // unpack8LogBound
 {
   if (baseminus1 > 127)
     baseminus1 = 127;
