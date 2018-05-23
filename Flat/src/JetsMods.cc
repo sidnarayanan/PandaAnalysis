@@ -573,7 +573,7 @@ void HbbSystemMod::do_execute()
   sort(btagsorted.begin(), btagsorted.end(),
        analysis.useCMVA ?
         [](const JetWrapper *x, const JetWrapper *y) { return x->base->cmva > y->base->cmva; } :
-        [](const JetWrapper *x, const JetWrapper *y) { return x->base->csv > y->base->csv; }
+        [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb > y->base->deepCSVb; }
       );
   map<const JetWrapper*, int> order; // needed for output indexing
   for (int i = 0; i != (int)jets.cleaned.size(); ++i)

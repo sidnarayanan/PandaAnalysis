@@ -17,7 +17,7 @@ from PandaCore.Tools.Load import *
 import PandaCore.Tools.job_config as cb
 import PandaAnalysis.Tagging.cfg_v8 as tagcfg
 import PandaAnalysis.T3.job_utilities as utils
-from PandaAnalysis.Flat.analysis import wlnhbb
+from PandaAnalysis.Flat.analysis import wlnhbb2017
 
 Load('PandaAnalyzer')
 data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
@@ -26,7 +26,7 @@ def fn(input_name, isData, full_path):
     
     PInfo(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
-    a = wlnhbb(True)
+    a = wlnhbb2017(True)
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir

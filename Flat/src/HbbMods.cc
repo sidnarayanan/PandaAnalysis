@@ -67,8 +67,8 @@ void SoftActivityMod::do_execute()
     // ((x-h)cos(A) + (y-k)sin(A))^2 /a^2 + ((x-h)sin(A) - (y-k)cos(A))^2 /b^2 <=1
     double ellipse_cosA, ellipse_sinA, ellipse_h, ellipse_k, ellipse_a, ellipse_b; {
       double ellipse_alpha;
-      float phi1=gt.jetPhi[gt.hbbjtidx[shift][0]], phi2=gt.jetPhi[gt.hbbjtidx[shift][1]];
-      float eta1=gt.jetEta[gt.hbbjtidx[shift][0]], eta2=gt.jetEta[gt.hbbjtidx[shift][1]];
+      float phi1=gt.jotPhi[gt.hbbjtidx[shift][0]], phi2=gt.jotPhi[gt.hbbjtidx[shift][1]];
+      float eta1=gt.jotEta[gt.hbbjtidx[shift][0]], eta2=gt.jotEta[gt.hbbjtidx[shift][1]];
       double phi1MinusPhi2 = phi1-phi2;
       double eta1MinusEta2 = eta1-eta2;
       double phi1MinusPhi2MPP = TVector2::Phi_mpi_pi(phi1MinusPhi2);

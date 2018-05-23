@@ -632,6 +632,7 @@ class GeneralTree : public genericTree {
   float pdfDown;
   float scale[6];
   float lheHT;
+  int lheNjets;
   int isGS;
 };
 #endif

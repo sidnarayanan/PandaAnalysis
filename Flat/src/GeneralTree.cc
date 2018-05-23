@@ -340,6 +340,7 @@ void GeneralTree::Reset() {
   pdfUp = 1;
   pdfDown = 1;
   lheHT = -99;
+  lheNjets = 0;
   isGS = 0;
   for (int iA=0; iA!=4; ++iA) {
     electronPt[iA] = -99;
@@ -1108,6 +1109,7 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("pdfDown",&pdfDown,"pdfDown/F");
   Book("scale",scale,"scale["+TString("6")+"]/F");
   Book("lheHT",&lheHT,"lheHT/F");
+  Book("lheNjets",&lheNjets,"lheNjets/I");
   Book("isGS",&isGS,"isGS/I");
   if (is_fatjet) {
     Book("nFatjet",&nFatjet,"nFatjet/I");

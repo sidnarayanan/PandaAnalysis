@@ -160,6 +160,7 @@ float FatJetMod::getMSDCorr(float puppipt, float puppieta)
   } else {
     recoCorr = utils.puppisd_corrRECO_for->Eval(puppipt);
   }
+  //printf("genCorr=%.3f, recoCorr=%.3f\n",genCorr,recoCorr);
   totalWeight = genCorr * recoCorr;
 
   return totalWeight;
