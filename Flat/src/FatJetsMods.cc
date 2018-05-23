@@ -33,7 +33,7 @@ void FatJetMod::do_execute()
   int fatjet_counter=-1;
   for (auto& fj : fatjets) {
     ++fatjet_counter;
-    float pt = (analysis.hbb && !analysis.isData) ? fj.pt() : fj.ptSmear;
+    float pt = (analysis.hbb && !analysis.isData) ? fj.ptSmear : fj.pt();
     float rawpt = fj.rawPt;
     float eta = fj.eta();
     float mass = fj.m();
@@ -158,6 +158,7 @@ float FatJetMod::getMSDCorr(float puppipt, float puppieta)
   } else {
     recoCorr = utils.puppisd_corrRECO_for->Eval(puppipt);
   }
+  //printf("genCorr=%.3f, recoCorr=%.3f\n",genCorr,recoCorr);
   totalWeight = genCorr * recoCorr;
 
   return totalWeight;
