@@ -281,6 +281,7 @@ void PandaAnalyzer::Run()
     pr.Report();
 
     Reset();
+    tr.TriggerEvent("reset");
     event.getEntry(*tIn,iE);
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
 

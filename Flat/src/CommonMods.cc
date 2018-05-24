@@ -251,6 +251,10 @@ void TriggerMod::do_init(Registry& registry)
         th.indices[i] = panda_idx;
       }
     }
+    if (analysis.hbb && analysis.year == 2017) {
+      event.registerTriggerObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
+      event.registerTriggerObjects("hltEGL1SingleEGOrFilter");
+    }
   }
 }
 
@@ -271,8 +275,9 @@ void TriggerMod::checkEle32()
       break;
     }
   }
-  if (matchedToTriggerObject) 
+  if (matchedToTriggerObject) { 
     gt.trigger |= (1 << kSingleEleTrig);
+  }
 }
 
 void TriggerMod::do_execute()

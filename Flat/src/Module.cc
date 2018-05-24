@@ -90,11 +90,11 @@ void ConfigMod::set_inputBranches()
            "recoil","metFilters","trkMet"};
 
     if (analysis.ak8) {
-      bl += {jetname+"AK8Jets", "subjets", jetname+"AK8Subjets","Subjets"};
+      bl += {jetname+"AK8Jets", jetname+"AK8Subjets"};
       if (analysis.hbb)
         bl.push_back("ak8GenJets");
     } else if (analysis.fatjet) {
-      bl += {jetname+"CA15Jets", "subjets", jetname+"CA15Subjets","Subjets"};
+      bl += {jetname+"CA15Jets", jetname+"CA15Subjets"};
       if (analysis.hbb)
         bl.push_back("ca15GenJets");
     }
@@ -111,7 +111,7 @@ void ConfigMod::set_inputBranches()
 
     if (cfg.isData || analysis.mcTriggers) {
       bl.push_back("triggers");
-      if (analysis.hbb)
+      if (analysis.hbb && analysis.year==2017)
         bl.push_back("triggerObjects");
     }
 

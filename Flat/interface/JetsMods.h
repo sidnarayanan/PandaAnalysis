@@ -52,7 +52,7 @@ namespace pa {
       AnalysisMod("jetflavor", event_, cfg_, utils_, gt_, level_) { }
     virtual ~JetFlavorMod () {}
 
-    bool on() { return analysis.jetFlavorPartons || analysis.jetFlavorJets; }
+    bool on() { return !analysis.isData && (analysis.jetFlavorPartons || analysis.jetFlavorJets); }
   protected:
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");

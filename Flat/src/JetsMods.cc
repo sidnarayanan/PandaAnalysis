@@ -461,6 +461,7 @@ void BJetRegMod::do_execute()
     gt.jotMuRing[b][N] = energies.get_e(b, Energies::pmu);
     gt.jotNeRing[b][N] = energies.get_e(b, Energies::pne);
   }
+  /*
   for (int pf_type = Energies::pem; pf_type != (int)Energies::pN; ++pf_type) {
     static std::array<float, static_cast<long unsigned>(shiftjetrings::N)> moments;
     // eta first
@@ -500,6 +501,7 @@ void BJetRegMod::do_execute()
     for (int i = 0; i != static_cast<int>(shiftjetrings::N); ++i)
       (gt.*dr_array)[i][N] = sqrt(pow((gt.*eta_array)[i][N],2) + pow((gt.*phi_array)[i][N],2));
   }
+  */
 
   auto& vert = jet.secondaryVertex;
   if (vert.isValid()) {
