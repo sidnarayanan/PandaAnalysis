@@ -28,7 +28,9 @@ namespace pa {
     analysis(a_),
     tr("PandaAnalyzer", DEBUG+1),
     isData(analysis.isData)
-    { }
+    { 
+      tr.Start();
+    }
 
 
     const int DEBUG;

@@ -274,14 +274,13 @@ void PandaAnalyzer::Run()
 
   ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
   TimeReporter& tr = cfgmod.cfg.tr;
+  tr.TriggerEvent("configuration"); 
 
   // EVENTLOOP --------------------------------------------------------------------------
   for (iE=nZero; iE!=nEvents; ++iE) {
-    tr.Start();
     pr.Report();
 
     Reset();
-    tr.TriggerEvent("reset");
     event.getEntry(*tIn,iE);
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
 
