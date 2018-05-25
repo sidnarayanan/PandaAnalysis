@@ -32,7 +32,10 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
     if (analysis.rerunJES) {
       (*scaleUnc)[ishift]->setJetPt(pt);
       (*scaleUnc)[ishift]->setJetEta(jet.eta());
-      pt *= (1 + (*scaleUnc)[ishift]->getUncertainty(isUp));
+      float relUnc = (*scaleUnc)[ishift]->getUncertainty(isUp);
+      if(!isUp) relUnc *= -1;
+      pt *= (1 + relUnc);
+      //printf("ishift=%d, isUp=%d, getUncertainty=%.3f\n", ishift, isUp, relUnc);
     } else {
       pt = (isUp ? jet.ptCorrUp :  jet.ptCorrDown) * pt / jet.pt();
     }

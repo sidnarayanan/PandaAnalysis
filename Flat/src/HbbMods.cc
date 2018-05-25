@@ -65,6 +65,8 @@ void SoftActivityMod::do_execute()
       // Minimum track pT threshold (300 MeV default)
       if (softTrack->pt() < cfg.minSoftTrackPt) 
         continue;
+      if (fabs(softTrack->eta()) > 4.7)
+        continue;
       // High quality track flag
       if (!softTrack->track.isValid() || !softTrack->track.get()->highPurity) 
         continue;
@@ -104,13 +106,13 @@ void SoftActivityMod::do_execute()
         double ellipse_x = softTrack->eta();
         double ellipse_y = softTrack->phi();
         double ellipse_term1 = pow(
-          (TVector2::Phi_mpi_pi(ellipse_x - ellipse_h)*ellipse_cosA 
-           + (ellipse_y - ellipse_k)*ellipse_sinA) / ellipse_a,
+          ((ellipse_x - ellipse_h)*ellipse_cosA 
+           + TVector2::Phi_mpi_pi(ellipse_y - ellipse_k)*ellipse_sinA) / ellipse_a,
           2
         );
         double ellipse_term2 = pow(
-          (TVector2::Phi_mpi_pi(ellipse_x - ellipse_h)*ellipse_sinA 
-           - (ellipse_y - ellipse_k)*ellipse_cosA) / ellipse_b,
+          ((ellipse_x - ellipse_h)*ellipse_sinA 
+           - TVector2::Phi_mpi_pi(ellipse_y - ellipse_k)*ellipse_cosA) / ellipse_b,
           2
         );
         double ellipse_equation = (ellipse_term1 + ellipse_term2);
