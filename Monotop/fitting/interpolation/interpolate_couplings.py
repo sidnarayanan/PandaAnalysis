@@ -64,7 +64,7 @@ def interpolate():
     f_interp_path = basedir+'/interpolate/hists_couplings/%s.root'%(args.mass)
     f_interp = root.TFile.Open(f_interp_path)
 
-    PInfo(sname, 'We want to interpolate point %s'%args.mass)
+    logger.info(sname, 'We want to interpolate point %s'%args.mass)
 
     if not args.mass_reco:
         m_V,m_DM = [int(x) for x in args.mass.split('_')]
@@ -84,7 +84,7 @@ def interpolate():
 
         args.mass_reco = '%i_%i'%(m_V_reco,m_DM_reco)
 
-    PInfo(sname, 'We have chosen as the reconstructed point %s'%args.mass_reco)
+    logger.info(sname, 'We have chosen as the reconstructed point %s'%args.mass_reco)
 
     f_reco_path = basedir+'/signals_3/fittingForest_signal_vector_%s.root'%(args.mass_reco)
     f_reco = root.TFile.Open(f_reco_path)
@@ -101,7 +101,7 @@ def interpolate():
         # find the reco g
         # g_reco = min(couplings_reco, key = lambda x : euclid(parse_coupling_name(g), parse_coupling_name(x)))
         g_reco = 'nominal' # override
-        PInfo(sname,'Interpolating %s with %s'%(g,g_reco))
+        logger.info(sname,'Interpolating %s with %s'%(g,g_reco))
         interp2reco[g] = g_reco
         h_interp = f_interp.Get('h_%s'%g)
         h_reco_gen = f_reco_gen.Get('h_%s'%g_reco)
@@ -120,7 +120,7 @@ def interpolate():
     xarr['loose'] = read_tree(t_reco,branches,'top_ecf_bdt>0.1 && top_ecf_bdt<0.45 && met>250')
 
     f_out = root.TFile('%s/interpolate/interpolated_couplings2test/interp_%s.root'%(basedir,args.mass),'RECREATE')
-    PInfo(sname,'Creating %s/interpolate/interpolated_couplings2test/interp_%s.root'%(basedir,args.mass))
+    logger.info(sname,'Creating %s/interpolate/interpolated_couplings2test/interp_%s.root'%(basedir,args.mass))
     for g in couplings_interp:
         f_out.cd()
         folder = f_out.mkdir(g)

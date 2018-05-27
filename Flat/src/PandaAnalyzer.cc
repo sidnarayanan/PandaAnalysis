@@ -13,19 +13,19 @@ PandaAnalyzer::PandaAnalyzer(int debug_/*=0*/)
 {
   DEBUG = debug_;
 
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
   gt = new GeneralTree();
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Built GeneralTree");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Built GeneralTree");
   ibetas = gt->get_ibetas();
   Ns = gt->get_Ns();
   orders = gt->get_orders();
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Called constructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Called constructor");
 }
 
 
 PandaAnalyzer::~PandaAnalyzer() 
 {
-  if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
 }
 
 
@@ -55,7 +55,7 @@ void PandaAnalyzer::ResetBranches()
   }
   vMETNoMu.SetMagPhi(0,0);
   gt->Reset();
-  if (DEBUG) PDebug("PandaAnalyzer::ResetBranches","Reset");
+  if (DEBUG) logger.debug("PandaAnalyzer::ResetBranches","Reset");
 }
 
 
@@ -117,7 +117,7 @@ void PandaAnalyzer::Terminate()
   delete ecfcalc;
   delete grid;
 
-  if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
+  if (DEBUG) logger.debug("PandaAnalyzer::Terminate","Finished with output");
 }
 
 
@@ -137,7 +137,7 @@ void PandaAnalyzer::Run()
     nZero = firstEvent;
 
   if (!fOut || !tIn) {
-    PError("PandaAnalyzer::Run","NOT SETUP CORRECTLY");
+    logger.error("PandaAnalyzer::Run","NOT SETUP CORRECTLY");
     exit(1);
   }
 
@@ -187,7 +187,7 @@ void PandaAnalyzer::Run()
   std::vector<unsigned int> eleFakeTriggers;
 
   if (isData || analysis->applyMCTriggers) {
-    if (DEBUG) PDebug("PandaAnalyzer::Run","Loading the trigger paths");
+    if (DEBUG) logger.debug("PandaAnalyzer::Run","Loading the trigger paths");
     std::vector<TString> paths;
     paths = {
           "HLT_PFMET170_NoiseCleaned",
@@ -337,25 +337,25 @@ void PandaAnalyzer::Run()
 
     tr->TriggerEvent(TString::Format("GetEntry %u",iE));
     if (DEBUG > 5) {
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.photons.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.muons.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.electrons.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.chsAK4Jets.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.pfMet.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("PandaAnalyzer::Run::Dump","");
+      logger.debug("PandaAnalyzer::Run::Dump","");
       event.metMuOnlyFix.print(std::cout, 2);
       std::cout << std::endl;
     }
@@ -569,7 +569,7 @@ void PandaAnalyzer::Run()
   for (auto* s : selections) 
     s->report(); 
 
-  if (DEBUG) { PDebug("PandaAnalyzer::Run","Done with entry loop"); }
+  if (DEBUG) { logger.debug("PandaAnalyzer::Run","Done with entry loop"); }
 
 } // Run()
 

@@ -36,7 +36,7 @@ Process::~Process() {
 }
 
 void Process::Run() {
-	PInfo("LimitTreeBuilder::Process::Run",TString::Format("%s%s",name.Data(),syst.Data()));
+	logger.info("LimitTreeBuilder::Process::Run",TString::Format("%s%s",name.Data(),syst.Data()));
 
 	inputTree->SetBranchStatus("*",0);
 	turnOnBranches(inputTree,selection);

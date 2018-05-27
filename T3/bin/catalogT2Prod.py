@@ -106,7 +106,7 @@ def cat(catalog, condition=lambda x : True):
           could_not_find.append(shortname)
         if properties[0] not in samples:
             samples[properties[0]] = CatalogSample(*properties)
-        PInfo(argv[0], 'Selecting %s'%properties[0])
+        logger.info(argv[0], 'Selecting %s'%properties[0])
         sample = samples[properties[0]]
         for rfpath in glob(d+'/RawFiles.*'):
             rawfile = open(rfpath)
@@ -120,9 +120,9 @@ if args.user_catalog:
     cat(args.catalog.replace('cmsprod',user).replace('t2','t3'))
 
 if len(could_not_find)>0:
-    PWarning(argv[0],"Could not properly catalog following datasets (force=%s)"%('True' if args.force else 'False'))
+    logger.warning(argv[0],"Could not properly catalog following datasets (force=%s)"%('True' if args.force else 'False'))
     for c in could_not_find:
-        PWarning(argv[0],'\t'+c)
+        logger.warning(argv[0],'\t'+c)
 
 cfg_file = open(args.outfile,'w')
 lines = []
@@ -134,10 +134,10 @@ for iL in xrange(len(lines)):
     cfg_file.write(lines[iL]%(iL))
 
 cfg_file.close()
-PInfo(argv[0],'Cataloged %i files for %i datasets'%(len(lines),len(samples)))
-PInfo(argv[0],'Output written to '+args.outfile)
+logger.info(argv[0],'Cataloged %i files for %i datasets'%(len(lines),len(samples)))
+logger.info(argv[0],'Output written to '+args.outfile)
 
 if args.smartcache:
     smartcache_datasets = list(set(smartcache_args))
-    PInfo(argv[0],'Making smartcache requests for files')
+    logger.info(argv[0],'Making smartcache requests for files')
     smartcache(smartcache_datasets)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from PandaCore.Tools.Load import Load 
-from PandaCore.Tools.Misc import PInfo, PError
+from PandaCore.Utils.logging import logger
 import ROOT as root
 import cppyy
 import sys

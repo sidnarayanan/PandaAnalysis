@@ -5,7 +5,7 @@ import argparse
 import subprocess
 from re import sub
 from os import getenv
-from PandaCore.Tools.Misc import PInfo
+from PandaCore.Utils.logging import logger
 from PandaCore.Tools.job_management import DataSample,convert_catalog
 
 workdir = getenv('SUBMIT_WORKDIR')
@@ -28,6 +28,6 @@ for k in keys:
 		fout.write(c%(counter,counter))
 		counter += 1
 
-PInfo('configBuilder.py','Submission will have %i jobs'%(counter))
+logger.info('configBuilder.py','Submission will have %i jobs'%(counter))
 
 fout.close()

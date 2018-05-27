@@ -75,12 +75,12 @@ mcpass,mcpasserr = getIntAndErr(tmc,tAND(cut,passcut%(args.disc,args.cut)),weigh
 mcfail,mcfailerr = getIntAndErr(tmc,tAND(cut,failcut%(args.disc,args.cut)),weight)
 
 if VERBOSE:
-	PDebug(sname,'%10s %10s %10s %10s'%('pass','fail','passerr','failerr'))
-	PDebug(sname,'%10f %10f %10f %10f'%(datapass,datafail,datapasserr,datafailerr))
-	PDebug(sname,'%10f %10f %10f %10f'%(mcpass,mcfail,mcpasserr,mcfailerr))
+	logger.debug(sname,'%10s %10s %10s %10s'%('pass','fail','passerr','failerr'))
+	logger.debug(sname,'%10f %10f %10f %10f'%(datapass,datafail,datapasserr,datafailerr))
+	logger.debug(sname,'%10f %10f %10f %10f'%(mcpass,mcfail,mcpasserr,mcfailerr))
 
 mceff,mcerr = calcEffAndErr(mcpass,mcpasserr,mcfail,mcfailerr)
 dataeff,dataerr = calcEffAndErr(datapass,datapasserr,datafail,datafailerr)
 tagsf, tagsferr = calcSFAndErr(dataeff,dataerr,mceff,mcerr)
 
-PInfo(sname,'SF(%s) = %.4g +/- %.3g'%(passcut%(args.disc,args.cut),tagsf,tagsferr))
+logger.info(sname,'SF(%s) = %.4g +/- %.3g'%(passcut%(args.disc,args.cut),tagsf,tagsferr))

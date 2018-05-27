@@ -59,7 +59,7 @@ For convenience, here's the (annotated) content of `fn`:
 ```python
 def fn(input_name, isData, full_path):
 
-    PInfo(sname+'.fn','Starting to process '+input_name)
+    logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
     skimmer = root.PandaAnalyzer()
     analysis = wlnhbb(True)                                          # this is imported from PandaAnalysis.Flat.Analysis, where the defaults are set

@@ -19,7 +19,7 @@ void PandaAnalyzer::RegisterTriggers()
     for (unsigned i = 0; i != N; i++) {
       unsigned panda_idx = event.registerTrigger(th.paths.at(i));
       th.indices[i] = panda_idx;
-      if (DEBUG) PDebug("PandaAnalyzer::RegisterTriggers",
+      if (DEBUG) logger.debug("PandaAnalyzer::RegisterTriggers",
         Form("Got index %d for trigger path %s", panda_idx, th.paths.at(i).Data())
       );
     }
@@ -57,7 +57,7 @@ double PandaAnalyzer::GetCorr(CorrectionType ct, double x, double y)
   } else if (f1Corrs[ct]!=0) {
     return f1Corrs[ct]->Eval(x);
   } else {
-    PError("PandaAnalyzer::GetCorr",
+    logger.error("PandaAnalyzer::GetCorr",
        TString::Format("No correction is defined for CorrectionType=%u",ct));
     return 1;
   }
@@ -70,7 +70,7 @@ double PandaAnalyzer::GetError(CorrectionType ct, double x, double y)
   } else if (h2Corrs[ct]!=0) {
     return h2Corrs[ct]->Error(x,y);
   } else {
-    PError("PandaAnalyzer::GetError",
+    logger.error("PandaAnalyzer::GetError",
        TString::Format("No correction is defined for CorrectionType=%u",ct));
     return 1;
   }
@@ -111,7 +111,7 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
   if (fAux) {
     fAux->WriteTObject(tAux, "inputs", "Overwrite");
     TString path = TString::Format(auxFilePath.Data(),auxCounter);
-    if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Closing "+path);
+    if (DEBUG) logger.debug("PandaAnalyzer::IncrementAuxFile", "Closing "+path);
     fAux->Close();
   }
   if (close)
@@ -119,7 +119,7 @@ void PandaAnalyzer::IncrementGenAuxFile(bool close)
 
   TString path = TString::Format(auxFilePath.Data(),auxCounter++);
   fAux = TFile::Open(path.Data(), "RECREATE");
-  if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
+  if (DEBUG) logger.debug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
   tAux = new TTree("inputs","inputs");
   
   genJetInfo.particles.resize(NMAXPF);
@@ -181,7 +181,7 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
 
   TString path = TString::Format(auxFilePath.Data(),auxCounter++);
   fAux = TFile::Open(path.Data(), "RECREATE");
-  if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
+  if (DEBUG) logger.debug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
   tAux = new TTree("inputs","inputs");
   
   pfInfo.resize(NMAXPF);

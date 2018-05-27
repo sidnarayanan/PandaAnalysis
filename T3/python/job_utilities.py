@@ -37,7 +37,7 @@ else:
         environ['LD_LIBRARY_PATH'] = '$PWD/lcg-cp:'+environ['LD_LIBRARY_PATH']
         stageout_protocol = 'lcg'
     except Exception as e:
-        PError(_sname,
+        logger.error(_sname,
                'Could not install lcg-cp in absence of other protocols!')
         raise e
 
@@ -70,7 +70,7 @@ _stopwatch = time()
 def print_time(label):
     global _stopwatch
     now_ = time()
-    PDebug(_sname+'.print_time:',
+    logger.debug(_sname+'.print_time:',
            '%.1f s elapsed performing "%s"'%((now_-_stopwatch),label))
     _stopwatch = now_
 
@@ -90,7 +90,7 @@ def input_to_output(name):
 #  - else xrdcp it locally
 def copy_local(long_name):
     full_path = long_name
-    PInfo(_sname,full_path)
+    logger.info(_sname,full_path)
 
     panda_id = long_name.split('/')[-1].split('_')[-1].replace('.root','')
     input_name = 'input_%s.root'%panda_id
@@ -101,31 +101,31 @@ def copy_local(long_name):
         local_path = full_path.replace('root://t3serv006.mit.edu/','/mnt/hadoop')
     else:
         local_path = full_path.replace('root://xrootd.cmsaf.mit.edu/','/mnt/hadoop/cms')
-    PInfo(_sname+'.copy_local','Local access is configured to be %s'%('on' if local_copy else 'off'))
+    logger.info(_sname+'.copy_local','Local access is configured to be %s'%('on' if local_copy else 'off'))
     if local_copy and path.isfile(local_path): 
         # apparently SmartCached files can be corrupted...
         ftest = root.TFile(local_path)
         if ftest and not(ftest.IsZombie()):
-            PInfo(_sname+'.copy_local','Opting to read locally')
+            logger.info(_sname+'.copy_local','Opting to read locally')
             if REMOTE_READ:
                 return local_path
             else:
                 cmd = 'cp %s %s'%(local_path, input_name)
-                PInfo(_sname+'.copy_local',cmd)
+                logger.info(_sname+'.copy_local',cmd)
                 system(cmd)
                 copied = True
 
     if not copied:
         cmd = "xrdcp %s %s"%(full_path,input_name)
-        PInfo(_sname+'.copy_local',cmd)
+        logger.info(_sname+'.copy_local',cmd)
         system(cmd)
         copied = True
             
     if path.isfile(input_name):
-        PInfo(_sname+'.copy_local','Successfully copied to %s'%(input_name))
+        logger.info(_sname+'.copy_local','Successfully copied to %s'%(input_name))
         return input_name
     else:
-        PError(_sname+'.copy_local','Failed to copy %s'%input_name)
+        logger.error(_sname+'.copy_local','Failed to copy %s'%input_name)
         return None
 
 
@@ -133,9 +133,9 @@ def copy_local(long_name):
 def cleanup(fname):
     ret = system('rm -f %s'%(fname))
     if ret:
-        PError(_sname+'.cleanup','Removal of %s exited with code %i'%(fname,ret))
+        logger.error(_sname+'.cleanup','Removal of %s exited with code %i'%(fname,ret))
     else:
-        PInfo(_sname+'.cleanup','Removed '+fname)
+        logger.info(_sname+'.cleanup','Removed '+fname)
     return ret
 
 
@@ -146,9 +146,9 @@ def hadd(good_inputs, output='output.root'):
     print cmd
     ret = system(cmd)    
     if not ret:
-        PInfo(_sname+'.hadd','Merging exited with code %i'%ret)
+        logger.info(_sname+'.hadd','Merging exited with code %i'%ret)
     else:
-        PError(_sname+'.hadd','Merging exited with code %i'%ret)
+        logger.error(_sname+'.hadd','Merging exited with code %i'%ret)
 
 
 # remove any irrelevant branches from the final tree.
@@ -159,7 +159,7 @@ def drop_branches(to_drop=None, to_keep=None):
         return 0
 
     if to_drop and to_keep:
-        PError(_sname+'.drop_branches','Can only provide to_drop OR to_keep')
+        logger.error(_sname+'.drop_branches','Can only provide to_drop OR to_keep')
         return 0
 
     f = root.TFile('output.root','UPDATE')
@@ -185,13 +185,13 @@ def drop_branches(to_drop=None, to_keep=None):
     # check that the write went okay
     f = root.TFile('output.root')
     if f.IsZombie():
-        PError(_sname+'.drop_branches','Corrupted file trying to drop '+str(to_drop))
+        logger.error(_sname+'.drop_branches','Corrupted file trying to drop '+str(to_drop))
         return 1 
     t_clone = f.FindObjectAny('events')
     if (n_entries==t_clone.GetEntriesFast()):
         return 0
     else:
-        PError(_sname+'.drop_branches','Corrupted tree trying to drop '+str(to_drop))
+        logger.error(_sname+'.drop_branches','Corrupted tree trying to drop '+str(to_drop))
         return 2
 
 
@@ -209,7 +209,7 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
         ls = not('hadoop' in outdir) 
     ls = False # override, I don't trust network-mounted filesystems anymore 
     if stageout_protocol is None:
-        PError(_sname+'.stageout',
+        logger.error(_sname+'.stageout',
                'Stageout protocol has not been satisfactorily determined! Cannot proceed.')
         return -2
     timeout = 300
@@ -259,27 +259,27 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
                                    '-v -D srmv2 -b', 
                                    'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename),
                                    'file://$PWD/testfile'])
-        PInfo(_sname+'.stageout',cpargs)
+        logger.info(_sname+'.stageout',cpargs)
         ret = system(cpargs)
         if not ret:
-            PInfo(_sname+'.stageout','Move exited with code %i'%ret)
+            logger.info(_sname+'.stageout','Move exited with code %i'%ret)
             sleep(10) # give the filesystem a chance to respond
         else:
-            PError(_sname+'.stageout','Move exited with code %i'%ret)
+            logger.error(_sname+'.stageout','Move exited with code %i'%ret)
             failed = True
         if not failed:
-            PInfo(_sname+'.stageout',lsargs)
+            logger.info(_sname+'.stageout',lsargs)
             ret = system(lsargs)
             if ret:
-                PError(_sname+'.stageout','Output file is missing!')
+                logger.error(_sname+'.stageout','Output file is missing!')
                 failed = True
         if not failed:
-            PInfo(_sname+'.stageout', 'Copy succeeded after %i attempts'%(i_attempt+1))
+            logger.info(_sname+'.stageout', 'Copy succeeded after %i attempts'%(i_attempt+1))
             return ret
         else:
             timeout = int(timeout * 1.5)
         system('rm -f testfile')
-    PError(_sname+'.stagoeut', 'Copy failed after %i attempts'%(n_attempts))
+    logger.error(_sname+'.stagoeut', 'Copy failed after %i attempts'%(n_attempts))
     return ret
 
 
@@ -347,13 +347,13 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
         weight_table = fin.FindObjectAny('weights')
         hweights = fin.FindObjectAny("hSumW")
     except:
-        PError(_sname+'.run_PandaAnalyzer','Could not read %s'%input_name)
+        logger.error(_sname+'.run_PandaAnalyzer','Could not read %s'%input_name)
         return False # file open error => xrootd?
     if not tree:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover tree in %s'%input_name)
+        logger.error(_sname+'.run_PandaAnalyzer','Could not recover tree in %s'%input_name)
         return False
     if not hweights:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover hweights in %s'%input_name)
+        logger.error(_sname+'.run_PandaAnalyzer','Could not recover hweights in %s'%input_name)
         return False
     if not weight_table:
         weight_table = None
@@ -365,7 +365,7 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
 
     rinit = skimmer.Init(tree,hweights,weight_table)
     if rinit:
-        PError(_sname+'.run_PandaAnalyzer','Failed to initialize %s!'%(input_name))
+        logger.error(_sname+'.run_PandaAnalyzer','Failed to initialize %s!'%(input_name))
         return False 
     skimmer.SetOutputFile(output_name)
 
@@ -375,10 +375,10 @@ def run_PandaAnalyzer(skimmer, isData, input_name):
 
     ret = path.isfile(output_name)
     if ret:
-        PInfo(_sname+'.run_PandaAnalyzer','Successfully created %s'%(output_name))
+        logger.info(_sname+'.run_PandaAnalyzer','Successfully created %s'%(output_name))
         return output_name 
     else:
-        PError(_sname+'.run_PandaAnalyzer','Failed in creating %s!'%(output_name))
+        logger.error(_sname+'.run_PandaAnalyzer','Failed in creating %s!'%(output_name))
         return False
 
 
@@ -399,7 +399,7 @@ def main(to_run, processed, fn):
             print_time('remove %s'%input_name)
     
     if len(processed)==0:
-        PWarning(_sname+'.main', 'No successful outputs!')
+        logger.warning(_sname+'.main', 'No successful outputs!')
         exit(1)
 
 

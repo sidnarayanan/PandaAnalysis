@@ -34,7 +34,7 @@ void PandaAnalyzer::RemoveGenDups(const panda::Collection<T>& genParticles)
             (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.00001)) {
           foundDup = true;
           if (DEBUG > 8) {
-            PDebug("Found duplicate",
+            logger.debug("Found duplicate",
                    Form("p1(%8.3f,%5.1f,%5.1f,%5i,%i) <-> p2(%8.3f,%5.1f,%5.1f,%5i,%i)",
                         g.pt(), g.eta(), g.phi(), g.pdgid, g.finalState ? 1 : 0,
                         gPtr->pt(), gPtr->eta(), gPtr->phi(), gPtr->pdgid, gPtr->finalState ? 1 : 0));
@@ -328,7 +328,7 @@ void PandaAnalyzer::FillGenTree()
     int beta = iter.get<pandaecf::Calculator::bP>();
     // float ecf = iter.get<pandaecf::Calculator::ecfP>().template convert_to<float>();
     float ecf(iter.get<pandaecf::Calculator::ecfP>());
-    // PDebug("",Form("io=%i, iN=%i, ibeta=%i, ecf=%g", o, N, beta, ecf));
+    // logger.debug("",Form("io=%i, iN=%i, ibeta=%i, ecf=%g", o, N, beta, ecf));
     genJetInfo.ecfs[o][N][beta] = ecf;
     ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
     gt->fj1ECFNs[ep] = ecf;

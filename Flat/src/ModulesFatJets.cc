@@ -543,7 +543,7 @@ void PandaAnalyzer::FatjetMatching()
         break;
       default:
         // analysis->processType>=kTT means we should never get here
-        PError("PandaAnalyzer::Run","Reached an unknown process type");
+        logger.error("PandaAnalyzer::Run","Reached an unknown process type");
     }
 
     std::vector<int> targets;

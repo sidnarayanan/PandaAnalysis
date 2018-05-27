@@ -43,7 +43,7 @@ inline const panda::GenParticle* pToGPtr(const panda::Particle* p)
 {
   auto* g = dynamic_cast<const panda::GenParticle*>(p);
   if (g == nullptr) {
-    PError("pToGPtr",Form("Trying to cast a non-GenParticle at %p", p));
+    logger.error("pToGPtr",Form("Trying to cast a non-GenParticle at %p", p));
     throw std::runtime_error("");
   }
   return g;
@@ -278,7 +278,7 @@ public:
   ~THCorr() { delete this->h; } // this is a clone, not a pointer to the original hist
   double Eval(double x) {
     if (dim!=1) {
-      PError("THCorr1::Eval",
+      logger.error("THCorr1::Eval",
         TString::Format("Trying to access a non-1D histogram (%s)!",this->h->GetName()));
       return -1;
     }
@@ -287,7 +287,7 @@ public:
 
   double Eval(double x, double y) {
     if (dim!=2) {
-      PError("THCorr1::Error",
+      logger.error("THCorr1::Error",
        TString::Format("Trying to access a non-2D histogram (%s)!",this->h->GetName()));
       return -1;
     }
@@ -296,7 +296,7 @@ public:
 
   double Error(double x) {
     if (dim!=1) {
-      PError("THCorr1::Error",
+      logger.error("THCorr1::Error",
         TString::Format("Trying to access a non-1D histogram (%s)!",this->h->GetName()));
       return -1;
     }
@@ -305,7 +305,7 @@ public:
 
   double Error(double x, double y) {
     if (dim!=2) {
-      PError("THCorr1::Eval",
+      logger.error("THCorr1::Eval",
        TString::Format("Trying to access a non-2D histogram (%s)!",this->h->GetName()));
       return -1;
     }

@@ -45,15 +45,15 @@ void PandaAnalyzer::SetOutputFile(TString fOutName)
   // Build the input tree here 
   gt->WriteTree(tOut);
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetOutputFile","Created output in "+fOutPath);
+  if (DEBUG) logger.debug("PandaAnalyzer::SetOutputFile","Created output in "+fOutPath);
 }
 
 
 int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
 {
-  if (DEBUG) PDebug("PandaAnalyzer::Init","Starting initialization");
+  if (DEBUG) logger.debug("PandaAnalyzer::Init","Starting initialization");
   if (!t || !hweights) {
-    PError("PandaAnalyzer::Init","Malformed input!");
+    logger.error("PandaAnalyzer::Init","Malformed input!");
     return 0;
   }
   tIn = t;
@@ -107,7 +107,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   }
 
   event.setAddress(*t, readlist); // pass the readlist so only the relevant branches are turned on
-  if (DEBUG) PDebug("PandaAnalyzer::Init","Set addresses");
+  if (DEBUG) logger.debug("PandaAnalyzer::Init","Set addresses");
 
   ////////////////////////////////////////////////////////////////////// 
 
@@ -117,7 +117,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
 
   if (weightNames && analysis->processType==kSignal) { // hack?
     if (weightNames->GetEntries()!=377 && weightNames->GetEntries()!=22) {
-      PError("PandaAnalyzer::Init",
+      logger.error("PandaAnalyzer::Init",
           TString::Format("Reweighting failed because only found %u weights!",
                           unsigned(weightNames->GetEntries())));
       return 1;
@@ -130,7 +130,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
       wIDs.push_back(*id);
     }
   } else if (analysis->processType==kSignal) {
-    PError("PandaAnalyzer::Init","This is a signal file, but the weights are missing!");
+    logger.error("PandaAnalyzer::Init","This is a signal file, but the weights are missing!");
     return 2;
   }
 
@@ -239,7 +239,7 @@ int PandaAnalyzer::Init(TTree *t, TH1D *hweights, TTree *weightNames)
   if (analysis->vbf || analysis->hbb || analysis->complicatedLeptons) 
     bJetPtThreshold = 20;
 
-  if (DEBUG) PDebug("PandaAnalyzer::Init","Finished configuration");
+  if (DEBUG) logger.debug("PandaAnalyzer::Init","Finished configuration");
 
   return 0;
 }
@@ -262,7 +262,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
   TString dirPath(s);
   dirPath += "/";
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Starting loading of data");
+  if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Starting loading of data");
 
   // pileup
   OpenCorrection(cNPV,dirPath+"moriond17/normalized_npv.root","data_npv_Wmn",1);
@@ -415,7 +415,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
                  dirPath+"moriond17/metTriggerEfficiency_zmm_recoil_monojet_TH1F.root",
                  "hden_monojet_recoil_clone_passed",1);
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded scale factors");
+  if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded scale factors");
 
   // kfactors
   TFile *fKFactor = 0;
@@ -447,7 +447,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
 
   OpenCorrection(cANLO2j,dirPath+"moriond17/histo_photons_2jet.root","Func",1);
 
-  if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded k factors");
+  if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded k factors");
 
   if (analysis->vbf) {
 
@@ -465,7 +465,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
     OpenCorrection(cVBFTight_ZllNLO,
                    dirPath+"vbf16/kqcd/mjj/merged_zll.root","h_kfactors_cc",1);
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded VBF k factors");
+    if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded VBF k factors");
 
     OpenCorrection(cVBF_EWKZ,
                    dirPath+"vbf16/kewk/kFactor_ZToNuNu_pT_Mjj.root",
@@ -481,7 +481,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
                    dirPath+"vbf16/trig/fit_nmu2.root",
                    "f_eff",3);
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded VBF k factors");
+    if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded VBF k factors");
   }
 
   OpenCorrection(cBadECALJets,
@@ -513,7 +513,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
     btagReaders[bSubJetM]->load(*sj_btagCalib,BTagEntry::FLAV_C,"lt");
     btagReaders[bSubJetM]->load(*sj_btagCalib,BTagEntry::FLAV_UDSG,"incl");
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded btag SFs");
+    if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded btag SFs");
   } 
   if (analysis->btagWeights) {
     if (analysis->useCMVA) 
@@ -570,7 +570,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
       );
     bjetregReader->BookMVA( "BDT method", dirPath+"trainings/bjet_regression_v1_fromBenedikt.weights.xml" );
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded bjet regression weights");
+    if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded bjet regression weights");
   }
 
 
@@ -581,7 +581,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
     puppisd_corrRECO_cen = (TF1*)MSDcorr->Get("puppiJECcorr_reco_0eta1v3");
     puppisd_corrRECO_for = (TF1*)MSDcorr->Get("puppiJECcorr_reco_1v3eta2v5");
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded mSD correction");
+    if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded mSD correction");
   }
 
   if (analysis->rerunJES) {
@@ -624,7 +624,7 @@ void PandaAnalyzer::SetDataDir(const char *s)
         (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecVFull+"_MC_L2L3Residual_AK4PFPuppi.txt").Data())
     };
     ak4ScaleReader["MC"] = new FactorizedJetCorrector(params);
-    if (DEBUG>1) PDebug("PandaAnalyzer::SetDataDir","Loaded JES for AK4 MC");
+    if (DEBUG>1) logger.debug("PandaAnalyzer::SetDataDir","Loaded JES for AK4 MC");
     for (auto e : eraGroups) {
       params = {
         JetCorrectorParameters(
@@ -637,10 +637,10 @@ void PandaAnalyzer::SetDataDir(const char *s)
           (dirPath+"/jec/"+jecVFull+"/Summer16_"+jecReco+e+jecV+"_DATA_L2L3Residual_AK4PFPuppi.txt").Data())
       };
       ak4ScaleReader["data"+e] = new FactorizedJetCorrector(params);
-      if (DEBUG>1) PDebug("PandaAnalyzer::SetDataDir","Loaded JES for AK4 "+e);
+      if (DEBUG>1) logger.debug("PandaAnalyzer::SetDataDir","Loaded JES for AK4 "+e);
     }
 
-    if (DEBUG) PDebug("PandaAnalyzer::SetDataDir","Loaded JES/R");
+    if (DEBUG) logger.debug("PandaAnalyzer::SetDataDir","Loaded JES/R");
   }
 
 
@@ -680,7 +680,7 @@ bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
   if (run_==goodLumis.end()) {
     // matched no run
     if (DEBUG) 
-      PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i",run));
+      logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i",run));
     return false;
   }
 
@@ -688,14 +688,14 @@ bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
   for (auto &range : run_->second) {
     if (range.Contains(lumi)) {
       if (DEBUG) 
-        PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Accepting run=%i, lumi=%i",run,lumi));
+        logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Accepting run=%i, lumi=%i",run,lumi));
       return true;
     }
   }
 
   // matched no lumi range
   if (DEBUG) 
-    PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i, lumi=%i",run,lumi));
+    logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i, lumi=%i",run,lumi));
   return false;
 }
 

@@ -82,7 +82,7 @@ def shiftBtags(label,tree,varmap,cut,basecut):
       else:
         shiftedlabel += 'Down'
       weight = sel.weights[basecut+'_'+cent+shift]%lumi
-      PInfo('makeLimitForest.py',weight)
+      logger.info('makeLimitForest.py',weight)
       shiftedProcess = root.Process(label,tree,varmap,cut,weight)
       shiftedProcess.syst = shiftedlabel
       ps.append(shiftedProcess)
@@ -147,8 +147,8 @@ if enable('signal'):
   regions['signal'] = root.Region('signal')
   cut = sel.cuts['signal']
   weight = '%s'%(sel.weights['signal']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['signal'] = [
     root.Process('Data',tMET,vm,dataCut(cut,sel.metTrigger),'1'),
     root.Process('Zvv',tZvv,vm,cut,weight),
@@ -190,8 +190,8 @@ if enable('wmn'):
   regions['wmn'] = root.Region('wmn')
   cut = sel.cuts['wmn']
   weight = '%s'%(sel.weights['wmn']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['wmn'] = [
     root.Process('Data',tMET,vmW,dataCut(cut,sel.metTrigger),'1'),
     root.Process('Wlv',tWlv,vmW,cut,weight),
@@ -216,8 +216,8 @@ if enable('wen'):
   regions['wen'] = root.Region('wen')
   cut = sel.cuts['wen']
   weight = '%s'%(sel.weights['wen']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['wen'] = [
     root.Process('Data',tSingleEle,vmW,dataCut(cut,sel.eleTrigger),'1'),
     root.Process('Wlv',tWlv,vmW,cut,weight),
@@ -243,8 +243,8 @@ if enable('tm'):
   regions['tm'] = root.Region('tm')
   cut = sel.cuts['tm']
   weight = '%s'%(sel.weights['tm']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['tm'] = [
     root.Process('Data',tMET,vmW,dataCut(cut,sel.metTrigger),'1'),
     root.Process('Wlv',tWlv,vmW,cut,weight),
@@ -269,8 +269,8 @@ if enable('te'):
   regions['te'] = root.Region('te')
   cut = sel.cuts['te']
   weight = '%s'%(sel.weights['te']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['te'] = [
     root.Process('Data',tSingleEle,vmW,dataCut(cut,sel.eleTrigger),'1'),
     root.Process('Wlv',tWlv,vmW,cut,weight),
@@ -296,8 +296,8 @@ if enable('zmm'):
   regions['zmm'] = root.Region('zmm')
   cut = sel.cuts['zmm']
   weight = '%s'%(sel.weights['zmm']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['zmm'] = [
     root.Process('Data',tMET,vmZ,dataCut(cut,sel.metTrigger),'1'),
     root.Process('Zvv',tZvv,vmZ,cut,weight),
@@ -318,8 +318,8 @@ if enable('zee'):
   regions['zee'] = root.Region('zee')
   cut = sel.cuts['zee']
   weight = '%s'%(sel.weights['zee']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['zee'] = [
     root.Process('Data',tSingleEle,vmZ,dataCut(cut,sel.eleTrigger),'1'),
     root.Process('Zvv',tZvv,vmZ,cut,weight),
@@ -341,8 +341,8 @@ if enable('pho'):
   regions['pho'] = root.Region('pho')
   cut = sel.cuts['pho']
   weight = '%s'%(sel.weights['pho']%lumi)
-  PInfo('makeLimitForest.py',cut)
-  PInfo('makeLimitForest.py',weight)
+  logger.info('makeLimitForest.py',cut)
+  logger.info('makeLimitForest.py',weight)
   processes['pho'] = [
     root.Process('Data',tSinglePho,vmA,dataCut(cut,sel.phoTrigger),'1'),
     root.Process('Pho',tPho,vmA,cut,weight),
@@ -354,9 +354,9 @@ if enable('pho'):
   factory.AddRegion(regions['pho'])
 
 
-PInfo('makeLimitForest','Starting '+str(toProcess))
+logger.info('makeLimitForest','Starting '+str(toProcess))
 factory.Run()
-PInfo('makeLimitForest','Finishing '+str(toProcess))
+logger.info('makeLimitForest','Finishing '+str(toProcess))
 
 factory.Output()
 

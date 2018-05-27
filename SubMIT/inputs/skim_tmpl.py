@@ -35,7 +35,7 @@ if __name__ == "__main__":
         sub(r'\${CERNBOX}',cernboxPath,
           sub(r'\${EOS}',eosPath,
             sub(r'\${EOS2}',eosEXOPath,longName))))
-    PInfo(sname,fullPath)
+    logger.info(sname,fullPath)
 
     system('xrdcp %s input.root'%fullPath)
 
@@ -72,26 +72,26 @@ if __name__ == "__main__":
     skimmer.Terminate()
 
     mvargs = 'file://$PWD/output.root srm://t3serv006.mit.edu:8443/srm/v2/server?SFN=XXXX%s'%outfilename
-    PInfo(sname,mvargs)
+    logger.info(sname,mvargs)
     system('lcg-cp -v -D srmv2 -b '+mvargs)
     system('gfal-copy '+mvargs)
     '''
     try:
-      PInfo(sname,'Attempting to move using lcg-cp...')
+      logger.info(sname,'Attempting to move using lcg-cp...')
       subprocess.call('lcg-cp -v -D srmv2 -b '+mvargs)
-      PInfo(sname,'...successful!')
+      logger.info(sname,'...successful!')
     except OSError as e:
       try:
-        PWarning(sname,'lcg-cp not found, falling back to gfal-copy...')
+        logger.warning(sname,'lcg-cp not found, falling back to gfal-copy...')
         subprocess.call('gfal-copy '+mvargs)
-        PInfo(sname,'...successful!')
+        logger.info(sname,'...successful!')
       except OSError:
-        PError(sname,'gfal-copy failed as well :(')
+        logger.error(sname,'gfal-copy failed as well :(')
         exit(127)
     '''
     system('rm input.root')
 
-    PInfo(sname,'finished in %f'%(clock()-start)); start=clock()
+    logger.info(sname,'finished in %f'%(clock()-start)); start=clock()
 
   
   cfg = open('local.cfg')
