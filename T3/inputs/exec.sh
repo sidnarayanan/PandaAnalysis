@@ -9,7 +9,7 @@ ls
 mv local*cfg local.cfg
 
 export X509_USER_PROXY=${PWD}/x509up
-export HOME=.
+export HOME=$WD
 
 RELEASE=$CMSSW_VERSION
 scram p CMSSW $RELEASE

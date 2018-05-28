@@ -32,7 +32,10 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
     if (analysis.rerunJES) {
       (*scaleUnc)[ishift]->setJetPt(pt);
       (*scaleUnc)[ishift]->setJetEta(jet.eta());
-      pt *= (1 + (*scaleUnc)[ishift]->getUncertainty(isUp));
+      double relShift = (*scaleUnc)[ishift]->getUncertainty(isUp);
+      if (!isUp)
+        relShift = -relShift; 
+      pt *= (1 + relShift);
     } else {
       pt = (isUp ? jet.ptCorrUp :  jet.ptCorrDown) * pt / jet.pt();
     }
@@ -244,6 +247,8 @@ void JetMod::do_execute()
             gt.jotCSV[njet] = csv;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
+            gt.jotFlav[njet] = jw.flavor; 
+            gt.jotIso[njet] = jw.iso ? 1 : 0; 
 
             bjetreg->execute();
           }
