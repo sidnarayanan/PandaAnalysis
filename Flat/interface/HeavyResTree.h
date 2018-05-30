@@ -58,6 +58,7 @@ class HeavyResTree : public genericTree {
     }
 // ENDCUSTOM
   public:
+  float recoil;
   int runNumber;
   int lumiNumber;
   ULong64_t i_evt;

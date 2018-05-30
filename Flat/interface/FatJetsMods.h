@@ -4,6 +4,7 @@
 #include "Module.h"
 #include "JetsMods.h" // need BaseJetMod
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
+#include "PandaAnalysis/Utilities/interface/HEPTopTaggerWrapperV2.h"
 #include "fastjet/contrib/Njettiness.hh"
 
 namespace pa {
@@ -35,6 +36,48 @@ namespace pa {
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
   };
 
+  // this is not treated as a Mod for various reasons
+  // the primary being that it does not need access to the tree
+  // and that it would make the inheritance complicated because it is
+  // intendend to be used by multiple template instances of BaseMod
+  class SubRunner {
+  public:
+    SubRunner(bool ak8, Utils& utils_) : utils(utils_)  {
+      double radius = ak8 ? 0.8 : 1.5;
+      jetDef.reset(new fastjet::JetDefinition(ak8 ? fastjet::antikt_algorithm :
+                                                    fastjet::cambridge_algorithm,
+                                              radius));
+      tauN.reset(new fastjet::contrib::Njettiness(fastjet::contrib::OnePass_KT_Axes(),
+                                                  fastjet::contrib::NormalizedMeasure(1., radius)));
+      ecfcalc.reset(new ECFCalculator());
+
+      bool optimalR=true; bool doHTTQ=false;
+      double minSJPt=0.; double minCandPt=0.;
+      double sjmass=30.; double mucut=0.8;
+      double filtR=0.3; int filtN=5;
+      int mode=4; double minCandMass=0.;
+      double maxCandMass=9999999.; double massRatioWidth=9999999.;
+      double minM23Cut=0.; double minM13Cut=0.;
+      double maxM13Cut=9999999.;  bool rejectMinR=false;
+      htt.reset(new httwrapper::HEPTopTaggerV2(optimalR,doHTTQ,
+                                            minSJPt,minCandPt,
+                                            sjmass,mucut,
+                                            filtR,filtN,
+                                            mode,minCandMass,
+                                            maxCandMass,massRatioWidth,
+                                            minM23Cut,minM13Cut,
+                                            maxM13Cut,rejectMinR));
+    }
+
+    void run(panda::FatJet& fj);
+
+  private:
+    std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
+    std::unique_ptr<fastjet::contrib::Njettiness>tauN{nullptr};
+    std::unique_ptr<ECFCalculator>ecfcalc{nullptr};
+    std::unique_ptr<httwrapper::HEPTopTaggerV2>htt{nullptr};
+    Utils& utils;
+  };
 
   class FatJetMod : public BaseJetMod {
   public:
@@ -45,7 +88,8 @@ namespace pa {
               int level_=0) :
       BaseJetMod("fatjet", event_, cfg_, utils_, gt_, level_),
       fj1(std::make_shared<const panda::FatJet*>(nullptr)),
-      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) {
+      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
+      substructure(analysis.recalcECF ? new SubRunner(analysis.ak8, utils) : nullptr) {
         recluster = addSubMod<FatJetReclusterMod>();
         jetType = "AK8PFPuppi";
     }
@@ -73,6 +117,7 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
     std::shared_ptr<const std::vector<panda::Photon*>> matchPhos{nullptr};
     std::shared_ptr<const TLorentzVector> dilep{nullptr};
+    std::unique_ptr<SubRunner> substructure{nullptr};
 
     FatJetReclusterMod *recluster{nullptr};
   };
@@ -113,14 +158,8 @@ namespace pa {
               HeavyResTree& gt_,
               int level_=0) :
       HRMod("tag", event_, cfg_, utils_, gt_, level_),
-      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets) {
-      double radius = analysis.ak8 ? 0.8 : 1.5;
-      jetDef.reset(new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm :
-                                                             fastjet::cambridge_algorithm,
-                                              radius));
-      tauN.reset(new fastjet::contrib::Njettiness(fastjet::contrib::OnePass_KT_Axes(),
-                                             fastjet::contrib::NormalizedMeasure(1., radius)));
-      ecfcalc.reset(new ECFCalculator());
+      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
+      substructure(new SubRunner(analysis.ak8, utils)) {
     }
     virtual ~HRTagMod () { }
 
@@ -139,12 +178,8 @@ namespace pa {
     void doSubstructure(panda::FatJet& fj);
     panda::FatJetCollection &fatjets;
 
-    // TODO : consider what can be moved to utils
-    std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
-    std::unique_ptr<fastjet::contrib::Njettiness>tauN{nullptr};
-    std::unique_ptr<ECFCalculator>ecfcalc{nullptr};
-
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    std::unique_ptr<SubRunner> substructure{nullptr};
   };
 }
 

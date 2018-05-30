@@ -74,6 +74,10 @@ void FatJetMod::do_execute()
         gt.fjMSD_corr[shift] = corrweight*gt.fjMSD[shift];
       }
 
+      if (analysis.recalcECF && event.recoil.max < 175) {
+        substructure->run(fj);
+      }
+
       // now we do substructure
       gt.fjTau32 = clean(fj.tau3/fj.tau2);
       gt.fjTau32SD = clean(fj.tau3SD/fj.tau2SD);
@@ -662,7 +666,7 @@ void HRTagMod::do_execute()
   }
 }
 
-void HRTagMod::doSubstructure(panda::FatJet& fj)
+void SubRunner::run(panda::FatJet& fj)
 {
   VPseudoJet particles = convertPFCands(fj.constituents,true,0);
   ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
@@ -702,17 +706,30 @@ void HRTagMod::doSubstructure(panda::FatJet& fj)
     int beta = iter.get<pa::ECFCalculator::bP>();
     float ecf(iter.get<pa::ECFCalculator::ecfP>());
     if (!fj.set_ecf(o+1,N+1,beta,ecf)) {
-      PError("HRTagMod::doSubstructure", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
+      PError("SubRunner::run", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
       throw std::runtime_error("");
     }
+  }
+
+  // HTT
+  PseudoJet httJet = htt->result(*pj);
+  if (httJet != 0) {
+    auto* s(static_cast<httwrapper::HEPTopTaggerV2Structure*>(httJet.structure_non_const_ptr()));
+    fj.htt_mass = s->top_mass();
+    fj.htt_frec = s->fRec();
+  } else {
+    fj.htt_mass = 0;
+    fj.htt_frec = 0;
   }
 }
 
 void HRTagMod::fillJet(panda::FatJet& fj)
 {
   if (event.recoil.max < 175) {
-    doSubstructure(fj);
+    substructure->run(fj);
   }
+
+  gt.recoil = event.recoil.max;
   gt.clf_IsMatched = 1;
   gt.clf_Pt = fj.pt();
   gt.clf_Eta = fj.eta();

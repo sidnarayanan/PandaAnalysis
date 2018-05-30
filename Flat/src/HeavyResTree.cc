@@ -36,6 +36,7 @@ void HeavyResTree::Reset() {
         clf_ECFNs[p] = -1;
     }
 // ENDCUSTOM
+  recoil = -99;
   runNumber = 0;
   lumiNumber = 0;
   i_evt = -99;
@@ -70,6 +71,7 @@ void HeavyResTree::WriteTree(TTree *t) {
         Book("clf_"+ecfn,&(clf_ECFNs[p]),"clf_"+ecfn+"/F");
     }
 // ENDCUSTOM
+  Book("recoil",&recoil,"recoil/F");
   Book("runNumber",&runNumber,"runNumber/I");
   Book("lumiNumber",&lumiNumber,"lumiNumber/I");
   Book("i_evt",&i_evt,"i_evt/l");

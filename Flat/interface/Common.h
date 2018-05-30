@@ -82,6 +82,7 @@ namespace pa {
     bool mcTriggers = false;
     bool monoh = false;
     bool puppiJets = true;
+    bool recalcECF = false; 
     bool recluster = false;
     bool recoil = true;
     bool rerunJER = false;
