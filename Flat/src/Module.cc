@@ -26,7 +26,8 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   }
 
   if (analysis.recluster || analysis.bjetRegTraining ||
-      analysis.deep || analysis.deepGen || analysis.hbb) {
+      analysis.deep || analysis.deepGen || analysis.hbb || 
+      analysis.recalcECF ) {
     int activeAreaRepeats = 1;
     double ghostArea = 0.01;
     double ghostEtaMax = 7.0;
@@ -99,7 +100,8 @@ void ConfigMod::set_inputBranches()
         bl.push_back("ca15GenJets");
     }
     if (analysis.recluster || analysis.bjetBDTReg ||
-        analysis.deep || analysis.hbb || analysis.complicatedPhotons) {
+        analysis.deep || analysis.hbb || 
+        analysis.complicatedPhotons || analysis.recalcECF) {
       bl.push_back("pfCandidates");
     }
     if (analysis.deepTracks || analysis.bjetBDTReg || analysis.hbb) {

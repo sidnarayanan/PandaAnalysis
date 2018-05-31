@@ -369,7 +369,7 @@ void IsoJetMod::do_execute()
   auto& jet = jw.get_base();
   float maxIsoEta = analysis.monoh ? 4.5 : 2.5;
   bool isIsoJet = (
-        gt.nFatjet == 0 ||
+        gt.nFatJet == 0 ||
         (fabs(jet.eta()) < maxIsoEta &&
          DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
       );

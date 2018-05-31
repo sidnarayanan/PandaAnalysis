@@ -300,7 +300,7 @@ void PandaAnalyzer::Run()
       continue;
 
 //     if (analysis.deep || analysis.hbb)
-//       FatjetPartons();
+//       FatJetPartons();
 //     if (analysis.deep) {
 //       FillPFTree();
 //       tAux->Fill();

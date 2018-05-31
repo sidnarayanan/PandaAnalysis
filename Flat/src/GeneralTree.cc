@@ -229,7 +229,7 @@ void GeneralTree::Reset() {
   barrelHT = 0;
   barrelHTMiss = -99;
   barrelJet12Pt = 0;
-  nFatjet = 0;
+  nFatJet = 0;
   fjTau32 = -99;
   fjTau21 = -99;
   fjTau32SD = -99;
@@ -1112,7 +1112,7 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("lheNjets",&lheNjets,"lheNjets/I");
   Book("isGS",&isGS,"isGS/I");
   if (is_fatjet) {
-    Book("nFatjet",&nFatjet,"nFatjet/I");
+    Book("nFatJet",&nFatJet,"nFatJet/I");
     Book("fjTau32",&fjTau32,"fjTau32/F");
     Book("fjTau21",&fjTau21,"fjTau21/F");
     Book("fjTau32SD",&fjTau32SD,"fjTau32SD/F");

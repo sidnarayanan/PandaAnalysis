@@ -125,7 +125,7 @@ void TriggerMod::do_init(Registry& registry)
     triggerHandlers[kSinglePhoTrig].addTriggers(paths);
 
     // Single muon
-    if (analysis.complicatedLeptons) {
+    if (analysis.complicatedLeptons || analysis.recalcECF) { // either comp lepton or tnp
       if (analysis.year == 2016) {
         paths = {
           "HLT_IsoMu24",

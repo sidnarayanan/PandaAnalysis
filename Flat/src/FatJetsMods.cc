@@ -31,7 +31,7 @@ void FatJetMod::do_execute()
 {
   setupJES();
 
-  gt.nFatjet=0;
+  gt.nFatJet=0;
   int fatjet_counter=-1;
   for (auto& fj : fatjets) {
     ++fatjet_counter;
@@ -57,8 +57,8 @@ void FatJetMod::do_execute()
       continue;
     }
 
-    gt.nFatjet++;
-    if (gt.nFatjet==1) {
+    gt.nFatJet++;
+    if (gt.nFatJet==1) {
       *fj1 = &fj;
       gt.fjIsClean = fatjet_counter==0 ? 1 : 0;
       gt.fjEta = eta;
@@ -139,7 +139,7 @@ void FatJetMod::do_execute()
   }
 
   if (analysis.hbb) {
-    if (gt.nFatjet > 0 && gt.nLooseLep > 1) {
+    if (gt.nFatJet > 0 && gt.nLooseLep > 1) {
       TLorentzVector HP4;
       HP4.SetPtEtaPhiM(gt.fjPt[0], gt.fjEta, gt.fjPhi, gt.fjMSD_corr[0]);
       TLorentzVector ZHP4 = (*dilep) + HP4;
@@ -378,7 +378,7 @@ void FatJetMatchingMod::do_execute()
     } // loop over targets
   } // process is interesting
 
-  if (!analysis.isData && gt.nFatjet>0) {
+  if (!analysis.isData && gt.nFatJet>0) {
     // first see if jet is matched
     auto* matched = matchGen(fj1->eta(),fj1->phi(),1.5,pdgidTarget);
     if (matched!=nullptr) {

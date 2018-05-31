@@ -41,15 +41,15 @@ void KinFitMod::do_execute()
   } 
 
 
-  fit.setParticle(0, (*looseLeps)[0]->p4(), 0.01);
-  fit.setParticle(1, (*looseLeps)[1]->p4(), 0.01);
-  fit.setParticle(2, hbb[0], gt.jotDeepBRegWidth[0]);
-  fit.setParticle(3, hbb[1], gt.jotDeepBRegWidth[1]);
-  // fit.setParticle(4, res, res.Pt()/8); // 8 GeV res at 0 MET
+  fit->setParticle(0, (*looseLeps)[0]->p4(), 0.01);
+  fit->setParticle(1, (*looseLeps)[1]->p4(), 0.01);
+  fit->setParticle(2, hbb[0], gt.jotDeepBRegWidth[0]);
+  fit->setParticle(3, hbb[1], gt.jotDeepBRegWidth[1]);
+  // fit->setParticle(4, res, res.Pt()/8); // 8 GeV res at 0 MET
 
-  fit.run();
+  fit->run();
 
-  gt.hbbm_fit = (hbb[0]*fit.getScale(2) + hbb[1]*fit.getScale(3)).M();
+  gt.hbbm_fit = (hbb[0]*fit->getScale(2) + hbb[1]*fit->getScale(3)).M();
    
 }
 

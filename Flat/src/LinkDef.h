@@ -27,8 +27,8 @@
 #pragma link C++ class pa::LambdaSel;
 #pragma link C++ class pa::TriggerSel;
 #pragma link C++ class pa::GenBosonPtSel;
-#pragma link C++ class pa::FatjetSel;
-#pragma link C++ class pa::Fatjet450Sel;
+#pragma link C++ class pa::FatJetSel;
+#pragma link C++ class pa::FatJet450Sel;
 #pragma link C++ class pa::GenFatJetSel;
 #pragma link C++ class pa::LeptonSel;
 #pragma link C++ class pa::LeptonFakeSel;

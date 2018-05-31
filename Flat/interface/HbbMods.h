@@ -28,8 +28,11 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) : 
-      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_), fit(4, 91) { 
-      fit.setPrintLevel(-1); 
+      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_) { 
+      if (on()) {
+        fit.reset(new kinfit::Fit(4,91));
+        fit->setPrintLevel(-1); 
+      }
     }
     virtual ~KinFitMod () { }
 
@@ -41,7 +44,7 @@ namespace pa {
     }
     void do_execute(); 
   private:
-    kinfit::Fit fit; 
+    std::unique_ptr<kinfit::Fit> fit{nullptr}; 
     std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
   };
 

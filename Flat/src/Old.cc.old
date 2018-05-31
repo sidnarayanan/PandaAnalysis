@@ -11,7 +11,7 @@ using namespace std;
 
 // determine the partons associated with a fatjet
 // Responsible: S. Narayanan
-void PandaAnalyzer::FatjetPartons() 
+void PandaAnalyzer::FatJetPartons() 
 {
   gt->fjNPartons = 0;
   if (fj1) {

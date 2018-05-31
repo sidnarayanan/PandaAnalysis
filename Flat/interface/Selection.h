@@ -84,16 +84,16 @@ namespace pa {
       LambdaSel(Selection::sGen, "GenBosonPt", __ACCPFUNC(gt->trueGenBosonPt > 100)) { }
   };
 
-  class FatjetSel: public LambdaSel {
+  class FatJetSel: public LambdaSel {
   public:
-    FatjetSel():
-      LambdaSel(Selection::sReco, "Fatjet", __ACCPFUNC(gt->fjPt[0] > 250)) { }
+    FatJetSel():
+      LambdaSel(Selection::sReco, "FatJet", __ACCPFUNC(gt->fjPt[0] > 250)) { }
   };
 
-  class Fatjet450Sel: public LambdaSel {
+  class FatJet450Sel: public LambdaSel {
   public:
-    Fatjet450Sel():
-      LambdaSel(Selection::sReco, "Fatjet450", __ACCPFUNC(gt->fjPt[0] > 450)) { }
+    FatJet450Sel():
+      LambdaSel(Selection::sReco, "FatJet450", __ACCPFUNC(gt->fjPt[0] > 450)) { }
   };
 
   class GenFatJetSel: public LambdaSel {

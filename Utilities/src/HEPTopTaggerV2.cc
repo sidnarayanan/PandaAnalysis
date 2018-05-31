@@ -385,7 +385,7 @@ void HEPTopTaggerV2_fixed_R::get_setting() const {
 }
 
 //uncluster a fat jet to subjets of given cone size
-void HEPTopTaggerV2::UnclusterFatjets(const vector<fastjet::PseudoJet> & big_fatjets, 
+void HEPTopTaggerV2::UnclusterFatJets(const vector<fastjet::PseudoJet> & big_fatjets, 
 				    vector<fastjet::PseudoJet> & small_fatjets, 
 				    const ClusterSequence & cseq, 
 				    const double small_radius) {
@@ -403,7 +403,7 @@ void HEPTopTaggerV2::UnclusterFatjets(const vector<fastjet::PseudoJet> & big_fat
       vector<fastjet::PseudoJet> parents;
       parents.push_back(parent1);
       parents.push_back(parent2);
-      UnclusterFatjets(parents, small_fatjets, cseq, small_radius);
+      UnclusterFatJets(parents, small_fatjets, cseq, small_radius);
     }
   }
 }
@@ -505,7 +505,7 @@ void HEPTopTaggerV2::run() {
     _Ropt = 0;
     
     for (int R = maxR; R >= minR; R -= stepR) {
-      UnclusterFatjets(big_fatjets, small_fatjets, *_seq, R / 10.);
+      UnclusterFatJets(big_fatjets, small_fatjets, *_seq, R / 10.);
           
       if (_debug) {cout << "R = " << R << " -> n_small_fatjets = " << small_fatjets.size() << endl;}
     
