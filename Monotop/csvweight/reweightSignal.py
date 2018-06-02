@@ -17,7 +17,7 @@ sname = argv[0]
 argv=[]
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 import PandaCore.Tools.Functions
 Load('Drawers','HistogramDrawer')
 

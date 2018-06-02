@@ -14,7 +14,7 @@ sname = argv[0].split('/')[-1]
 argv=[]
 
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.root_interface import read_tree, draw_hist
 import ROOT as root
 from math import sqrt

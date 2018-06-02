@@ -13,7 +13,7 @@ argv=[]
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.root_interface import read_tree, draw_hist, rename_dtypes
 
 Load('Normalizer')

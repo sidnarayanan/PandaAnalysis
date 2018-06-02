@@ -14,7 +14,7 @@ sname = argv[0]
 
 argv = []
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 cut = '' 
 plotlabel = '110 < m_{SD} < 210 GeV'
 xcut = 'mSD>110 && mSD<210 && pt<1000'

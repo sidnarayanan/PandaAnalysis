@@ -13,7 +13,7 @@ argv=[]
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 import PandaCore.Tools.job_management as cb
 import PandaAnalysis.Tagging.cfg_v8 as tagcfg
 

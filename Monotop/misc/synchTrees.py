@@ -10,7 +10,7 @@ args = parser.parse_args()
 argv = []
 
 import ROOT as root
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 
 Load('PandaCoreTools')
 Load('PandaCoreDrawers')

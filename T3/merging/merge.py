@@ -23,7 +23,7 @@ argv=[]
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 
 if 'leptonic' in args.cfg:
     from PandaCore.Tools.process_leptonic import *

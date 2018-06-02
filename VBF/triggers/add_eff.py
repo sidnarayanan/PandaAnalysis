@@ -6,7 +6,7 @@ which = argv[1]
 argv = []
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 
 Load('BranchAdder')
