@@ -30,7 +30,7 @@ import PandaAnalysis.Monotop.CombinedBVetoSelection as sel
 #import PandaAnalysis.Monotop.CombinedSelection as sel
 
 if masses:
-    PDebug(sname,'Looking for point="%s"'%(masses))
+    logger.debug(sname,'Looking for point="%s"'%(masses))
 
 basedir = getenv('PANDA_FLATDIR')+'/'
 lumi = 35900
@@ -135,7 +135,7 @@ elif 'vector' in out_region:
             if fname!=masses:
                 continue
             masses = signame
-        PDebug(sname,"Opening "+f)
+        logger.debug(sname,"Opening "+f)
         factory.add_process(f,signame)
 elif 'scalar' in out_region:
     signal_files = glob(basedir+'/Scalar*root')

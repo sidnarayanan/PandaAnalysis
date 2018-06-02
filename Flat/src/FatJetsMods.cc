@@ -253,7 +253,7 @@ void FatJetMatchingMod::do_execute()
         break;
       default:
         // analysis.processType>=kTT means we should never get here
-        PError("FatJetMatchingMod::do_execute","Reached an unknown process type");
+        logger.error("FatJetMatchingMod::do_execute","Reached an unknown process type");
     }
 
     std::vector<int> targets;
@@ -706,7 +706,7 @@ void SubRunner::run(panda::FatJet& fj)
     int beta = iter.get<pa::ECFCalculator::bP>();
     float ecf(iter.get<pa::ECFCalculator::ecfP>());
     if (!fj.set_ecf(o+1,N+1,beta,ecf)) {
-      PError("SubRunner::run", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
+      logger.error("SubRunner::run", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
       throw std::runtime_error("");
     }
   }

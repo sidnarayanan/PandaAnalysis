@@ -70,7 +70,7 @@ void JetCorrector::RunCorrection(bool isData, float rho, panda::JetCollection *i
 		corrector = mMCJetCorrector;
 	}
 	if (corrector==0) {
-		PError("JetCorrector::RunCorrection",
+		logger.error("JetCorrector::RunCorrection",
 				TString::Format("Could not determine data era for run %i",runNumber)
 				);
 		assert(corrector!=0);

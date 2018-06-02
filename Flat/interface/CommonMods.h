@@ -190,7 +190,7 @@ namespace pa {
                 (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.001)) {
               foundDup = true;
               if (this->cfg.DEBUG > 8) {
-                PDebug("Found duplicate",
+                logger.debug("Found duplicate",
                        Form("p1(%8.3f,%5.1f,%5.1f,%5i,%i) <-> p2(%8.3f,%5.1f,%5.1f,%5i,%i)",
                             g.pt(), g.eta(), g.phi(), g.pdgid, g.finalState ? 1 : 0,
                             gPtr->pt(), gPtr->eta(), gPtr->phi(), gPtr->pdgid, gPtr->finalState ? 1 : 0));

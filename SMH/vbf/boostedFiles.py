@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 argv=[]
 
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 import ROOT as root
 Load('Cutter')
 

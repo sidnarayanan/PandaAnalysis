@@ -14,7 +14,7 @@ sname = argv[0]
 
 argv = []
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 cut = '' 
 plotlabel = '110 < m_{SD} < 210 GeV'
 xcut = 'mSD>110 && mSD<210 && pt<1000'
@@ -56,7 +56,7 @@ variables = [
   # ('N3_20','N3, #beta=2.0',10,2),
             ] 
 for iV in xrange(len(variables)):
-  PInfo(sname,variables[iV][1])
+  logger.info(sname,variables[iV][1])
   if len(variables[iV])==2:
     v,vlabel = variables[iV]
     vcolor = iV

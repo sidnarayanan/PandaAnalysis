@@ -15,7 +15,7 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
   analysis(*a),
   cfg(analysis, DEBUG)
 {
-  if (DEBUG) PDebug("HRAnalyzer::HRAnalyzer","Calling constructor");
+  if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Calling constructor");
 
   utils.fMSDcorr.reset(new TFile(analysis.datapath+"/puppiCorr.root"));
   utils.puppisd_corrGEN = (TF1*)utils.fMSDcorr->Get("puppiJECcorr_gen");
@@ -43,7 +43,7 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
   gen->print();
   mod->print();
 
-  if (DEBUG) PDebug("HRAnalyzer::HRAnalyzer","Reading inputs");
+  if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Reading inputs");
 
   // Read inputs
   fIn.reset(TFile::Open(analysis.inpath));
@@ -73,7 +73,7 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // Define outputs
 
-  if (DEBUG) PDebug("HRAnalyzer::HRAnalyzer","Writing outputs");
+  if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Writing outputs");
 
   fOut.reset(TFile::Open(analysis.outpath, "RECREATE"));
   fOut->cd();
@@ -94,16 +94,16 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
   gen->readData(analysis.datapath);
   mod->readData(analysis.datapath);
 
-  if (DEBUG) PDebug("HRAnalyzer::HRAnalyzer","Called constructor");
+  if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Called constructor");
 }
 
 
 HRAnalyzer::~HRAnalyzer()
 {
-  if (DEBUG) PDebug("HRAnalyzer::~HRAnalyzer","Calling destructor");
+  if (DEBUG) logger.debug("HRAnalyzer::~HRAnalyzer","Calling destructor");
 
   fIn->Close();
-  if (DEBUG) PDebug("HRAnalyzer::~HRAnalyzer","Called destructor");
+  if (DEBUG) logger.debug("HRAnalyzer::~HRAnalyzer","Called destructor");
 
 }
 
@@ -113,7 +113,7 @@ void HRAnalyzer::Reset()
 
   gen->reset();
   mod->reset();
-  if (DEBUG) PDebug("HRAnalyzer::Reset","Reset");
+  if (DEBUG) logger.debug("HRAnalyzer::Reset","Reset");
 }
 
 
@@ -127,7 +127,7 @@ void HRAnalyzer::Terminate()
   gen->terminate();
   mod->terminate();
 
-  if (DEBUG) PDebug("HRAnalyzer::Terminate","Finished with output");
+  if (DEBUG) logger.debug("HRAnalyzer::Terminate","Finished with output");
 }
 
 
@@ -145,7 +145,7 @@ void HRAnalyzer::Run()
     nZero = firstEvent;
 
   if (!fOut || !tIn) {
-    PError("HRAnalyzer::Run","NOT SETUP CORRECTLY");
+    logger.error("HRAnalyzer::Run","NOT SETUP CORRECTLY");
     exit(1);
   }
   unsigned int iE=0;
@@ -173,6 +173,6 @@ void HRAnalyzer::Run()
 
   tr.Summary();
 
-  if (DEBUG) { PDebug("HRAnalyzer::Run","Done with entry loop"); }
+  if (DEBUG) { logger.debug("HRAnalyzer::Run","Done with entry loop"); }
 
 } // Run()

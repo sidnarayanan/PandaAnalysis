@@ -22,7 +22,7 @@ void shiftMET(const RecoMet& met, TLorentzVector& v, shiftjes shift)
       phi = met.phiCorrDown;
       break;
     default:
-      PError("shiftMET", "Unknown JES type!");
+      logger.error("shiftMET", "Unknown JES type!");
       exit(1);
   }
 
@@ -298,22 +298,22 @@ void TriggerMod::do_execute()
 void GlobalMod::do_execute()
 {
   if (cfg.DEBUG > 5) {
-    PDebug("PandaAnalyzer::Run::Dump","");
+    logger.debug("PandaAnalyzer::Run::Dump","");
     event.print(std::cout, 2);
     std::cout << std::endl;
-    PDebug("PandaAnalyzer::Run::Dump","");
+    logger.debug("PandaAnalyzer::Run::Dump","");
     event.photons.print(std::cout, 2);
     std::cout << std::endl;
-    PDebug("PandaAnalyzer::Run::Dump","");
+    logger.debug("PandaAnalyzer::Run::Dump","");
     event.muons.print(std::cout, 2);
     std::cout << std::endl;
-    PDebug("PandaAnalyzer::Run::Dump","");
+    logger.debug("PandaAnalyzer::Run::Dump","");
     event.electrons.print(std::cout, 2);
     std::cout << std::endl;
-    PDebug("PandaAnalyzer::Run::Dump","");
+    logger.debug("PandaAnalyzer::Run::Dump","");
     event.chsAK4Jets.print(std::cout, 2);
     std::cout << std::endl;
-    PDebug("PandaAnalyzer::Run::Dump","");
+    logger.debug("PandaAnalyzer::Run::Dump","");
     event.pfMet.print(std::cout, 2);
     std::cout << std::endl;
   }

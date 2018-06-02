@@ -4,7 +4,7 @@ from sys import argv,exit
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 import PandaCore.Statistics.RooFitUtils as RooFitUtils 
 from PandaCore.Statistics.SimpleStats import SimpleVar
 

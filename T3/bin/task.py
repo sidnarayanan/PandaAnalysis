@@ -14,7 +14,7 @@ from time import time, sleep, strftime
 from os import system,getenv,getuid,path,popen
 
 import PandaCore.Tools.job_management as jm
-from PandaCore.Tools.Misc import PInfo, PError, PWarning
+from PandaCore.Utils.logging import logger
 
 ### Global definitions ###
 
@@ -29,7 +29,7 @@ incfg = workdir+'/local_all.cfg'
 outcfg = workdir+'/local.cfg'
 
 if any([x is None for x in [lockdir, workdir, logdir, cmssw_base]]):
-    PError('task.py','Your environment is incomplete!')
+    logger.error('task.py','Your environment is incomplete!')
 
 # argument parsing:
 parser = argparse.ArgumentParser(description='task')
@@ -116,7 +116,7 @@ def kill(idle=False):
                 s.kill(idle_only=idle)
             return
     else:
-        PWarning('task.py','Trying to kill a task with no submissions!')
+        logger.warning('task.py','Trying to kill a task with no submissions!')
 
 
 
@@ -405,11 +405,11 @@ def check(stdscr=None):
 if args.kill or args.kill_idle:
     kill(args.kill_idle)
 if args.clean_output:
-    PInfo('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
+    logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
     sleep(2)
     system('rm -rf %s/* %s/* &'%(lockdir, outdir))
     if args.clean:
-        PInfo('task.py', 'Cleaning up %s and %s'%(logdir, workdir))
+        logger.info('task.py', 'Cleaning up %s and %s'%(logdir, workdir))
         sleep(2)
         system('rm -rf %s/* %s/*'%(logdir, workdir))
 
@@ -419,10 +419,10 @@ if args.check:
     else:
         check()
 else:
-    PInfo('task.py', 'TASK = '+submit_name)
+    logger.info('task.py', 'TASK = '+submit_name)
     if args.build_only and (not path.isfile(workdir+'/submission.pkl') or not args.submit): 
         if args.nfiles < 0:
-            PInfo('task.py', 'Number of files not provided for new task => setting nfiles=25')
+            logger.info('task.py', 'Number of files not provided for new task => setting nfiles=25')
             args.nfiles = 25
         build_snapshot(args.nfiles)
     if args.submit_only:

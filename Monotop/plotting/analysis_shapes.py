@@ -56,8 +56,8 @@ plot.do_underflow = True
 weight = sel.weights[region]%lumi
 plot.mc_weight = weight
 
-#PInfo('cut',plot.cut)
-#PInfo('weight',plot.mc_weight)
+#logger.info('cut',plot.cut)
+#logger.info('weight',plot.mc_weight)
 
 #plot.add_systematic('QCD scale','scaleUp','scaleDown',root.kRed+2)
 #plot.add_systematic('PDF','pdfUp','pdfDown',root.kBlue+2)

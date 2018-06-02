@@ -11,18 +11,18 @@ using namespace pa;
 TagAnalyzer::TagAnalyzer(int debug_/*=0*/) {
   DEBUG = debug_;
 
-  if (DEBUG) PDebug("TagAnalyzer::TagAnalyzer","Calling constructor");
+  if (DEBUG) logger.debug("TagAnalyzer::TagAnalyzer","Calling constructor");
   gt = new TagTree();
-  if (DEBUG) PDebug("TagAnalyzer::TagAnalyzer","Built TagTree");
+  if (DEBUG) logger.debug("TagAnalyzer::TagAnalyzer","Built TagTree");
   ibetas = gt->get_ibetas();
   Ns = gt->get_Ns();
   orders = gt->get_orders();
-  if (DEBUG) PDebug("TagAnalyzer::TagAnalyzer","Called constructor");
+  if (DEBUG) logger.debug("TagAnalyzer::TagAnalyzer","Called constructor");
 }
 
 
 TagAnalyzer::~TagAnalyzer() {
-  if (DEBUG) PDebug("TagAnalyzer::~TagAnalyzer","Calling destructor");
+  if (DEBUG) logger.debug("TagAnalyzer::~TagAnalyzer","Calling destructor");
 }
 
 
@@ -40,15 +40,15 @@ void TagAnalyzer::SetOutputFile(TString fOutName) {
   // Build the input tree here 
   gt->WriteTree(tOut);
 
-  if (DEBUG) PDebug("TagAnalyzer::SetOutputFile","Created output in "+fOutName);
+  if (DEBUG) logger.debug("TagAnalyzer::SetOutputFile","Created output in "+fOutName);
 }
 
 
 int TagAnalyzer::Init(TTree *t, TH1D *hweights)
 {
-  if (DEBUG) PDebug("TagAnalyzer::Init","Starting initialization");
+  if (DEBUG) logger.debug("TagAnalyzer::Init","Starting initialization");
   if (!t || !hweights) {
-    PError("TagAnalyzer::Init","Malformed input!");
+    logger.error("TagAnalyzer::Init","Malformed input!");
     return 0;
   }
   tIn = t;
@@ -68,12 +68,12 @@ int TagAnalyzer::Init(TTree *t, TH1D *hweights)
  
   event.setAddress(*t, readlist); // pass the readlist so only the relevant branches are turned on
  
-  if (DEBUG) PDebug("TagAnalyzer::Init","Set addresses");
+  if (DEBUG) logger.debug("TagAnalyzer::Init","Set addresses");
 
   hDTotalMCWeight = new TH1D("hDTotalMCWeight","hDTotalMCWeight",1,0,2);
   hDTotalMCWeight->SetBinContent(1,hweights->GetBinContent(1));
 
-  if (DEBUG) PDebug("TagAnalyzer::Init","Finished configuration");
+  if (DEBUG) logger.debug("TagAnalyzer::Init","Finished configuration");
 
   return 0;
 }
@@ -92,7 +92,7 @@ void TagAnalyzer::Terminate() {
     delete h;
 
   delete hDTotalMCWeight;
-  if (DEBUG) PDebug("TagAnalyzer::Terminate","Finished with output");
+  if (DEBUG) logger.debug("TagAnalyzer::Terminate","Finished with output");
 }
 
 void TagAnalyzer::OpenCorrection(CorrectionType ct, TString fpath, TString hname, int dim) {
@@ -109,7 +109,7 @@ double TagAnalyzer::GetCorr(CorrectionType ct, double x, double y) {
   } else if (h2Corrs[ct]!=0) {
     return h2Corrs[ct]->Eval(x,y);
   } else {
-    PError("TagAnalyzer::GetCorr",
+    logger.error("TagAnalyzer::GetCorr",
        TString::Format("No correction is defined for CorrectionType=%u",ct));
     return 1;
   }
@@ -119,7 +119,7 @@ void TagAnalyzer::SetDataDir(const char *s) {
   TString dirPath(s);
   dirPath += "/";
 
-  if (DEBUG) PDebug("TagAnalyzer::SetDataDir","Starting loading of data");
+  if (DEBUG) logger.debug("TagAnalyzer::SetDataDir","Starting loading of data");
 
 
 }
@@ -213,7 +213,7 @@ void TagAnalyzer::Run() {
     nZero = firstEvent;
 
   if (!fOut || !tIn) {
-    PError("TagAnalyzer::Run","NOT SETUP CORRECTLY");
+    logger.error("TagAnalyzer::Run","NOT SETUP CORRECTLY");
     exit(1);
   }
 
@@ -240,22 +240,22 @@ void TagAnalyzer::Run() {
 
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
     if (DEBUG>2) {
-      PDebug("TagAnalyzer::Run::Dump","");
+      logger.debug("TagAnalyzer::Run::Dump","");
       event.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
+      logger.debug("TagAnalyzer::Run::Dump","");
       event.photons.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
+      logger.debug("TagAnalyzer::Run::Dump","");
       event.muons.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
+      logger.debug("TagAnalyzer::Run::Dump","");
       event.electrons.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
+      logger.debug("TagAnalyzer::Run::Dump","");
       event.chsAK4Jets.print(std::cout, 2);
       std::cout << std::endl;
-      PDebug("TagAnalyzer::Run::Dump","");
+      logger.debug("TagAnalyzer::Run::Dump","");
       event.pfMet.print(std::cout, 2);
       std::cout << std::endl;
     }
@@ -352,7 +352,7 @@ void TagAnalyzer::Run() {
 
   } // entry loop
 
-  if (DEBUG) { PDebug("TagAnalyzer::Run","Done with entry loop"); }
+  if (DEBUG) { logger.debug("TagAnalyzer::Run","Done with entry loop"); }
 
 } // Run()
 

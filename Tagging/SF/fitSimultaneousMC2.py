@@ -13,7 +13,7 @@ argv=[]
 
 from math import sqrt
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 Load('Drawers','HistogramDrawer')
 
 def imp(w_):

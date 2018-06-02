@@ -518,7 +518,7 @@ void BaseAnalysisMod<T>::initialize(Registry& registry)
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    PDebug("BaseAnalysisMod::initialize", name);
+    logger.debug("BaseAnalysisMod::initialize", name);
   do_init(registry);
   for (auto& mod : subMods)
     mod->initialize(registry);
@@ -530,7 +530,7 @@ void BaseAnalysisMod<T>::readData(TString path)
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    PDebug("BaseAnalysisMod::readData", name);
+    logger.debug("BaseAnalysisMod::readData", name);
   do_readData(path+"/");
   for (auto& mod : subMods)
     mod->readData(path);
@@ -557,7 +557,7 @@ void BaseAnalysisMod<T>::reset()
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    PDebug("BaseAnalysisMod::reset", name);
+    logger.debug("BaseAnalysisMod::reset", name);
   do_reset();
   for (auto& mod : subMods)
     mod->reset();
@@ -569,7 +569,7 @@ void BaseAnalysisMod<T>::terminate()
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    PDebug("BaseAnalysisMod::terminate", name);
+    logger.debug("BaseAnalysisMod::terminate", name);
   do_terminate();
   for (auto& mod : subMods)
     mod->terminate();
@@ -595,7 +595,7 @@ void BaseAnalysisMod<T>::print()
 {
   auto v = dump();
   for (auto& s : v)
-    PInfo("BaseAnalysisMod::print", s.Data());
+    logger.info("BaseAnalysisMod::print", s.Data());
 }
 
 template class BaseAnalysisMod<GeneralTree>;
