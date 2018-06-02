@@ -8,7 +8,7 @@ using namespace panda;
 using namespace std;
 using namespace pa;
 
-#define ADDMOD(X) mods_all.back()->addSubMod<X>();
+#define ADDMOD(X) mods_all.back()->addSubMod<X>()
 
 
 PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
@@ -30,38 +30,38 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   // Define analyses
   preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
-  ADDMOD(GenPMod)
-  ADDMOD(MapMod)
+  ADDMOD(GenPMod);
+  ADDMOD(MapMod);
   if (analysis.unpackedGen)
-    ADDMOD(DeepGenMod<UnpackedGenParticle>)
+    ADDMOD(DeepGenMod<UnpackedGenParticle>);
   else
-    ADDMOD(DeepGenMod<GenParticle>)
-  ADDMOD(TriggerMod)
-  ADDMOD(SimpleLeptonMod)
-  ADDMOD(ComplicatedLeptonMod)
-  ADDMOD(SimplePhotonMod)
-  ADDMOD(ComplicatedPhotonMod)
-  ADDMOD(RecoilMod)
-  ADDMOD(FatJetMod)
-  ADDMOD(JetMod)
-  ADDMOD(TauMod)
+    ADDMOD(DeepGenMod<GenParticle>);
+  ADDMOD(TriggerMod);
+  ADDMOD(SimpleLeptonMod);
+  ADDMOD(ComplicatedLeptonMod);
+  ADDMOD(SimplePhotonMod);
+  ADDMOD(ComplicatedPhotonMod);
+  ADDMOD(RecoilMod);
+  ADDMOD(FatJetMod);
+  ADDMOD(JetMod);
+  ADDMOD(TauMod);
 
   postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
   mods_all.emplace_back(postselmod);
-  ADDMOD(HbbMiscMod)
-  ADDMOD(KinFitMod)
-  ADDMOD(InclusiveLeptonMod)
-  ADDMOD(SoftActivityMod)
-  ADDMOD(FatJetMatchingMod)
-  ADDMOD(BTagSFMod)
-  ADDMOD(BTagWeightMod)
-  ADDMOD(TriggerEffMod)
-  ADDMOD(GenStudyEWKMod)
-  ADDMOD(QCDUncMod)
-  ADDMOD(GenLepMod)
-  ADDMOD(GenJetNuMod)
-  ADDMOD(HFCountingMod)
-  ADDMOD(KFactorMod)
+  ADDMOD(HbbMiscMod);
+  ADDMOD(KinFitMod);
+  ADDMOD(InclusiveLeptonMod);
+  ADDMOD(SoftActivityMod);
+  ADDMOD(FatJetMatchingMod);
+  ADDMOD(BTagSFMod);
+  ADDMOD(BTagWeightMod);
+  ADDMOD(TriggerEffMod);
+  ADDMOD(GenStudyEWKMod);
+  ADDMOD(QCDUncMod);
+  ADDMOD(GenLepMod);
+  ADDMOD(GenJetNuMod);
+  ADDMOD(HFCountingMod);
+  ADDMOD(KFactorMod);
 
   for (auto& mod : mods_all)
     mod->print();
