@@ -26,7 +26,7 @@ Load('Drawers','PlotUtility')
 ### SET GLOBAL VARIABLES ###
 lumi = 12918.
 logy=False
-cut = 'nFatjet==1 && fj1Pt>250 && nLooseLep==1 && UWmag>250' # so we select leptonic wjets or semileptonic tt
+cut = 'nFatJet==1 && fj1Pt>250 && nLooseLep==1 && UWmag>250' # so we select leptonic wjets or semileptonic tt
 
 if not args.cut:
   label = 'noCut_'

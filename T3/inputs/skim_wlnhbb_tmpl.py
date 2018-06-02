@@ -26,35 +26,21 @@ def fn(input_name, isData, full_path):
     
     logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
-    skimmer = root.PandaAnalyzer()
-    analysis = wlnhbb(True)
-    analysis.processType = utils.classify_sample(full_path, isData)	
-    if analysis.processType == root.kTT or analysis.processType == root.kH:
-        analysis.reclusterGen = True # only turn on if necessary
-    #analysis.reclusterGen = True
-    skimmer.SetAnalysis(analysis)
-    skimmer.isData=isData
-    skimmer.AddPresel(root.VHbbSel())
-    skimmer.AddPresel(root.TriggerSel())
+    a = wlnhbb(True)
+    a.inpath = input_name
+    a.outpath = utils.input_to_output(input_name)
+    a.datapath = data_dir
+    a.isData = isData
+    utils.set_year(a, 2016)
+    a.processType = utils.classify_sample(full_path, isData)	
+    if a.processType in {root.pa.kTT, root.pa.kH}:
+        a.reclusterGen = True # only turn on if necessary
 
-    return utils.run_PandaAnalyzer(skimmer, isData, input_name)
+    skimmer = root.pa.PandaAnalyzer(a)
+    skimmer.AddPresel(root.pa.VHbbSel())
+    skimmer.AddPresel(root.pa.TriggerSel())
 
-
-def add_bdt():
-    # now run the BDT
-    Load('TMVABranchAdder')
-    ba = root.TMVABranchAdder()
-    ba.treename = 'events'
-    ba.defaultValue = -1.2
-    ba.presel = 'fj1ECFN_2_4_20>0'
-    for v in tagcfg.variables:
-        ba.AddVariable(v[0],v[2])
-    for v in tagcfg.formulae:
-        ba.AddFormula(v[0],v[2])
-    for s in tagcfg.spectators:
-        ba.AddSpectator(s[0])
-    ba.BookMVA('top_ecf_bdt',data_dir+'/trainings/top_ecfbdt_v8_BDT.weights.xml')
-    ba.RunFile('output.root')
+    return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
 
 
 if __name__ == "__main__":

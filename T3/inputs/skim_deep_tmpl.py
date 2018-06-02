@@ -63,7 +63,7 @@ def fn(input_name, isData, full_path):
     analysis.dump()
     skimmer.SetAnalysis(analysis)
     skimmer.isData=isData
-    skimmer.AddPresel(root.Fatjet450Sel())
+    skimmer.AddPresel(root.FatJet450Sel())
 
     outpath = utils.run_PandaAnalyzer(skimmer, isData, input_name)
     if not outpath:

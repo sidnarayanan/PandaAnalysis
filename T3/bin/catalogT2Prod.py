@@ -9,7 +9,7 @@ from sys import argv
 import argparse
 
 parser = argparse.ArgumentParser(description='make config file')
-parser.add_argument('--catalog',type=str,default='/home/cmsprod/catalog/t2mit/pandaf/009')
+parser.add_argument('--catalog',type=str,default='/home/cmsprod/catalog/t2mit/pandaf/010')
 parser.add_argument('--user_catalog', action='store_true')
 parser.add_argument('--mc_catalog',type=str,default=None)
 parser.add_argument('--data_catalog',type=str,default=None)
@@ -21,6 +21,7 @@ parser.add_argument('--smartcache',action='store_true')
 parser.add_argument('--force',action='store_true')
 args = parser.parse_args()
 
+args.catalog = '/' + args.catalog.strip('/')
 if not args.mc_catalog:
     args.mc_catalog = args.catalog
 if not args.data_catalog:

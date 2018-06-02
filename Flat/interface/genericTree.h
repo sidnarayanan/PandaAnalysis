@@ -14,13 +14,17 @@
 
 class genericTree {
   public:
-    genericTree() {};
-    virtual ~genericTree() {};
+    genericTree() {  }
+    virtual ~genericTree() {}
     TTree *treePtr{0};
     virtual void WriteTree(TTree *t)=0;
     virtual void RemoveBranches(std::vector<TString> droppable,
                                 std::vector<TString> keeppable={}) final;
     virtual void SetAuxTree(TTree *t) {}
+    virtual void Reset() { }
+    virtual void SetBranchStatus(const char *bname, bool status, UInt_t *ret=0) final { 
+      treePtr->SetBranchStatus(bname,status,ret); 
+    }
   protected: 
     virtual bool Book(TString bname, void *address, TString leafs) final;
 

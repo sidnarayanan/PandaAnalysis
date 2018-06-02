@@ -11,7 +11,7 @@ metFilter='metFilter==1 && egmFilter==1'
 #metFilter='metFilter==1'
 #metFilter = '1==1'
 topTagSF = '1'
-presel = 'nFatjet==1 && fj1Pt>250 && fabs(fj1Eta)<2.4'
+presel = 'nFatJet==1 && fj1Pt>250 && fabs(fj1Eta)<2.4'
 
 cuts = {
     'signal'             : tAND(metFilter,tAND(presel,'pfmet>250 && dphipfmet>0.5 && nLooseLep==0 && nLoosePhoton==0 && nTau==0 && fabs(calomet-pfmet)/pfmet<0.5 && fj1MaxCSV>0.54 && isojetNBtags==0')), 

@@ -24,7 +24,7 @@ from PandaCore.Drawers.plot_utility import *
 
 ### DEFINE REGIONS ###
 
-cut = '(pfmet>250||pfUWmag>250) && nFatjet==1 && fj1Pt>250'
+cut = '(pfmet>250||pfUWmag>250) && nFatJet==1 && fj1Pt>250'
 cut = tAND(cut,args.cut)
 
 

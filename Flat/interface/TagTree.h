@@ -47,10 +47,6 @@ class TagTree : public genericTree {
       ~TagTree();
       void WriteTree(TTree *t);
       void Fill() { treePtr->Fill(); }
-      void SetBranchStatus(const char *bname, bool status, UInt_t *ret=0) 
-      { 
-        treePtr->SetBranchStatus(bname,status,ret); 
-      }
       void Reset();
 
       std::vector<double> get_betas() const { return betas; }
@@ -87,7 +83,7 @@ class TagTree : public genericTree {
     float partonSize = -1;
     int partonIsReco = -1;
     int partonPdgId = -1;
-    int nFatjet = -1;
+    int nFatJet = -1;
     float fj1Tau32 = -1;
     float fj1Tau21 = -1;
     float fj1Tau32SD = -1;

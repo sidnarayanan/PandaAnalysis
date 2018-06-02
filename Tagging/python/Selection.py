@@ -8,7 +8,7 @@ triggers = {
 }
 
 metFilter='metFilter==1'
-presel = tAND(metFilter,'nFatjet==1 && fj1Pt>250 && fabs(fj1Eta)<2.4 && fj1MSD>50 && nTau==0')
+presel = tAND(metFilter,'nFatJet==1 && fj1Pt>250 && fabs(fj1Eta)<2.4 && fj1MSD>50 && nTau==0')
 
 cuts = {
     'tag'           : tAND(presel,'nLooseLep==1 && nTightMuon==1 && nLooseElectron==0 && nLoosePhoton==0 && pfUWmag>250 && fj1MaxCSV>0.54 && isojetNBtags==1 && dphipfUW>0.5 && fabs(calomet-pfmet)/pfUWmag<0.5 && mT<160'),

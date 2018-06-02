@@ -6,7 +6,7 @@
 
 myName=$(echo $0 | sed -e "s?.*/??g")
 
-logger.info -n "$myName" "Cleaning up staging areas..."
+PInfo -n "$myName" "Cleaning up staging areas..."
 WD=$SUBMIT_WORKDIR
 rm -rf $WD/*
 rm -rf $SUBMIT_LOGDIR/*
@@ -22,39 +22,39 @@ while getopts ":tn:" opt; do
       filesetSize=$OPTARG
       ;;
     :)
-      logger.error -n "$myName"  "Option -n must specify number of files"
+      PError -n "$myName"  "Option -n must specify number of files"
       exit 1
       ;;
   esac 
 done
 
-logger.info -n "$myName" "Acquiring configuration..."
-wget -O ${WD}/list.cfg $PANDA_CFG
+PInfo -n "$myName" "Acquiring configuration..."
+wget -nv -O ${WD}/list.cfg $PANDA_CFG
 ${CMSSW_BASE}/src/PandaAnalysis/T3/bin/configBuilder.py --infile ${WD}/list.cfg --outfile ${WD}/local.cfg --nfiles $filesetSize
 cp -v ${WD}/list.cfg ${WD}/list_all.cfg 
 cp -v ${WD}/local.cfg ${WD}/local_all.cfg 
 
 cd $CMSSW_BASE/
 if [[ $doTar == 1 ]]; then
-  logger.info -n "$myName" "Tarring up CMSSW..."
+  PInfo -n "$myName" "Tarring up CMSSW..."
   tar --exclude-vcs -chzf cmssw.tgz src python biglib bin lib objs test external # h = --dereference symlinks
   mv -v cmssw.tgz ${WD}
 fi
 
-logger.info -n "$myName" "Creating executable..."
+PInfo -n "$myName" "Creating executable..."
 cd ${CMSSW_BASE}/src/PandaAnalysis/T3/inputs/
 cp -v ${SUBMIT_TMPL} ${WD}/skim.py
 chmod 775 ${WD}/skim.py
 
-logger.info -n "$myName" "Finalizing work area..."
+PInfo -n "$myName" "Finalizing work area..."
 voms-proxy-init -voms cms --valid 168:00
 cp -v /tmp/x509up_u$UID $WD/x509up
 
 cp -v ${CMSSW_BASE}/src/PandaAnalysis/T3/inputs/exec.sh ${WD}
 
-logger.info -n "$myName" "Taking a snapshot of work area..."
+PInfo -n "$myName" "Taking a snapshot of work area..."
 cp -rvT ${WD} $SUBMIT_OUTDIR/workdir/
 
-logger.info -n "$myName" "Done!"
+PInfo -n "$myName" "Done!"
 
 # input files for submission: cmssw.tgz, skim.py, x509up, local.cfg. exec.sh is the executable
