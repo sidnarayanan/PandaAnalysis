@@ -1,6 +1,6 @@
 # Panda Analysis
 
-Full doxygen-generated documentation can be found for [PandaAnalysis](http://t3serv001.mit.edu/~snarayan/doxy/PandaAnalysis) and [PandaCore](http://t3serv001.mit.edu/~snarayan/doxy/PandaCore). 
+Full doxygen-generated documentation can be found [here](http://t3serv001.mit.edu/~snarayan/doxy/Panda).
 
 Throughout this readme, I will refer to several user-defined environment variables. 
 These are typically defined in `T3/setup.sh`.
