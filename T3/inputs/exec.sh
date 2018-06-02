@@ -28,4 +28,4 @@ hostname 1>&2
 python skim.py $@
 
 ls
-rm -rf $RELEASE skim.py x509up cmssw.tgz local.cfg *root *npz lcg-cp*
+rm -rf $RELEASE skim.py x509up cmssw.tgz local.cfg *root *npz lcg-cp* testfile
