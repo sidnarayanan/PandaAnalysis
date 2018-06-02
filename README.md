@@ -30,6 +30,7 @@ These can be decorated with various keywords:
 - shift:     `shift:shift_name    [opt1, opt2, ...]`
 - conditional:    `cond:cond_name   condition [? true_val : false_val]` 
 - constants:          `const:const_name val`
+
 Note that keywords can nest, i.e one could have a conditional that refers to a previously-defined constant. 
 There can be no whitespace in definitions!
 Here is an example:
