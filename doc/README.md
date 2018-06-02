@@ -1,5 +1,7 @@
 # Panda Analysis
 
+Full doxygen-generated documentation can be found for [PandaAnalysis](http://t3serv001.mit.edu/~snarayan/doxy/PandaAnalysis) and [PandaCore](http://t3serv001.mit.edu/~snarayan/doxy/PandaCore). 
+
 Throughout this readme, I will refer to several user-defined environment variables. 
 These are typically defined in `T3/setup.sh`.
 
@@ -60,9 +62,9 @@ Here, I am going to talk about the structure of `PandaAnalyzer` and its modules,
 - Many `AnalysisMod`s, which do physics tasks. These can be chained together in a tree-like structure
 - A `Registry`, which holds `shared_ptr`s to objects that should be shared between `AnalysisMods` (or really anywhere else in `PandaAnalyzer`). 
 
-Here is a (clickable!)  diagram of that:
+Here is what that looks like in a (clickable!) image:
 
-
+![click me](http://t3serv001.mit.edu/~snarayan/doxy/PandaAnalysis/classpa_1_1PandaAnalyzer__coll__graph_org.svg) 
 
 ### Modules
 The inheritance diagram for `Module`s looks like:
