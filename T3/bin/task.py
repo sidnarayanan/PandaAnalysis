@@ -48,7 +48,7 @@ parser.add_argument('--lockdir',type=str,default=lockdir)
 parser.add_argument('--force',action='store_true')
 parser.add_argument('--nfiles',type=int,default=-1)
 parser.add_argument('--silent',action='store_true')
-parser.add_argument('--monitor',type=int,default=None)
+parser.add_argument('--monitor',type=int,default=0)
 args = parser.parse_args()
 lockdir = args.lockdir
 if args.clean:
@@ -409,8 +409,12 @@ def check(stdscr=None):
             return
 
 ### MAIN ###
+if not args.monitor:
+    logger.info('task.py', 'TASK = '+submit_name)
+
 if args.kill or args.kill_idle:
     kill(args.kill_idle)
+
 if args.clean_output:
     if jm.textlock:
         logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
@@ -428,12 +432,11 @@ if args.clean_output:
         system('rm -rf %s/* %s/*'%(logdir, workdir))
 
 if args.check:
-    if args.monitor is not None:
+    if args.monitor:
         curses.wrapper(check)
     else:
         check()
 else:
-    logger.info('task.py', 'TASK = '+submit_name)
     if args.build_only and (not path.isfile(workdir+'/submission.pkl') or not args.submit): 
         if args.nfiles < 0:
             logger.info('task.py', 'Number of files not provided for new task => setting nfiles=25')
