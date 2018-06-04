@@ -308,8 +308,6 @@ def write_lock(outdir,outfilename,processed):
                    'job_id' : job_id,
                    'args' : [v for _,v in processed.iteritems()]}
         r = requests.post(cb.report_server+'/condor', json=payload)
-        print payload
-        print r
 
 
 # make a record in the primary output of what
