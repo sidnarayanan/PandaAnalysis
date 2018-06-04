@@ -307,7 +307,7 @@ def write_lock(outdir,outfilename,processed):
                    'task' : _task_name,
                    'job_id' : job_id,
                    'args' : [v for _,v in processed.iteritems()]}
-        r = requests.post(cb.report_server+'/condor', json=payload)
+        r = requests.post(cb.report_server+'/condor_done', json=payload)
 
 
 # make a record in the primary output of what

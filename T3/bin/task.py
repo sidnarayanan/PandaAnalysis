@@ -10,6 +10,7 @@ import cPickle as pickle
 from re import sub
 from glob import glob
 from query import query
+from requests import post
 from urllib2 import urlopen
 from itertools import chain 
 from time import time, sleep, strftime
@@ -209,13 +210,21 @@ def check(stdscr=None):
         init_colors()
         stdscr.nodelay(True)
     while True:
-        force_refresh = False
+        global last_lock
+        refresh = False
         if args.monitor:
             c = stdscr.getch()
             curses.flushinp()
             if c == ord('q'):
                 return
-            force_refresh = (c == ord('r'))
+            refresh = (c == ord('r'))
+
+        if time() - args.monitor > last_lock:
+            refresh = True 
+
+        if not refresh:
+            sleep(1)
+            continue 
 
         processedfiles = set([])
         if jm.textlock:
@@ -232,7 +241,7 @@ def check(stdscr=None):
                 except IOError:
                     pass
         else:
-            url = jm.report_server + '/condor?task=%s'%(submit_name)
+            url = jm.report_server + '/condor_query?task=%s'%(submit_name)
             for r in json.load(urlopen(url)):
                 processedfiles.add(r[0])
 
@@ -395,7 +404,7 @@ def check(stdscr=None):
 
 
         if args.monitor:
-            sleep(args.monitor)
+            sleep(1)
         else:
             return
 
@@ -403,9 +412,16 @@ def check(stdscr=None):
 if args.kill or args.kill_idle:
     kill(args.kill_idle)
 if args.clean_output:
-    logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
-    sleep(2)
-    system('rm -rf %s/* %s/* &'%(lockdir, outdir))
+    if jm.textlock:
+        logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
+        sleep(2)
+        system('rm -rf %s/* %s/* &'%(lockdir, outdir))
+    else:
+        logger.info('task.py', 'Cleaning up %s and deleting entries'%(outdir))
+        sleep(2)
+        system('rm -rf %s/* &'%(outdir))
+        payload = {'task' : submit_name}
+        post(jm.report_server+'/condor_clean', json=payload)
     if args.clean:
         logger.info('task.py', 'Cleaning up %s and %s'%(logdir, workdir))
         sleep(2)
