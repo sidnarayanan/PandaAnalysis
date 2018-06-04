@@ -2,6 +2,7 @@
 
 import json
 import socket
+import requests
 from re import sub
 from sys import exit
 from random import choice
@@ -18,7 +19,8 @@ _data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'  # data directory
 _host = socket.gethostname()                                   # where we're running
 _IS_T3 = (_host[:2] == 't3')                                   # are we on the T3?
 REMOTE_READ = True                                             # should we read from hadoop or copy locally?
-local_copy = bool(smart_getenv('SUBMIT_LOCALACCESS', True))    # should we always xrdcp from T2?
+local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcp from T2?
+_task_name = getenv('SUBMIT_NAME')                             # name of this task
 YEAR = 2016                                                    # what year's data is this analysis?
 
 stageout_protocol = None                                       # what stageout should we use?
@@ -39,7 +41,7 @@ else:
         stageout_protocol = 'lcg'
     except Exception as e:
         logger.error(_sname,
-               'Could not install lcg-cp in absence of other protocols!')
+                     'Could not install lcg-cp in absence of other protocols!')
         raise e
 
 
@@ -292,12 +294,22 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
 # write a lock file, based on what succeeded,
 # and then stage it out to a lock directory
 def write_lock(outdir,outfilename,processed):
-    outfilename = outfilename.replace('.root','.lock')
-    flock = open(outfilename,'w')
-    for k,v in processed.iteritems():
-        flock.write(v+'\n')
-    flock.close()
-    stageout(outdir,outfilename,outfilename,ls=False)
+    if cb.textlock:
+        outfilename = outfilename.replace('.root','.lock')
+        flock = open(outfilename,'w')
+        for k,v in processed.iteritems():
+            flock.write(v+'\n')
+        flock.close()
+        stageout(outdir,outfilename,outfilename,ls=False)
+    else:
+        job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
+        payload = {'timestamp' : int(time()),
+                   'task' : _task_name,
+                   'job_id' : job_id,
+                   'args' : [v for _,v in processed.iteritems()]}
+        r = requests.post(cb.report_server+'/condor', json=payload)
+        print payload
+        print r
 
 
 # make a record in the primary output of what
