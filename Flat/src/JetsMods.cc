@@ -191,8 +191,9 @@ void JetMod::do_execute()
           jets.bcand.push_back(&jw);
       }
 
-
-      if (jw.nominal->maxpt > cfg.minJetPt) {
+      // DGH hack: store all 15 GeV jets,
+      // but gt.nJot is only the jets above cfg.minJetPt
+      if (jw.nominal->maxpt > 15 /*cfg.minJetPt*/ ) { 
         // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
