@@ -176,9 +176,15 @@ void ConfigMod::readData(TString dirPath)
 
   // pileup
   utils.openCorr(cNPV,dirPath+"moriond17/normalized_npv.root","data_npv_Wmn",1);
-  utils.openCorr(cPU,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeights",1);
-  utils.openCorr(cPUUp,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeightsUp",1);
-  utils.openCorr(cPUDown,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeightsDown",1);
+  if (analysis.year==2017) {
+    utils.openCorr(cPU,dirPath+"pileup/puWeights_90x_41ifb.root","puWeights",1);
+    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsUp",1);
+    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsDown",1);
+  } else {
+    utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
+    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
+    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
+  }
 
   if (analysis.complicatedLeptons) {
     // Corrections checked out from Gui's repository on Nov 12, 2017 ~DGH
