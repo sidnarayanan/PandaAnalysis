@@ -43,6 +43,8 @@ parser.add_argument('--submit',action='store_true')
 parser.add_argument('--build_only',action='store_true')
 parser.add_argument('--submit_only',action='store_true')
 parser.add_argument('--clean_output',action='store_true')
+parser.add_argument('--check_duplicates',action='store_true')
+parser.add_argument('--clean_duplicates',action='store_true')
 parser.add_argument('--clean',action='store_true')
 parser.add_argument('--lockdir',type=str,default=lockdir)
 parser.add_argument('--force',action='store_true')
@@ -59,6 +61,11 @@ if args.submit:
 if args.monitor:
     jm.SILENT = True
     args.check = True
+if args.clean_duplicates:
+    args.check_duplicates = True 
+if args.check_duplicates and jm.textlock:
+    logger.error('task.py', 'Duplicate checking is not yet implemented for text-locking, sorry!')
+    sys.exit(1)
 
 # for printing to screen:
 columns = int(popen('stty size', 'r').read().split()[-1])
@@ -121,6 +128,24 @@ def kill(idle=False):
     else:
         logger.warning('task.py','Trying to kill a task with no submissions!')
 
+
+def check_duplicates():
+    url = jm.report_server + '/condor_query?task=%s'%(submit_name)
+    completed = {}
+    for r in json.load(urlopen(url)):
+        completed.setdefault(r[0], []).append(r[1])
+    to_clean = []
+    for f,jids in completed.iteritems():
+        if len(jids) > 1:
+            logger.warning('task.py', '%s found in %s'%(f, jids))
+            to_clean += jids 
+    if not to_clean:
+        logger.info('task.py', 'No duplicates found')
+    if args.clean_duplicates:
+        for jid in to_clean:
+            system('rm -f %s/*%s*'%(outdir, jid))
+            payload = {'task' : submit_name, 'job_id' : jid}
+            post(jm.report_server+'/condor_clean', json=payload)
 
 
 # for monitoring:
@@ -411,6 +436,9 @@ def check(stdscr=None):
 ### MAIN ###
 if not args.monitor:
     logger.info('task.py', 'TASK = '+submit_name)
+
+if args.check_duplicates:
+    check_duplicates()
 
 if args.kill or args.kill_idle:
     kill(args.kill_idle)

@@ -32,7 +32,7 @@ elif system('which lcg-cp') == 0:
     stageout_protocol = 'lcg'
 else:
     try:
-        ret = system('wget http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
+        ret = system('wget -nv http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
         ret = max(ret, system('tar -xvf lcg-cp.tar.gz'))
         if ret:
             raise RuntimeError
@@ -120,13 +120,17 @@ def copy_local(long_name):
             else:
                 cmd = 'cp %s %s'%(local_path, input_name)
                 logger.info(_sname+'.copy_local',cmd)
-                system(cmd)
+                ret = system(cmd)
+                if ret:
+                    return None 
                 copied = True
 
     if not copied:
-        cmd = "xrdcp %s %s"%(full_path,input_name)
+        cmd = "xrdcp -f %s %s"%(full_path,input_name)
         logger.info(_sname+'.copy_local',cmd)
-        system(cmd)
+        ret = system(cmd)
+        if ret:
+            return None 
         copied = True
             
     if path.isfile(input_name):
@@ -398,7 +402,11 @@ def run_HRAnalyzer(skimmer, isData, output_name):
 def main(to_run, processed, fn):
     print_time('loading')
     for f in to_run.files:
-        input_name = copy_local(f)
+        for _ in xrange(3):
+            input_name = copy_local(f)
+            if input_name is not None:
+                break
+            sleep(30)
         print_time('copy %s'%input_name)
         if input_name:
             success = fn(input_name,(to_run.dtype!='MC'),f)
