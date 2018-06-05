@@ -245,6 +245,7 @@ void JetMod::do_execute()
             gt.jotPhi[njet] = jet.phi();
             gt.jotM[njet] = jet.m();
             gt.jotCSV[njet] = csv;
+            gt.jotFlav[njet] = jw.flavor;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
 

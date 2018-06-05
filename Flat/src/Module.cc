@@ -153,7 +153,20 @@ void ConfigMod::set_outputBranches()
   if (!analysis.varyJES)
     gt.RemoveBranches({".*JES.*"},{});
   if (analysis.varyJESTotal)
-    gt.RemoveBranches({},{".*JESTotal.*"});
+    gt.RemoveBranches({".*JESTotal.*"},{});
+  if (analysis.hbb)
+    gt.RemoveBranches({
+      ".*JES.*",
+      ".*JESTotal.*",
+      "looseGen.*",
+      "genLep.*",
+      "genElectron.*",
+      "genTau.*",
+      "gen.*Top.*",
+      "genMjj.*",
+      "genFat.*",
+      "genW.*"
+    },{});
 }
 
 void ConfigMod::readData(TString dirPath)

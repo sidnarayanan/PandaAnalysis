@@ -47,8 +47,10 @@ for k,v in processes.iteritems():
 
 submit_name = environ['SUBMIT_NAME']
 user = environ['USER']
-split_dir = '/tmp/%s/split/%s/'%(user, submit_name)
-merged_dir = '/tmp/%s/merged/%s/'%(user, submit_name)
+#split_dir = '/tmp/%s/split/%s/'%(user, submit_name)
+#merged_dir = '/tmp/%s/merged/%s/'%(user, submit_name)
+split_dir = '/scratch5/%s/split/%s/'%(user, submit_name)
+merged_dir = '/scratch5/%s/merged/%s/'%(user, submit_name)
 for d in [split_dir, merged_dir]:
     system('mkdir -p ' + d)
 
