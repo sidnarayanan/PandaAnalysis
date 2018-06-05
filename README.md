@@ -196,11 +196,11 @@ You have to open up the script and modify the number of events you want to run, 
 
 
 ## Running an analysis
-The analysis framework is heavily integrated with the MIT T3/T2. 
-In princple it can also run on SubMIT, but it gets tricky (submission is on one node, stageout is on another).
-Until the T3 drives are visible from submit.mit.edu, or I figure out remote condor submission (still debugging this...), let's assume you only run on the T3/T2.
-For most vanilla analyses, this is fine, as a typical analysis takes ~2 hours, and the failure rate on the T3 is essentially zero (much higher on SubMIT).
-To run only on the T3, set `export SUBMIT_CONFIG=T3`; to include the T2, do `export SUBMIT_CONFIG=T2`.
+The analysis framework is heavily integrated with HTCondor resources at MIT. 
+There are three running options:
+- Using only the T3 (`export SUBMIT_CONFIG=T3`). This is used by `check` and `submit` since local filesystem access is needed.
+- Using the T3 with opportunistic flocking to the T2 (`export SUBMIT_CONFIG=T2`). This is default for analysis jobs.
+- Using the entire SubMIT grid (`export SUBMIT_CONFIG=SubMIT`). This is failure-prone due to the heterogenity of the grid, but with aggressive resubmission, can be useful for CPU-intensive tasks. Instructions for this are below.
 
 For what follows, I assume you're in `$CMSSW_BASE/src/PandaAnalysis/T3`.
 
@@ -297,22 +297,29 @@ The clean argument will make sure to wipe out all staging directories to ensure 
 
 To check the status of your jobs, simply do:
 ```bash
-./task.py --check [--silent] [--force] [--nfiles NFILES] [--monitor NSECONDS]
+./task.py --check [--silent] [--force] [--nfiles NFILES] [--monitor NSECONDS] [--submit_only]
 ```
 Note that the above command overwrites `$SUBMIT_WORKDIR/local.cfg`, with the intention of preparing it for resubmission.
 The file will be recreated as a configuration to rerun files that are not present in the output and not running.
 - `--silent` will skip the per-sample breakdown.
 - `--nfiles` will repackage `local.cfg` into a different number of files per job.
 - `--force` will re-catalog files that are incomplete, not just missing.
-- `--monitor` will capture the terminal screen and refresh the status if either (a) a job has completed succesfully or (b) `NSECONDS` has elapsed since the last refresh.
+- `--monitor` will capture the terminal screen and refresh the status after `NSECONDS` has elapsed since the last refresh.
+- `--submit_only` will silently re-submit failed jobs if `--monitor` is turned on. 
 
-To resubmit missing files, simply do
+To manually resubmit missing files, simply do
 ```bash
-./task.py --silent
+./task.py --submit
 ```
 In the case that you are using the `--force` option, make sure you have no running jobs before resubmitting, or you may end up with duplicated outputs.
 Forcing resubmission is generally discouraged and is largely included for historical reasons.
 The job framework is robust enough at this point that forcing should not be necessary.
+
+To be absolutely sure you have no duplicated outputs, you can run:
+```bash
+./task.py --check_duplicates
+# ./task.py --clean_duplicates # same as above, but it also deletes the offenders and prepares for resubmission
+```
 
 If you are having lots of failures, it may be interesting to analyze the logs located in `$SUBMIT_LOGDIR`. 
 You can do this manually, or:
@@ -321,6 +328,10 @@ You can do this manually, or:
 ```
 This will print to screen a basic analysis of the errors observed, which errors are correlated, and how frequently they occur.
 If the `--dump` flag is passed, then a directory `log_dumps/` is created, containing detailed information on each failure class (where it failed and on for what inputs).
+
+### Running on SubMIT
+
+The above steps still apply, modulo a single change: the `SUBMIT_*` directories must be on `/data/t3home000/` and have `777` permissions.
 
 
 ## Merging
