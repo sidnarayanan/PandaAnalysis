@@ -346,3 +346,4 @@ The last flag is optional and will resubmit anything that failed (exited without
 NB: the `submit` and `check` executables are very generic and don't know anything about the code they are running.
 For them, "success" simply means "exited with code 0".
 So it is important to check that the output looks sane to you.
+
