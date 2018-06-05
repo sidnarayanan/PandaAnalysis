@@ -207,8 +207,11 @@ void JetMod::do_execute()
 
         if (isNominal && analysis.fatjet) {
           isojet->execute();
-          if (jw.iso && csvLoose(csv))
+          if (jw.iso && csvLoose(csv)) {
             ++(gt.isojetNBtags[shift]);
+            if (csvMed(csv))
+              ++(gt.isojetNMBtags[shift]);
+          }
         }
 
         if (aeta < 2.4) {

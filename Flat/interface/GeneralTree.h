@@ -463,6 +463,7 @@ class GeneralTree : public genericTree {
   int jetNBtags[43];
   int jetNMBtags[43];
   int isojetNBtags[43];
+  int isojetNMBtags[43];
   int nFatJet;
   float fjTau32;
   float fjTau21;

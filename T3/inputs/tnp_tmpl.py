@@ -49,6 +49,7 @@ def fn(input_name, isData, full_path):
     # now we instantiate and configure the analyzer
     a = monotop(True)
     a.recalcECF = True 
+    a.varyJESTotal = True
     a.mcTriggers = True
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)

@@ -7,7 +7,7 @@
 #include "memory.h"
 
 #include "AnalyzerUtilities.h"
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 #include "BTagTools.h"
 
 // fastjet

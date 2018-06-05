@@ -5,7 +5,7 @@
 #include "HeavyResTree.h"
 #include "Selection.h"
 #include "Module.h"
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 
 #include "CommonMods.h"
 #include "FatJetsMods.h"

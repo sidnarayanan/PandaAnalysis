@@ -14,7 +14,7 @@
 #include <set>
 #include <stdexcept>
 
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 
 namespace std{
   template <typename T>

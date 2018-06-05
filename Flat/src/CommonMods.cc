@@ -120,7 +120,8 @@ void TriggerMod::do_init(Registry& registry)
           "HLT_Photon120_R9Id90_HE10_IsoM",
           "HLT_Photon165_R9Id90_HE10_IsoM",
           "HLT_Photon300_NoHE",
-          "HLT_ECALHT800"
+          "HLT_ECALHT800",
+          "HLT_CaloJet500_NoJetID"
     };
     triggerHandlers[kSinglePhoTrig].addTriggers(paths);
 

@@ -7,7 +7,7 @@
 #include "stdexcept"
 #include "memory"
 
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 #include "Config.h"
 
 namespace pa {
