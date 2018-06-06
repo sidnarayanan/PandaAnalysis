@@ -374,7 +374,7 @@ void IsoJetMod::do_execute()
   bool isIsoJet = (
         gt.nFatJet == 0 ||
         (fabs(jet.eta()) < maxIsoEta &&
-         DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
+         DeltaR2(gt.fjEta[0],gt.fjPhi[0],jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
       );
 
   jw.iso = isIsoJet;
@@ -529,8 +529,8 @@ void VBFSystemMod::do_execute()
 
   unsigned idx0=0, idx1=1;
   if (analysis.hbb) {
-    if (analysis.fatjet && ((*fj1) != nullptr) && (*fj1)->pt() > 400) {
-      const FatJet& fj = **fj1; 
+    if (analysis.fatjet && fjPtrs->size() > 0 && (*fjPtrs)[0]->pt() > 400) {
+      const FatJet& fj = *((*fjPtrs)[0]); 
       int inc1 = 0;
       if (DeltaR2(jets.cleaned_sorted[idx1]->base->eta(), 
                   jets.cleaned_sorted[idx1]->base->phi(),

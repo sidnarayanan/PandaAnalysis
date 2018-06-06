@@ -54,7 +54,7 @@ bool RecoilSel::do_accept() const
 bool MonotopSel::do_accept() const
 {
   bool base = RecoilSel::do_accept();
-  return (base && gt->nFatJet>0 && gt->fjPt[0]>200);
+  return (base && gt->nFatJet>0 && gt->fjPt[0][0]>200);
 }
 
 
@@ -64,7 +64,7 @@ bool MonohiggsSel::do_accept() const
 
   return (base && 
           (gt->hbbpt[0] < 150 ||
-           (gt->nFatJet>=1 && gt->fjPt[0]>200)));
+           (gt->nFatJet>=1 && gt->fjPt[0][0]>200)));
 }
 
 
@@ -97,7 +97,7 @@ bool VHbbSel::do_accept() const
     return true;
   }
 
-  // ZllHbb
+  // zllhbb
   if (bestJet1>25 && bestJet2>25 && 
       ((gt->nLooseElectron>1 && gt->electronPt[0]>20 && gt->electronPt[1]>15) ||
        (gt->nLooseMuon>1 && gt->muonPt[0]>20 && gt->muonPt[1]>10) ||

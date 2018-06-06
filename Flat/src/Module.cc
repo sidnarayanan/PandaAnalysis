@@ -57,7 +57,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   }
 
   if (analysis.hbb) {
-    cfg.minJetPt = analysis.ZllHbb ? 20 : 25;
+    cfg.minJetPt = analysis.zllhbb ? 20 : 25;
     cfg.minGenFatJetPt = 200;
   }
   if (analysis.vbf || analysis.hbb || analysis.complicatedLeptons)

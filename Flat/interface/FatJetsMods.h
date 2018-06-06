@@ -28,11 +28,11 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      fj1 = registry.accessConst<const panda::FatJet*>("fj1");
+      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs");
     }
     void do_execute();
   private:
-    std::shared_ptr<const panda::FatJet *const> fj1{nullptr}; // shared ptr to a const bare address
+    std::shared_ptr<const std::vector<panda::FatJet*>> fjPtrs{nullptr};
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
   };
 
@@ -87,7 +87,8 @@ namespace pa {
               GeneralTree& gt_,
               int level_=0) :
       BaseJetMod("fatjet", event_, cfg_, utils_, gt_, level_),
-      fj1(std::make_shared<const panda::FatJet*>(nullptr)),
+      nMaxFJ(analysis.vqqhbb ? 2 : 1),
+      fjPtrs(std::v_make_shared<panda::FatJet*>()),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
       substructure(analysis.recalcECF ? new SubRunner(analysis.ak8, utils) : nullptr) {
         recluster = addSubMod<FatJetReclusterMod>();
@@ -99,18 +100,22 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      registry.publishConst("fj1", fj1);
+      registry.publishConst("fjPtrs", fjPtrs);
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
       dilep = registry.accessConst<TLorentzVector>("dilep");
+    }
+    void do_reset() {
+      fjPtrs->clear();
     }
     void do_execute();
     float getMSDCorr(float,float);
   private:
     void setupJES();
 
-    std::shared_ptr<const panda::FatJet*> fj1{nullptr};
+    const int nMaxFJ;
+    std::shared_ptr<std::vector<panda::FatJet*>> fjPtrs{nullptr};
     panda::FatJetCollection &fatjets;
 
     std::shared_ptr<const std::vector<panda::Lepton*>> matchLeps{nullptr};
@@ -136,14 +141,14 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      fjPtr = registry.accessConst<const panda::FatJet*>("fj1");
+      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs");
       if (!analysis.isData)
         genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();
     void do_reset() { genObjects.clear(); }
   private:
-    std::shared_ptr<const panda::FatJet *const> fjPtr{nullptr};
+    std::shared_ptr<const std::vector<panda::FatJet*>> fjPtrs{nullptr};
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
 
     std::map<const panda::GenParticle*,float> genObjects; // gen particle -> pt

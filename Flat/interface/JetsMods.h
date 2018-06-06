@@ -84,13 +84,13 @@ namespace pa {
       currentJet = registry.access<JetWrapper*>("currentJet");
       currentJES = registry.access<JESHandler*>("currentJES");
 
-      fj1 = registry.accessConst<const panda::FatJet*>("fj1");
+      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs");
     }
     void do_execute();
   private:
     std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
     std::shared_ptr<JESHandler*> currentJES{nullptr};
-    std::shared_ptr<const panda::FatJet* const> fj1{nullptr};
+    std::shared_ptr<const std::vector<panda::FatJet*>> fjPtrs{nullptr};
   };
 
   class BJetRegMod : public AnalysisMod {
@@ -184,12 +184,12 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       currentJES = registry.access<JESHandler*>("currentJES");
-      fj1 = registry.accessConst<const panda::FatJet*>("fj1", true); 
+      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs", true); 
     }
     void do_execute();
   private:
     std::shared_ptr<JESHandler*> currentJES{nullptr};
-    std::shared_ptr<const panda::FatJet *const> fj1{nullptr};
+    std::shared_ptr<const std::vector<panda::FatJet *>> fjPtrs{nullptr};
   };
 
   class BaseJetMod : public AnalysisMod {

@@ -36,7 +36,7 @@ namespace pa {
     }
     virtual ~KinFitMod () { }
 
-    virtual bool on() { return !analysis.genOnly && analysis.ZllHbb; }
+    virtual bool on() { return !analysis.genOnly && analysis.zllhbb; }
     
   protected:
     void do_init(Registry& registry) {

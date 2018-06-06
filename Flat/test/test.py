@@ -42,4 +42,5 @@ if a.isData:
 #skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()
-skimmer.Terminate()
+print 'done?'
+#skimmer.Terminate()

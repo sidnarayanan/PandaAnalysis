@@ -92,7 +92,9 @@ namespace pa {
     bool varyJES = false;
     bool varyJESTotal = false;
     bool vbf = false;
-    bool ZllHbb = false;
+    bool vbfhbb = false; 
+    bool vqqhbb = false; 
+    bool zllhbb = false;
   };
 
   enum CorrectionType { //!< enum listing relevant corrections applied to MC

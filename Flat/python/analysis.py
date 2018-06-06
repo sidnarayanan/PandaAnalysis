@@ -48,6 +48,23 @@ vbf = lambda v=False : _analysis(
         puppiJets = False
     )
 
+vqqhbb = lambda v=False : _analysis(
+        name = 'vbfhbb',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        vqqhbb = True, 
+        fatjet = True,
+        btagSFs = True,
+        hfCounting = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = False,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+    )
+
 vbfhbb = lambda v=False : _analysis(
         name = 'vbfhbb',
         verbose = v,
@@ -185,7 +202,7 @@ zllhbb = lambda v=False : _analysis(
         verbose = v,
         ak8 = True,
         hbb = True,
-        ZllHbb = True,
+        zllhbb = True,
         monoh = False,
         recoil = True,
         fatjet = True,
