@@ -72,10 +72,10 @@ void FatJetMod::do_execute()
       float corrweight = getMSDCorr(pt,eta);
       JESLOOP {
         JetWrapper jw = shift == 0 ? jwNominal : shiftJet(fj, i2jes(shift), doSmear);
-        gt.fjPt[iFJ][shift] = jw.pt;
-        gt.fjM[iFJ][shift] = mass * jw.scale();
-        gt.fjMSD[iFJ][shift] = fj.mSD * jw.scale();
-        gt.fjMSD_corr[iFJ][shift] = corrweight*gt.fjMSD[iFJ][shift];
+        gt.fjPt[shift][iFJ] = jw.pt;
+        gt.fjM[shift][iFJ] = mass * jw.scale();
+        gt.fjMSD[shift][iFJ] = fj.mSD * jw.scale();
+        gt.fjMSD_corr[shift][iFJ] = corrweight*gt.fjMSD[shift][iFJ];
       }
 
       if (analysis.recalcECF && event.recoil.max < 175) {
