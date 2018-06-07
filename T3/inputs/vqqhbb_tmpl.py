@@ -57,6 +57,7 @@ if __name__ == "__main__":
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
     
+    wd = utils.isolate()
     utils.main(to_run, processed, fn)
 
     utils.hadd(processed.keys())
@@ -64,10 +65,10 @@ if __name__ == "__main__":
 
     ret = utils.stageout(outdir,outfilename)
     utils.cleanup('*.root')
+    utils.un_isolate(wd)
     utils.print_time('stageout and cleanup')
     if not ret:
         utils.write_lock(lockdir,outfilename,processed)
-        utils.cleanup('*.lock')
         utils.print_time('create lock')
     else:
         exit(-1*ret)

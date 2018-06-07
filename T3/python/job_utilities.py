@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
+import os
 import json
 import socket
 import requests
 from re import sub
 from sys import exit
+from glob import glob 
 from random import choice
 from time import clock,time,sleep
-from os import system,getenv,path,environ
+from os import system,getenv,path,environ,getpid
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
@@ -77,11 +79,26 @@ def print_time(label):
            '%.1f s elapsed performing "%s"'%((now_-_stopwatch),label))
     _stopwatch = now_
 
-
+# set the data-taking period
 def set_year(analysis, year):
     global YEAR
     analysis.year = year
     YEAR = year
+
+# isolate the job
+def isolate():
+    pid = getpid()
+    p = 'job_%i'%pid 
+    try:
+        os.mkdir(p)
+    except OSError:
+        pass
+    os.chdir(p)
+    return p
+
+def un_isolate(p):
+    os.chdir('..')
+    cleanup(p)
 
 # convert an input name to an output name
 def input_to_output(name):
@@ -141,14 +158,18 @@ def copy_local(long_name):
         return None
 
 
-# wrapper around rm -f. be careful!
-def cleanup(fname):
-    ret = system('rm -f %s'%(fname))
-    if ret:
-        logger.error(_sname+'.cleanup','Removal of %s exited with code %i'%(fname,ret))
+# wrapper around remove. be careful!
+def cleanup(fname, _verbose=True):
+    if path.isfile(fname):
+        os.remove(fname)
+    elif path.isdir(fname):
+        os.rmdir(fname)
     else:
+        for f in glob(fname):
+            cleanup(f, False)
+    if _verbose:
         logger.info(_sname+'.cleanup','Removed '+fname)
-    return ret
+    return 0 # if it made it this far without OSError, it's good
 
 
 # wrapper around hadd
@@ -287,10 +308,11 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
                 failed = True
         if not failed:
             logger.info(_sname+'.stageout', 'Copy succeeded after %i attempts'%(i_attempt+1))
+            cleanup('testfile')
             return ret
         else:
             timeout = int(timeout * 1.5)
-        system('rm -f testfile')
+        cleanup('testfile')
     logger.error(_sname+'.stagoeut', 'Copy failed after %i attempts'%(n_attempts))
     return ret
 
@@ -305,6 +327,7 @@ def write_lock(outdir,outfilename,processed):
             flock.write(v+'\n')
         flock.close()
         stageout(outdir,outfilename,outfilename,ls=False)
+        cleanup('*.lock')
     else:
         job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
         payload = {'timestamp' : int(time()),
