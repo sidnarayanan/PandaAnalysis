@@ -56,6 +56,7 @@ void KinFitMod::do_execute()
 void SoftActivityMod::do_execute() 
 {
   // Soft activity
+  // TODO: I'm seeing a lot of sqrts replaced by pow(,2)s here. I think this can be sped up -SN
   int shift = jes2i(shiftjes::kNominal);
   auto& jets = (*jesShifts)[shift];
 

@@ -273,20 +273,20 @@ namespace pa {
     std::vector<std::vector<float>> particles;
     std::vector<std::vector<std::vector<float>>> ecfs; // uh
     void reset() {
-    pt=-1; eta=-1; phi=-1; m=-1;
-    msd=-1;
-    tau3=-1; tau2=-1; tau1=-1;
-    tau3sd=-1; tau2sd=-1; tau1sd=-1;
-    nprongs=-1;
-    partonpt=-1; partonm=-1;
-    for (auto& v : particles) {
-      std::fill(v.begin(), v.end(), 0);
-    }
-    for (auto& v : ecfs) {
-      for (auto& vv : v) {
-      std::fill(vv.begin(), vv.end(), -1);
+      pt=-1; eta=-1; phi=-1; m=-1;
+      msd=-1;
+      tau3=-1; tau2=-1; tau1=-1;
+      tau3sd=-1; tau2sd=-1; tau1sd=-1;
+      nprongs=-1;
+      partonpt=-1; partonm=-1;
+      for (auto& v : particles) {
+        std::fill(v.begin(), v.end(), 0);
       }
-    }
+      for (auto& v : ecfs) {
+        for (auto& vv : v) {
+        std::fill(vv.begin(), vv.end(), -1);
+        }
+      }
     }
   };
 
@@ -301,7 +301,8 @@ namespace pa {
     float genpt{0};
     float maxpt{0}; 
     bool iso{false};
-    int user_idx{-1};
+    int central_idx{-1};
+    int cleaned_idx{-1};
     float breg{-1}, bregwidth{-1}; 
     const panda::Jet* base;
     const JetWrapper* nominal{nullptr}; 

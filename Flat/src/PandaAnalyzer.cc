@@ -30,7 +30,6 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   // Define analyses
   preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
-  ADDMOD(GenPMod);
   ADDMOD(MapMod);
   if (analysis.unpackedGen)
     ADDMOD(DeepGenMod<UnpackedGenParticle>);
@@ -48,6 +47,8 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
   mods_all.emplace_back(postselmod);
+  ADDMOD(GenPMod);
+  ADDMOD(JetFlavorMod); 
   ADDMOD(HbbMiscMod);
   ADDMOD(KinFitMod);
   ADDMOD(InclusiveLeptonMod);

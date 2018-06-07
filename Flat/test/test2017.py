@@ -33,7 +33,7 @@ utils.set_year(a, 2017)
 skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
 #skimmer.firstEvent=0
-#skimmer.lastEvent=40
+#skimmer.lastEvent=4
 if a.isData:
     utils.add_json(skimmer)
 

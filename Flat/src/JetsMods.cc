@@ -173,9 +173,6 @@ void JetMod::do_execute()
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
-      if (isNominal)
-        flavor->execute();
-
       float csv = centralOnly(analysis.year==2016 ? jet.csv : jet.deepCSVb, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
@@ -193,7 +190,7 @@ void JetMod::do_execute()
 
 
       if (jw.nominal->maxpt > cfg.minJetPt) {
-        // for H->bb, don't consider any jet based NJETSAVED, 
+        // for H->bb, don't consider any jet past NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
           continue;
@@ -222,12 +219,12 @@ void JetMod::do_execute()
             gt.nJet[shift]++;
           if (isNominal) {
             if (njet < 2) {
+              jw.central_idx = njet; 
               gt.jetPt[njet] = pt;
               gt.jetEta[njet] = jet.eta();
               gt.jetPhi[njet] = jet.phi();
               gt.jetCSV[njet] = csv;
               gt.jetIsTight[njet] = jet.monojet ? 1 : 0;
-              gt.jetFlav[njet] = jw.flavor;
               gt.jetIsIso[njet] = jw.iso ? 1 : 0;
             }
           }
@@ -240,6 +237,7 @@ void JetMod::do_execute()
 
         int njet = jets.cleaned.size() - 1;
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
+          jw.cleaned_idx = njet; 
           gt.jotPt[shift][njet] = pt;
           if (isNominal) {
             if (!analysis.hbb && jet.matchedGenJet.isValid())
@@ -250,7 +248,6 @@ void JetMod::do_execute()
             gt.jotCSV[njet] = csv;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
-            gt.jotFlav[njet] = jw.flavor; 
             gt.jotIso[njet] = jw.iso ? 1 : 0; 
 
             bjetreg->execute();
@@ -313,9 +310,8 @@ void JetMod::do_execute()
 }
 
 
-void JetFlavorMod::partonFlavor()
+void JetFlavorMod::partonFlavor(JetWrapper& jw)
 {
-  auto& jw = **currentJet;
   auto& jet = jw.get_base();
   jw.flavor=0; jw.genpt=0;
   for (auto* genptr : *genP) {
@@ -337,9 +333,8 @@ void JetFlavorMod::partonFlavor()
 }
 
 
-void JetFlavorMod::clusteredFlavor()
+void JetFlavorMod::clusteredFlavor(JetWrapper& jw)
 {
-  auto& jw = **currentJet;
   auto& jet = jw.get_base();
   for (auto &gen : event.ak4GenJets) {
     if (DeltaR2(gen.eta(), gen.phi(), jet.eta(), jet.phi()) < 0.09) {
@@ -358,10 +353,17 @@ void JetFlavorMod::clusteredFlavor()
 
 void JetFlavorMod::do_execute()
 {
-  if (analysis.jetFlavorPartons)
-    partonFlavor();
-  else
-    clusteredFlavor();
+  for (auto& jw : (*jesShifts)[0].all) {
+    if (analysis.jetFlavorPartons)
+      partonFlavor(jw);
+    else
+      clusteredFlavor(jw);
+    if (jw.cleaned_idx >= 0) {
+      gt.jotFlav[jw.cleaned_idx] = jw.flavor; 
+      if (jw.central_idx >= 0) 
+        gt.jetFlav[jw.central_idx] = jw.flavor;
+    }
+  }
 }
 
 
@@ -609,7 +611,6 @@ void HbbSystemMod::do_execute()
       int idx = gt.hbbjtidx[shift][i];
       (*hbbdJet) = jets.cleaned[idx];
       auto& hbbdJetRef = **hbbdJet;
-      hbbdJetRef.user_idx = idx;
 
       if (shift == jes2i(shiftjes::kNominal)) {
         deepreg->execute();

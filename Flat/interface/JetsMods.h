@@ -55,17 +55,17 @@ namespace pa {
     bool on() { return !analysis.isData && (analysis.jetFlavorPartons || analysis.jetFlavorJets); }
   protected:
     void do_init(Registry& registry) {
-      currentJet = registry.access<JetWrapper*>("currentJet");
+      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       if (!analysis.isData)
         genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();
   private:
-    std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
+    std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
 
-    void partonFlavor();
-    void clusteredFlavor();
+    void partonFlavor(JetWrapper&);
+    void clusteredFlavor(JetWrapper&);
   };
 
   class IsoJetMod : public AnalysisMod {
@@ -254,7 +254,6 @@ namespace pa {
         ak4Jets = &(event.chsAK4Jets);
 
         recalcJER = analysis.rerunJER; 
-        flavor = addSubMod<JetFlavorMod>();
         isojet = addSubMod<IsoJetMod>();
         bjetreg = addSubMod<BJetRegMod>();
         vbf = addSubMod<VBFSystemMod>();
@@ -277,7 +276,6 @@ namespace pa {
     void do_execute();
 
   private:
-    JetFlavorMod *flavor{nullptr};
     IsoJetMod *isojet{nullptr};
     BJetRegMod *bjetreg{nullptr};
     VBFSystemMod *vbf{nullptr};

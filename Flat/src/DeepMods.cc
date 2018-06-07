@@ -53,7 +53,7 @@ void BRegBDTMod::do_readData(TString dirPath)
 void BRegBDTMod::do_execute()
 {
   auto& jw = **currentJet;
-  int idx = jw.user_idx;
+  int idx = jw.cleaned_idx;
 
   TLorentzVector v = jw.p4();
 
@@ -85,7 +85,7 @@ float dnn_clean(float x) {
 void BRegDeepMod::do_execute()
 {
   auto& jw = **currentJet;
-  int N = jw.user_idx;
+  int N = jw.cleaned_idx;
 
   // defined in data/trainings/breg_training_2017.cfg
   inputs[ 0] = gt.jotRawPt[N];

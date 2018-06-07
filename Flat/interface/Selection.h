@@ -87,7 +87,8 @@ namespace pa {
   class VqqHbbSel: public LambdaSel {
   public:
     VqqHbbSel():
-      LambdaSel(Selection::sReco, "VqqHbb", __ACCPFUNC(gt->fjPt[0][0] > 300 && gt->fjPt[0][1] > 250)) { }
+      LambdaSel(Selection::sReco, "VqqHbb", 
+          __ACCPFUNC(gt->fjPt[0][0] > 300 && gt->fjPt[0][1] > 250 && gt->fjMSD[0][0] > 30 && gt->fjMSD[0][1] > 30)) { }
   };
 
   class FatJetSel: public LambdaSel {
