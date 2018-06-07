@@ -35,7 +35,9 @@ void FatJetMod::do_execute()
   int fatjet_counter=-1;
   for (auto& fj : fatjets) {
     ++fatjet_counter;
-    float pt = (analysis.hbb && !analysis.isData) ? fj.ptSmear : fj.pt();
+    bool doSmear = !analysis.isData && recalcJER;
+    JetWrapper jwNominal = shiftJet(fj, shiftjes::kNominal, doSmear); 
+    float pt = jwNominal.pt;
     float rawpt = fj.rawPt;
     float eta = fj.eta();
     float mass = fj.m();
@@ -44,7 +46,7 @@ void FatJetMod::do_execute()
       ptcut = 400;
 
     float bestPt = pt;
-    if (analysis.rerunJES) {
+    if (analysis.varyJES || analysis.varyJESTotal) {
       bestPt = TMath::Max(bestPt, fj.ptCorrUp);
       bestPt = TMath::Max(bestPt, fj.ptCorrDown);
     }
@@ -67,10 +69,9 @@ void FatJetMod::do_execute()
       gt.fjEta[iFJ] = eta;
       gt.fjPhi[iFJ] = phi;
       gt.fjRawPt[iFJ] = rawpt;
-      bool doSmear=analysis.hbb && !analysis.isData;
       float corrweight = getMSDCorr(pt,eta);
       JESLOOP {
-        JetWrapper jw = shiftJet(fj, i2jes(shift), doSmear, true);
+        JetWrapper jw = shift == 0 ? jwNominal : shiftJet(fj, i2jes(shift), doSmear);
         gt.fjPt[iFJ][shift] = jw.pt;
         gt.fjM[iFJ][shift] = mass * jw.scale();
         gt.fjMSD[iFJ][shift] = fj.mSD * jw.scale();

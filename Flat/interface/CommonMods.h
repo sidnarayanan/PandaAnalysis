@@ -155,7 +155,7 @@ namespace pa {
     BaseGenPMod(panda::EventAnalysis& event_,
                 Config& cfg_,
                 Utils& utils_,
-                T gt_,
+                T& gt_,
                 int level_=0) :
       BaseAnalysisMod<T>("gendup", event_, cfg_, utils_, gt_, level_),
       genP(std::v_make_shared<panda::Particle*>()) { }

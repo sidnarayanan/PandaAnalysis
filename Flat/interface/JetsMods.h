@@ -200,7 +200,8 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod(name, event_, cfg_, utils_, gt_, level_) {
+      AnalysisMod(name, event_, cfg_, utils_, gt_, level_),
+      recalcJER(false) {
         if (analysis.year == 2016) {
           jecV = "V4"; jecReco = "23Sep2016";
           campaign = "Summer16";
@@ -221,9 +222,10 @@ namespace pa {
     bool csvLoose (float csv) { return csv > csvL; }
     bool csvMed (float csv) { return csv > csvM; }
   protected:
+    bool recalcJER;
     virtual void do_execute() = 0;
     virtual void do_readData(TString path);
-    JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false, bool recalcSmear=false);
+    JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false);
 
     std::map<TString,std::unique_ptr<FactorizedJetCorrector>> scales; // era/MC -> scale
     std::map<TString,std::vector<std::shared_ptr<JetCorrectionUncertainty>>> scaleUncs; // era/MC -> (src -> unc)
@@ -251,6 +253,7 @@ namespace pa {
       currentJES(std::make_shared<JESHandler*>(nullptr)) {
         ak4Jets = &(event.chsAK4Jets);
 
+        recalcJER = analysis.rerunJER; 
         flavor = addSubMod<JetFlavorMod>();
         isojet = addSubMod<IsoJetMod>();
         bjetreg = addSubMod<BJetRegMod>();

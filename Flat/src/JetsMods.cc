@@ -14,11 +14,11 @@ inline float centralOnly(float x, float aeta, float def = -1)
   return  aeta < 2.4 ? x : -1;
 }
 
-JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool recalcSmear)
+JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear)
 {
   float pt = jet.pt();
   if (smear) {
-    if (recalcSmear && analysis.rerunJER) {
+    if (recalcJER) {
       double smearFac=1, smearFacUp=1, smearFacDown=1;
       jer->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
       pt *= smearFac;
@@ -46,7 +46,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
 
 void BaseJetMod::do_readData(TString dirPath)
 {
-  if (analysis.rerunJER) {
+  if (recalcJER) {
     jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
                             dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt"));
   }

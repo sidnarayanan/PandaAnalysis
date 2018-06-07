@@ -60,7 +60,7 @@ vqqhbb = lambda v=False : _analysis(
         varyJES = False,
         varyJESTotal = True,
         rerunJES = False,
-        rerunJER = False,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
     )

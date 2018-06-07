@@ -91,6 +91,7 @@ namespace pa {
       fjPtrs(std::v_make_shared<panda::FatJet*>()),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
       substructure(analysis.recalcECF ? new SubRunner(analysis.ak8, utils) : nullptr) {
+        recalcJER = analysis.applyJER || analysis.rerunJER; // if JER is requested, always run it
         recluster = addSubMod<FatJetReclusterMod>();
         jetType = "AK8PFPuppi";
     }

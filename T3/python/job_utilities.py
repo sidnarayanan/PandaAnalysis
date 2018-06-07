@@ -126,7 +126,7 @@ def copy_local(long_name):
                 copied = True
 
     if not copied:
-        cmd = "xrdcp -f %s %s"%(full_path,input_name)
+        cmd = "xrdcp --nopbar -f %s %s"%(full_path,input_name)
         logger.info(_sname+'.copy_local',cmd)
         ret = system(cmd)
         if ret:
