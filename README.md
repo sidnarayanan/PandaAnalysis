@@ -174,7 +174,7 @@ The abstract base class for all selections is `Selection`.
 All selections make decisions based on the `GeneralTree` instance (a const pointer is provided). 
 There are two ways of defining your own selection:
 - Define a sub-class of `Selection` that defines `bool do_accept() const`
-- Define a sub-class of `LambdaSel` by passing function with signature `[](const GeneralTree*)` to the constructor
+- Define a sub-class of `LambdaSel` by passing function with signature `bool f(const GeneralTree*)` to the constructor
 
 The latter can be done in python as well:
 ```python

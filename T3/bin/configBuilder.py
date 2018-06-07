@@ -4,7 +4,7 @@ import sys
 import argparse
 import subprocess
 from re import sub
-from os import getenv
+from os import getenv, environ
 from PandaCore.Utils.logging import logger
 from PandaCore.Tools.job_management import DataSample,convert_catalog
 
@@ -20,6 +20,8 @@ samples = convert_catalog(list(fin),as_dict=True)
 
 fout = open(args.outfile,'w')
 keys = sorted(samples)
+if int(environ.get('REVERSE', 0)):
+	keys.reverse()
 counter=0
 for k in keys:
 	sample = samples[k]

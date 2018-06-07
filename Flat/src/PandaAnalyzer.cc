@@ -110,6 +110,8 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
   gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
+  gt.is_hbb            = analysis.hbb;
+  gt.is_vh             = analysis.vqqhbb; 
   gt.is_vbf            = analysis.vbf;
   gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
   gt.is_leptonic       = analysis.complicatedLeptons;

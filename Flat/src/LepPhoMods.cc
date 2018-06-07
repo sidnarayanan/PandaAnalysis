@@ -445,8 +445,7 @@ void SimplePhotonMod::do_execute()
       gt.loosePho1Eta = eta;
       gt.loosePho1Phi = phi;
     }
-    if ( pho.medium &&
-         pt>175 ) { // apply eta cut offline
+    if (is_tight(pho) && pt>175) { // apply eta cut offline
       if (gt.nLoosePhoton==1)
         gt.loosePho1IsTight=1;
       gt.nTightPhoton++;

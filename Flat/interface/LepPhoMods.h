@@ -68,7 +68,7 @@ namespace pa {
     }
     void scaleFactors();
 
-   std::shared_ptr<std::vector<panda::Lepton*>> looseLeps, matchLeps;
+    std::shared_ptr<std::vector<panda::Lepton*>> looseLeps, matchLeps;
     std::shared_ptr<std::array<int,4>> lepPdgId;
     std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
     std::shared_ptr<TLorentzVector> dilep;
@@ -127,6 +127,9 @@ namespace pa {
     virtual void do_reset() {
       loosePhos->clear();
       tightPhos->clear();
+    }
+    bool is_tight(panda::Photon& p ) { // cannot use pointer to member reference
+      return analysis.vbfhbb ?  p.tight : p.medium; 
     }
     void scaleFactors();
     std::shared_ptr<std::vector<panda::Photon*>> loosePhos, tightPhos;

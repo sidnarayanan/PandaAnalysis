@@ -14,11 +14,11 @@ inline float centralOnly(float x, float aeta, float def = -1)
   return  aeta < 2.4 ? x : -1;
 }
 
-JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool recalcSmear)
+JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear)
 {
   float pt = jet.pt();
   if (smear) {
-    if (recalcSmear && analysis.rerunJER) {
+    if (recalcJER) {
       double smearFac=1, smearFacUp=1, smearFacDown=1;
       jer->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
       pt *= smearFac;
@@ -46,7 +46,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
 
 void BaseJetMod::do_readData(TString dirPath)
 {
-  if (analysis.rerunJER) {
+  if (recalcJER) {
     jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
                             dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt"));
   }
@@ -374,7 +374,7 @@ void IsoJetMod::do_execute()
   bool isIsoJet = (
         gt.nFatJet == 0 ||
         (fabs(jet.eta()) < maxIsoEta &&
-         DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
+         DeltaR2(gt.fjEta[0],gt.fjPhi[0],jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
       );
 
   jw.iso = isIsoJet;
@@ -529,8 +529,8 @@ void VBFSystemMod::do_execute()
 
   unsigned idx0=0, idx1=1;
   if (analysis.hbb) {
-    if (analysis.fatjet && ((*fj1) != nullptr) && (*fj1)->pt() > 400) {
-      const FatJet& fj = **fj1; 
+    if (analysis.fatjet && fjPtrs->size() > 0 && (*fjPtrs)[0]->pt() > 400) {
+      const FatJet& fj = *((*fjPtrs)[0]); 
       int inc1 = 0;
       if (DeltaR2(jets.cleaned_sorted[idx1]->base->eta(), 
                   jets.cleaned_sorted[idx1]->base->phi(),

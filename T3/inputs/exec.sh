@@ -2,13 +2,18 @@
 
 WD=$PWD
 
+env
+python -c "import sys; import socket; sys.stderr.write('hostname = '+socket.gethostname()+'\n');"
+uname -a 1>&2 
+hostname 1>&2
+
 export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch
 source $VO_CMS_SW_DIR/cmsset_default.sh
 
 ls
 mv local*cfg local.cfg
 
-export X509_USER_PROXY=${PWD}/x509up
+#export X509_USER_PROXY=${PWD}/x509up
 export HOME=$WD
 
 RELEASE=$CMSSW_VERSION
@@ -21,9 +26,6 @@ cd -
 
 echo -n "file length "
 wc -l local.cfg
-
-python -c "import sys; import socket; sys.stderr.write('hostname = '+socket.gethostname()+'\n');"
-hostname 1>&2
 
 python skim.py $@
 

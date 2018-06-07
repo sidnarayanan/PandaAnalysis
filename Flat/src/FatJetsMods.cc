@@ -35,7 +35,9 @@ void FatJetMod::do_execute()
   int fatjet_counter=-1;
   for (auto& fj : fatjets) {
     ++fatjet_counter;
-    float pt = (analysis.hbb && !analysis.isData) ? fj.ptSmear : fj.pt();
+    bool doSmear = !analysis.isData && recalcJER;
+    JetWrapper jwNominal = shiftJet(fj, shiftjes::kNominal, doSmear); 
+    float pt = jwNominal.pt;
     float rawpt = fj.rawPt;
     float eta = fj.eta();
     float mass = fj.m();
@@ -44,7 +46,7 @@ void FatJetMod::do_execute()
       ptcut = 400;
 
     float bestPt = pt;
-    if (analysis.rerunJES) {
+    if (analysis.varyJES || analysis.varyJESTotal) {
       bestPt = TMath::Max(bestPt, fj.ptCorrUp);
       bestPt = TMath::Max(bestPt, fj.ptCorrDown);
     }
@@ -57,21 +59,23 @@ void FatJetMod::do_execute()
       continue;
     }
 
+    int iFJ = gt.nFatJet;
+    double best_doubleB = 0; 
     gt.nFatJet++;
-    if (gt.nFatJet==1) {
-      *fj1 = &fj;
-      gt.fjIsClean = fatjet_counter==0 ? 1 : 0;
-      gt.fjEta = eta;
-      gt.fjPhi = phi;
-      gt.fjRawPt = rawpt;
-      bool doSmear=analysis.hbb && !analysis.isData;
+    if (iFJ < nMaxFJ) {
+      gt.nFatJetTrunc++; 
+      fjPtrs->push_back(&fj); 
+      gt.fjIsClean[iFJ] = fatjet_counter==0 ? 1 : 0;
+      gt.fjEta[iFJ] = eta;
+      gt.fjPhi[iFJ] = phi;
+      gt.fjRawPt[iFJ] = rawpt;
       float corrweight = getMSDCorr(pt,eta);
       JESLOOP {
-        JetWrapper jw = shiftJet(fj, i2jes(shift), doSmear, true);
-        gt.fjPt[shift] = jw.pt;
-        gt.fjM[shift] = mass * jw.scale();
-        gt.fjMSD[shift] = fj.mSD * jw.scale();
-        gt.fjMSD_corr[shift] = corrweight*gt.fjMSD[shift];
+        JetWrapper jw = shift == 0 ? jwNominal : shiftJet(fj, i2jes(shift), doSmear);
+        gt.fjPt[iFJ][shift] = jw.pt;
+        gt.fjM[iFJ][shift] = mass * jw.scale();
+        gt.fjMSD[iFJ][shift] = fj.mSD * jw.scale();
+        gt.fjMSD_corr[iFJ][shift] = corrweight*gt.fjMSD[iFJ][shift];
       }
 
       if (analysis.recalcECF && event.recoil.max < 175) {
@@ -79,25 +83,25 @@ void FatJetMod::do_execute()
       }
 
       // now we do substructure
-      gt.fjTau32 = clean(fj.tau3/fj.tau2);
-      gt.fjTau32SD = clean(fj.tau3SD/fj.tau2SD);
-      gt.fjTau21 = clean(fj.tau2/fj.tau1);
-      gt.fjTau21SD = clean(fj.tau2SD/fj.tau1SD);
+      gt.fjTau32[iFJ] = clean(fj.tau3/fj.tau2);
+      gt.fjTau32SD[iFJ] = clean(fj.tau3SD/fj.tau2SD);
+      gt.fjTau21[iFJ] = clean(fj.tau2/fj.tau1);
+      gt.fjTau21SD[iFJ] = clean(fj.tau2SD/fj.tau1SD);
 
       for (auto ibeta : cfg.ibetas) {
         for (auto N : cfg.Ns) {
           for (auto order : cfg.orders) {
             GeneralTree::ECFParams p;
-            p.order = order; p.N = N; p.ibeta = ibeta;
-            if (gt.fjIsClean || true)
-              gt.fjECFNs[p] = fj.get_ecf(order,N,ibeta);
+            p.order = order; p.N = N; p.ibeta = ibeta; 
+            if (gt.fjIsClean[iFJ] || true)
+              gt.fjECFNs[p][iFJ] = fj.get_ecf(order,N,ibeta);
             else
-              gt.fjECFNs[p] = fj.get_ecf(order,N,ibeta);
+              gt.fjECFNs[p][iFJ] = fj.get_ecf(order,N,ibeta);
           }
         }
       } //loop over betas
-      gt.fjHTTMass = fj.htt_mass;
-      gt.fjHTTFRec = fj.htt_frec;
+      gt.fjHTTMass[iFJ] = fj.htt_mass;
+      gt.fjHTTFRec[iFJ] = fj.htt_frec;
 
       std::vector<MicroJet const*> subjets;
       for (int iS(0); iS != fj.subjets.size(); ++iS)
@@ -111,16 +115,23 @@ void FatJetMod::do_execute()
             };
 
       std::sort(subjets.begin(),subjets.end(),csvsort);
-      if (subjets.size()>0) {
-        gt.fjMaxCSV = mycsv(*(subjets[0]));
-        gt.fjMinCSV = mycsv(*(subjets.back()));
+      if (subjets.size() > 0) {
+        gt.fjMaxCSV[iFJ] = mycsv(*(subjets[0]));
+        gt.fjMinCSV[iFJ] = mycsv(*(subjets.back()));
         if (subjets.size()>1) {
-          gt.fjSubMaxCSV = mycsv(*(subjets[1]));
+          gt.fjSubMaxCSV[iFJ] = mycsv(*(subjets[1]));
         }
       }
 
-      gt.fjDoubleCSV = fj.double_sub;
-      if (analysis.monoh) {
+      gt.fjDoubleCSV[iFJ] =  fj.double_sub;
+      gt.fjDeepProbH[iFJ] = fj.deepBBprobH;
+      gt.fjDeepProbbb[iFJ] = fj.deepCSVbb; 
+      if (gt.fjDoubleCSV[iFJ] > best_doubleB) {
+        best_doubleB = gt.fjDoubleCSV[iFJ]; 
+        gt.fjHiggsIdx = iFJ; 
+      }
+
+      if (analysis.monoh && iFJ == 0) {
         for (int iSJ=0; iSJ!=fj.subjets.size(); ++iSJ) {
           auto& subjet = fj.subjets.objAt(iSJ);
           gt.fjsjPt[iSJ]=subjet.pt();
@@ -131,19 +142,19 @@ void FatJetMod::do_execute()
           gt.fjsjQGL[iSJ]=subjet.qgl;
         }
       }
+      if (!analysis.isData && fj.matchedGenJet.isValid())
+        gt.fjGenNumB[iFJ] = fj.matchedGenJet.get()->numB;
+      else
+        gt.fjGenNumB[iFJ] = 0;
     }
-    if (!analysis.isData && fj.matchedGenJet.isValid())
-      gt.fjGenNumB = fj.matchedGenJet.get()->numB;
-    else
-      gt.fjGenNumB = 0;
   }
 
   if (analysis.hbb) {
     if (gt.nFatJet > 0 && gt.nLooseLep > 1) {
       TLorentzVector HP4;
-      HP4.SetPtEtaPhiM(gt.fjPt[0], gt.fjEta, gt.fjPhi, gt.fjMSD_corr[0]);
+      HP4.SetPtEtaPhiM(gt.fjPt[0][0], gt.fjEta[0], gt.fjPhi[0], gt.fjMSD_corr[0][0]);
       TLorentzVector ZHP4 = (*dilep) + HP4;
-      gt.ZBosonLep1CosThetaStarFJ = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
+      gt.ZBosonLep1CosThetaStarFJ = CosThetaStar((*looseLeps)[0]->p4(), (*looseLeps)[1]->p4(), ZHP4);
     }
   }
 
@@ -172,8 +183,9 @@ float FatJetMod::getMSDCorr(float puppipt, float puppieta)
 
 void FatJetReclusterMod::do_execute()
 {
-  if ((*fj1) == nullptr)
-    return;
+  if (fjPtrs->size() == 0)
+    return; 
+  auto* fjPtr = (*fjPtrs)[0]; 
 
   VPseudoJet particles = convertPFCands(event.pfCandidates,analysis.puppiJets,0);
   ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
@@ -181,7 +193,7 @@ void FatJetReclusterMod::do_execute()
   PseudoJet *pj1=0;
   double minDR2 = 999;
   for (auto &jet : allJets) {
-    double dr2 = DeltaR2(jet.eta(),jet.phi_std(),(*fj1)->eta(),(*fj1)->phi());
+    double dr2 = DeltaR2(jet.eta(),jet.phi_std(),fjPtr->eta(),fjPtr->phi());
     if (dr2<minDR2) {
       minDR2 = dr2;
       pj1 = &jet;
@@ -233,9 +245,8 @@ const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double r
 
 void FatJetMatchingMod::do_execute()
 {
-  auto* fj1 = *fjPtr;
-  if (fj1 == nullptr)
-    return;
+  if (fjPtrs->size() == 0)
+    return; 
 
   int pdgidTarget=0;
   if (!analysis.isData && analysis.processType>=kTT) {
@@ -378,24 +389,26 @@ void FatJetMatchingMod::do_execute()
     } // loop over targets
   } // process is interesting
 
-  if (!analysis.isData && gt.nFatJet>0) {
+  int iFJ = -1; 
+  for (auto* fj : *fjPtrs) {
+    ++iFJ; 
     // first see if jet is matched
-    auto* matched = matchGen(fj1->eta(),fj1->phi(),1.5,pdgidTarget);
+    auto* matched = matchGen(fj->eta(),fj->phi(),1.5,pdgidTarget);
     if (matched!=nullptr) {
-      gt.fjIsMatched = 1;
-      gt.fjGenPt = matched->pt();
-      gt.fjGenSize = genObjects[matched];
+      gt.fjIsMatched[iFJ] = 1;
+      gt.fjGenPt[iFJ] = matched->pt();
+      gt.fjGenSize[iFJ] = genObjects[matched];
     } else {
-      gt.fjIsMatched = 0;
+      gt.fjIsMatched[iFJ] = 0;
     }
     if (pdgidTarget==6) { // matched to top; try for W
-      auto* matchedW = matchGen(fj1->eta(),fj1->phi(),1.5,24);
+      auto* matchedW = matchGen(fj->eta(),fj->phi(),1.5,24);
       if (matchedW!=nullptr) {
-        gt.fjIsWMatched = 1;
-        gt.fjGenWPt = matchedW->pt();
-        gt.fjGenWSize = genObjects[matchedW];
+        gt.fjIsWMatched[iFJ] = 1;
+        gt.fjGenWPt[iFJ] = matchedW->pt();
+        gt.fjGenWSize[iFJ] = genObjects[matchedW];
       } else {
-        gt.fjIsWMatched = 0;
+        gt.fjIsWMatched[iFJ] = 0;
       }
     }
 
@@ -408,10 +421,10 @@ void FatJetMatchingMod::do_execute()
       auto& gen = pToGRef(genptr);
       float pt = gen.pt();
       int pdgid = gen.pdgid;
-      if (pt>(gt.fjHighestPtGenPt)
-          && DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<cfg.FATJETMATCHDR2) {
-        gt.fjHighestPtGenPt = pt;
-        gt.fjHighestPtGen = pdgid;
+      if (pt>(gt.fjHighestPtGenPt[iFJ])
+          && DeltaR2(gen.eta(),gen.phi(),fj->eta(),fj->phi())<cfg.FATJETMATCHDR2) {
+        gt.fjHighestPtGenPt[iFJ] = pt;
+        gt.fjHighestPtGen[iFJ] = pdgid;
       }
 
       if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
@@ -422,8 +435,8 @@ void FatJetMatchingMod::do_execute()
       if (apdgid!=5 && apdgid!=4)
         continue;
 
-      if (DeltaR2(gen.eta(),gen.phi(),fj1->eta(),fj1->phi())<cfg.FATJETMATCHDR2) {
-        gt.fjNHF++;
+      if (DeltaR2(gen.eta(),gen.phi(),fj->eta(),fj->phi())<cfg.FATJETMATCHDR2) {
+        gt.fjNHF[iFJ]++;
         if (apdgid==5) {
           if (gen.parent.isValid() && gen.parent->pdgid==21 && gen.parent->pt()>20) {
             if (!found_b_from_g) {
@@ -443,16 +456,16 @@ void FatJetMatchingMod::do_execute()
       }
     }
 
-    gt.fjNbs=bs_inside_cone;
-    gt.fjgbb=has_gluon_splitting;
+    gt.fjNbs[iFJ]=bs_inside_cone;
+    gt.fjgbb[iFJ]=has_gluon_splitting;
 
-    if (analysis.btagSFs) {
+    if (analysis.btagSFs && iFJ == 0) {
       // now get the subjet btag SFs
       vector<btagcand> sj_btagcands;
       vector<double> sj_sf_cent, sj_sf_bUp, sj_sf_bDown, sj_sf_mUp, sj_sf_mDown;
-      int nSJ = fj1->subjets.size();
+      int nSJ = fj->subjets.size();
       for (int iSJ=0; iSJ!=nSJ; ++iSJ) {
-        auto& subjet = fj1->subjets.objAt(iSJ);
+        auto& subjet = fj->subjets.objAt(iSJ);
         int flavor=0;
         for (auto* genptr : *genP) {
           auto& gen = pToGRef(genptr);

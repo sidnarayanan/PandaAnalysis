@@ -57,6 +57,7 @@ namespace pa {
     bool isData;
     
     bool ak8 = false;
+    bool applyJER = false; 
     bool bjetRegTraining = false;
     bool bjetBDTReg = false;
     bool bjetDeepReg = false; 
@@ -92,7 +93,9 @@ namespace pa {
     bool varyJES = false;
     bool varyJESTotal = false;
     bool vbf = false;
-    bool ZllHbb = false;
+    bool vbfhbb = false; 
+    bool vqqhbb = false; 
+    bool zllhbb = false;
   };
 
   enum CorrectionType { //!< enum listing relevant corrections applied to MC
