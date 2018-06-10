@@ -16,7 +16,7 @@ namespace pa {
       AnalysisMod("map", event_, cfg_, utils_, gt_, level_) { }
     virtual ~MapMod () { }
 
-    bool on() { return true; }
+    bool on() { return analysis.complicatedLeptons; }
 
   protected:
     void do_init(Registry& registry) {

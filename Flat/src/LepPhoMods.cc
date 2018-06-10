@@ -255,14 +255,15 @@ void ComplicatedLeptonMod::do_execute()
     } else if (pt > 0) { // perform the rochester correction to the simulated particle
       // attempt gen-matching to a final state muon
       bool muonIsTruthMatched=false; TLorentzVector genP4; GenParticle genParticle;
-      for (int iG = 0; iG != (int)genP->size() && !muonIsTruthMatched; ++iG) {
-        genParticle = pToGRef((*genP)[iG]);
+      for (int iG = 0; iG != (int)event.genParticles.size() && !muonIsTruthMatched; ++iG) {
+        genParticle = event.genParticles[iG];
         if (genParticle.finalState != 1) continue;
         if (genParticle.pdgid != ((int)mu.charge) * -13) continue;
         genP4.SetPtEtaPhiM(genParticle.pt(), genParticle.eta(), genParticle.phi(), 0.106);
         double dR = genP4.DeltaR(mu.p4());
         if (dR < 0.3) muonIsTruthMatched=true;
-      } if (muonIsTruthMatched) { // correct using the gen-particle pt
+      } 
+      if (muonIsTruthMatched) { // correct using the gen-particle pt
         double random1 = event.rng.uniform(rocRNGIdx);
         ptCorrection=rochesterCorrection->kScaleFromGenMC((int)mu.charge, 
                                                           pt, eta, mu.phi(), 

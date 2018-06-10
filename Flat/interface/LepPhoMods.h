@@ -92,14 +92,11 @@ namespace pa {
     void do_execute();
     void do_init(Registry& registry) {
       SimpleLeptonMod::do_init(registry);
-      if (!analysis.isData)
-        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
       if (analysis.hbb) 
         pfCandsMap = registry.access<EtaPhiMap<panda::PFCand>>("pfCandsMap"); 
     }
   private:
     std::unique_ptr<RoccoR> rochesterCorrection{nullptr};
-    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
     std::shared_ptr<EtaPhiMap<panda::PFCand>> pfCandsMap{nullptr}; 
   };
 

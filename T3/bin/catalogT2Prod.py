@@ -19,6 +19,7 @@ parser.add_argument('--include',nargs='+',type=str,default=None)
 parser.add_argument('--exclude',nargs='+',type=str,default=None)
 parser.add_argument('--smartcache',action='store_true')
 parser.add_argument('--force',action='store_true')
+parser.add_argument('--max_files',type=int,default=-1)
 args = parser.parse_args()
 
 args.catalog = '/' + args.catalog.strip('/')
@@ -42,7 +43,7 @@ class CatalogSample:
         self.files = []
     def add_file(self,f):
         self.files.append(f)
-    def get_lines(self,smartcache_args=None):
+    def get_lines(self,smartcache_args=None,max_lines=-1):
         lines = []
         nickname = self.name+'_%i'
         for f in self.files:
@@ -52,6 +53,8 @@ class CatalogSample:
             lines.append('{0:<25} {2:<10} {3:<15} {1}\n'.format(nickname,f,self.dtype,self.xsec)) 
             if smartcache_args is not None:
                 smartcache_args.append('/cms/store/user/paus/%s/%s'%(book_,ds_))
+        if max_lines > 0:
+            lines = lines[:max_lines]
         return lines
 
 def smartcache(arguments):
@@ -130,7 +133,7 @@ lines = []
 smartcache_args = [] if args.smartcache else None
 for k in sorted(samples):
     sample = samples[k]
-    lines += sample.get_lines(smartcache_args)
+    lines += sample.get_lines(smartcache_args, args.max_files)
 for iL in xrange(len(lines)):
     cfg_file.write(lines[iL]%(iL))
 
