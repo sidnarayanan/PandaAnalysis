@@ -179,7 +179,7 @@ namespace pa {
   private:
 
     float getMSDCorr(float,float);
-    bool hasChild(const panda::GenParticle& p, bool beHard=false);
+    bool hasChild(const panda::GenParticle& p);
     void fillJet(panda::FatJet&);
     void doSubstructure(panda::FatJet& fj);
     panda::FatJetCollection &fatjets;

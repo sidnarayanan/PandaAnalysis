@@ -542,13 +542,11 @@ bool hard(const GenParticle& p)
     return p.testFlag(GenParticle::kIsHardProcess) || p.testFlag(GenParticle::kFromHardProcess);
 }
 
-bool HRTagMod::hasChild(const GenParticle& parent, bool beHard)
+bool HRTagMod::hasChild(const GenParticle& parent)
 {
   for (auto* pptr : *genP) {
     auto& child = pToGRef(pptr);
     if (child.pdgid != parent.pdgid)
-      continue;
-    if (beHard && !hard(child))
       continue;
     if (child.parent.isValid() &&
         child.parent.get() == &parent) {
@@ -579,12 +577,9 @@ void HRTagMod::do_execute()
       if (abs(p.pdgid) != 6)
         continue;
       float pt = p.pt();
-      if (pt < 300 || pt > 1400)
+      if (pt < 300)
         continue;
-      float eta_cut = (pt < 500) ? 2.4 : 1.5;
       float eta = p.eta(), phi = p.phi();
-      if (fabs(eta) > eta_cut)
-        continue;
       if (hasChild(p))
         continue;
       const GenParticle *W{nullptr}, *b{nullptr}, *q0{nullptr}, *q1{nullptr};
@@ -632,9 +627,6 @@ void HRTagMod::do_execute()
       gt.gen_size = max({DeltaR2(eta, phi, b->eta(), b->phi()),
                          DeltaR2(eta, phi, q0->eta(), q0->phi()),
                          DeltaR2(eta, phi, q1->eta(), q1->phi())});
-      if (gt.gen_size > (pt < 500 ? 1.44 : 0.36))
-        continue;
-
       // now find a good fat jet
       for (auto& fj : fatjets) {
         if (DeltaR2(eta, phi, fj.eta(), fj.phi()) > 0.36)
