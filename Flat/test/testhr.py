@@ -7,7 +7,7 @@ import json
 
 debug_level = 0
 torun = argv[1]
-output = 'testskim.root'
+output = 'testhr.root'
 if len(argv)>2:
     debug_level = int(argv[2])
     if len(argv)>3:
@@ -24,9 +24,9 @@ Load('PandaAnalysisFlat')
 
 a = analysis("substructure")
 a.inpath = torun
-a.outpath = 'testskim.root'
+a.outpath = 'testhr.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
-a.processType = root.pa.kTop
+a.processType = root.pa.kNoProcess
 a.isData = False
 utils.set_year(a, 2016)
 

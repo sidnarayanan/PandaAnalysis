@@ -22,7 +22,8 @@ import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-a = monotop()
+a = monotop(True)
+a.recalcECF = True
 a.varyJESTotal = True
 a.inpath = torun
 a.outpath = 'testskim.root'
@@ -42,5 +43,4 @@ if a.isData:
 #skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()
-print 'done?'
-#skimmer.Terminate()
+skimmer.Terminate()

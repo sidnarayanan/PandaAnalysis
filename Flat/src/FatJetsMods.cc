@@ -539,15 +539,18 @@ float HRTagMod::getMSDCorr(float puppipt, float puppieta)
 
 bool hard(const GenParticle& p)
 {
-    return p.testFlag(GenParticle::kIsHardProcess) || p.testFlag(GenParticle::kFromHardProcess);
+    return p.testFlag(GenParticle::kIsHardProcess);
+    // return p.testFlag(GenParticle::kIsHardProcess) || p.testFlag(GenParticle::kFromHardProcess);
 }
 
-bool HRTagMod::hasChild(const GenParticle& parent)
+bool HRTagMod::hasChild(const GenParticle& parent, bool isHard)
 {
   for (auto* pptr : *genP) {
     auto& child = pToGRef(pptr);
     if (child.pdgid != parent.pdgid)
       continue;
+    if (isHard && !hard(child))
+      continue; 
     if (child.parent.isValid() &&
         child.parent.get() == &parent) {
       return true;
@@ -571,6 +574,7 @@ void HRTagMod::do_execute()
 {
   // first loop through genP and find any partons worth saving
   // if this is a signal
+  int i_parton = 0; 
   if (analysis.processType == kTop) {
     for (auto *pptr : *genP) {
       auto& p = pToGRef(pptr);
@@ -620,6 +624,7 @@ void HRTagMod::do_execute()
         continue;
       // now fill the tree
       gt.i_evt = event.eventNumber;
+      gt.i_parton = i_parton++;
       gt.npv = event.npv;
       gt.sampleType = 2;
       gt.gen_pt = pt; gt.gen_eta = eta; gt.gen_phi = p.phi();
@@ -643,16 +648,14 @@ void HRTagMod::do_execute()
       if (abs(p.pdgid) > 5 && abs(p.pdgid) != 21)
         continue;
       float pt = p.pt();
-      if (pt < 300 || pt > 1400)
+      if (pt < 300)
         continue;
-      float eta_cut = (pt < 500) ? 2.4 : 1.5;
       float eta = p.eta(), phi = p.phi();
-      if (fabs(eta) > eta_cut)
-        continue;
-      if (!hard(p) || hasChild(p))
+      if (!hard(p) || hasChild(p, true))
         continue;
       // now fill the tree
       gt.i_evt = event.eventNumber;
+      gt.i_parton = i_parton++;
       gt.npv = event.npv;
       gt.sampleType = 0;
       gt.gen_pt = pt; gt.gen_eta = eta; gt.gen_phi = p.phi();

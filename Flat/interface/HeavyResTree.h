@@ -62,6 +62,7 @@ class HeavyResTree : public genericTree {
   int runNumber;
   int lumiNumber;
   ULong64_t i_evt;
+  int i_parton;
   int npv;
   float rho;
   float mcWeight;

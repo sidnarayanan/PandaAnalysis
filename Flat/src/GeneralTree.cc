@@ -564,7 +564,7 @@ void GeneralTree::WriteTree(TTree *t) {
     }
     for (auto p : ecfParams) {
         TString ecfn(makeECFString(p));
-        Book("fj"+ecfn,&(fjECFNs[p]),"fj"+ecfn+"/F");
+        Book("fj"+ecfn,fjECFNs[p],"fj"+ecfn+"["+fjTreeSize()+"]/F");
     }
 
     for (auto p : btagParams) {
