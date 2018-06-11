@@ -40,6 +40,7 @@ void HeavyResTree::Reset() {
   runNumber = 0;
   lumiNumber = 0;
   i_evt = -99;
+  i_parton = 0;
   npv = 0;
   rho = -99;
   mcWeight = -99;
@@ -75,6 +76,7 @@ void HeavyResTree::WriteTree(TTree *t) {
   Book("runNumber",&runNumber,"runNumber/I");
   Book("lumiNumber",&lumiNumber,"lumiNumber/I");
   Book("i_evt",&i_evt,"i_evt/l");
+  Book("i_parton",&i_parton,"i_parton/I");
   Book("npv",&npv,"npv/I");
   Book("rho",&rho,"rho/F");
   Book("mcWeight",&mcWeight,"mcWeight/F");
