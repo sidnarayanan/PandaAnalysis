@@ -148,6 +148,7 @@ void FatJetMod::do_execute()
         gt.fjGenNumB[iFJ] = 0;
     }
   }
+  gt.fjVIdx = 1 - gt.fjHiggsIdx; 
 
   if (analysis.hbb) {
     if (gt.nFatJet > 0 && gt.nLooseLep > 1) {

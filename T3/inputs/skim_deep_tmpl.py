@@ -126,7 +126,7 @@ if __name__ == "__main__":
         utils.cleanup('*.npz')
     utils.print_time('stageout and cleanup')
     if not ret:
-        utils.write_lock(lockdir,outfilename,processed)
+        utils.report_done(lockdir,outfilename,processed)
         utils.cleanup('*.lock')
         utils.print_time('create lock')
     else:

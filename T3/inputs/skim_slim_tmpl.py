@@ -245,7 +245,7 @@ def stageout(outdir,outfilename):
     return ret
 
 
-def write_lock(outdir,outfilename,processed):
+def report_done(outdir,outfilename,processed):
     flock = open(outdir+'/locks/'+outfilename.replace('.root','.lock'),'w')
     for k,v in processed.iteritems():
         flock.write(v+'\n')
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     ret = stageout(outdir,outfilename)
     print_time('stageout')
     if not ret:
-        write_lock(outdir,outfilename,processed)
+        report_done(outdir,outfilename,processed)
         print_time('create lock')
     else:
         exit(-1*ret)

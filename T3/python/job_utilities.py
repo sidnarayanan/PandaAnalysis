@@ -317,9 +317,21 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
     return ret
 
 
+# report home that the job has started
+def report_start(outdir,outfilename,args):
+    if not cb.textlock:
+        job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
+        payload = {'starttime' : int(time()),
+                   'host' : _host, 
+                   'task' : _task_name,
+                   'job_id' : job_id,
+                   'args' : args}
+        r = requests.post(cb.report_server+'/condor/start', json=payload)
+
+
 # write a lock file, based on what succeeded,
 # and then stage it out to a lock directory
-def write_lock(outdir,outfilename,processed):
+def report_done(outdir,outfilename,processed):
     if cb.textlock:
         outfilename = outfilename.replace('.root','.lock')
         flock = open(outfilename,'w')
@@ -334,7 +346,7 @@ def write_lock(outdir,outfilename,processed):
                    'task' : _task_name,
                    'job_id' : job_id,
                    'args' : [v for _,v in processed.iteritems()]}
-        r = requests.post(cb.report_server+'/condor_done', json=payload)
+        r = requests.post(cb.report_server+'/condor/done', json=payload)
 
 
 # make a record in the primary output of what

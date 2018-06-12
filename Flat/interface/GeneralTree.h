@@ -468,6 +468,7 @@ class GeneralTree : public genericTree {
   int nFatJet;
   int nFatJetTrunc;
   int fjHiggsIdx;
+  int fjVIdx;
   float fjTau32[2];
   float fjTau21[2];
   float fjTau32SD[2];

@@ -57,6 +57,8 @@ if __name__ == "__main__":
     lockdir = getenv('SUBMIT_LOCKDIR')  
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
+
+    utils.report_start(outdir,outfilename,to_run.files)
     
     utils.main(to_run, processed, fn)
 
@@ -67,7 +69,7 @@ if __name__ == "__main__":
     utils.cleanup('*.root')
     utils.print_time('stageout and cleanup')
     if not ret:
-        utils.write_lock(lockdir,outfilename,processed)
+        utils.report_done(lockdir,outfilename,processed)
         utils.cleanup('*.lock')
         utils.print_time('create lock')
     else:

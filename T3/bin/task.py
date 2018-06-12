@@ -130,7 +130,7 @@ def kill(idle=False):
 
 
 def check_duplicates():
-    url = jm.report_server + '/condor_query?task=%s'%(submit_name)
+    url = jm.report_server + '/condor/query?task=%s'%(submit_name)
     completed = {}
     for r in json.load(urlopen(url)):
         completed.setdefault(r[0], []).append(r[1])
@@ -145,7 +145,7 @@ def check_duplicates():
         for jid in to_clean:
             system('rm -f %s/*%s*'%(outdir, jid))
             payload = {'task' : submit_name, 'job_id' : jid}
-            post(jm.report_server+'/condor_clean', json=payload)
+            post(jm.report_server+'/condor/clean', json=payload)
 
 
 # for monitoring:
@@ -266,9 +266,10 @@ def check(stdscr=None):
                 except IOError:
                     pass
         else:
-            url = jm.report_server + '/condor_query?task=%s'%(submit_name)
+            url = jm.report_server + '/condor/query?task=%s'%(submit_name)
             for r in json.load(urlopen(url)):
-                processedfiles.add(r[0])
+                if r[2] is not None:
+                    processedfiles.add(r[0])
 
         # determine what samples from previous resubmissions are still running
         t2_samples = []
@@ -453,7 +454,7 @@ if args.clean_output:
         sleep(2)
         system('rm -rf %s/* &'%(outdir))
         payload = {'task' : submit_name}
-        post(jm.report_server+'/condor_clean', json=payload)
+        post(jm.report_server+'/condor/clean', json=payload)
     if args.clean:
         logger.info('task.py', 'Cleaning up %s and %s'%(logdir, workdir))
         sleep(2)
