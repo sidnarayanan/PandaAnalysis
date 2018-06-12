@@ -207,14 +207,14 @@ namespace pa {
           jerV = "Spring16_25nsV10";
           eraGroups = {"BCD","EF","G","H"};
           spacer = "";
-          csvL = 0.5426; csvM = 0.8484;
+          csvL = 0.2219; csvM = 0.6324;
         } else {
           jecV = "V8"; jecReco = "17Nov2017";
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
           eraGroups = {"B","C","D","E","F"};
           spacer = "_";
-          csvL = 0.2219; csvM = 0.6324;
+          csvL = 0.1522; csvM = 0.4941;
         }
       }
     virtual ~BaseJetMod () { }

@@ -52,14 +52,19 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
 
       if (analysis.year==2016) {
         if (analysis.useCMVA) 
-          reshaper_calib.reset(new BTagCalibration("csvv2", 
-                                                   (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data()));
-        else
           reshaper_calib.reset(new BTagCalibration("cMVAv2", 
                                                    (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data()));
+        else
+          // Waiting for the Official SFs!!!
+          reshaper_calib.reset(new BTagCalibration("DeepCSV", 
+                                                   (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data()));
       } else if (analysis.year==2017) {
-        reshaper_calib.reset(new BTagCalibration("DeepCSV", 
-                                                 (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data()));
+        if (analysis.useCMVA) 
+          reshaper_calib.reset(new BTagCalibration("cMVAv2", 
+                                                   (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data()));
+        else
+          reshaper_calib.reset(new BTagCalibration("DeepCSV", 
+                                                   (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data()));
       }
       reshaper->load(*(reshaper_calib), BTagEntry::FLAV_B, "iterativeFit");
       reshaper->load(*(reshaper_calib), BTagEntry::FLAV_C, "iterativeFit");

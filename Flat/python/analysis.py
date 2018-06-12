@@ -142,7 +142,7 @@ wlnhbb = lambda v=False : _analysis(
         fatjet = True,
         btagSFs = True,
         btagWeights = True,
-        useCMVA = True,
+        useCMVA = False,
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,

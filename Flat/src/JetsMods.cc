@@ -176,7 +176,7 @@ void JetMod::do_execute()
       if (isNominal)
         flavor->execute();
 
-      float csv = centralOnly(analysis.year==2016 ? jet.csv : jet.deepCSVb, aeta);
+      float csv = centralOnly(jet.deepCSVb + jet.deepCSVbb, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
       if (pt > cfg.minBJetPt && aeta < 2.4) { // b jets
@@ -191,9 +191,7 @@ void JetMod::do_execute()
           jets.bcand.push_back(&jw);
       }
 
-      // DGH hack: store all 15 GeV jets,
-      // but gt.nJot is only the jets above cfg.minJetPt
-      if (jw.nominal->maxpt > 15 /*cfg.minJetPt*/ ) { 
+      if (jw.nominal->maxpt > cfg.minJetPt) { 
         // for H->bb, don't consider any jet based NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
@@ -249,7 +247,7 @@ void JetMod::do_execute()
             gt.jotFlav[njet] = jw.flavor;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
-
+            gt.jotIso[njet] = jw.iso ? 1 : 0;
             bjetreg->execute();
           }
         }
@@ -579,7 +577,7 @@ void HbbSystemMod::do_execute()
   sort(btagsorted.begin(), btagsorted.end(),
        analysis.useCMVA ?
         [](const JetWrapper *x, const JetWrapper *y) { return x->base->cmva > y->base->cmva; } :
-        [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb > y->base->deepCSVb; }
+        [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb+x->base->deepCSVbb > y->base->deepCSVb+y->base->deepCSVbb; }
       );
   map<const JetWrapper*, int> order; // needed for output indexing
   for (int i = 0; i != (int)jets.cleaned.size(); ++i)
