@@ -373,7 +373,7 @@ void ConfigMod::readData(TString dirPath)
   if (analysis.hbb) {
     utils.openCorr(cJetLoosePUID,
                    dirPath+"higgs/puid.root",
-                   "puid_76x_loose",2);
+                   "puid_80x_loose",2);
   }
 
   // photons

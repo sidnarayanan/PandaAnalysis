@@ -170,6 +170,8 @@ void JetMod::do_execute()
         continue;
       if (!analysis.hbb && isMatched(matchPhos.get(),0.16,jet.eta(),jet.phi()))
         continue;
+      if (analysis.hbb && jet.puid < utils.getCorr(cJetLoosePUID, aeta,min(39.99f,pt)))
+        continue;
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
