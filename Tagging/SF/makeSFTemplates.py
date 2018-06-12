@@ -23,7 +23,7 @@ basedir = args.indir
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 tcut = root.TCut
 Load('Drawers','PlotUtility')

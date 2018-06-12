@@ -20,7 +20,7 @@ namespace pa {
     virtual ~Selection() { }
     
     virtual void report() const final { 
-      PDebug("Selection::" + name, Form("Accepted %i/%i events", nPassed, nTotal)); 
+      logger.debug("Selection::" + name, Form("Accepted %i/%i events", nPassed, nTotal)); 
     }
     virtual void set_gt(const GeneralTree *gt_) final { gt = gt_; }
     // if called at a different stage, just return true

@@ -13,7 +13,7 @@ argv=[]
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 import PandaCore.Tools.job_config as cb
 import PandaAnalysis.T3.job_utilities as utils
 from PandaAnalysis.Flat.analysis import vbf

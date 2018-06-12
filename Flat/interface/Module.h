@@ -32,7 +32,7 @@ namespace pa {
         Container<T>* safe_cast(std::unique_ptr<BaseContainer>& base, TString name) {
           auto* cntr = dynamic_cast<Container<T>*>(base.get());
           if (cntr == nullptr) {
-            PError("Registry::safe_cast", "Requesting object of wrong type: "+name+"!");
+            logger.error("Registry::safe_cast", "Requesting object of wrong type: "+name+"!");
             throw std::runtime_error("");
           }
           return cntr;
@@ -44,13 +44,13 @@ namespace pa {
       template <typename T>
         void publish(TString name, std::shared_ptr<T>& ptr) {
           if (exists(name))
-            PWarning("Registry::publish","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
+            logger.warning("Registry::publish","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
           _objs[name].reset(new Container<T>(ptr));
         }
       template <typename T>
         void publishConst(TString name, std::shared_ptr<T>& ptr) {
           if (exists(name))
-            PWarning("Registry::publishConst","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
+            logger.warning("Registry::publishConst","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
           _const_objs[name].reset(new Container<T>(ptr));
         }
       template <typename T>
@@ -58,10 +58,10 @@ namespace pa {
           auto iter = _objs.find(name);
           if (iter == _objs.end()) {
             if (silentFail) {
-              PWarning("Registry::access", "Could not access "+name+", returning (nil)!");
+              logger.warning("Registry::access", "Could not access "+name+", returning (nil)!");
               return std::shared_ptr<T>(nullptr);
             } else {
-              PError("Registry::access", "Could not access "+name+"!");
+              logger.error("Registry::access", "Could not access "+name+"!");
               throw std::runtime_error("");
             }
           }
@@ -75,10 +75,10 @@ namespace pa {
             iter = _const_objs.find(name);
             if (iter == _const_objs.end()) {
               if (silentFail) {
-                PWarning("Registry::accessConst", "Could not access "+name+", returning (nil)!");
+                logger.warning("Registry::accessConst", "Could not access "+name+", returning (nil)!");
                 return std::shared_ptr<const T>(nullptr);
               } else {
-                PError("Registry::accessConst", "Could not access "+name+"!");
+                logger.error("Registry::accessConst", "Could not access "+name+"!");
                 throw std::runtime_error("");
               }
             }
@@ -140,7 +140,7 @@ namespace pa {
         level(level_) { }
       virtual ~AnalysisMod() {
         if (cfg.DEBUG > level + 2)
-          PDebug("AnalysisMod::~AnalysisMod", name);
+          logger.debug("AnalysisMod::~AnalysisMod", name);
       }
 
       // cascading calls to protected functions

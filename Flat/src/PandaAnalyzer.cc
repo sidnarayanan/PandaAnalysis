@@ -17,7 +17,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   cfgmod(analysis, gt, DEBUG),
   wIDs(v_make_shared<TString>())
 {
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
 
   Config& cfg = cfgmod.cfg;
   Utils& utils = cfgmod.utils;
@@ -25,7 +25,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   gblmod = new GlobalMod(event, cfg, utils, gt);
   mods_all.emplace_back(gblmod);
 
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
 
   // Define analyses
   preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
@@ -65,7 +65,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   for (auto& mod : mods_all)
     mod->print();
 
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
   // Read inputs
   fIn.reset(TFile::Open(analysis.inpath));
   tIn = static_cast<TTree*>(fIn->Get("events"));
@@ -87,7 +87,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   TTree* tW = static_cast<TTree*>(fIn->Get("weights"));
   if (tW && analysis.processType == kSignal) {
     if (tW->GetEntries()!=377 && tW->GetEntries()!=22) {
-      PError("PandaAnalyzer::PandaAnalyzer",
+      logger.error("PandaAnalyzer::PandaAnalyzer",
           TString::Format("Reweighting failed because only found %u weights!",
                           unsigned(tW->GetEntries())));
       throw runtime_error("");
@@ -100,14 +100,14 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
       wIDs->push_back(*id);
     }
   } else if (analysis.processType==kSignal) {
-    PError("PandaAnalyzer::PandaAnalyzer","This is a signal file, but the weights are missing!");
+    logger.error("PandaAnalyzer::PandaAnalyzer","This is a signal file, but the weights are missing!");
     throw runtime_error("");
   }
   registry.publishConst("wIDs", wIDs);
 
   // Define outputs
 
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
   gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
   gt.is_vbf            = analysis.vbf;
   gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
@@ -141,16 +141,16 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   for (auto& mod : mods_all)
     mod->readData(analysis.datapath);
 
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Called constructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Called constructor");
 }
 
 
 PandaAnalyzer::~PandaAnalyzer()
 {
-  if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
 
   fIn->Close();
-  if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Called destructor");
+  if (DEBUG) logger.debug("PandaAnalyzer::~PandaAnalyzer","Called destructor");
 
 }
 
@@ -173,7 +173,7 @@ bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
   if (run_==goodLumis.end()) {
     // matched no run
     if (DEBUG)
-      PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i",run));
+      logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i",run));
     return false;
   }
 
@@ -181,14 +181,14 @@ bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
   for (auto &range : run_->second) {
     if (range.Contains(lumi)) {
       if (DEBUG)
-        PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Accepting run=%i, lumi=%i",run,lumi));
+        logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Accepting run=%i, lumi=%i",run,lumi));
       return true;
     }
   }
 
   // matched no lumi range
   if (DEBUG)
-    PDebug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i, lumi=%i",run,lumi));
+    logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i, lumi=%i",run,lumi));
   return false;
 }
 
@@ -203,7 +203,7 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
     if (s->anded())
       continue;
     if (DEBUG>1)
-      PDebug("PandaAnalyzer::PassPresel",s->get_name());
+      logger.debug("PandaAnalyzer::PassPresel",s->get_name());
     if (s->accept(stage)) {
       pass = true;
       break;
@@ -213,7 +213,7 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
   for (auto& s : selections) {
     if (s->anded()) {
       if (DEBUG>1)
-        PDebug("PandaAnalyzer::PassPresel",s->get_name());
+        logger.debug("PandaAnalyzer::PassPresel",s->get_name());
       pass = pass && s->accept(stage);
     }
   }
@@ -229,7 +229,7 @@ void PandaAnalyzer::Reset()
 
   for (auto& mod : mods_all)
     mod->reset();
-  if (DEBUG) PDebug("PandaAnalyzer::Reset","Reset");
+  if (DEBUG) logger.debug("PandaAnalyzer::Reset","Reset");
 }
 
 
@@ -243,7 +243,7 @@ void PandaAnalyzer::Terminate()
   for (auto& mod : mods_all)
     mod->terminate();
 
-  if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
+  if (DEBUG) logger.debug("PandaAnalyzer::Terminate","Finished with output");
 }
 
 
@@ -261,7 +261,7 @@ void PandaAnalyzer::Run()
     nZero = firstEvent;
 
   if (!fOut || !tIn) {
-    PError("PandaAnalyzer::Run","NOT SETUP CORRECTLY");
+    logger.error("PandaAnalyzer::Run","NOT SETUP CORRECTLY");
     exit(1);
   }
   unsigned int iE=0;
@@ -318,6 +318,6 @@ void PandaAnalyzer::Run()
   for (auto& s : selections)
     s->report();
 
-  if (DEBUG) { PDebug("PandaAnalyzer::Run","Done with entry loop"); }
+  if (DEBUG) { logger.debug("PandaAnalyzer::Run","Done with entry loop"); }
 
 } // Run()

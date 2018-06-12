@@ -10,7 +10,7 @@ from os import system,getenv,path,environ
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 import PandaCore.Tools.job_config as cb
 
 _sname = 'T3.job_utilities'                                    # name of this module

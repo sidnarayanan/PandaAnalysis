@@ -21,7 +21,7 @@ figsdir = args.outdir
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.Misc import *
 from math import sqrt
 Load('GraphAsymmErrDrawer')

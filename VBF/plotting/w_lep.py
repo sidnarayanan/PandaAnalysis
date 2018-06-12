@@ -20,7 +20,7 @@ figsdir = args.outdir
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.Misc import *
 from PandaCore.Tools.root_interface import Selector
 Load('HistogramDrawer')

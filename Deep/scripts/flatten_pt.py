@@ -15,7 +15,7 @@ args = parser.parse_args()
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 from PandaCore.Tools.root_interface import Selector
 if args.plot:

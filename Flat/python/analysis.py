@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
-from PandaCore.Tools.Load import Load 
-from PandaCore.Tools.Misc import PInfo, PError
+from PandaCore.Utils.load import Load 
+from PandaCore.Tools.Misc import logger
 import ROOT as root
 
 Load('PandaAnalyzer')
 
 def _dump(a):
-    PInfo('PandaAnalysis.Flat.analysis','Summary of analysis %s:'%(a.name))
+    logger.info('PandaAnalysis.Flat.analysis','Summary of analysis %s:'%(a.name))
     for k in dir(a):
         if k[0] == '_':
             continue
         if type(getattr(a, k)) != int:
             continue
-        PInfo('PandaAnalysis.Flat.analysis','    %20s = %s'%(k, 'True' if getattr(a, k) else 'False'))
+        logger.info('PandaAnalysis.Flat.analysis','    %20s = %s'%(k, 'True' if getattr(a, k) else 'False'))
 
 
 
@@ -21,7 +21,7 @@ def _analysis(name, verbose, **kwargs):
     a = root.pa.Analysis(name)
     for k,v in kwargs.iteritems():
         if not hasattr(a, k):
-            PError('PandaAnalysis.Flat.analysis','Could not set property %s'%k)
+            logger.error('PandaAnalysis.Flat.analysis','Could not set property %s'%k)
             return None 
         setattr(a, k, bool(v))
     setattr(a, 'dump', lambda : _dump(a))

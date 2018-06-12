@@ -10,7 +10,7 @@ args = parser.parse_args()
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
 Load('Tools','BranchAdder')

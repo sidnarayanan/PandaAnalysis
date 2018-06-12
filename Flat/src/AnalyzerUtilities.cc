@@ -101,9 +101,9 @@ vector<TLorentzVector>& ParticleGridder::get()
           float phi = _phiBin.center(iPhi);
           vSum.SetPtEtaPhiM(vSum.Pt(), eta, phi, vSum.M()); // => no spatial resolution within the cell
         }
-//        PDebug("ParticleGridder out",
+//        logger.debug("ParticleGridder out",
 //               Form("pt=%.3f,eta=%.3f,phi=%.3f,m=%.3f in %i,%i", vSum.Pt(), eta, phi, vSum.M(), iEta, iPhi));
-//        PDebug("ParticleGridder out",
+//        logger.debug("ParticleGridder out",
 //               Form("eta = [%.3f,%.3f], phi=[%.3f,%.3f]", 
 //                    _etaBin.left(iEta),
 //                    _etaBin.left(iEta+1),
@@ -116,7 +116,7 @@ vector<TLorentzVector>& ParticleGridder::get()
         }
       }
     } else {
-      PError("ParticleGridder::get",Form("Bin %i,%i is supposed to be non-empty, but found otherwise!",
+      logger.error("ParticleGridder::get",Form("Bin %i,%i is supposed to be non-empty, but found otherwise!",
                                          iEta, iPhi));
     }
   }

@@ -16,20 +16,22 @@ if len(argv)>2:
 argv = []
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaAnalysis.Flat.analysis import *
 import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-a = vbfhbb()
+a = wlnhbb2017()
+#a = wlnhbb()
 #a = breg()
 # a.bjetDeepReg = True
 # a.bjetRegTrain = True
 a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
-a.processType = root.pa.kZ
+a.processType = root.pa.kH
+#a.processType = root.pa.kW
 a.isData = False
 utils.set_year(a, 2017)
 
@@ -41,8 +43,8 @@ if a.isData:
     utils.add_json(skimmer)
 
 #skimmer.AddPresel(root.pa.LowGenBosonPtSel())
-# skimmer.AddPresel(root.pa.VHbbSel())
-# skimmer.AddPresel(root.pa.TriggerSel())
+skimmer.AddPresel(root.pa.VHbbSel())
+skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()
 skimmer.Terminate()

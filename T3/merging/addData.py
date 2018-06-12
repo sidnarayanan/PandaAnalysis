@@ -6,7 +6,7 @@ f2 = argv[2]
 f3 = argv[3]
 argv = []
 
-import PandaCore.Tools.Load as Load
+import PandaCore.Utils.load as Load
 import ROOT as root
 
 Load.Load('DuplicateRemover')

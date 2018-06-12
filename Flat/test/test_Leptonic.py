@@ -16,7 +16,7 @@ if len(argv)>2:
 argv = []
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaAnalysis.Flat.analysis import vv
 
 Load('PandaAnalyzer')

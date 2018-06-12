@@ -247,7 +247,7 @@ void FatJetMatchingMod::do_execute()
         break;
       default:
         // analysis.processType>=kTT means we should never get here
-        PError("FatJetMatchingMod::do_execute","Reached an unknown process type");
+        logger.error("FatJetMatchingMod::do_execute","Reached an unknown process type");
     }
 
     std::vector<int> targets;

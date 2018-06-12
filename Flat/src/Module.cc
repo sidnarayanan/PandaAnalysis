@@ -535,7 +535,7 @@ void AnalysisMod::initialize(Registry& registry)
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    PDebug("AnalysisMod::initialize", name);
+    logger.debug("AnalysisMod::initialize", name);
   do_init(registry);
   for (auto& mod : subMods)
     mod->initialize(registry);
@@ -546,7 +546,7 @@ void AnalysisMod::readData(TString path)
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    PDebug("AnalysisMod::readData", name);
+    logger.debug("AnalysisMod::readData", name);
   do_readData(path+"/");
   for (auto& mod : subMods)
     mod->readData(path);
@@ -571,7 +571,7 @@ void AnalysisMod::reset()
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    PDebug("AnalysisMod::reset", name);
+    logger.debug("AnalysisMod::reset", name);
   do_reset();
   for (auto& mod : subMods)
     mod->reset();
@@ -582,7 +582,7 @@ void AnalysisMod::terminate()
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    PDebug("AnalysisMod::terminate", name);
+    logger.debug("AnalysisMod::terminate", name);
   do_terminate();
   for (auto& mod : subMods)
     mod->terminate();
@@ -606,5 +606,5 @@ void AnalysisMod::print()
 {
   auto v = dump();
   for (auto& s : v)
-    PInfo("AnalysisMod::print", s.Data());
+    logger.info("AnalysisMod::print", s.Data());
 }

@@ -4,7 +4,7 @@ Converts large flat trees into smaller trees used for fitting
 ''' 
 
 import PandaCore.Tools.root_interface as root_interface 
-from PandaCore.Tools.Misc import PInfo,  PError,  tAND 
+from PandaCore.Tools.Misc import logger,  tAND 
 import numpy as np 
 import ROOT as root 
 from itertools import chain 
@@ -50,7 +50,7 @@ class Process:
                                      treename = self.name+postfix, 
                                      fcontext = f_out)
     def run(self, f_out):
-        PInfo('fitting_forest.Process.run', 'Running '+self.name)
+        logger.info('fitting_forest.Process.run', 'Running '+self.name)
         branches = sorted(self.all_branches.values())
         try:
             xarr = root_interface.read_tree(tree = self.tree, 
@@ -62,7 +62,7 @@ class Process:
                 fields = self.variables.keys()+[shift]
                 self.__write_out(f_out, xarr, fields, '_'+shift)
         except ValueError as e:
-            PError('fitting_forest.Process.run', str(e))
+            logger.error('fitting_forest.Process.run', str(e))
             return
 
 
@@ -117,5 +117,5 @@ class RegionFactory:
         for proc in chain(self.__data_procs, self.__mc_procs):
             proc.run(f_out)
         f_out.Close() 
-        PInfo('fitting_forest.RegionFactory.run', 'Created output in %s'%f_out_path)
+        logger.info('fitting_forest.RegionFactory.run', 'Created output in %s'%f_out_path)
 

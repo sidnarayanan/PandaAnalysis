@@ -15,7 +15,7 @@ import ROOT as root
 from math import sqrt
 from collections import namedtuple 
 from array import array
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.root_interface import draw_hist, read_tree
 
 Load('PandaCoreTools')

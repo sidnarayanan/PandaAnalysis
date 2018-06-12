@@ -239,6 +239,9 @@ void JetMod::do_execute()
         int njet = jets.cleaned.size() - 1;
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
           gt.jotPt[shift][njet] = pt;
+          if (gt.jotPt[jes2i(shiftjes::kNominal)][njet] < 0)
+            // Save this jet pt in the nominal collection if it passes the pt cut in any scenario
+            gt.jotPt[jes2i(shiftjes::kNominal)][njet] = jw.nominal->pt;
           if (isNominal) {
             if (!analysis.hbb && jet.matchedGenJet.isValid())
               gt.jotGenPt[njet] = jet.matchedGenJet->pt(); 
