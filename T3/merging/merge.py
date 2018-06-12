@@ -14,11 +14,14 @@ parser = ArgumentParser()
 parser.add_argument('--silent', action='store_true')
 parser.add_argument('--cfg', type=str, default='common')
 parser.add_argument('--skip_missing', action='store_true')
+parser.add_argument('--make_chunks', action='store_true')
 parser.add_argument('arguments', type=str, nargs='+')
 args = parser.parse_args()
 arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
+#make_chunks = args.make_chunks
+make_chunks = True
 argv=[]
 
 import ROOT as root
@@ -36,6 +39,8 @@ sys.path.append(environ['CMSSW_BASE'] + '/src/PandaAnalysis/T3/merging/configs/'
 cfg = __import__(args.cfg)
 
 Load('Normalizer')
+if make_chunks:
+  Load('splitPandaExpress')
 
 # global variables
 pds = {}
@@ -47,10 +52,10 @@ for k,v in processes.iteritems():
 
 submit_name = environ['SUBMIT_NAME']
 user = environ['USER']
-#split_dir = '/tmp/%s/split/%s/'%(user, submit_name)
-#merged_dir = '/tmp/%s/merged/%s/'%(user, submit_name)
-split_dir = '/scratch5/%s/split/%s/'%(user, submit_name)
-merged_dir = '/scratch5/%s/merged/%s/'%(user, submit_name)
+split_dir = '/tmp/%s/split/%s/'%(user, submit_name)
+merged_dir = '/tmp/%s/merged/%s/'%(user, submit_name)
+#split_dir = '/scratch5/%s/split/%s/'%(user, submit_name)
+#merged_dir = '/scratch5/%s/merged/%s/'%(user, submit_name)
 for d in [split_dir, merged_dir]:
     system('mkdir -p ' + d)
 
@@ -185,6 +190,12 @@ for pd in arguments:
 for pd in args:
     merge(args[pd],pd)
     merged_file = merged_dir + '%s.root'%(pd)
+    if make_chunks:
+      root.splitPandaExpress(merged_file,1000000)
+      chunks = glob.glob(merged_dir+"/*.root")
+      for chunk in chunks:
+        hadd(chunk ,outbase+'/split') # really an mv
+        system('rm -f %s'%chunk)
     hadd(merged_file ,outbase) # really an mv
     system('rm -f %s'%merged_file)
     PInfo(sname,'finished with '+pd)
