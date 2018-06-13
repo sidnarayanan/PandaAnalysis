@@ -299,13 +299,13 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
             logger.info(_sname+'.stageout','Move exited with code %i'%ret)
             sleep(10) # give the filesystem a chance to respond
         else:
-            logger.error(_sname+'.stageout','Move exited with code %i'%ret)
+            logger.warning(_sname+'.stageout','Move exited with code %i'%ret)
             failed = True
         if not failed:
             logger.info(_sname+'.stageout',lsargs)
             ret = system(lsargs)
             if ret:
-                logger.error(_sname+'.stageout','Output file is missing!')
+                logger.warning(_sname+'.stageout','Output file is missing!')
                 failed = True
         if not failed:
             logger.info(_sname+'.stageout', 'Copy succeeded after %i attempts'%(i_attempt+1))
