@@ -3,7 +3,7 @@
 from sys import argv, exit
 import numpy as np 
 from os import getenv, system
-from PandaCore.Tools.Misc import PInfo, PDebug 
+from PandaCore.Tools.Misc import logger.info, logger.debug 
 import PandaAnalysis.Deep.job_deepgen_utilities as deep_utils
 from glob import glob 
 
@@ -24,7 +24,7 @@ for fpath in fcfg.readlines():
     try:
         d = np.load(fpath.strip())
     except [IOError, AttributeError] as e:
-        PError(me, str(e))
+        logger.error(me, str(e))
         continue
     for k,v in d.iteritems():
         if k == 'singleton_branches':
@@ -36,7 +36,7 @@ for fpath in fcfg.readlines():
             data[k].append(v)
 
 if not len(data):
-    PInfo(me, 'This was an empty config!')
+    logger.info(me, 'This was an empty config!')
     exit(0)
 
 for k,v in data.iteritems():
@@ -61,9 +61,9 @@ ret = None
 for ftmp in glob('tmp/*npy'):
     cmd = 'cp -v %s %s/train'%(ftmp,outdir)
     # cmd = 'gfal-copy -f file://$PWD/%s srm://t3serv006.mit.edu:8443/srm/v2/server?SFN=%s/%s'%(ftmp,outdir,ftmp.replace('tmp/',''))
-    PInfo(me, cmd)
+    logger.info(me, cmd)
     ret = max(ret, system(cmd))
 
 system('rm -rf tmp')
-PDebug(me, 'exit code %i'%ret)
+logger.debug(me, 'exit code %i'%ret)
 exit(ret)

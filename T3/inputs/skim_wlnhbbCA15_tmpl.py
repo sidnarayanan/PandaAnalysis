@@ -24,7 +24,7 @@ data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
 def fn(input_name, isData, full_path):
     
-    PInfo(sname+'.fn','Starting to process '+input_name)
+    logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
     skimmer = root.PandaAnalyzer()
     analysis = wlnhbb_ca15(True)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             to_run = s
             break
     if not to_run:
-        PError(sname,'Could not find a job for PROCID=%i'%(which))
+        logger.error(sname,'Could not find a job for PROCID=%i'%(which))
         exit(3)
     
     outdir = getenv('SUBMIT_OUTDIR')

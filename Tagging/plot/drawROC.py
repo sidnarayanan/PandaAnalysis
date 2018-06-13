@@ -56,7 +56,7 @@ variables = [
   # ('N3_20','N3, #beta=2.0',10,2),
             ] 
 for iV in xrange(len(variables)):
-  PInfo(sname,variables[iV][1])
+  logger.info(sname,variables[iV][1])
   if len(variables[iV])==2:
     v,vlabel = variables[iV]
     vcolor = iV

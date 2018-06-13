@@ -108,7 +108,7 @@ def normalizeFast(fpath,opt):
                 if fpath in k:
                     xsec = v[2]
     if xsec<0:
-        PError(sname,'could not find xsec, skipping %s!'%opt)
+        logger.error(sname,'could not find xsec, skipping %s!'%opt)
         return
     xsec *= xsecscale
     logger.info(sname,'normalizing %s (%s) ...'%(fpath,opt))
@@ -169,7 +169,7 @@ def merge(shortnames,mergedname):
             normalizeFast(split_dir + '%s.root'%(shortname),xsec)
         if not success:
             if not skip_missing:
-                PError(sname, 'Could not merge %s, exiting!'%shortname)
+                logger.error(sname, 'Could not merge %s, exiting!'%shortname)
                 exit(1)
             else:
                 to_skip.append(shortname)

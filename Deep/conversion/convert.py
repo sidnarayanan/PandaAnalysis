@@ -3,7 +3,7 @@
 from sys import argv, exit
 import numpy as np 
 from os import getenv, system
-from PandaCore.Tools.Misc import PInfo, PDebug 
+from PandaCore.Tools.Misc import logger.info, logger.debug 
 import PandaAnalysis.Deep.job_deep_utilities as deep_utils
 from glob import glob 
 
@@ -52,14 +52,14 @@ for fpath in fcfg.readlines():
             data[k].append(v[mask])
 
 if not len(data):
-    PInfo(me, 'This was an empty config!')
+    logger.info(me, 'This was an empty config!')
     exit(0)
 
 for k,v in data.iteritems():
     data[k] = np.concatenate(v)
 
 if not data['pt'].shape[0]:
-    PInfo(me, 'Nothing passed the mask')
+    logger.info(me, 'Nothing passed the mask')
     exit(0)
 
 if NORM:
@@ -135,9 +135,9 @@ for d in ['train', 'test', 'validate']:
     for ftmp in glob('tmp/'+d+'/*npy'):
         cmd = 'cp -v %s %s/%s'%(ftmp,outdir,ftmp.replace('tmp/',''))
         # cmd = 'gfal-copy -f file://$PWD/%s srm://t3serv006.mit.edu:8443/srm/v2/server?SFN=%s/%s'%(ftmp,outdir,ftmp.replace('tmp/',''))
-        PInfo(me, cmd)
+        logger.info(me, cmd)
         ret = max(ret, system(cmd))
 
 system('rm -rf tmp')
-PDebug(me, 'exit code %i'%ret)
+logger.debug(me, 'exit code %i'%ret)
 exit(ret)
