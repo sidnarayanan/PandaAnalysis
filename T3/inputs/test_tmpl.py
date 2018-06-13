@@ -36,7 +36,6 @@ def fn(input_name, isData, full_path):
     a.processType = utils.classify_sample(full_path, isData)	
 
     skimmer = root.pa.PandaAnalyzer(a)
-    skimmer.lastEvent = 1000
     skimmer.AddPresel(root.pa.FatJetSel())
 
     return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)

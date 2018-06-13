@@ -19,10 +19,11 @@ import PandaCore.Tools.job_config as cb
 _sname = 'T3.job_utilities'                                    # name of this module
 _data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'  # data directory
 _host = socket.gethostname()                                   # where we're running
-_IS_T3 = (_host[:2] == 't3')                                   # are we on the T3?
+_IS_T3 = (_host.startswith('t3') and _host.endswith('mit.edu'))# are we on the T3?
 REMOTE_READ = True                                             # should we read from hadoop or copy locally?
 local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcp from T2?
 _task_name = getenv('SUBMIT_NAME')                             # name of this task
+_user = getenv('SUBMIT_USER')                                  # user running the task
 YEAR = 2016                                                    # what year's data is this analysis?
 
 stageout_protocol = None                                       # what stageout should we use?
@@ -316,16 +317,16 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
     logger.error(_sname+'.stagoeut', 'Copy failed after %i attempts'%(n_attempts))
     return ret
 
-
 # report home that the job has started
 def report_start(outdir,outfilename,args):
     if not cb.textlock:
+        hashed = [cb.md5hash(x) for x in args]
         job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
         payload = {'starttime' : int(time()),
                    'host' : _host, 
-                   'task' : _task_name,
+                   'task' : _task_name + '_' + _user,
                    'job_id' : job_id,
-                   'args' : args}
+                   'args' : hashed}
         r = requests.post(cb.report_server+'/condor/start', json=payload)
 
 
@@ -343,9 +344,9 @@ def report_done(outdir,outfilename,processed):
     else:
         job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
         payload = {'timestamp' : int(time()),
-                   'task' : _task_name,
+                   'task' : _task_name + '_' + _user,
                    'job_id' : job_id,
-                   'args' : [v for _,v in processed.iteritems()]}
+                   'args' : [cb.md5hash(v) for _,v in processed.iteritems()]}
         r = requests.post(cb.report_server+'/condor/done', json=payload)
 
 

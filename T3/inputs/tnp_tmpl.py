@@ -79,6 +79,8 @@ if __name__ == "__main__":
     lockdir = getenv('SUBMIT_LOCKDIR')  
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
+
+    utils.report_start(outdir,outfilename,to_run.files)
     
     utils.main(to_run, processed, fn)
 
