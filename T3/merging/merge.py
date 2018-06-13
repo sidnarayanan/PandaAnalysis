@@ -22,7 +22,7 @@ arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
 make_chunks = args.make_chunks
-make_chunks = True
+#make_chunks = True
 argv=[]
 
 import ROOT as root
