@@ -155,7 +155,7 @@ void ConfigMod::set_outputBranches()
   if (!analysis.varyJES)
     gt.RemoveBranches({".*JES.*"},{});
   if (analysis.varyJESTotal)
-    gt.RemoveBranches({".*JESTotal.*"},{});
+    gt.RemoveBranches({},{".*JESTotal.*"});
   if (analysis.hbb)
     gt.RemoveBranches({
       ".*JES.*",
