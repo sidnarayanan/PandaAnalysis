@@ -26,7 +26,7 @@ Load('Drawers','PlotUtility')
 ### SET GLOBAL VARIABLES ###
 lumi = 12918.
 logy=False
-cut = 'nFatjet==1 && fj1Pt>250 && nLooseLep==1 && nTightMuon==1 && nLooseElectron==0 && nLoosePhoton==0 && nTau==0 && UWmag>250 && fj1MSD>40'
+cut = 'nFatJet==1 && fj1Pt>250 && nLooseLep==1 && nTightMuon==1 && nLooseElectron==0 && nLoosePhoton==0 && nTau==0 && UWmag>250 && fj1MSD>40'
 weight = '%f*normalizedWeight*sf_pu*sf_lep*sf_ewkV*sf_qcdV*sf_tt'%lumi
 plotlabel=None
 if args.cut=='tag':

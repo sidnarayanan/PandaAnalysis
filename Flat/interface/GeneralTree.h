@@ -183,19 +183,19 @@ class GeneralTree : public genericTree {
       csvCErr2up,
       csvCErr2down
     };
-    virtual void SetAuxTree(TTree *t);
 
     // public config
     bool is_monohiggs=false, is_vbf=false, is_fatjet=true, 
          is_leptonic=false, is_photonic=false, is_monotop=true,
-         is_hbb=false, is_breg=false;
+         is_hbb=false, is_breg=false, is_vh;
     bool btagWeights=false, useCMVA=false;
-    std::map<ECFParams,float> fjECFNs;
+    std::map<ECFParams,float*> fjECFNs;
     std::map<BTagParams,float> sf_btags;
     std::map<BTagParams,float> sf_alt_btags;
     std::map<TString,float> signal_weights;
     std::map<csvShift,float> sf_csvWeights;
     static TString csvShiftName(csvShift shift);
+    virtual void SetAuxTree(TTree *t);
 // ENDCUSTOM
   private:
 // STARTCUSTOM PRIVATE
@@ -203,6 +203,7 @@ class GeneralTree : public genericTree {
     const std::vector<int> ibetas = {0,1,2,3};
     const std::vector<int> Ns = {1,2,3,4};
     const std::vector<int> orders = {1,2,3};
+    TString fjTreeSize() { return is_vh ? "2" : "1"; }
     std::vector<ECFParams> ecfParams;
     std::vector<BTagParams> btagParams;
     TString makeECFString(ECFParams p) {
@@ -463,49 +464,55 @@ class GeneralTree : public genericTree {
   int jetNBtags[43];
   int jetNMBtags[43];
   int isojetNBtags[43];
-  int nFatjet;
-  float fjTau32;
-  float fjTau21;
-  float fjTau32SD;
-  float fjTau21SD;
-  float fjMSD[43];
-  float fjRho;
-  float fjRawRho;
-  float fjRho2;
-  float fjRawRho2;
-  float fjMSD_corr[43];
-  float fjPt[43];
-  float fjPhi;
-  float fjEta;
-  float fjM[43];
-  float fjMaxCSV;
-  float fjSubMaxCSV;
-  float fjMinCSV;
-  float fjDoubleCSV;
-  int fjgbb;
-  int fjNbs;
-  float fjGenPt;
-  float fjGenSize;
-  int fjIsMatched;
-  float fjGenWPt;
-  float fjGenWSize;
-  int fjIsWMatched;
-  int fjHighestPtGen;
-  float fjHighestPtGenPt;
-  int fjIsTight;
-  int fjIsLoose;
-  float fjRawPt;
-  int fjNHF;
-  float fjHTTMass;
-  float fjHTTFRec;
-  int fjIsClean;
-  int fjNPartons;
-  int fjNBPartons;
-  int fjNCPartons;
-  float fjPartonM;
-  float fjPartonPt;
-  float fjPartonEta;
-  int fjGenNumB;
+  int isojetNMBtags[43];
+  int nFatJet;
+  int nFatJetTrunc;
+  int fjHiggsIdx;
+  int fjVIdx;
+  float fjTau32[2];
+  float fjTau21[2];
+  float fjTau32SD[2];
+  float fjTau21SD[2];
+  float fjMSD[43][2];
+  float fjRho[2];
+  float fjRawRho[2];
+  float fjRho2[2];
+  float fjRawRho2[2];
+  float fjMSD_corr[43][2];
+  float fjPt[43][2];
+  float fjPhi[2];
+  float fjEta[2];
+  float fjM[43][2];
+  float fjMaxCSV[2];
+  float fjSubMaxCSV[2];
+  float fjMinCSV[2];
+  float fjDoubleCSV[2];
+  float fjDeepProbbb[2];
+  float fjDeepProbH[2];
+  int fjgbb[2];
+  int fjNbs[2];
+  float fjGenPt[2];
+  float fjGenSize[2];
+  int fjIsMatched[2];
+  float fjGenWPt[2];
+  float fjGenWSize[2];
+  int fjIsWMatched[2];
+  int fjHighestPtGen[2];
+  float fjHighestPtGenPt[2];
+  int fjIsTight[2];
+  int fjIsLoose[2];
+  float fjRawPt[2];
+  int fjNHF[2];
+  float fjHTTMass[2];
+  float fjHTTFRec[2];
+  int fjIsClean[2];
+  int fjNPartons[2];
+  int fjNBPartons[2];
+  int fjNCPartons[2];
+  float fjPartonM[2];
+  float fjPartonPt[2];
+  float fjPartonEta[2];
+  int fjGenNumB[2];
   int nHF;
   int nB;
   int nBGenJets;
@@ -601,6 +608,7 @@ class GeneralTree : public genericTree {
   float hbbeta[43];
   float hbbphi[43];
   float hbbm[43];
+  float hbbm_fit;
   float hbbm_reg[43];
   float hbbpt_reg[43];
   float hbbm_dreg[43];

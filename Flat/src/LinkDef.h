@@ -3,6 +3,7 @@
 #include "PandaAnalysis/Flat/interface/TagTree.h"
 #include "PandaAnalysis/Flat/interface/LimitTreeBuilder.h"
 #include "PandaAnalysis/Flat/interface/PandaAnalyzer.h"
+#include "PandaAnalysis/Flat/interface/HRAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/TagAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/genericTree.h"
 #include "PandaAnalysis/Flat/interface/Selection.h"
@@ -26,8 +27,8 @@
 #pragma link C++ class pa::LambdaSel;
 #pragma link C++ class pa::TriggerSel;
 #pragma link C++ class pa::GenBosonPtSel;
-#pragma link C++ class pa::FatjetSel;
-#pragma link C++ class pa::Fatjet450Sel;
+#pragma link C++ class pa::FatJetSel;
+#pragma link C++ class pa::FatJet450Sel;
 #pragma link C++ class pa::GenFatJetSel;
 #pragma link C++ class pa::LeptonSel;
 #pragma link C++ class pa::LeptonFakeSel;
@@ -42,6 +43,7 @@
 #pragma link C++ class pa::TF1Corr;
 #pragma link C++ class pa::btagcand;
 #pragma link C++ class pa::PandaAnalyzer;
+#pragma link C++ class pa::HRAnalyzer;
 #pragma link C++ class pa::TagAnalyzer;
 #pragma link C++ class pa::GeneralTree;
 #pragma link C++ class pa::GeneralTree::ECFParams;

@@ -5,7 +5,7 @@
 #include "GeneralTree.h"
 #include "Selection.h"
 #include "Module.h"
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 
 #include "CommonMods.h"
 #include "BTagMods.h"

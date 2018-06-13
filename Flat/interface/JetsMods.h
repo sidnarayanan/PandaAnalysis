@@ -52,20 +52,20 @@ namespace pa {
       AnalysisMod("jetflavor", event_, cfg_, utils_, gt_, level_) { }
     virtual ~JetFlavorMod () {}
 
-    bool on() { return (analysis.jetFlavorPartons || analysis.jetFlavorJets) && !analysis.isData; }
+    bool on() { return !analysis.isData && (analysis.jetFlavorPartons || analysis.jetFlavorJets); }
   protected:
     void do_init(Registry& registry) {
-      currentJet = registry.access<JetWrapper*>("currentJet");
+      jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       if (!analysis.isData)
         genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();
   private:
-    std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
+    std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
 
-    void partonFlavor();
-    void clusteredFlavor();
+    void partonFlavor(JetWrapper&);
+    void clusteredFlavor(JetWrapper&);
   };
 
   class IsoJetMod : public AnalysisMod {
@@ -84,13 +84,13 @@ namespace pa {
       currentJet = registry.access<JetWrapper*>("currentJet");
       currentJES = registry.access<JESHandler*>("currentJES");
 
-      fj1 = registry.accessConst<const panda::FatJet*>("fj1");
+      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs");
     }
     void do_execute();
   private:
     std::shared_ptr<JetWrapper*> currentJet{nullptr}; // shared ptr to a bare address
     std::shared_ptr<JESHandler*> currentJES{nullptr};
-    std::shared_ptr<const panda::FatJet* const> fj1{nullptr};
+    std::shared_ptr<const std::vector<panda::FatJet*>> fjPtrs{nullptr};
   };
 
   class BJetRegMod : public AnalysisMod {
@@ -184,12 +184,12 @@ namespace pa {
   protected:
     void do_init(Registry& registry) {
       currentJES = registry.access<JESHandler*>("currentJES");
-      fj1 = registry.accessConst<const panda::FatJet*>("fj1", true); 
+      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs", true); 
     }
     void do_execute();
   private:
     std::shared_ptr<JESHandler*> currentJES{nullptr};
-    std::shared_ptr<const panda::FatJet *const> fj1{nullptr};
+    std::shared_ptr<const std::vector<panda::FatJet *>> fjPtrs{nullptr};
   };
 
   class BaseJetMod : public AnalysisMod {
@@ -200,7 +200,8 @@ namespace pa {
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod(name, event_, cfg_, utils_, gt_, level_) {
+      AnalysisMod(name, event_, cfg_, utils_, gt_, level_),
+      recalcJER(false) {
         if (analysis.year == 2016) {
           jecV = "V4"; jecReco = "23Sep2016";
           campaign = "Summer16";
@@ -221,9 +222,10 @@ namespace pa {
     bool csvLoose (float csv) { return csv > csvL; }
     bool csvMed (float csv) { return csv > csvM; }
   protected:
+    bool recalcJER;
     virtual void do_execute() = 0;
     virtual void do_readData(TString path);
-    JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false, bool recalcSmear=false);
+    JetWrapper shiftJet(const panda::Jet& jet, shiftjes shift, bool smear=false);
 
     std::map<TString,std::unique_ptr<FactorizedJetCorrector>> scales; // era/MC -> scale
     std::map<TString,std::vector<std::shared_ptr<JetCorrectionUncertainty>>> scaleUncs; // era/MC -> (src -> unc)
@@ -251,7 +253,7 @@ namespace pa {
       currentJES(std::make_shared<JESHandler*>(nullptr)) {
         ak4Jets = &(event.chsAK4Jets);
 
-        flavor = addSubMod<JetFlavorMod>();
+        recalcJER = analysis.rerunJER; 
         isojet = addSubMod<IsoJetMod>();
         bjetreg = addSubMod<BJetRegMod>();
         vbf = addSubMod<VBFSystemMod>();
@@ -274,7 +276,6 @@ namespace pa {
     void do_execute();
 
   private:
-    JetFlavorMod *flavor{nullptr};
     IsoJetMod *isojet{nullptr};
     BJetRegMod *bjetreg{nullptr};
     VBFSystemMod *vbf{nullptr};

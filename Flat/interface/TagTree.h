@@ -83,7 +83,7 @@ class TagTree : public genericTree {
     float partonSize = -1;
     int partonIsReco = -1;
     int partonPdgId = -1;
-    int nFatjet = -1;
+    int nFatJet = -1;
     float fj1Tau32 = -1;
     float fj1Tau21 = -1;
     float fj1Tau32SD = -1;

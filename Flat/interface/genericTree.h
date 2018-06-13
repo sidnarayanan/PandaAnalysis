@@ -15,6 +15,8 @@
 class genericTree {
   public:
     genericTree() {  }
+    genericTree(const genericTree&) = delete; 
+    genericTree& operator=(const genericTree&) = delete; 
     virtual ~genericTree() {}
     TTree *treePtr{0};
     virtual void WriteTree(TTree *t)=0;

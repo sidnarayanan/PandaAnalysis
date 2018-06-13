@@ -53,7 +53,7 @@ void BRegBDTMod::do_readData(TString dirPath)
 void BRegBDTMod::do_execute()
 {
   auto& jw = **currentJet;
-  int idx = jw.user_idx;
+  int idx = jw.cleaned_idx;
 
   TLorentzVector v = jw.p4();
 
@@ -85,7 +85,7 @@ float dnn_clean(float x) {
 void BRegDeepMod::do_execute()
 {
   auto& jw = **currentJet;
-  int N = jw.user_idx;
+  int N = jw.cleaned_idx;
 
   // defined in data/trainings/breg_training_2017.cfg
   inputs[ 0] = gt.jotRawPt[N];
@@ -334,10 +334,10 @@ void DeepGenMod<GENP>::do_execute()
   genJetInfo.tau1sd = tauN->getTau(1, sdConstituents);
   genJetInfo.tau2sd = tauN->getTau(2, sdConstituents);
   genJetInfo.tau3sd = tauN->getTau(3, sdConstituents);
-  gt.fjTau32 = genJetInfo.tau3/genJetInfo.tau2;
-  gt.fjTau21 = genJetInfo.tau2/genJetInfo.tau1;
-  gt.fjTau32SD = genJetInfo.tau3sd/genJetInfo.tau2sd;
-  gt.fjTau21SD = genJetInfo.tau2sd/genJetInfo.tau1sd;
+  gt.fjTau32[0] = genJetInfo.tau3/genJetInfo.tau2;
+  gt.fjTau21[0] = genJetInfo.tau2/genJetInfo.tau1;
+  gt.fjTau32SD[0] = genJetInfo.tau3sd/genJetInfo.tau2sd;
+  gt.fjTau21SD [0]= genJetInfo.tau2sd/genJetInfo.tau1sd;
 
 
   // get ecfs
@@ -353,7 +353,7 @@ void DeepGenMod<GENP>::do_execute()
     float ecf(iter.get<pa::ECFCalculator::ecfP>());
     genJetInfo.ecfs[o][N][beta] = ecf;
     ep.order = o + 1; ep.N = N + 1, ep.ibeta = beta;
-    gt.fjECFNs[ep] = ecf;
+    gt.fjECFNs[ep][0] = ecf;
   }
 
   // now we have to count the number of prongs

@@ -7,7 +7,7 @@
 #include "CondTools/BTau/interface/BTagCalibrationReader.h"
 #include "PandaAnalysis/Utilities/interface/CSVHelper.h"
 
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 #include "GeneralTree.h"
 
 namespace pa {

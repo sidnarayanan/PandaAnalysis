@@ -16,7 +16,7 @@ namespace pa {
       AnalysisMod("map", event_, cfg_, utils_, gt_, level_) { }
     virtual ~MapMod () { }
 
-    bool on() { return true; }
+    bool on() { return analysis.complicatedLeptons; }
 
   protected:
     void do_init(Registry& registry) {
@@ -149,18 +149,19 @@ namespace pa {
     std::shared_ptr<std::vector<JESHandler>> jesShifts;
   };
 
-  class GenPMod : public AnalysisMod {
+  template <typename T>
+  class BaseGenPMod : public BaseAnalysisMod<T> {
   public:
-    GenPMod(panda::EventAnalysis& event_,
-            Config& cfg_,
-            Utils& utils_,
-            GeneralTree& gt_,
-            int level_=0) :
-      AnalysisMod("gendup", event_, cfg_, utils_, gt_, level_),
+    BaseGenPMod(panda::EventAnalysis& event_,
+                Config& cfg_,
+                Utils& utils_,
+                T& gt_,
+                int level_=0) :
+      BaseAnalysisMod<T>("gendup", event_, cfg_, utils_, gt_, level_),
       genP(std::v_make_shared<panda::Particle*>()) { }
-    virtual ~GenPMod () { }
+    virtual ~BaseGenPMod () { }
 
-    bool on() { return !analysis.isData; }
+    bool on() { return !this->analysis.isData; }
 
   protected:
     void do_init(Registry& registry) {
@@ -173,22 +174,22 @@ namespace pa {
   private:
     std::shared_ptr<std::vector<panda::Particle*>> genP;
 
-    template <typename T>
-    void merge_particles(panda::Collection<T>& genParticles) {
+    template <typename P>
+    void merge_particles(panda::Collection<P>& genParticles) {
       genP->reserve(genParticles.size()); // approx
       for (auto& g : genParticles) {
         bool foundDup = false;
         if (g.finalState) {
           float ptThreshold = g.pt() * 0.01;
           for (auto* pPtr : *genP) {
-            const T* gPtr = static_cast<const T*>(pPtr);
+            const P* gPtr = static_cast<const P*>(pPtr);
             if (!gPtr->finalState)
               continue;
             if ((g.pdgid == gPtr->pdgid) &&
                 (fabs(g.pt() - gPtr->pt()) < ptThreshold) &&
                 (DeltaR2(g.eta(), g.phi(), gPtr->eta(), gPtr->phi()) < 0.001)) {
               foundDup = true;
-              if (cfg.DEBUG > 8) {
+              if (this->cfg.DEBUG > 8) {
                 logger.debug("Found duplicate",
                        Form("p1(%8.3f,%5.1f,%5.1f,%5i,%i) <-> p2(%8.3f,%5.1f,%5.1f,%5i,%i)",
                             g.pt(), g.eta(), g.phi(), g.pdgid, g.finalState ? 1 : 0,
@@ -204,6 +205,8 @@ namespace pa {
       }
     }
   };
+  typedef BaseGenPMod<GeneralTree> GenPMod;
+  typedef BaseGenPMod<HeavyResTree> HRGenPMod;
 }
 
 #endif

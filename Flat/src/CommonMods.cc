@@ -120,12 +120,13 @@ void TriggerMod::do_init(Registry& registry)
           "HLT_Photon120_R9Id90_HE10_IsoM",
           "HLT_Photon165_R9Id90_HE10_IsoM",
           "HLT_Photon300_NoHE",
-          "HLT_ECALHT800"
+          "HLT_ECALHT800",
+          "HLT_CaloJet500_NoJetID"
     };
     triggerHandlers[kSinglePhoTrig].addTriggers(paths);
 
     // Single muon
-    if (analysis.complicatedLeptons) {
+    if (analysis.complicatedLeptons || analysis.recalcECF) { // either comp lepton or tnp
       if (analysis.year == 2016) {
         paths = {
           "HLT_IsoMu24",
@@ -251,6 +252,10 @@ void TriggerMod::do_init(Registry& registry)
         th.indices[i] = panda_idx;
       }
     }
+    if (analysis.hbb && analysis.year == 2017) {
+      event.registerTriggerObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
+      event.registerTriggerObjects("hltEGL1SingleEGOrFilter");
+    }
   }
 }
 
@@ -271,8 +276,9 @@ void TriggerMod::checkEle32()
       break;
     }
   }
-  if (matchedToTriggerObject) 
+  if (matchedToTriggerObject) { 
     gt.trigger |= (1 << kSingleEleTrig);
+  }
 }
 
 void TriggerMod::do_execute()
@@ -357,14 +363,18 @@ void GlobalMod::do_execute()
   }
 }
 
-void GenPMod::do_execute()
+template <typename TREE>
+void BaseGenPMod<TREE>::do_execute()
 {
-  if (event.genParticles.size() > 0) {
-    merge_particles(event.genParticles);
+  if (this->event.genParticles.size() > 0) {
+    merge_particles(this->event.genParticles);
   } else {
-    merge_particles(event.genParticlesU);
+    merge_particles(this->event.genParticlesU);
   }
 }
+
+template class BaseGenPMod<GeneralTree>;
+template class BaseGenPMod<HeavyResTree>;
 
 void RecoilMod::do_execute()
 {

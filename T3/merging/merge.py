@@ -20,8 +20,8 @@ args = parser.parse_args()
 arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
-#make_chunks = args.make_chunks
-make_chunks = True
+make_chunks = args.make_chunks
+#make_chunks = True
 argv=[]
 
 import ROOT as root
@@ -85,7 +85,11 @@ def hadd(inpath,outpath):
         return False
     elif len(infiles)==1:
         logger.info(sname,'moving %s to %s'%(inpath[0],outpath))
-        cmd = 'mv -v %s %s'%(infiles[0],outpath)
+        if infiles[0].startswith('/tmp'):
+            mv = 'mv'
+        else:
+            mv = 'cp'
+        cmd = '%s -v %s %s'%(mv,infiles[0],outpath)
     else:
         cmd = '%s %s '%(hadd_cmd, outpath)
         for f in infiles:
@@ -176,7 +180,8 @@ def merge(shortnames,mergedname):
     to_hadd = [split_dir + '%s.root'%(x) for x in shortnames if x not in to_skip]
     hadd(to_hadd, merged_dir + '%s.root'%(mergedname))
     for f in to_hadd:
-        system('rm -f %s'%f)
+        if f.startswith('/tmp'):
+            system('rm -f %s'%f)
 
 
 args = {}
@@ -198,6 +203,7 @@ for pd in args:
         hadd(chunk, outbase+'/split') # really an mv
         system('rm -f %s'%chunk)
     hadd(merged_file ,outbase) # really an mv
-    system('rm -f %s'%merged_file)
+    if merged_file.startswith('/tmp'):
+        system('rm -f %s'%merged_file)
     logger.info(sname,'finished with '+pd)
 

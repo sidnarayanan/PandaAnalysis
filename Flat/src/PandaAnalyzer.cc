@@ -8,7 +8,7 @@ using namespace panda;
 using namespace std;
 using namespace pa;
 
-#define ADDMOD(X) mods_all.back()->addSubMod<X>();
+#define ADDMOD(X) mods_all.back()->addSubMod<X>()
 
 
 PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
@@ -30,37 +30,39 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   // Define analyses
   preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
-  ADDMOD(GenPMod)
-  ADDMOD(MapMod)
+  ADDMOD(MapMod);
   if (analysis.unpackedGen)
-    ADDMOD(DeepGenMod<UnpackedGenParticle>)
+    ADDMOD(DeepGenMod<UnpackedGenParticle>);
   else
-    ADDMOD(DeepGenMod<GenParticle>)
-  ADDMOD(TriggerMod)
-  ADDMOD(SimpleLeptonMod)
-  ADDMOD(ComplicatedLeptonMod)
-  ADDMOD(SimplePhotonMod)
-  ADDMOD(ComplicatedPhotonMod)
-  ADDMOD(RecoilMod)
-  ADDMOD(FatJetMod)
-  ADDMOD(JetMod)
-  ADDMOD(TauMod)
+    ADDMOD(DeepGenMod<GenParticle>);
+  ADDMOD(TriggerMod);
+  ADDMOD(SimpleLeptonMod);
+  ADDMOD(ComplicatedLeptonMod);
+  ADDMOD(SimplePhotonMod);
+  ADDMOD(ComplicatedPhotonMod);
+  ADDMOD(RecoilMod);
+  ADDMOD(FatJetMod);
+  ADDMOD(JetMod);
+  ADDMOD(TauMod);
 
   postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
   mods_all.emplace_back(postselmod);
-  ADDMOD(HbbMiscMod)
-  ADDMOD(InclusiveLeptonMod)
-  ADDMOD(SoftActivityMod)
-  ADDMOD(FatJetMatchingMod)
-  ADDMOD(BTagSFMod)
-  ADDMOD(BTagWeightMod)
-  ADDMOD(TriggerEffMod)
-  ADDMOD(GenStudyEWKMod)
-  ADDMOD(QCDUncMod)
-  ADDMOD(GenLepMod)
-  ADDMOD(GenJetNuMod)
-  ADDMOD(HFCountingMod)
-  ADDMOD(KFactorMod)
+  ADDMOD(GenPMod);
+  ADDMOD(JetFlavorMod); 
+  ADDMOD(HbbMiscMod);
+  ADDMOD(KinFitMod);
+  ADDMOD(InclusiveLeptonMod);
+  ADDMOD(SoftActivityMod);
+  ADDMOD(FatJetMatchingMod);
+  ADDMOD(BTagSFMod);
+  ADDMOD(BTagWeightMod);
+  ADDMOD(TriggerEffMod);
+  ADDMOD(GenStudyEWKMod);
+  ADDMOD(QCDUncMod);
+  ADDMOD(GenLepMod);
+  ADDMOD(GenJetNuMod);
+  ADDMOD(HFCountingMod);
+  ADDMOD(KFactorMod);
 
   for (auto& mod : mods_all)
     mod->print();
@@ -109,6 +111,8 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
   gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
+  gt.is_hbb            = analysis.hbb;
+  gt.is_vh             = analysis.vqqhbb; 
   gt.is_vbf            = analysis.vbf;
   gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
   gt.is_leptonic       = analysis.complicatedLeptons;
@@ -273,10 +277,10 @@ void PandaAnalyzer::Run()
 
   ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
   TimeReporter& tr = cfgmod.cfg.tr;
+  tr.TriggerEvent("configuration"); 
 
   // EVENTLOOP --------------------------------------------------------------------------
   for (iE=nZero; iE!=nEvents; ++iE) {
-    tr.Start();
     pr.Report();
 
     Reset();
@@ -299,7 +303,7 @@ void PandaAnalyzer::Run()
       continue;
 
 //     if (analysis.deep || analysis.hbb)
-//       FatjetPartons();
+//       FatJetPartons();
 //     if (analysis.deep) {
 //       FillPFTree();
 //       tAux->Fill();

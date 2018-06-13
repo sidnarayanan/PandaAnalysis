@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from PandaCore.Utils.load import Load 
-from PandaCore.Tools.Misc import logger
+from PandaCore.Utils.logging import logger
 import ROOT as root
 
 Load('PandaAnalyzer')
@@ -46,6 +46,23 @@ vbf = lambda v=False : _analysis(
         fatjet = False,
         btagSFs = False,
         puppiJets = False
+    )
+
+vqqhbb = lambda v=False : _analysis(
+        name = 'vbfhbb',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        vqqhbb = True, 
+        fatjet = True,
+        btagSFs = True,
+        hfCounting = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
     )
 
 vbfhbb = lambda v=False : _analysis(
@@ -185,7 +202,7 @@ zllhbb = lambda v=False : _analysis(
         verbose = v,
         ak8 = True,
         hbb = True,
-        ZllHbb = True,
+        zllhbb = True,
         monoh = False,
         recoil = True,
         fatjet = True,
@@ -197,28 +214,7 @@ zllhbb = lambda v=False : _analysis(
         recluster = False,
         bjetRegTraining = False,
         bjetBDTReg = True,
-        varyJES = True,
-        rerunJES = True,
-        rerunJER = True,
-        jetFlavorPartons = False,
-        jetFlavorJets = True,
-    )
-wlnhbb_ca15 = lambda v=False : _analysis(
-        name = 'wlnhbb',
-        verbose = v,
-        ak8 = False,
-        hbb = True,
-        monoh = False,
-        recoil = True,
-        fatjet = True,
-        btagSFs = True,
-        btagWeights = True,
-        useCMVA = True,
-        complicatedLeptons = True,
-        hfCounting = True,
-        recluster = False,
-        bjetRegTraining = False,
-        bjetBDTReg = True,
+        bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
         rerunJER = True,

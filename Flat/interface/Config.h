@@ -7,7 +7,7 @@
 #include "memory.h"
 
 #include "AnalyzerUtilities.h"
-#include "Common.h"
+#include "PandaAnalysis/Flat/interface/Common.h"
 #include "BTagTools.h"
 
 // fastjet
@@ -28,7 +28,9 @@ namespace pa {
     analysis(a_),
     tr("PandaAnalyzer", DEBUG+1),
     isData(analysis.isData)
-    { }
+    { 
+      tr.Start();
+    }
 
 
     const int DEBUG;

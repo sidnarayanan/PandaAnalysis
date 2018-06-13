@@ -14,11 +14,11 @@ inline float centralOnly(float x, float aeta, float def = -1)
   return  aeta < 2.4 ? x : -1;
 }
 
-JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool recalcSmear)
+JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear)
 {
   float pt = jet.pt();
   if (smear) {
-    if (recalcSmear && analysis.rerunJER) {
+    if (recalcJER) {
       double smearFac=1, smearFacUp=1, smearFacDown=1;
       jer->getStochasticSmear(pt,jet.eta(),event.rho,smearFac,smearFacUp,smearFacDown);
       pt *= smearFac;
@@ -32,10 +32,10 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
     if (analysis.rerunJES) {
       (*scaleUnc)[ishift]->setJetPt(pt);
       (*scaleUnc)[ishift]->setJetEta(jet.eta());
-      float relUnc = (*scaleUnc)[ishift]->getUncertainty(isUp);
-      if(!isUp) relUnc *= -1;
-      pt *= (1 + relUnc);
-      //printf("ishift=%d, isUp=%d, getUncertainty=%.3f\n", ishift, isUp, relUnc);
+      double relShift = (*scaleUnc)[ishift]->getUncertainty(isUp);
+      if (!isUp)
+        relShift = -relShift; 
+      pt *= (1 + relShift);
     } else {
       pt = (isUp ? jet.ptCorrUp :  jet.ptCorrDown) * pt / jet.pt();
     }
@@ -46,7 +46,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear, bool
 
 void BaseJetMod::do_readData(TString dirPath)
 {
-  if (analysis.rerunJER) {
+  if (recalcJER) {
     jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
                             dirPath+"/jec/"+jerV+"/"+jerV+"_MC_PtResolution_"+jetType+".txt"));
   }
@@ -175,9 +175,6 @@ void JetMod::do_execute()
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
-      if (isNominal)
-        flavor->execute();
-
       float csv = centralOnly(jet.deepCSVb + jet.deepCSVbb, aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
@@ -193,8 +190,9 @@ void JetMod::do_execute()
           jets.bcand.push_back(&jw);
       }
 
-      if (jw.nominal->maxpt > cfg.minJetPt) { 
-        // for H->bb, don't consider any jet based NJETSAVED, 
+
+      if (jw.nominal->maxpt > cfg.minJetPt) {
+        // for H->bb, don't consider any jet past NJETSAVED, 
         // for other analyses, consider them, just don't save them
         if ((analysis.hbb || analysis.monoh) && (int)jets.cleaned.size() >= cfg.NJETSAVED)
           continue;
@@ -208,8 +206,11 @@ void JetMod::do_execute()
 
         if (isNominal && analysis.fatjet) {
           isojet->execute();
-          if (jw.iso && csvLoose(csv))
+          if (jw.iso && csvLoose(csv)) {
             ++(gt.isojetNBtags[shift]);
+            if (csvMed(csv))
+              ++(gt.isojetNMBtags[shift]);
+          }
         }
 
         if (aeta < 2.4) {
@@ -220,12 +221,12 @@ void JetMod::do_execute()
             gt.nJet[shift]++;
           if (isNominal) {
             if (njet < 2) {
+              jw.central_idx = njet; 
               gt.jetPt[njet] = pt;
               gt.jetEta[njet] = jet.eta();
               gt.jetPhi[njet] = jet.phi();
               gt.jetCSV[njet] = csv;
               gt.jetIsTight[njet] = jet.monojet ? 1 : 0;
-              gt.jetFlav[njet] = jw.flavor;
               gt.jetIsIso[njet] = jw.iso ? 1 : 0;
             }
           }
@@ -238,6 +239,7 @@ void JetMod::do_execute()
 
         int njet = jets.cleaned.size() - 1;
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
+          jw.cleaned_idx = njet; 
           gt.jotPt[shift][njet] = pt;
           if (gt.jotPt[jes2i(shiftjes::kNominal)][njet] < 0)
             // Save this jet pt in the nominal collection if it passes the pt cut in any scenario
@@ -252,7 +254,8 @@ void JetMod::do_execute()
             gt.jotFlav[njet] = jw.flavor;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
-            gt.jotIso[njet] = jw.iso ? 1 : 0;
+            gt.jotIso[njet] = jw.iso ? 1 : 0; 
+
             bjetreg->execute();
           }
         }
@@ -313,9 +316,8 @@ void JetMod::do_execute()
 }
 
 
-void JetFlavorMod::partonFlavor()
+void JetFlavorMod::partonFlavor(JetWrapper& jw)
 {
-  auto& jw = **currentJet;
   auto& jet = jw.get_base();
   jw.flavor=0; jw.genpt=0;
   for (auto* genptr : *genP) {
@@ -337,9 +339,8 @@ void JetFlavorMod::partonFlavor()
 }
 
 
-void JetFlavorMod::clusteredFlavor()
+void JetFlavorMod::clusteredFlavor(JetWrapper& jw)
 {
-  auto& jw = **currentJet;
   auto& jet = jw.get_base();
   for (auto &gen : event.ak4GenJets) {
     if (DeltaR2(gen.eta(), gen.phi(), jet.eta(), jet.phi()) < 0.09) {
@@ -358,10 +359,17 @@ void JetFlavorMod::clusteredFlavor()
 
 void JetFlavorMod::do_execute()
 {
-  if (analysis.jetFlavorPartons)
-    partonFlavor();
-  else
-    clusteredFlavor();
+  for (auto& jw : (*jesShifts)[0].all) {
+    if (analysis.jetFlavorPartons)
+      partonFlavor(jw);
+    else
+      clusteredFlavor(jw);
+    if (jw.cleaned_idx >= 0) {
+      gt.jotFlav[jw.cleaned_idx] = jw.flavor; 
+      if (jw.central_idx >= 0) 
+        gt.jetFlav[jw.central_idx] = jw.flavor;
+    }
+  }
 }
 
 
@@ -372,9 +380,9 @@ void IsoJetMod::do_execute()
   auto& jet = jw.get_base();
   float maxIsoEta = analysis.monoh ? 4.5 : 2.5;
   bool isIsoJet = (
-        gt.nFatjet == 0 ||
+        gt.nFatJet == 0 ||
         (fabs(jet.eta()) < maxIsoEta &&
-         DeltaR2(gt.fjEta,gt.fjPhi,jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
+         DeltaR2(gt.fjEta[0],gt.fjPhi[0],jet.eta(),jet.phi()) > cfg.FATJETMATCHDR2)
       );
 
   jw.iso = isIsoJet;
@@ -469,6 +477,7 @@ void BJetRegMod::do_execute()
     gt.jotMuRing[b][N] = energies.get_e(b, Energies::pmu);
     gt.jotNeRing[b][N] = energies.get_e(b, Energies::pne);
   }
+  /*
   for (int pf_type = Energies::pem; pf_type != (int)Energies::pN; ++pf_type) {
     static std::array<float, static_cast<long unsigned>(shiftjetrings::N)> moments;
     // eta first
@@ -508,6 +517,7 @@ void BJetRegMod::do_execute()
     for (int i = 0; i != static_cast<int>(shiftjetrings::N); ++i)
       (gt.*dr_array)[i][N] = sqrt(pow((gt.*eta_array)[i][N],2) + pow((gt.*phi_array)[i][N],2));
   }
+  */
 
   auto& vert = jet.secondaryVertex;
   if (vert.isValid()) {
@@ -527,20 +537,8 @@ void VBFSystemMod::do_execute()
 
   unsigned idx0=0, idx1=1;
   if (analysis.hbb) {
-    if (gt.hbbm[shift] > 0) {
-      if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
-        idx0++; idx1++;
-      }
-      if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
-        if (idx0 == 0) 
-          idx1++;
-        else {
-          idx0++; idx1++;
-        }
-      }
-    }
-    if (analysis.fatjet && ((*fj1) != nullptr)) {
-      const FatJet& fj = **fj1; 
+    if (analysis.fatjet && fjPtrs->size() > 0 && (*fjPtrs)[0]->pt() > 400) {
+      const FatJet& fj = *((*fjPtrs)[0]); 
       int inc1 = 0;
       if (DeltaR2(jets.cleaned_sorted[idx1]->base->eta(), 
                   jets.cleaned_sorted[idx1]->base->phi(),
@@ -559,6 +557,17 @@ void VBFSystemMod::do_execute()
         }
       }
       idx1 += inc1;
+    } else if (gt.hbbm[shift] > 0) {
+      if (gt.hbbjtidx[shift][0] == 0 || gt.hbbjtidx[shift][1] == 0) {
+        idx0++; idx1++;
+      }
+      if (gt.hbbjtidx[shift][0] == 1 || gt.hbbjtidx[shift][1] == 1) {
+        if (idx0 == 0) 
+          idx1++;
+        else {
+          idx0++; idx1++;
+        }
+      }
     }
   }
   if (jets.cleaned.size() > idx1) {
@@ -608,7 +617,6 @@ void HbbSystemMod::do_execute()
       int idx = gt.hbbjtidx[shift][i];
       (*hbbdJet) = jets.cleaned[idx];
       auto& hbbdJetRef = **hbbdJet;
-      hbbdJetRef.user_idx = idx;
 
       if (shift == jes2i(shiftjes::kNominal)) {
         deepreg->execute();

@@ -1,4 +1,5 @@
 <use   name="root"/>
+<use   name="roofit"/>
 <use   root=""/>
 <use   name="fastjet"/>
 <use   name="fastjet-contrib"/>

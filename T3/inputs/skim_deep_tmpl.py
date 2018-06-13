@@ -63,7 +63,7 @@ def fn(input_name, isData, full_path):
     analysis.dump()
     skimmer.SetAnalysis(analysis)
     skimmer.isData=isData
-    skimmer.AddPresel(root.Fatjet450Sel())
+    skimmer.AddPresel(root.FatJet450Sel())
 
     outpath = utils.run_PandaAnalyzer(skimmer, isData, input_name)
     if not outpath:
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         utils.cleanup('*.npz')
     utils.print_time('stageout and cleanup')
     if not ret:
-        utils.write_lock(lockdir,outfilename,processed)
+        utils.report_done(lockdir,outfilename,processed)
         utils.cleanup('*.lock')
         utils.print_time('create lock')
     else:

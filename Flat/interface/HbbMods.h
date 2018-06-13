@@ -2,6 +2,7 @@
 #define HBBMODS
 
 #include "Module.h"
+#include "PandaAnalysis/Utilities/interface/KinematicFit.h"
 
 namespace pa {
   class HbbMiscMod : public AnalysisMod {
@@ -20,6 +21,33 @@ namespace pa {
     void do_execute(); 
   };
 
+  class KinFitMod : public AnalysisMod {
+  public: 
+    KinFitMod(panda::EventAnalysis& event_, 
+               Config& cfg_,
+               Utils& utils_,
+               GeneralTree& gt_,
+               int level_=0) : 
+      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_) { 
+      if (on()) {
+        fit.reset(new kinfit::Fit(4,91));
+        fit->setPrintLevel(-1); 
+      }
+    }
+    virtual ~KinFitMod () { }
+
+    virtual bool on() { return !analysis.genOnly && analysis.zllhbb; }
+    
+  protected:
+    void do_init(Registry& registry) {
+      looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
+    }
+    void do_execute(); 
+  private:
+    std::unique_ptr<kinfit::Fit> fit{nullptr}; 
+    std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
+  };
+
   class SoftActivityMod : public AnalysisMod {
   public: 
     SoftActivityMod(panda::EventAnalysis& event_, 
@@ -30,7 +58,7 @@ namespace pa {
       AnalysisMod("softactivity", event_, cfg_, utils_, gt_, level_) { }
     virtual ~SoftActivityMod () { }
 
-    virtual bool on() { return !analysis.genOnly && analysis.hbb && !analysis.vbf; }
+    virtual bool on() { return !analysis.genOnly && analysis.hbb && !analysis.vbf && !analysis.vqqhbb; }
     
   protected:
     void do_init(Registry& registry) {

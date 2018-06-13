@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+import os
 import json
 import socket
+import requests
 from re import sub
 from sys import exit
+from glob import glob 
 from random import choice
 from time import clock,time,sleep
-from os import system,getenv,path,environ
+from os import system,getenv,path,environ,getpid
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
@@ -18,7 +21,8 @@ _data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'  # data directory
 _host = socket.gethostname()                                   # where we're running
 _IS_T3 = (_host[:2] == 't3')                                   # are we on the T3?
 REMOTE_READ = True                                             # should we read from hadoop or copy locally?
-local_copy = bool(smart_getenv('SUBMIT_LOCALACCESS', True))    # should we always xrdcp from T2?
+local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcp from T2?
+_task_name = getenv('SUBMIT_NAME')                             # name of this task
 YEAR = 2016                                                    # what year's data is this analysis?
 
 stageout_protocol = None                                       # what stageout should we use?
@@ -30,7 +34,7 @@ elif system('which lcg-cp') == 0:
     stageout_protocol = 'lcg'
 else:
     try:
-        ret = system('wget http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
+        ret = system('wget -nv http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
         ret = max(ret, system('tar -xvf lcg-cp.tar.gz'))
         if ret:
             raise RuntimeError
@@ -39,7 +43,7 @@ else:
         stageout_protocol = 'lcg'
     except Exception as e:
         logger.error(_sname,
-               'Could not install lcg-cp in absence of other protocols!')
+                     'Could not install lcg-cp in absence of other protocols!')
         raise e
 
 
@@ -75,11 +79,26 @@ def print_time(label):
            '%.1f s elapsed performing "%s"'%((now_-_stopwatch),label))
     _stopwatch = now_
 
-
+# set the data-taking period
 def set_year(analysis, year):
     global YEAR
     analysis.year = year
     YEAR = year
+
+# isolate the job
+def isolate():
+    pid = getpid()
+    p = 'job_%i'%pid 
+    try:
+        os.mkdir(p)
+    except OSError:
+        pass
+    os.chdir(p)
+    return p
+
+def un_isolate(p):
+    os.chdir('..')
+    cleanup(p)
 
 # convert an input name to an output name
 def input_to_output(name):
@@ -118,13 +137,17 @@ def copy_local(long_name):
             else:
                 cmd = 'cp %s %s'%(local_path, input_name)
                 logger.info(_sname+'.copy_local',cmd)
-                system(cmd)
+                ret = system(cmd)
+                if ret:
+                    return None 
                 copied = True
 
     if not copied:
-        cmd = "xrdcp %s %s"%(full_path,input_name)
+        cmd = "xrdcp --nopbar -f %s %s"%(full_path,input_name)
         logger.info(_sname+'.copy_local',cmd)
-        system(cmd)
+        ret = system(cmd)
+        if ret:
+            return None 
         copied = True
             
     if path.isfile(input_name):
@@ -135,14 +158,18 @@ def copy_local(long_name):
         return None
 
 
-# wrapper around rm -f. be careful!
-def cleanup(fname):
-    ret = system('rm -f %s'%(fname))
-    if ret:
-        logger.error(_sname+'.cleanup','Removal of %s exited with code %i'%(fname,ret))
+# wrapper around remove. be careful!
+def cleanup(fname, _verbose=True):
+    if path.isfile(fname):
+        os.remove(fname)
+    elif path.isdir(fname):
+        os.rmdir(fname)
     else:
+        for f in glob(fname):
+            cleanup(f, False)
+    if _verbose:
         logger.info(_sname+'.cleanup','Removed '+fname)
-    return ret
+    return 0 # if it made it this far without OSError, it's good
 
 
 # wrapper around hadd
@@ -281,23 +308,45 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
                 failed = True
         if not failed:
             logger.info(_sname+'.stageout', 'Copy succeeded after %i attempts'%(i_attempt+1))
+            cleanup('testfile')
             return ret
         else:
             timeout = int(timeout * 1.5)
-        system('rm -f testfile')
+        cleanup('testfile')
     logger.error(_sname+'.stagoeut', 'Copy failed after %i attempts'%(n_attempts))
     return ret
 
 
+# report home that the job has started
+def report_start(outdir,outfilename,args):
+    if not cb.textlock:
+        job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
+        payload = {'starttime' : int(time()),
+                   'host' : _host, 
+                   'task' : _task_name,
+                   'job_id' : job_id,
+                   'args' : args}
+        r = requests.post(cb.report_server+'/condor/start', json=payload)
+
+
 # write a lock file, based on what succeeded,
 # and then stage it out to a lock directory
-def write_lock(outdir,outfilename,processed):
-    outfilename = outfilename.replace('.root','.lock')
-    flock = open(outfilename,'w')
-    for k,v in processed.iteritems():
-        flock.write(v+'\n')
-    flock.close()
-    stageout(outdir,outfilename,outfilename,ls=False)
+def report_done(outdir,outfilename,processed):
+    if cb.textlock:
+        outfilename = outfilename.replace('.root','.lock')
+        flock = open(outfilename,'w')
+        for k,v in processed.iteritems():
+            flock.write(v+'\n')
+        flock.close()
+        stageout(outdir,outfilename,outfilename,ls=False)
+        cleanup('*.lock')
+    else:
+        job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
+        payload = {'timestamp' : int(time()),
+                   'task' : _task_name,
+                   'job_id' : job_id,
+                   'args' : [v for _,v in processed.iteritems()]}
+        r = requests.post(cb.report_server+'/condor/done', json=payload)
 
 
 # make a record in the primary output of what
@@ -369,13 +418,30 @@ def run_PandaAnalyzer(skimmer, isData, output_name):
         logger.error(_sname+'.run_PandaAnalyzer','Failed in creating %s!'%(output_name))
         return False
 
+def run_HRAnalyzer(skimmer, isData, output_name):
+    # run and save output
+    skimmer.Run()
+    skimmer.Terminate()
+
+    ret = path.isfile(output_name)
+    if ret:
+        logger.info(_sname+'.run_HRAnalyzer','Successfully created %s'%(output_name))
+        return output_name 
+    else:
+        logger.error(_sname+'.run_HRAnalyzer','Failed in creating %s!'%(output_name))
+        return False
+
 
 # main function to run a skimmer, customizable info 
 # can be put in fn
 def main(to_run, processed, fn):
     print_time('loading')
     for f in to_run.files:
-        input_name = copy_local(f)
+        for _ in xrange(3):
+            input_name = copy_local(f)
+            if input_name is not None:
+                break
+            sleep(30)
         print_time('copy %s'%input_name)
         if input_name:
             success = fn(input_name,(to_run.dtype!='MC'),f)

@@ -4,7 +4,8 @@ Converts large flat trees into smaller trees used for fitting
 ''' 
 
 import PandaCore.Tools.root_interface as root_interface 
-from PandaCore.Tools.Misc import logger,  tAND 
+from PandaCore.Tools.Misc import tAND 
+from PandaCore.Utils.logging import logger
 import numpy as np 
 import ROOT as root 
 from itertools import chain 

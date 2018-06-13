@@ -75,7 +75,7 @@ namespace pa {
   public:
     VBFHbbSel():
       LambdaSel(Selection::sReco, "VBFHbb", 
-                __ACCPFUNC((gt->nJot[0]>3) || (gt->nJot[0]>2 && gt->fjPt[0]>250))) { }
+                __ACCPFUNC(gt->nJot[0]>2 && gt->fjPt[0][0]>400)) { }
   };
 
   class GenBosonPtSel: public LambdaSel {
@@ -84,16 +84,23 @@ namespace pa {
       LambdaSel(Selection::sGen, "GenBosonPt", __ACCPFUNC(gt->trueGenBosonPt > 100)) { }
   };
 
-  class FatjetSel: public LambdaSel {
+  class VqqHbbSel: public LambdaSel {
   public:
-    FatjetSel():
-      LambdaSel(Selection::sReco, "Fatjet", __ACCPFUNC(gt->fjPt[0] > 250)) { }
+    VqqHbbSel():
+      LambdaSel(Selection::sReco, "VqqHbb", 
+          __ACCPFUNC(gt->fjPt[0][0] > 300 && gt->fjPt[0][1] > 250 && gt->fjMSD[0][0] > 30 && gt->fjMSD[0][1] > 30)) { }
   };
 
-  class Fatjet450Sel: public LambdaSel {
+  class FatJetSel: public LambdaSel {
   public:
-    Fatjet450Sel():
-      LambdaSel(Selection::sReco, "Fatjet450", __ACCPFUNC(gt->fjPt[0] > 450)) { }
+    FatJetSel():
+      LambdaSel(Selection::sReco, "FatJet", __ACCPFUNC(gt->fjPt[0][0] > 250)) { }
+  };
+
+  class FatJet450Sel: public LambdaSel {
+  public:
+    FatJet450Sel():
+      LambdaSel(Selection::sReco, "FatJet450", __ACCPFUNC(gt->fjPt[0][0] > 450)) { }
   };
 
   class GenFatJetSel: public LambdaSel {

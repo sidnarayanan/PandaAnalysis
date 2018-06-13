@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import json
 import curses
 import argparse
 import subprocess
@@ -9,12 +10,14 @@ import cPickle as pickle
 from re import sub
 from glob import glob
 from query import query
+from requests import post
+from urllib2 import urlopen
 from itertools import chain 
 from time import time, sleep, strftime
 from os import system,getenv,getuid,path,popen
 
 import PandaCore.Tools.job_management as jm
-from PandaCore.Tools.Misc import logger
+from PandaCore.Utils.logging import logger
 
 ### Global definitions ###
 
@@ -40,12 +43,14 @@ parser.add_argument('--submit',action='store_true')
 parser.add_argument('--build_only',action='store_true')
 parser.add_argument('--submit_only',action='store_true')
 parser.add_argument('--clean_output',action='store_true')
+parser.add_argument('--check_duplicates',action='store_true')
+parser.add_argument('--clean_duplicates',action='store_true')
 parser.add_argument('--clean',action='store_true')
 parser.add_argument('--lockdir',type=str,default=lockdir)
 parser.add_argument('--force',action='store_true')
 parser.add_argument('--nfiles',type=int,default=-1)
 parser.add_argument('--silent',action='store_true')
-parser.add_argument('--monitor',type=int,default=None)
+parser.add_argument('--monitor',type=int,default=0)
 args = parser.parse_args()
 lockdir = args.lockdir
 if args.clean:
@@ -56,6 +61,11 @@ if args.submit:
 if args.monitor:
     jm.SILENT = True
     args.check = True
+if args.clean_duplicates:
+    args.check_duplicates = True 
+if args.check_duplicates and jm.textlock:
+    logger.error('task.py', 'Duplicate checking is not yet implemented for text-locking, sorry!')
+    sys.exit(1)
 
 # for printing to screen:
 columns = int(popen('stty size', 'r').read().split()[-1])
@@ -118,6 +128,23 @@ def kill(idle=False):
     else:
         logger.warning('task.py','Trying to kill a task with no submissions!')
 
+def check_duplicates():
+    url = jm.report_server + '/condor/query?task=%s'%(submit_name)
+    completed = {}
+    for r in json.load(urlopen(url)):
+        completed.setdefault(r[0], []).append(r[1])
+    to_clean = []
+    for f,jids in completed.iteritems():
+        if len(jids) > 1:
+            logger.warning('task.py', '%s found in %s'%(f, jids))
+            to_clean += jids 
+    if not to_clean:
+        logger.info('task.py', 'No duplicates found')
+    if args.clean_duplicates:
+        for jid in to_clean:
+            system('rm -f %s/*%s*'%(outdir, jid))
+            payload = {'task' : submit_name, 'job_id' : jid}
+            post(jm.report_server+'/condor/clean', json=payload)
 
 
 # for monitoring:
@@ -207,25 +234,25 @@ def check(stdscr=None):
         init_colors()
         stdscr.nodelay(True)
     while True:
-        force_refresh = False
+        global last_lock
+        refresh = False
         if args.monitor:
             c = stdscr.getch()
             curses.flushinp()
             if c == ord('q'):
                 return
-            force_refresh = (c == ord('r'))
+            refresh = (c == ord('r'))
 
-        global last_lock, last_check
-        if time() - last_check > 5:
-            if len(glob(lockdir+'/*')) > 0:
-                recent_lock = int(path.getmtime(lockdir)) 
-            else:
-                recent_lock = 1
-            last_check = time()
+        if time() - args.monitor > last_lock:
+            refresh = True 
 
-        if force_refresh or (recent_lock >= last_lock) or (time() - last_lock > args.monitor):
+        if not refresh:
+            sleep(1)
+            continue 
+
+        processedfiles = set([])
+        if jm.textlock:
             # determine what files have been processed and logged as such
-            processedfiles = set([])
             locks = glob(lockdir+'/*lock')
             nl = len(locks)
             il = 1
@@ -237,163 +264,168 @@ def check(stdscr=None):
                         processedfiles.add(l.strip())
                 except IOError:
                     pass
+        else:
+            url = jm.report_server + '/condor/query?task=%s'%(submit_name)
+            for r in json.load(urlopen(url)):
+                if r[2] is not None:
+                    processedfiles.add(r[0])
 
-            # determine what samples from previous resubmissions are still running
-            t2_samples = []
-            t3_samples = []
-            idle_samples = []
-            if path.isfile(workdir+'/submission.pkl'): 
-                with open(workdir+'/submission.pkl','rb') as fpkl:
-                    submissions = pickle.load(fpkl)
-            else:
-                submissions = []
-            for s in submissions:
-                results = s.query_status()
-                t3_samples += results['T3']
-                t2_samples += results['T2']
-                idle_samples += results['idle']
+        # determine what samples from previous resubmissions are still running
+        t2_samples = []
+        t3_samples = []
+        idle_samples = []
+        if path.isfile(workdir+'/submission.pkl'): 
+            with open(workdir+'/submission.pkl','rb') as fpkl:
+                submissions = pickle.load(fpkl)
+        else:
+            submissions = []
+        for s in submissions:
+            results = s.query_status()
+            t3_samples += results['T3']
+            t2_samples += results['T2']
+            idle_samples += results['idle']
 
-            t2_files = list(chain.from_iterable([x.files for x in t2_samples]))
-            t3_files = list(chain.from_iterable([x.files for x in t3_samples]))
-            idle_files = list(chain.from_iterable([x.files for x in idle_samples]))
+        t2_files = list(chain.from_iterable([x.files for x in t2_samples]))
+        t3_files = list(chain.from_iterable([x.files for x in t3_samples]))
+        idle_files = list(chain.from_iterable([x.files for x in idle_samples]))
 
 
-            # for fancy display
-            outputs = {}
-            data = Output('Data')
-            mc = Output('MC')
+        # for fancy display
+        outputs = {}
+        data = Output('Data')
+        mc = Output('MC')
 
-            all_samples = jm.read_sample_config(incfg)
-            filtered_samples = {}
-            merged_samples = {}
-            outfile = open(outcfg,'w')
-            for name in sorted(all_samples):
-                sample = all_samples[name]
-                out_sample = jm.DataSample(name,sample.dtype,sample.xsec)
+        all_samples = jm.read_sample_config(incfg)
+        filtered_samples = {}
+        merged_samples = {}
+        outfile = open(outcfg,'w')
+        for name in sorted(all_samples):
+            sample = all_samples[name]
+            out_sample = jm.DataSample(name,sample.dtype,sample.xsec)
 
-                base_name = sub('_[0-9]+$','',name)
-                if base_name not in outputs:
-                    outputs[base_name] = Output(base_name)
-                output = outputs[base_name]
-                if base_name not in merged_samples:
-                    merged_samples[base_name] = jm.DataSample(base_name,sample.dtype,sample.xsec)
-                merged_sample = merged_samples[base_name]
+            base_name = sub('_[0-9]+$','',name)
+            if base_name not in outputs:
+                outputs[base_name] = Output(base_name)
+            output = outputs[base_name]
+            if base_name not in merged_samples:
+                merged_samples[base_name] = jm.DataSample(base_name,sample.dtype,sample.xsec)
+            merged_sample = merged_samples[base_name]
 
-                to_resubmit = []
+            to_resubmit = []
 
-                for f in sample.files:
-                    state = 'missing'
-                    if f in processedfiles:
-                        state = 'done'
-                    elif f in t3_files:
-                        state = 't3'
-                    elif f in t2_files:
-                        state = 't2'
-                    elif f in idle_files:
-                        state = 'idle'
+            for f in sample.files:
+                state = 'missing'
+                if f in processedfiles:
+                    state = 'done'
+                elif f in t3_files:
+                    state = 't3'
+                elif f in t2_files:
+                    state = 't2'
+                elif f in idle_files:
+                    state = 'idle'
 
-                    if state=='missing' or (args.force and state!='done'):
-                        out_sample.add_file(f)
-                        merged_sample.add_file(f)
+                if state=='missing' or (args.force and state!='done'):
+                    out_sample.add_file(f)
+                    merged_sample.add_file(f)
 
-                    output.add(state)
-                    if sample.dtype=='MC':
-                        mc.add(state)
-                    else:
-                        data.add(state)
+                output.add(state)
+                if sample.dtype=='MC':
+                    mc.add(state)
+                else:
+                    data.add(state)
 
-                if len(out_sample.files)>0:
-                    filtered_samples[name] = out_sample
+            if len(out_sample.files)>0:
+                filtered_samples[name] = out_sample
 
-            if args.nfiles<0:
-                keys = sorted(filtered_samples)
-                for k in keys:
-                    sample = filtered_samples[k]
-                    if len(sample.files)==0:
-                        continue
-                    configs = sample.get_config(-1)
-                    for c in configs:
-                        outfile.write(c)
-            else:
-                keys = sorted(merged_samples)
-                counter=0
-                for k in keys:
-                    sample = merged_samples[k]
-                    if len(sample.files)==0:
-                        continue
-                    configs = sample.get_config(args.nfiles,suffix='_%i')
-                    for c in configs:
-                        outfile.write(c%(counter,counter))
-                        counter += 1
+        if args.nfiles<0:
+            keys = sorted(filtered_samples)
+            for k in keys:
+                sample = filtered_samples[k]
+                if len(sample.files)==0:
+                    continue
+                configs = sample.get_config(-1)
+                for c in configs:
+                    outfile.write(c)
+        else:
+            keys = sorted(merged_samples)
+            counter=0
+            for k in keys:
+                sample = merged_samples[k]
+                if len(sample.files)==0:
+                    continue
+                configs = sample.get_config(args.nfiles,suffix='_%i')
+                for c in configs:
+                    outfile.write(c%(counter,counter))
+                    counter += 1
 
-            msg = ['TASK = '+submit_name]
-            if args.monitor:
-                msg.append('\n')
+        msg = ['TASK = '+submit_name]
+        if args.monitor:
+            msg.append('\n')
 
-            msg.append(header)
-            if args.monitor:
-                msg.append('\n')
+        msg.append(header)
+        if args.monitor:
+            msg.append('\n')
 
-            if args.monitor and len(outputs)+10>rows:
-                args.silent = True
-                msg.append( ('Too many samples to show in monitoring mode!\n', curses.color_pair(colors['red'])) )
-            if not args.silent:
-                for n in sorted(outputs):
-                    if args.monitor:
-                        msg.extend(outputs[n].str())
-                    else:
-                        msg.append(outputs[n].str().strip())
-                msg.append('')
-            if args.monitor:
-                msg.extend(data.str())
-                msg.extend(mc.str())
-            else:
-                msg.append(data.str().strip())
-                msg.append(mc.str().strip())
+        if args.monitor and len(outputs)+10>rows:
+            args.silent = True
+            msg.append( ('Too many samples to show in monitoring mode!\n', curses.color_pair(colors['red'])) )
+        if not args.silent:
+            for n in sorted(outputs):
+                if args.monitor:
+                    msg.extend(outputs[n].str())
+                else:
+                    msg.append(outputs[n].str().strip())
             msg.append('')
-            if args.monitor:
-                msg.append('Legend: Done=[')
-                msg.append( ('    ',curses.color_pair(colors['green'])) )
-                msg.append('], T3=[')
-                msg.append( ('    ',curses.color_pair(colors['blue'])) )
-                msg.append('], T2=[')
-                msg.append( ('    ',curses.color_pair(colors['cyan'])) )
-                msg.append('], Idle[')
-                msg.append( ('    ',curses.color_pair(colors['grey'])) )
-                msg.append('], Missing=[')
-                msg.append( ('    ',curses.color_pair(colors['red'])) )
-                msg.append(']\n')
-            else:
-                msg.append( 'Legend: Done=\033[0;%im    \033[0m, T3=\033[0;%im    \033[0m, T2=\033[0;%im    \033[0m, Idle=\033[0;%im    \033[0m, Missing=\033[0;%im    \033[0m, '%(colors['green'],colors['blue'],colors['cyan'],colors['grey'],colors['red']))
+        if args.monitor:
+            msg.extend(data.str())
+            msg.extend(mc.str())
+        else:
+            msg.append(data.str().strip())
+            msg.append(mc.str().strip())
+        msg.append('')
+        if args.monitor:
+            msg.append('Legend: Done=[')
+            msg.append( ('    ',curses.color_pair(colors['green'])) )
+            msg.append('], T3=[')
+            msg.append( ('    ',curses.color_pair(colors['blue'])) )
+            msg.append('], T2=[')
+            msg.append( ('    ',curses.color_pair(colors['cyan'])) )
+            msg.append('], Idle[')
+            msg.append( ('    ',curses.color_pair(colors['grey'])) )
+            msg.append('], Missing=[')
+            msg.append( ('    ',curses.color_pair(colors['red'])) )
+            msg.append(']\n')
+        else:
+            msg.append( 'Legend: Done=\033[0;%im    \033[0m, T3=\033[0;%im    \033[0m, T2=\033[0;%im    \033[0m, Idle=\033[0;%im    \033[0m, Missing=\033[0;%im    \033[0m, '%(colors['green'],colors['blue'],colors['cyan'],colors['grey'],colors['red']))
 
-            outfile.close()
+        outfile.close()
 
-            msg.append(strftime('%Y-%m-%d %H:%M:%S'))
-            if args.monitor:
-                msg.append('\n')
-            msg.append( '\nMost recent submission:')
-            if args.monitor:
-                msg.extend([x+'\n' for x in query()])
-                msg.append('\nPress "r" to refresh or "q" to close')
-            else:
-                msg.extend(query())
-            msg.append('')
+        msg.append(strftime('%Y-%m-%d %H:%M:%S'))
+        if args.monitor:
+            msg.append('\n')
+        msg.append( '\nMost recent submission:')
+        if args.monitor:
+            msg.extend([x+'\n' for x in query()])
+            msg.append('\nPress "r" to refresh or "q" to close')
+        else:
+            msg.extend(query())
+        msg.append('')
 
-            if args.monitor:
-                stdscr.clear()
-                for m in msg:
-                    if type(m) == str:
-                        stdscr.addstr(m)
-                    else:
-                        stdscr.addstr(*m)
-                stdscr.refresh()
-            else:
-                sys.stdout.write('\n'.join(msg))
+        if args.monitor:
+            stdscr.clear()
+            for m in msg:
+                if type(m) == str:
+                    stdscr.addstr(m)
+                else:
+                    stdscr.addstr(*m)
+            stdscr.refresh()
+        else:
+            sys.stdout.write('\n'.join(msg))
 
-            last_lock = int(time())
+        last_lock = int(time())
 
-            if args.submit_only and (mc.missing + data.missing > 0):
-                submit(silent=(args.monitor is not None))
+        if args.submit_only and (mc.missing + data.missing > 0):
+            submit(silent=(args.monitor is not None))
 
 
         if args.monitor:
@@ -402,24 +434,37 @@ def check(stdscr=None):
             return
 
 ### MAIN ###
+if not args.monitor:
+    logger.info('task.py', 'TASK = '+submit_name)
+
+if args.check_duplicates:
+    check_duplicates()
+
 if args.kill or args.kill_idle:
     kill(args.kill_idle)
+
 if args.clean_output:
-    logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
-    sleep(2)
-    system('rm -rf %s/* %s/* &'%(lockdir, outdir))
+    if jm.textlock:
+        logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
+        sleep(2)
+        system('rm -rf %s/* %s/* &'%(lockdir, outdir))
+    else:
+        logger.info('task.py', 'Cleaning up %s and deleting entries'%(outdir))
+        sleep(2)
+        system('rm -rf %s/* &'%(outdir))
+        payload = {'task' : submit_name}
+        post(jm.report_server+'/condor/clean', json=payload)
     if args.clean:
         logger.info('task.py', 'Cleaning up %s and %s'%(logdir, workdir))
         sleep(2)
         system('rm -rf %s/* %s/*'%(logdir, workdir))
 
 if args.check:
-    if args.monitor is not None:
+    if args.monitor:
         curses.wrapper(check)
     else:
         check()
 else:
-    logger.info('task.py', 'TASK = '+submit_name)
     if args.build_only and (not path.isfile(workdir+'/submission.pkl') or not args.submit): 
         if args.nfiles < 0:
             logger.info('task.py', 'Number of files not provided for new task => setting nfiles=25')

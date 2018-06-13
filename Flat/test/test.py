@@ -22,29 +22,36 @@ import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-a = wlnhbb2017()
+a = monotop(True)
+a.recalcECF = True
+a.varyJESTotal = True
+
+#a = wlnhbb2017()
 #a = wlnhbb()
 #a = breg()
 # a.bjetDeepReg = True
 # a.bjetRegTrain = True
+#a.processType = root.pa.kH
+#a.processType = root.pa.kW
+
 a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
-a.processType = root.pa.kH
-#a.processType = root.pa.kW
+
 a.isData = False
-utils.set_year(a, 2017)
+utils.set_year(a, 2016)
+#utils.set_year(a, 2017)
 
 skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
-skimmer.firstEvent=0
-skimmer.lastEvent=1000
+#skimmer.firstEvent=0
+skimmer.lastEvent=10
 if a.isData:
     utils.add_json(skimmer)
 
 #skimmer.AddPresel(root.pa.LowGenBosonPtSel())
-skimmer.AddPresel(root.pa.VHbbSel())
-skimmer.AddPresel(root.pa.TriggerSel())
+#skimmer.AddPresel(root.pa.VHbbSel())
+#skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()
 skimmer.Terminate()

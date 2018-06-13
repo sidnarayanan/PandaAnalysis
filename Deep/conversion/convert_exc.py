@@ -3,7 +3,7 @@
 from sys import argv, exit
 import numpy as np 
 from os import getenv, system
-from PandaCore.Tools.Misc import logger.info, logger.debug 
+from PandaCore.Utils.logging import logger
 import PandaAnalysis.Deep.job_deepgen_utilities as deep_utils
 from glob import glob 
 

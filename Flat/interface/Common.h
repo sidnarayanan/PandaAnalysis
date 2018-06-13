@@ -16,6 +16,7 @@
 #include <TH1D.h>
 
 #include "GeneralTree.h"
+#include "HeavyResTree.h"
 #include "PandaTree/Objects/interface/EventAnalysis.h"
 #include "PandaCore/Tools/interface/Common.h"
 #include "PandaCore/Tools/interface/DataTools.h"
@@ -56,6 +57,7 @@ namespace pa {
     bool isData;
     
     bool ak8 = false;
+    bool applyJER = false; 
     bool bjetRegTraining = false;
     bool bjetBDTReg = false;
     bool bjetDeepReg = false; 
@@ -81,6 +83,7 @@ namespace pa {
     bool mcTriggers = false;
     bool monoh = false;
     bool puppiJets = true;
+    bool recalcECF = false; 
     bool recluster = false;
     bool recoil = true;
     bool rerunJER = false;
@@ -90,7 +93,9 @@ namespace pa {
     bool varyJES = false;
     bool varyJESTotal = false;
     bool vbf = false;
-    bool ZllHbb = false;
+    bool vbfhbb = false; 
+    bool vqqhbb = false; 
+    bool zllhbb = false;
   };
 
   enum CorrectionType { //!< enum listing relevant corrections applied to MC

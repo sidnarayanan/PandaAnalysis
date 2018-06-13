@@ -3,7 +3,7 @@
 import numpy as np
 from glob import glob
 from sys import argv, exit
-from PandaCore.Tools.Misc import logger.info, logger.warning
+from PandaCore.Utils.logging import logger
 
 flist = glob(argv[2])
 target_evt = np.int64(argv[1])
