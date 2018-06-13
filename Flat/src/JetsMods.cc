@@ -164,13 +164,13 @@ void JetMod::do_execute()
       auto& jet = jw.get_base();
       float aeta = abs(jet.eta());
       float pt = jw.pt;
-      if (aeta > maxJetEta || pt < minMinJetPt)
+      if (aeta > maxJetEta || jw.nominal->maxpt < minMinJetPt)
         continue;
       if (isMatched(matchLeps.get(),0.16,jet.eta(),jet.phi()))
         continue;
       if (!analysis.hbb && isMatched(matchPhos.get(),0.16,jet.eta(),jet.phi()))
         continue;
-      if (analysis.hbb && jet.puid < utils.getCorr(cJetLoosePUID, aeta,min(39.99f,pt)))
+      if (analysis.hbb && jet.puid < utils.getCorr(cJetLoosePUID, aeta,min(39.99f,jw.nominal->pt)))
         continue;
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
@@ -241,9 +241,9 @@ void JetMod::do_execute()
         if (njet < 2 || ((analysis.hbb || analysis.monoh) && njet < cfg.NJETSAVED)) {
           jw.cleaned_idx = njet; 
           gt.jotPt[shift][njet] = pt;
-          if (gt.jotPt[jes2i(shiftjes::kNominal)][njet] < 0)
-            // Save this jet pt in the nominal collection if it passes the pt cut in any scenario
-            gt.jotPt[jes2i(shiftjes::kNominal)][njet] = jw.nominal->pt;
+          //if (gt.jotPt[jes2i(shiftjes::kNominal)][njet] < 0)
+          // Save this jet pt in the nominal collection if it passes the pt cut in any scenario
+            //gt.jotPt[jes2i(shiftjes::kNominal)][njet] = jw.nominal->pt;
           if (isNominal) {
             if (!analysis.hbb && jet.matchedGenJet.isValid())
               gt.jotGenPt[njet] = jet.matchedGenJet->pt(); 
