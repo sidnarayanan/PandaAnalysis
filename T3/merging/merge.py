@@ -8,6 +8,7 @@ from sys import argv,exit
 import sys
 from os import environ,system,path,remove
 from argparse import ArgumentParser
+import subprocess
 
 sname = argv[0]
 parser = ArgumentParser()
@@ -21,7 +22,7 @@ arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
 make_chunks = args.make_chunks
-#make_chunks = True
+make_chunks = True
 argv=[]
 
 import ROOT as root
@@ -54,8 +55,6 @@ submit_name = environ['SUBMIT_NAME']
 user = environ['USER']
 split_dir = '/tmp/%s/split/%s/'%(user, submit_name)
 merged_dir = '/tmp/%s/merged/%s/'%(user, submit_name)
-#split_dir = '/scratch5/%s/split/%s/'%(user, submit_name)
-#merged_dir = '/scratch5/%s/merged/%s/'%(user, submit_name)
 for d in [split_dir, merged_dir]:
     system('mkdir -p ' + d)
 
@@ -193,6 +192,13 @@ for pd in arguments:
         args[pd] = [pd]
 
 for pd in args:
+    disk="tmp"
+    checkSizeCmd = "du -c {0}/{1}_*.root|grep total|sed 's/\t\+total//g'".format(environ['SUBMIT_OUTDIR'],pd)
+    unmergedSize = int(subprocess.check_output(['bash','-c', checkSizeCmd]))
+    if unmergedSize > 15*1024*1024: # 15 GB
+        disk="scratch5"
+    split_dir = '/%s/%s/split/%s/'%(disk, user, submit_name)
+    merged_dir = '/%s/%s/merged/%s/'%(disk, user, submit_name)
     merge(args[pd],pd)
     merged_file = merged_dir + '%s.root'%(pd)
     if make_chunks:
