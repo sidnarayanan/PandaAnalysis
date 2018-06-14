@@ -6,6 +6,17 @@ using namespace std;
 using namespace panda;
 namespace fj = fastjet;
 
+
+void GenVHMod::do_execute()
+{
+  fillParticle([](int x)->bool { return x == 25; }, 
+               [](int x)->bool { return x == 5; }, 
+               gt.genHPt, gt.genHEta, gt.genHPhi, gt.genHSize);
+  fillParticle([](int x)->bool { return x == 23 || x == 24; }, 
+               [](int x)->bool { return x < 6; }, 
+               gt.genVPt, gt.genVEta, gt.genVPhi, gt.genVSize);
+}
+
 void HbbMiscMod::do_execute()
 {
   TVector2 trkmet;

@@ -82,6 +82,7 @@ if __name__ == "__main__":
 
     utils.report_start(outdir,outfilename,to_run.files)
     
+    wd = utils.isolate()
     utils.main(to_run, processed, fn)
 
     utils.hadd(processed.keys())

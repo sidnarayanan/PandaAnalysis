@@ -538,39 +538,6 @@ float HRTagMod::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
-bool hard(const GenParticle& p)
-{
-    return p.testFlag(GenParticle::kIsHardProcess);
-    // return p.testFlag(GenParticle::kIsHardProcess) || p.testFlag(GenParticle::kFromHardProcess);
-}
-
-bool HRTagMod::hasChild(const GenParticle& parent, bool isHard)
-{
-  for (auto* pptr : *genP) {
-    auto& child = pToGRef(pptr);
-    if (child.pdgid != parent.pdgid)
-      continue;
-    if (isHard && !hard(child))
-      continue; 
-    if (child.parent.isValid() &&
-        child.parent.get() == &parent) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool isAncestor(const GenParticle& child, const GenParticle& ancestor)
-{
-  auto* parent = &child;
-  while (parent->parent.isValid()) {
-    parent = parent->parent.get();
-    if (parent == &ancestor)
-      return true;
-  }
-  return false;
-}
-
 void HRTagMod::do_execute()
 {
   // first loop through genP and find any partons worth saving
@@ -585,7 +552,7 @@ void HRTagMod::do_execute()
       if (pt < 300)
         continue;
       float eta = p.eta(), phi = p.phi();
-      if (hasChild(p))
+      if (hasChild(p, *genP))
         continue;
       const GenParticle *W{nullptr}, *b{nullptr}, *q0{nullptr}, *q1{nullptr};
       // first loop through: find W and b
@@ -594,7 +561,7 @@ void HRTagMod::do_execute()
         int id = abs(child.pdgid);
         if (id != 5 && id != 24)
           continue;
-        if (hasChild(child))
+        if (hasChild(child, *genP))
           continue;
         if (!isAncestor(child, p))
           continue;
@@ -652,7 +619,7 @@ void HRTagMod::do_execute()
       if (pt < 300)
         continue;
       float eta = p.eta(), phi = p.phi();
-      if (!hard(p) || hasChild(p, true))
+      if (!hard(p) || hasChild(p, *genP, true))
         continue;
       // now fill the tree
       gt.i_evt = event.eventNumber;

@@ -22,6 +22,13 @@ namespace std{
 };
 
 namespace pa { 
+  inline bool hard(const panda::GenParticle& p) 
+  { 
+    return p.testFlag(panda::GenParticle::kIsHardProcess);
+  }
+  bool hasChild(const panda::GenParticle& p, const std::vector<panda::Particle*>& genP, bool isHard=false);
+  bool isAncestor(const panda::GenParticle& child, const panda::GenParticle& ancestor);
+
   void downloadData(TString url, TString outpath, bool force=true, TString opts="-nv"); 
 
   // semi-temporary measure to deal with v009 gen duplication issue
