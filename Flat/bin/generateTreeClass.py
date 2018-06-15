@@ -242,7 +242,7 @@ if __name__ == '__main__':
     class_name = cfg_path.split('/')[-1].replace('.cfg','')
 
     for p in [header_path, src_path]:
-        system('cp {0} {0}.bkp'.format(p))
+        system('cp -v {0} {0}.bkp'.format(p))
 
     # first let's parse the cfg file 
     fcfg = open(cfg_path)
@@ -290,6 +290,7 @@ if __name__ == '__main__':
             '    void WriteTree(TTree* t);',
             '    void Fill() {{ treePtr->Fill(); }}',
             '    void Reset();'
+            '    void SetAuxTree(TTree*);'
         ])).format(n=class_name))
     header_out.extend(get_custom(custom, 'PUBLIC'))
     header_out.append('  private:')

@@ -378,6 +378,7 @@ void GeneralTree::Reset() {
     fjRawRho2[iA] = -99;
     fjPhi[iA] = -99;
     fjEta[iA] = -99;
+    fjQ[iA] = -99;
     fjMaxCSV[iA] = -99;
     fjSubMaxCSV[iA] = -99;
     fjMinCSV[iA] = -99;
@@ -2154,6 +2155,11 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("jetFlav",jetFlav,"jetFlav["+TString("2")+"]/I");
     Book("jetIsTight",jetIsTight,"jetIsTight["+TString("2")+"]/I");
     Book("jetIsIso",jetIsIso,"jetIsIso["+TString("2")+"]/I");
+  }
+  if (is_fatjet) {
+    if (is_vh) {
+      Book("fjQ",fjQ,"fjQ["+TString("nFatJetTrunc")+"]/F");
+    }
   }
   if (is_monohiggs||is_hbb) {
     if (is_breg) {

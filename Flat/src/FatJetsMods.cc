@@ -103,6 +103,14 @@ void FatJetMod::do_execute()
       gt.fjHTTMass[iFJ] = fj.htt_mass;
       gt.fjHTTFRec[iFJ] = fj.htt_frec;
 
+      if (analysis.vqqhbb) {
+        // jet charge
+        gt.fjQ[iFJ] = 0;
+        for (const auto& pf : fj.constituents) {
+          gt.fjQ[iFJ] += pf->q() * pf->pt() / jwNominal.pt;
+        }
+      }
+
       std::vector<MicroJet const*> subjets;
       for (int iS(0); iS != fj.subjets.size(); ++iS)
         subjets.push_back(&fj.subjets.objAt(iS));

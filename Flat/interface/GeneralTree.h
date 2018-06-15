@@ -491,6 +491,7 @@ class GeneralTree : public genericTree {
   float fjPhi[2];
   float fjEta[2];
   float fjM[43][2];
+  float fjQ[2];
   float fjMaxCSV[2];
   float fjSubMaxCSV[2];
   float fjMinCSV[2];

@@ -25,6 +25,7 @@ local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we alway
 _task_name = getenv('SUBMIT_NAME')                             # name of this task
 _user = getenv('SUBMIT_USER')                                  # user running the task
 YEAR = 2016                                                    # what year's data is this analysis?
+MAXCOPY = 3                                                    # maximum number of stagein attempts
 
 stageout_protocol = None                                       # what stageout should we use?
 if _IS_T3:
@@ -131,7 +132,7 @@ def copy_local(long_name):
     if local_copy and path.isfile(local_path): 
         # apparently SmartCached files can be corrupted...
         ftest = root.TFile(local_path)
-        if ftest and not(ftest.IsZombie()):
+        if bool(ftest) and not(ftest.IsZombie()):
             logger.info(_sname+'.copy_local','Opting to read locally')
             if REMOTE_READ:
                 return local_path
@@ -148,6 +149,11 @@ def copy_local(long_name):
         logger.info(_sname+'.copy_local',cmd)
         ret = system(cmd)
         if ret:
+            logger.error(_sname+'.copy_local','Failed to xrdcp %s'%input_name)
+            return None 
+        ftest = root.TFile.Open(input_name)
+        if not(bool(ftest)) or ftest.IsZombie():
+            logger.error(_sname+'.copy_local', 'Copy succeeded but %s is corrupt'%input_name)
             return None 
         copied = True
             
@@ -403,42 +409,36 @@ def add_json(skimmer):
 
 
 # some common stuff that doesn't need to be configured
+def run_Analyzer(skimmer, isData, output_name):
+    # run and save output
+    skimmer.Run()
+    skimmer.Terminate()
+
+    ret = path.isfile(output_name)
+    if ret:
+        logger.info(_sname+'.run_Analyzer','Successfully created %s'%(output_name))
+        return output_name 
+    else:
+        logger.error(_sname+'.run_Analyzer','Failed in creating %s!'%(output_name))
+        return False
+
+
 def run_PandaAnalyzer(skimmer, isData, output_name):
     if isData:
         add_json(skimmer)
 
-    # run and save output
-    skimmer.Run()
-    skimmer.Terminate()
+    return run_Analyzer(skimmer, isData, output_name)
 
-    ret = path.isfile(output_name)
-    if ret:
-        logger.info(_sname+'.run_PandaAnalyzer','Successfully created %s'%(output_name))
-        return output_name 
-    else:
-        logger.error(_sname+'.run_PandaAnalyzer','Failed in creating %s!'%(output_name))
-        return False
 
-def run_HRAnalyzer(skimmer, isData, output_name):
-    # run and save output
-    skimmer.Run()
-    skimmer.Terminate()
-
-    ret = path.isfile(output_name)
-    if ret:
-        logger.info(_sname+'.run_HRAnalyzer','Successfully created %s'%(output_name))
-        return output_name 
-    else:
-        logger.error(_sname+'.run_HRAnalyzer','Failed in creating %s!'%(output_name))
-        return False
-
+def run_HRAnalyzer(*args, **kwargs):
+    return run_Analyzer(*args, **kwargs) 
 
 # main function to run a skimmer, customizable info 
 # can be put in fn
 def main(to_run, processed, fn):
     print_time('loading')
     for f in to_run.files:
-        for _ in xrange(3):
+        for _ in xrange(MAXCOPY):
             input_name = copy_local(f)
             if input_name is not None:
                 break

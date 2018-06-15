@@ -6,10 +6,9 @@ using namespace std;
 namespace fj = fastjet;
 
 ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
-  BaseModule("config"),
+  BaseModule("config", gt_),
   cfg(a_, DEBUG_),
   analysis(a_),
-  gt(gt_),
   bl({"runNumber", "lumiNumber", "eventNumber","weight"})
 {
 
@@ -518,7 +517,7 @@ void BaseAnalysisMod<T>::initialize(Registry& registry)
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    logger.debug("BaseAnalysisMod::initialize", name);
+    logger.debug("BaseAnalysisMod::initialize", this->name);
   do_init(registry);
   for (auto& mod : subMods)
     mod->initialize(registry);
@@ -530,7 +529,7 @@ void BaseAnalysisMod<T>::readData(TString path)
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    logger.debug("BaseAnalysisMod::readData", name);
+    logger.debug("BaseAnalysisMod::readData", this->name);
   do_readData(path+"/");
   for (auto& mod : subMods)
     mod->readData(path);
@@ -546,9 +545,9 @@ void BaseAnalysisMod<T>::execute()
     return;
   do_execute();
   if (level > 1)
-    cfg.tr.TriggerSubEvent("execute "+name);
+    cfg.tr.TriggerSubEvent("execute "+this->name);
   else
-    cfg.tr.TriggerEvent("execute "+name);
+    cfg.tr.TriggerEvent("execute "+this->name);
 }
 
 template<typename T>
@@ -557,7 +556,7 @@ void BaseAnalysisMod<T>::reset()
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    logger.debug("BaseAnalysisMod::reset", name);
+    logger.debug("BaseAnalysisMod::reset", this->name);
   do_reset();
   for (auto& mod : subMods)
     mod->reset();
@@ -569,7 +568,7 @@ void BaseAnalysisMod<T>::terminate()
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    logger.debug("BaseAnalysisMod::terminate", name);
+    logger.debug("BaseAnalysisMod::terminate", this->name);
   do_terminate();
   for (auto& mod : subMods)
     mod->terminate();
@@ -581,7 +580,7 @@ vector<TString> BaseAnalysisMod<T>::dump()
   vector<TString> v;
   if (!on())
     return v;
-  v.push_back("-> " + name + Form(" (%i)", level));
+  v.push_back("-> " + this->name + Form(" (%i)", level));
   for (auto& m : subMods) {
     vector<TString> vtmp = m->dump();
     for (auto& s : vtmp)

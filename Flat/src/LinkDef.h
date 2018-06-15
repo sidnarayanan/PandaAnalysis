@@ -7,6 +7,7 @@
 #include "PandaAnalysis/Flat/interface/TagAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/genericTree.h"
 #include "PandaAnalysis/Flat/interface/Selection.h"
+#include "PandaAnalysis/Flat/interface/L1Analyzer.h"
 
 
 #ifdef __CLING__
@@ -58,5 +59,6 @@
 #pragma link C++ class pa::Region;
 #pragma link C++ class pa::ParticleGridder;
 #pragma link C++ class pa::JetTree;
+#pragma link C++ class pa::L1Analyzer; 
 
 #endif

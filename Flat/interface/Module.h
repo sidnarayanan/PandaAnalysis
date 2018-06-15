@@ -92,17 +92,19 @@ namespace pa {
       // _objs can be accessed through access or accessConst; _const_objs only through accessConst
       std::map<TString, std::unique_ptr<BaseContainer>> _objs, _const_objs;
   };
-
+  
+  template <typename T>
   class BaseModule {
     public:
-      BaseModule(TString name_): name(name_) {  }
+      BaseModule(TString name_, T& gt_): name(name_), gt(gt_) {  }
       virtual ~BaseModule() { }
 
     protected:
       TString name;
+      T& gt; 
   };
 
-  class ConfigMod : public BaseModule {
+  class ConfigMod : public BaseModule<GeneralTree> {
     public:
       ConfigMod(const Analysis& a_, GeneralTree& gt, int DEBUG_);
       ~ConfigMod() { }
@@ -115,7 +117,6 @@ namespace pa {
 
     protected:
       const Analysis& analysis;
-      GeneralTree& gt;
       panda::utils::BranchList bl;
 
     private:
@@ -124,24 +125,23 @@ namespace pa {
   };
 
   template <typename T>
-  class BaseAnalysisMod : public BaseModule {
+  class BaseAnalysisMod : public BaseModule<T> {
     public:
-      BaseAnalysisMod(TString name,
+      BaseAnalysisMod(TString name_,
                       panda::EventAnalysis& event_,
                       Config& cfg_,
                       Utils& utils_,
                       T& gt_,
                       int level_=0) :
-        BaseModule(name),
+        BaseModule<T>(name_, gt_),
         event(event_),
         cfg(cfg_),
         utils(utils_),
         analysis(cfg.analysis),
-        gt(gt_),
         level(level_) { }
       virtual ~BaseAnalysisMod() {
         if (cfg.DEBUG > level + 2)
-          logger.debug("BaseAnalysisMod::~BaseAnalysisMod", name);
+          logger.debug("BaseAnalysisMod::~BaseAnalysisMod", this->name);
       }
 
       // cascading calls to protected functions
@@ -160,7 +160,7 @@ namespace pa {
       template <typename MOD>
       MOD* addSubMod() {
         // add a sub module that takes a specific constructor signature
-        auto* mod = new MOD(event, cfg, utils, gt, level + 1);
+        auto* mod = new MOD(event, cfg, utils, this->gt, level + 1);
         subMods.emplace_back(mod);
         return mod;
       }
@@ -170,7 +170,6 @@ namespace pa {
       Config& cfg;
       Utils& utils;
       const Analysis& analysis;
-      T& gt;
       std::vector<std::unique_ptr<BaseAnalysisMod>> subMods; // memory management is done by parent
       int level;
 
