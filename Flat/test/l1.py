@@ -29,8 +29,8 @@ a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
 skimmer = root.pa.L1Analyzer(a, debug_level)
 
-skimmer.firstEvent=0
-skimmer.lastEvent=10
+#skimmer.firstEvent=0
+#skimmer.lastEvent=10
 
 skimmer.Run()
 skimmer.Terminate()

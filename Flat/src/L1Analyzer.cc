@@ -96,7 +96,7 @@ void L1Analyzer::Run()
 
   fOut->cd(); // to be absolutely sure
 
-  ProgressReporter pr("L1Analyzer::Run",&iE,&nEvents,100);
+  ProgressReporter pr("L1Analyzer::Run",&iE,&nEvents,10);
   TimeReporter tr("L1Analyzer", DEBUG);
 
   // EVENTLOOP --------------------------------------------------------------------------

@@ -14,3 +14,11 @@ d = {
     'MET_Run2016G'               : ['MET_Run2016G-03Feb2017-v1'],
     'MET_Run2016H'               : ['MET_Run2016H-03Feb2017_ver3-v1'],
 }
+
+d['JetHT_AllEras'] = []
+d['MET_AllEras'] = []
+for e in 'BCDEFGH':
+    for pd in ['JetHT' , 'MET']:
+        sample = '%s_Run2016%s'%(pd, e)
+        if sample in d:
+            d['%s_AllEras'%pd].extend(d[sample])

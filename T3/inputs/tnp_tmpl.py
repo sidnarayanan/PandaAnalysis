@@ -93,6 +93,7 @@ if __name__ == "__main__":
 
     ret = utils.stageout(outdir,outfilename)
     utils.cleanup('*.root')
+    utils.un_isolate(wd)
     utils.print_time('stageout and cleanup')
     if not ret:
         utils.report_done(lockdir,outfilename,processed)

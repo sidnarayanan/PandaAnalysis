@@ -38,7 +38,10 @@ void L1Tree::Reset() {
     jotNEF[iA] = -99;
     jotNHF[iA] = -99;
     jotL1EGBX[iA] = 99;
-    jotL1EGIso[iA] = -99;
+    jotL1EGIso[iA] = 0;
+    jotL1Pt[iA] = -99;
+    jotL1Eta[iA] = -99;
+    jotL1Phi[iA] = -99;
   }
 }
 void L1Tree::WriteTree(TTree *t) {
@@ -52,13 +55,16 @@ void L1Tree::WriteTree(TTree *t) {
   Book("metphi",&metphi,"metphi/F");
   Book("mindphi",&mindphi,"mindphi/F");
   Book("nJot",&nJot,"nJot/I");
-  Book("jotPt",jotPt,"jotPt["+TString(nJot)+"]/F");
-  Book("jotEta",jotEta,"jotEta["+TString(nJot)+"]/F");
-  Book("jotPhi",jotPhi,"jotPhi["+TString(nJot)+"]/F");
-  Book("jotNEF",jotNEF,"jotNEF["+TString(nJot)+"]/F");
-  Book("jotNHF",jotNHF,"jotNHF["+TString(nJot)+"]/F");
-  Book("jotL1EGBX",jotL1EGBX,"jotL1EGBX["+TString(nJot)+"]/I");
-  Book("jotL1EGIso",jotL1EGIso,"jotL1EGIso["+TString(nJot)+"]/F");
+  Book("jotPt",jotPt,"jotPt["+TString("3")+"]/F");
+  Book("jotEta",jotEta,"jotEta["+TString("3")+"]/F");
+  Book("jotPhi",jotPhi,"jotPhi["+TString("3")+"]/F");
+  Book("jotNEF",jotNEF,"jotNEF["+TString("3")+"]/F");
+  Book("jotNHF",jotNHF,"jotNHF["+TString("3")+"]/F");
+  Book("jotL1EGBX",jotL1EGBX,"jotL1EGBX["+TString("3")+"]/I");
+  Book("jotL1EGIso",jotL1EGIso,"jotL1EGIso["+TString("3")+"]/I");
+  Book("jotL1Pt",jotL1Pt,"jotL1Pt["+TString("3")+"]/F");
+  Book("jotL1Eta",jotL1Eta,"jotL1Eta["+TString("3")+"]/F");
+  Book("jotL1Phi",jotL1Phi,"jotL1Phi["+TString("3")+"]/F");
   Book("jot12Mass",&jot12Mass,"jot12Mass/F");
   Book("jot12DEta",&jot12DEta,"jot12DEta/F");
   Book("jot12DPhi",&jot12DPhi,"jot12DPhi/F");
