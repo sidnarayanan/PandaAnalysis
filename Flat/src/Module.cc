@@ -155,18 +155,10 @@ void ConfigMod::set_outputBranches()
   if (analysis.varyJESTotal)
     gt.RemoveBranches({},{".*JESTotal.*"});
   if (analysis.hbb)
-    gt.RemoveBranches({
-      ".*JES.*",
-      ".*JESTotal.*",
-      "looseGen.*",
-      "genLep.*",
-      "genElectron.*",
-      "genTau.*",
-      "gen.*Top.*",
-      "genMjj.*",
-      "genFat.*",
-      "genW.*"
-    },{});
+    gt.RemoveBranches(
+      {".*JES.*","looseGen.*","genLep.*","genElectron.*","genTau.*","gen.*Top.*","genMjj.*","genFat.*"},
+      {"pfmet.*"} // keep total up/down MET variations, difficult to handle the variation offline
+    );
 }
 
 void ConfigMod::readData(TString dirPath)
