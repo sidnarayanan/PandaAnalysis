@@ -26,14 +26,6 @@ a = monotop(True)
 a.recalcECF = True
 a.varyJESTotal = True
 
-#a = wlnhbb2017()
-#a = wlnhbb()
-#a = breg()
-# a.bjetDeepReg = True
-# a.bjetRegTrain = True
-#a.processType = root.pa.kH
-#a.processType = root.pa.kW
-
 a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'

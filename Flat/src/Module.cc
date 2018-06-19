@@ -113,8 +113,6 @@ void ConfigMod::set_inputBranches()
 
     if (cfg.isData || analysis.mcTriggers) {
       bl.push_back("triggers");
-      //if (analysis.hbb)
-      //  bl.push_back("triggerObjects");
     }
 
   }
