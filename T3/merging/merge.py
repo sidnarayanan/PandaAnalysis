@@ -15,14 +15,11 @@ parser = ArgumentParser()
 parser.add_argument('--silent', action='store_true')
 parser.add_argument('--cfg', type=str, default='common')
 parser.add_argument('--skip_missing', action='store_true')
-parser.add_argument('--make_chunks', action='store_true')
 parser.add_argument('arguments', type=str, nargs='+')
 args = parser.parse_args()
 arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
-make_chunks = args.make_chunks
-#make_chunks = True
 argv=[]
 
 import ROOT as root
@@ -40,8 +37,6 @@ sys.path.append(environ['CMSSW_BASE'] + '/src/PandaAnalysis/T3/merging/configs/'
 cfg = __import__(args.cfg)
 
 Load('Normalizer')
-if make_chunks:
-  Load('splitPandaExpress')
 
 # global variables
 pds = {}
@@ -199,15 +194,10 @@ for pd in args:
         disk="scratch5"
     split_dir = '/%s/%s/split/%s/'%(disk, user, submit_name)
     merged_dir = '/%s/%s/merged/%s/'%(disk, user, submit_name)
+    for d in [split_dir, merged_dir]:
+        system('mkdir -p ' + d)
     merge(args[pd],pd)
     merged_file = merged_dir + '%s.root'%(pd)
-    if make_chunks:
-      root.splitPandaExpress(merged_file,1000000)
-      chunks = glob(merged_dir+'/split/*.root')
-      system('mkdir -p '+outbase+'/split')
-      for chunk in chunks:
-        hadd(chunk, outbase+'/split') # really an mv
-        system('rm -f %s'%chunk)
     hadd(merged_file ,outbase) # really an mv
     if merged_file.startswith('/tmp'):
         system('rm -f %s'%merged_file)
