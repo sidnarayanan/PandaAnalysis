@@ -26,7 +26,7 @@ logdir=getenv('SUBMIT_LOGDIR')
 workdir=getenv('SUBMIT_WORKDIR')
 lockdir = getenv('SUBMIT_LOCKDIR')
 outdir = getenv('SUBMIT_OUTDIR')
-submit_name = getenv('SUBMIT_NAME')
+submit_name = getenv('SUBMIT_NAME') + '_' + getenv('SUBMIT_USER')
 cmssw_base=getenv('CMSSW_BASE')
 incfg = workdir+'/local_all.cfg'
 outcfg = workdir+'/local.cfg'
@@ -315,7 +315,8 @@ def check(stdscr=None):
 
             for f in sample.files:
                 state = 'missing'
-                if f in processedfiles:
+                hashed = f if jm.textlock else jm.md5hash(f) 
+                if hashed in processedfiles:
                     state = 'done'
                 elif f in t3_files:
                     state = 't3'

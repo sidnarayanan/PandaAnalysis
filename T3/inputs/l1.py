@@ -15,35 +15,32 @@ import ROOT as root
 from PandaCore.Tools.Misc import *
 from PandaCore.Utils.load import *
 import PandaCore.Tools.job_config as cb
-import PandaAnalysis.Tagging.cfg_v8 as tagcfg
 import PandaAnalysis.T3.job_utilities as utils
 from PandaAnalysis.Flat.analysis import *
 
-Load('PandaAnalyzer')
+Load('PandaAnalysisFlat')
 data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
-
+utils.MAXCOPY = 1
 
 def fn(input_name, isData, full_path):
     
     logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
-    a = monotop(True)
+    a = analysis("l1")
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
     a.isData = isData
     utils.set_year(a, 2016)
-    a.processType = utils.classify_sample(full_path, isData)	
 
-    skimmer = root.pa.PandaAnalyzer(a)
-    skimmer.AddPresel(root.pa.FatJetSel())
+    skimmer = root.pa.L1Analyzer(a)
 
-    return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
+    return utils.run_Analyzer(skimmer, isData, a.outpath)
 
 
 if __name__ == "__main__":
     sample_list = cb.read_sample_config('local.cfg',as_dict=False)
-    to_run = None #sample_list[which]
+    to_run = None 
     for s in sample_list:
         if which==s.get_id():
             to_run = s
@@ -59,6 +56,7 @@ if __name__ == "__main__":
 
     utils.report_start(outdir,outfilename,to_run.files)
     
+    wd = utils.isolate()
     utils.main(to_run, processed, fn)
 
     utils.hadd(processed.keys())
@@ -66,6 +64,7 @@ if __name__ == "__main__":
 
     ret = utils.stageout(outdir,outfilename)
     utils.cleanup('*.root')
+    utils.un_isolate(wd)
     utils.print_time('stageout and cleanup')
     if not ret:
         utils.report_done(lockdir,outfilename,processed)

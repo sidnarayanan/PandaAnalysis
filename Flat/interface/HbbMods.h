@@ -5,6 +5,52 @@
 #include "PandaAnalysis/Utilities/interface/KinematicFit.h"
 
 namespace pa {
+  class GenVHMod : public AnalysisMod {
+  public: 
+    GenVHMod(panda::EventAnalysis& event_, 
+               Config& cfg_,
+               Utils& utils_,
+               GeneralTree& gt_,
+               int level_=0) : 
+      AnalysisMod("genvh", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~GenVHMod () { }
+
+    virtual bool on() { return !analysis.isData && analysis.vqqhbb; }
+    
+  protected:
+    void do_init(Registry& registry) {
+      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+    }
+    void do_execute();
+  private:
+    std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    template<typename LAMBDA, typename LAMBDB>
+    void fillParticle(LAMBDA&& fn, LAMBDB&& childFn, float& pt, float& eta, float& phi, float& size) { 
+      for (auto* pptr : *genP) {
+        auto& p = pToGRef(pptr);
+        if (!fn(abs(p.pdgid)))
+          continue; 
+        if (hasChild(p, *genP))
+          continue; 
+        pt = p.pt();
+        eta = p.eta();
+        phi = p.phi();
+        size = -1; 
+        // find children 
+        for (auto* childptr : *genP) {
+          auto& child = pToGRef(childptr); 
+          if (!child.parent.isValid() || 
+              child.parent.get() != pptr)
+            continue; 
+          if (!childFn(abs(child.pdgid)))
+            continue; 
+          size = std::max(static_cast<float>(DeltaR2(eta, phi, child.eta(), child.phi())), size);
+        }
+        return; 
+      }
+    }
+  };
+
   class HbbMiscMod : public AnalysisMod {
   public: 
     HbbMiscMod(panda::EventAnalysis& event_, 

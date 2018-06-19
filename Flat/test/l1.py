@@ -7,7 +7,7 @@ import json
 
 debug_level = 0
 torun = argv[1]
-output = 'testskim.root'
+output = 'testl1.root'
 if len(argv)>2:
     debug_level = int(argv[2])
     if len(argv)>3:
@@ -20,30 +20,17 @@ from PandaCore.Utils.load import *
 from PandaAnalysis.Flat.analysis import *
 import PandaAnalysis.T3.job_utilities as utils
 
-Load('PandaAnalyzer')
+Load('PandaAnalysisFlat')
 
-a = monotop(True)
-a.recalcECF = True
-a.varyJESTotal = True
-
+a = analysis("l1")
 a.inpath = torun
-a.outpath = 'testskim.root'
+a.outpath = output 
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
-a.isData = False
-utils.set_year(a, 2016)
-#utils.set_year(a, 2017)
-
-skimmer = root.pa.PandaAnalyzer(a, debug_level)
+skimmer = root.pa.L1Analyzer(a, debug_level)
 
 #skimmer.firstEvent=0
-skimmer.lastEvent=100
-if a.isData:
-    utils.add_json(skimmer)
-
-#skimmer.AddPresel(root.pa.LowGenBosonPtSel())
-#skimmer.AddPresel(root.pa.VHbbSel())
-#skimmer.AddPresel(root.pa.TriggerSel())
+#skimmer.lastEvent=10
 
 skimmer.Run()
 skimmer.Terminate()

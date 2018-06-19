@@ -50,6 +50,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDMOD(GenPMod);
   ADDMOD(JetFlavorMod); 
   ADDMOD(HbbMiscMod);
+  ADDMOD(GenVHMod); 
   ADDMOD(KinFitMod);
   ADDMOD(InclusiveLeptonMod);
   ADDMOD(SoftActivityMod);

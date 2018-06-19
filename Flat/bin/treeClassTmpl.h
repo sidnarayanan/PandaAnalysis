@@ -20,6 +20,7 @@ class treeClassTmpl : public genericTree {
     void WriteTree(TTree* t);
     void Fill() { treePtr->Fill(); }
     void Reset();
+    void SetAuxTree(TTree*); 
 // STARTCUSTOM PUBLIC
 // ENDCUSTOM
     virtual void SetAuxTree(TTree *t);

@@ -7,6 +7,34 @@ using namespace pa;
 using namespace panda;
 
 
+bool pa::isAncestor(const GenParticle& child, const GenParticle& ancestor)
+{
+  auto* parent = &child;
+  while (parent->parent.isValid()) {
+    parent = parent->parent.get();
+    if (parent == &ancestor)
+      return true;
+  }
+  return false;
+}
+
+
+bool pa::hasChild(const GenParticle& parent, const vector<Particle*>& genP, bool isHard)
+{
+  for (auto* pptr : genP) {
+    auto& child = pToGRef(pptr);
+    if (child.pdgid != parent.pdgid)
+      continue;
+    if (isHard && !hard(child))
+      continue; 
+    if (child.parent.isValid() &&
+        child.parent.get() == &parent) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void pa::downloadData(TString url, TString outpath, bool force, TString opts) 
 {
   if (!force && !gSystem->AccessPathName(outpath))

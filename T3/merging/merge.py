@@ -106,7 +106,7 @@ def normalizeFast(fpath,opt):
                 if fpath in k:
                     xsec = v[2]
     if xsec<0:
-        logger.error(sname,'could not find xsec, skipping %s!'%opt)
+        logger.warning(sname,'could not find xsec, skipping %s!'%opt)
         return
     xsec *= xsecscale
     logger.info(sname,'normalizing %s (%s) ...'%(fpath,opt))

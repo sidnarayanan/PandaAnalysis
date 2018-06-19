@@ -57,6 +57,8 @@ if __name__ == "__main__":
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
     
+    utils.report_start(outdir,outfilename,to_run.files)
+
     wd = utils.isolate()
     utils.main(to_run, processed, fn)
 

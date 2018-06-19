@@ -373,6 +373,14 @@ class GeneralTree : public genericTree {
   float genMjj;
   float genTopPt;
   float genAntiTopPt;
+  float genHPt;
+  float genHEta;
+  float genHPhi;
+  float genHSize;
+  float genVPt;
+  float genVEta;
+  float genVPhi;
+  float genVSize;
   int nJet[43];
   int nJot[43];
   int nJotMax;
@@ -483,6 +491,7 @@ class GeneralTree : public genericTree {
   float fjPhi[2];
   float fjEta[2];
   float fjM[43][2];
+  float fjQ[2];
   float fjMaxCSV[2];
   float fjSubMaxCSV[2];
   float fjMinCSV[2];
