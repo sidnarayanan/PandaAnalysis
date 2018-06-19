@@ -180,7 +180,7 @@ void JetMod::do_execute()
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
-      float csv = centralOnly(jet.deepCSVb + jet.deepCSVbb, aeta);
+      float csv = centralOnly( (analysis.useDeepCSV? jet.deepCSVb + jet.deepCSVbb : jet.csv), aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
       if (pt > cfg.minBJetPt && aeta < 2.4) { // b jets
@@ -593,7 +593,10 @@ void HbbSystemMod::do_execute()
   sort(btagsorted.begin(), btagsorted.end(),
        analysis.useCMVA ?
         [](const JetWrapper *x, const JetWrapper *y) { return x->base->cmva > y->base->cmva; } :
-        [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb+x->base->deepCSVbb > y->base->deepCSVb+y->base->deepCSVbb; }
+        (analysis.useDeepCSV ?
+         [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb+x->base->deepCSVbb > y->base->deepCSVb+y->base->deepCSVbb; } :
+         [](const JetWrapper *x, const JetWrapper *y) { return x->base->csv > y->base->csv; }
+        )
       );
   map<const JetWrapper*, int> order; // needed for output indexing
   for (int i = 0; i != (int)jets.cleaned.size(); ++i)

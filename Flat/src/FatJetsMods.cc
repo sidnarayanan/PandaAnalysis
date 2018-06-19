@@ -109,7 +109,7 @@ void FatJetMod::do_execute()
 
 
       auto& mya = analysis; // local scope
-      auto mycsv = [&mya](const MicroJet& j) { return (mya.year == 2016 ? j.csv : j.deepCSVb); };
+      auto mycsv = [&mya](const MicroJet& j) { return (mya.year == 2016 ? j.csv : j.deepCSVb+j.deepCSVbb); };
       auto csvsort = [&mycsv](MicroJet const* j1, MicroJet const* j2) -> bool {
               return mycsv(*j1) > mycsv(*j2);
             };
