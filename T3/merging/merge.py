@@ -187,11 +187,14 @@ for pd in arguments:
         args[pd] = [pd]
 
 for pd in args:
-    disk="tmp"
-    checkSizeCmd = "du -c {0}/{1}_*.root|grep total|sed 's/\t\+total//g'".format(environ['SUBMIT_OUTDIR'],pd)
-    unmergedSize = int(subprocess.check_output(['bash','-c', checkSizeCmd]))
-    if unmergedSize > 15*1024*1024: # 15 GB
+    unmergedFiles = glob("{0}/{1}_*.root".format(environ['SUBMIT_OUTDIR'],pd))
+    unmergedSize = 0
+    for unmergedFile in unmergedFiles:
+        unmergedSize += path.getsize(unmergedFile)
+    if unmergedSize > 16106127360: # 15 GB
         disk="scratch5"
+    else:
+        disk="tmp"
     split_dir = '/%s/%s/split/%s/'%(disk, user, submit_name)
     merged_dir = '/%s/%s/merged/%s/'%(disk, user, submit_name)
     for d in [split_dir, merged_dir]:
