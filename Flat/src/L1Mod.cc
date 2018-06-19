@@ -17,22 +17,26 @@ void L1Mod::execute()
     gt.jotPt[iJ] = jet.pt(); 
     gt.jotPhi[iJ] = jet.phi(); 
     gt.jotEta[iJ] = jet.eta(); 
-    gt.jotNEF[iJ] = (*(event.jet_neutralEmFrac))[iJ]; 
+    gt.jotE[iJ] = jet.e();
+    gt.jotNEMF[iJ] = (*(event.jet_neutralEmFrac))[iJ]; 
     gt.jotNHF[iJ] = (*(event.jet_neutralHadFrac))[iJ]; 
-    gt.mindphi = min(gt.mindphi, (float)SignedDeltaPhi(gt.jotPhi[iJ], gt.metphi));
-    for (int iTP = 0; iTP != (int)event.L1EG_bx->size(); ++iTP) {
-      auto& tp = (*(event.L1EG_p4))[iTP]; 
-      if (tp.pt() < 30) 
-        continue; 
-      int iso = (*(event.L1EG_iso))[iTP];
-      if (DeltaR2(jet.eta(), jet.phi(), tp.eta(), tp.phi()) < 0.16) { 
-        int bx = (*(event.L1EG_bx))[iTP];
-        if (bx < gt.jotL1EGBX[iJ]) {
-          gt.jotL1Pt[iJ] = tp.pt();
-          gt.jotL1Eta[iJ] = tp.eta();
-          gt.jotL1Phi[iJ] = tp.phi(); 
-          gt.jotL1EGBX[iJ] = bx;
-          gt.jotL1EGIso[iJ] = iso;
+    if (gt.jotPt[iJ] > 30) {
+      gt.mindphi = min(gt.mindphi, (float)SignedDeltaPhi(gt.jotPhi[iJ], gt.metphi));
+      for (int iTP = 0; iTP != (int)event.L1EG_bx->size(); ++iTP) {
+        auto& tp = (*(event.L1EG_p4))[iTP]; 
+        if (tp.pt() < 30) 
+          continue; 
+        int iso = (*(event.L1EG_iso))[iTP];
+        if (DeltaR2(jet.eta(), jet.phi(), tp.eta(), tp.phi()) < 0.16) { 
+          int bx = (*(event.L1EG_bx))[iTP];
+          if (bx < gt.jotL1EGBX[iJ]) {
+            gt.jotL1Pt[iJ] = tp.pt();
+            gt.jotL1Eta[iJ] = tp.eta();
+            gt.jotL1Phi[iJ] = tp.phi(); 
+            gt.jotL1E[iJ] = tp.e();
+            gt.jotL1EGBX[iJ] = bx;
+            gt.jotL1EGIso[iJ] = iso;
+          }
         }
       }
     }

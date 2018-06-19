@@ -35,6 +35,7 @@ def clean(x):
     x = sub(x, '/data/t3.*lock', 'X.lock')
     x = sub(x, 'branch:.*', '')
     x = sub(x, '/mnt/hadoop.*npz', 'X.npz')
+    x = sub(x, 'object at [a-zA-Z0-9]*', 'object at ADDRESS') 
     return x 
 
 cmd = 'grep -i "error\|fatal" %s*err'%logdirpath

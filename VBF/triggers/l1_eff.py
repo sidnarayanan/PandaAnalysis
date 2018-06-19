@@ -47,54 +47,46 @@ s = Selector()
 infile = basedir + args.f + '.root'
 f = root.TFile.Open(infile); t = f.Get('events')
 
-hbase = root.TH2D('h', 'h', 20, 40, 600, 20, 0, 5)
-hnum = hbase.Clone()
-hden = hbase.Clone()
-for iJ in xrange(3):
-    branches = [x%iJ for x in ['jotPt[%i]', 'fabs(jotEta[%i])']]
-    s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[%i]>0'%(iJ)))
-    hden.Add(s.draw(branches, hbase=hbase))
-    s.read_tree(t, branches = branches, cut=tAND(cut, 'jotL1EGBX[%i]==-1'%(iJ)))
-    hnum.Add(s.draw(branches, hbase=hbase))
+def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
+    hnum = hbase.Clone()
+    hden = hbase.Clone()
+    for iJ in xrange(3):
+        branches = [x.format(iJ) for x in branch_tmpl]
+        print branches
+        s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[%i]>0'%(iJ)))
+        hden.Add(s.draw(branches, hbase=hbase))
+        s.read_tree(t, branches = branches, cut=tAND(cut, 'jotL1EGBX[%i]==-1'%(iJ)))
+        hnum.Add(s.draw(branches, hbase=hbase))
 
-hratio = hnum.Clone()
-hratio.Divide(hden)
+    hratio = hnum.Clone()
+    hratio.Divide(hden)
 
-plot.Reset()
-plot.AddCMSLabel()
-hratio.SetMinimum(0)
-hratio.SetMaximum(1)
-hratio.GetXaxis().SetTitle('p_{T} [GeV]')
-hratio.GetYaxis().SetTitle('|#eta|')
-hratio.GetZaxis().SetTitle('L1IsoEG BX=-1 eff')
-hratio.Draw('colz')
-suffix = 'vbf' if args.vbf else 'inclusive'
-plot.Draw(args.outdir+'/',args.f+'_'+suffix)
-fout = root.TFile.Open('../../data/vbf16/trig/l1.root','update')
-fout.WriteTObject(hratio, 'h_'+args.f+'_'+suffix)
-fout.Close()
+    plot.Reset()
+    plot.AddCMSLabel()
+    hratio.SetMinimum(0)
+    hratio.SetMaximum(1)
+    hratio.GetXaxis().SetTitle(xtitle)
+    hratio.GetYaxis().SetTitle(ytitle)
+    hratio.GetZaxis().SetTitle('L1IsoEG BX=-1 eff')
+    hratio.Draw('colz')
+    suffix = 'vbf' if args.vbf else 'inclusive'
+    suffix += postfix
+    plot.Draw(args.outdir+'/',args.f+'_'+suffix)
+    if save:
+        fout = root.TFile.Open('../../data/vbf16/trig/l1.root','update')
+        fout.WriteTObject(hratio, 'h_'+args.f+'_'+suffix)
+        fout.Close()
+        f.cd()
 
-hbase = root.TH2D('2', 'h', 20, -3.1416, 3.1416, 20, -5, 5)
-hnum = hbase.Clone()
-hden = hbase.Clone()
-for iJ in xrange(3):
-    branches = [x%iJ for x in ['jotPhi[%i]', 'jotEta[%i]']]
-    s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[%i]>0'%(iJ)))
-    hden.Add(s.draw(branches, hbase=hbase))
-    s.read_tree(t, branches = branches, cut=tAND(cut, 'jotL1EGBX[%i]==-1'%(iJ)))
-    hnum.Add(s.draw(branches, hbase=hbase))
+hbase = root.TH2D('h0', 'h', 20, 40, 600, 20, 0, 5)
+fn(hbase, ['jotPt[{0}]', 'fabs(jotEta[{0}])'], 'p_{T} [GeV]', '|#eta|', '', True)
 
-hratio = hnum.Clone()
-hratio.Divide(hden)
+hbase = root.TH2D('h1', 'h', 20, 40, 600, 20, 0, 5)
+fn(hbase, ['jotNEMF[{0}]*jotPt[{0}]', 'fabs(jotEta[{0}])'], 'p_{T}^{EM} [GeV]', '|#eta|', '_emf', False)
 
-plot.Reset()
-plot.AddCMSLabel()
-hratio.SetMinimum(0)
-hratio.SetMaximum(1)
-hratio.GetXaxis().SetTitle('#phi')
-hratio.GetYaxis().SetTitle('#eta')
-hratio.GetZaxis().SetTitle('L1IsoEG BX=-1 eff')
-hratio.Draw('colz')
-suffix = 'vbf' if args.vbf else 'inclusive'
-suffix += '_etaphi'
-plot.Draw(args.outdir+'/',args.f+'_'+suffix)
+hbase = root.TH2D('h2', 'h', 20, 0, 300, 20, 0, 5)
+fn(hbase, ['jotL1Pt[{0}]', 'fabs(jotEta[{0}])'], 'p_{T}^{TP} [GeV]', '|#eta_{TP}|', '_l1', False)
+
+hbase = root.TH2D('h3', 'h', 20, -3.1416, 3.1416, 20, -5, 5)
+fn(hbase, ['jotPhi[{0}]', 'jotEta[{0}]'], '#phi', '#eta', '_etaphi', False)
+

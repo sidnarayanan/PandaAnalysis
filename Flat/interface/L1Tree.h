@@ -37,13 +37,15 @@ class L1Tree : public genericTree {
   float jotPt[3];
   float jotEta[3];
   float jotPhi[3];
-  float jotNEF[3];
+  float jotE[3];
+  float jotNEMF[3];
   float jotNHF[3];
   int jotL1EGBX[3];
   int jotL1EGIso[3];
   float jotL1Pt[3];
   float jotL1Eta[3];
   float jotL1Phi[3];
+  float jotL1E[3];
   float jot12Mass;
   float jot12DEta;
   float jot12DPhi;

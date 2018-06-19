@@ -326,14 +326,26 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
 # report home that the job has started
 def report_start(outdir,outfilename,args):
     if not cb.textlock:
-        hashed = [cb.md5hash(x) for x in args]
-        job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
-        payload = {'starttime' : int(time()),
-                   'host' : _host, 
-                   'task' : _task_name + '_' + _user,
-                   'job_id' : job_id,
-                   'args' : hashed}
-        r = requests.post(cb.report_server+'/condor/start', json=payload)
+        for _ in xrange(5):
+            try:
+                hashed = [cb.md5hash(x) for x in args]
+                job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
+                payload = {'starttime' : int(time()),
+                           'host' : _host, 
+                           'task' : _task_name + '_' + _user,
+                           'job_id' : job_id,
+                           'args' : hashed}
+                r = requests.post(cb.report_server+'/condor/start', json=payload)
+                if r.status_code == 200:
+                    logger.info('T3.job_utilities.report_start', 'return=%s'%(str(r).strip()))
+                    return 
+                else:
+                    logger.error('T3.job_utilities.report_start', 'return=%s'%(str(r).strip()))
+                sleep(10)
+            except requests.ConnectionError as e:
+                logger.error('T3.job_utilities.report_start', str(e))
+        logger.error('T3.job_utilities.report_start', 'Dying after 5 attempts!')
+        raise requests.ConnectionError()
 
 
 # write a lock file, based on what succeeded,
@@ -348,12 +360,25 @@ def report_done(outdir,outfilename,processed):
         stageout(outdir,outfilename,outfilename,ls=False)
         cleanup('*.lock')
     else:
-        job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
-        payload = {'timestamp' : int(time()),
-                   'task' : _task_name + '_' + _user,
-                   'job_id' : job_id,
-                   'args' : [cb.md5hash(v) for _,v in processed.iteritems()]}
-        r = requests.post(cb.report_server+'/condor/done', json=payload)
+        # this really has to work, so go forever
+        while True:
+            try:
+                job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
+                payload = {'timestamp' : int(time()),
+                           'task' : _task_name + '_' + _user,
+                           'job_id' : job_id,
+                           'args' : [cb.md5hash(v) for _,v in processed.iteritems()]}
+                logger.info('T3.job_utilities.report_done',
+                            'payload=\n%s'%repr(payload))
+                r = requests.post(cb.report_server+'/condor/done', json=payload)
+                if r.status_code == 200:
+                    logger.info('T3.job_utilities.report_done', 'return=%s'%(str(r).strip()))
+                    return 
+                else:
+                    logger.error('T3.job_utilities.report_done', 'return=%s'%(str(r).strip()))
+                sleep(10)
+            except requests.ConnectionError as e:
+                logger.error('T3.job_utilities.report_done', str(e))
 
 
 # make a record in the primary output of what
