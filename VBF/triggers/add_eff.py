@@ -18,6 +18,7 @@ from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions 
 
 Load('PandaCoreTools')
+print args.outfile 
  
 hba = root.H2BranchAdder()
 hfile = root.TFile.Open(args.histfile)
