@@ -92,9 +92,15 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
     plot.Draw(args.outdir+'/',args.f+'_'+suffix)
     if save:
         fout = root.TFile.Open('../../data/vbf16/trig/l1.root','update')
-        fout.WriteTObject(hratio, 'h_'+args.f+'_'+suffix)
+        fout.WriteTObject(hratio, 'h_'+args.f+'_'+suffix, 'overwrite')
         fout.Close()
         f.cd()
+
+hbase = root.TH2D('h-2', 'h', 20, 0, 1000, 20, 30, 600)
+fn(hbase, ['met', 'fabs(jotPt[{0}])'], 'p_{T}^{miss} [GeV]', 'p_{T} [GeV]', '_metpt', False)
+
+hbase = root.TH2D('h-1', 'h', 20, 0, 1000, 20, 0, 5)
+fn(hbase, ['met', 'fabs(jotEta[{0}])'], 'p_{T}^{miss} [GeV]', '|#eta|', '_meteta', False)
 
 hbase = root.TH2D('h0', 'h', 20, 40, 600, 20, 0, 5)
 fn(hbase, ['jotPt[{0}]', 'fabs(jotEta[{0}])'], 'p_{T} [GeV]', '|#eta|', '', True)

@@ -24,13 +24,13 @@ hba = root.H2BranchAdder()
 hfile = root.TFile.Open(args.histfile)
 ptformula = 'jot%iPt'
 etaformula = 'fabs(jot%iEta)'
-hbranch = 'sf_l1_jot%i'
+hbranch = args.outbranch+'_jot%i'
 h = hfile.Get(args.histname)
 hba.setH(h)
 
 fba = root.FormulaBranchAdder()
 fba.newBranchName = args.outbranch
-fba.formula = '(1-sf_l1_jot1)*(1-sf_l1_jot2)'
+fba.formula = '(1-{0}_jot1)*(1-{0}_jot2)'.format(args.outbranch)
 #fba.formula = '((1-sf_l1_jot1) * (1-sf_l1_jot2))'
 
 for fpath in args.outfile:

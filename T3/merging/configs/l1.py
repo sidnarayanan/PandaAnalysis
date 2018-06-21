@@ -18,6 +18,8 @@ d = {
 d['JetHT_AllEras'] = []
 d['MET_AllEras'] = []
 for e in 'BCDEFGH':
+    if e == 'G':
+        continue
     for pd in ['JetHT' , 'MET']:
         sample = '%s_Run2016%s'%(pd, e)
         if sample in d:

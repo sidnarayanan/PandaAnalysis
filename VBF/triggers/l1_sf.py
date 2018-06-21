@@ -56,14 +56,16 @@ plot.mc_weight = weight
 
 ### DEFINE PROCESSES ###
 vbf           = Process('VBF H(inv)',root.kSignal1)
-vbfl1           = Process('VBF H(inv) * #epsilon_{L1}',root.kSignal2)
-vbfl1.additional_weight = 'sf_l1'
+vbfl1           = Process('VBF H(inv) * #epsilon_{L1}^{JetHT}',root.kSignal2)
+vbfl1.dashed = True
+vbfl1.additional_weight = 'sf_l1_jetht'
+vbfl1met        = Process('VBF H(inv) * #epsilon_{L1}^{MET}',root.kSignal3)
+vbfl1met.dotted = True
+vbfl1met.additional_weight = 'sf_l1_met'
 
 ### ASSIGN FILES TO PROCESSES ###
-vbf.add_file(baseDir+'vbfHinv_m125.root')
-vbfl1.add_file(baseDir+'vbfHinv_m125.root')
-
-for p in [vbf,vbfl1]:
+for p in [vbf,vbfl1,vbfl1met]:
+    p.add_file(baseDir+'vbfHinv_m125.root')
     plot.add_process(p)
 
 recoilBins = [200., 230., 260.0, 290.0, 320.0, 350.0, 390.0, 430.0, 470.0, 510.0, 550.0, 590.0, 640.0, 690.0, 740.0, 790.0, 840.0, 900.0, 960.0, 1020.0, 1090.0, 1160.0, 1250.0]
