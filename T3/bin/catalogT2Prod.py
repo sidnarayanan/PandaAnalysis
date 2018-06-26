@@ -52,15 +52,16 @@ class CatalogSample:
             book_ = '/'.join(args.catalog.split('/')[-2:])
             lines.append('{0:<25} {2:<10} {3:<15} {1}\n'.format(nickname,f,self.dtype,self.xsec)) 
             if smartcache_args is not None:
-                smartcache_args.append('/cms/store/user/paus/%s/%s'%(book_,ds_))
+                smartcache_args.append(ds_)
         if max_lines > 0:
             lines = lines[:max_lines]
         return lines
 
 def smartcache(arguments):
-    #arguments = ' '.join(arguments)
-    for a in arguments:
-        cmd = ('dynamoCache request --datasets %s'%(a))
+    book = args.catalog.strip('/').split('/')[-1]
+    arguments = ' '.join(arguments)
+    for a in [arguments]:
+        cmd = ('python2.6 $(which dynamo-request) --panda %s --sample %s'%(book, a))
         #print cmd
         system(cmd)
 
