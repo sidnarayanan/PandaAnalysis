@@ -20,6 +20,7 @@ d = {
     'SingleMuon_Run2016E'               : ['SingleMuon_Run2016E-03Feb2017-v1'],
     'SingleMuon_Run2016F'               : ['SingleMuon_Run2016F-03Feb2017-v1'],
     'SingleMuon_Run2016G'               : ['SingleMuon_Run2016G-03Feb2017-v1'],
+    'SingleMuon_Run2016H'               : ['SingleMuon_Run2016H-03Feb2017_ver2-v1'],
     'SingleMuon_Run2016H'               : ['SingleMuon_Run2016H-03Feb2017_ver3-v1'],
 }
 

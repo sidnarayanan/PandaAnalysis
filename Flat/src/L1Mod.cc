@@ -10,6 +10,9 @@ void L1Mod::execute()
   gt.eventNumber = event.event; 
   gt.met = event.met_p4->pt();
   gt.metphi = event.met_p4->phi();
+  for (int iBX = 0; iBX != 5; ++iBX) {
+    gt.finor[iBX] = (*(event.L1GtBx))[iBX]; 
+  }
 
   gt.nJot = event.jet_p4->size(); 
   for (int iJ = 0; iJ != min((int)gt.nJot, NL1JET); ++iJ) {

@@ -12,8 +12,7 @@ using namespace pa;
 
 
 PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
-  DEBUG(debug_),
-  analysis(*a),
+  Analyzer("PandaAnalyzer", a, debug_),
   cfgmod(analysis, gt, DEBUG),
   wIDs(v_make_shared<TString>())
 {
@@ -70,8 +69,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
   // Read inputs
-  fIn.reset(TFile::Open(analysis.inpath));
-  tIn = static_cast<TTree*>(fIn->Get("events"));
+  getInput();
   event.setStatus(*tIn, {"!*"});
   event.setAddress(*tIn, cfgmod.get_inputBranches());
 
@@ -109,7 +107,6 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   registry.publishConst("wIDs", wIDs);
 
   // Define outputs
-
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
   gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
   gt.is_hbb            = analysis.hbb;
@@ -125,21 +122,14 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   for (auto& id : *wIDs)
     gt.signal_weights[id] = 1;
 
-  fOut.reset(TFile::Open(analysis.outpath, "RECREATE"));
-  fOut->cd();
-  tOut = new TTree("events", "events");
+  makeOutput(); 
 
   fOut->WriteTObject(hDTotalMCWeight); delete hDTotalMCWeight; hDTotalMCWeight = nullptr;
   if (hDNPUWeight != nullptr) {
     fOut->WriteTObject(hDNPUWeight); delete hDNPUWeight; hDNPUWeight = nullptr;
   }
 
-  registry.publish("fOut", fOut);
-
-  gt.WriteTree(tOut);
-
   event.rng.setSize(20);
-
 
   // read input data
   cfgmod.readData(analysis.datapath);
@@ -152,11 +142,6 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
 PandaAnalyzer::~PandaAnalyzer()
 {
-  if (DEBUG) logger.debug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
-
-  fIn->Close();
-  if (DEBUG) logger.debug("PandaAnalyzer::~PandaAnalyzer","Called destructor");
-
 }
 
 void PandaAnalyzer::AddGoodLumiRange(int run, int l0, int l1)
@@ -230,25 +215,20 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 
 void PandaAnalyzer::Reset()
 {
-  gt.Reset();
-
   for (auto& mod : mods_all)
     mod->reset();
-  if (DEBUG) logger.debug("PandaAnalyzer::Reset","Reset");
+
+  Analyzer::Reset();
 }
 
 
 
 void PandaAnalyzer::Terminate()
 {
-  fOut->WriteTObject(tOut);
-  fOut->Close();
-  fOut = 0; tOut = 0;
-
   for (auto& mod : mods_all)
     mod->terminate();
 
-  if (DEBUG) logger.debug("PandaAnalyzer::Terminate","Finished with output");
+  Analyzer::Terminate();
 }
 
 
@@ -257,21 +237,8 @@ void PandaAnalyzer::Run()
 {
 
   // INITIALIZE --------------------------------------------------------------------------
-
-  unsigned int nEvents = tIn->GetEntries();
-  unsigned int nZero = 0;
-  if (lastEvent >= 0 && lastEvent < (int)nEvents)
-    nEvents = lastEvent;
-  if (firstEvent >= 0)
-    nZero = firstEvent;
-
-  if (!fOut || !tIn) {
-    logger.error("PandaAnalyzer::Run","NOT SETUP CORRECTLY");
-    exit(1);
-  }
-  unsigned int iE=0;
-
-  fOut->cd(); // to be absolutely sure
+  unsigned nZero, nEvents, iE=0;
+  setupRun(nZero, nEvents); 
 
   for (auto& mod : mods_all)
     mod->initialize(registry);

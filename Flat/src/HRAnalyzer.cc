@@ -11,8 +11,7 @@ using namespace fastjet;
 
 
 HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
-  DEBUG(debug_),
-  analysis(*a),
+  Analyzer("HRAnalyzer", a, debug_),
   cfg(analysis, DEBUG)
 {
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Calling constructor");
@@ -46,8 +45,7 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Reading inputs");
 
   // Read inputs
-  fIn.reset(TFile::Open(analysis.inpath));
-  tIn = static_cast<TTree*>(fIn->Get("events"));
+  getInput();
   event.setStatus(*tIn, {"!*"});
   utils::BranchList bl;
   bl += {"runNumber", "lumiNumber", "eventNumber", "rho",
@@ -75,18 +73,13 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Writing outputs");
 
-  fOut.reset(TFile::Open(analysis.outpath, "RECREATE"));
-  fOut->cd();
-  tOut = new TTree("events", "events");
+  makeOutput(); 
 
   fOut->WriteTObject(hDTotalMCWeight); delete hDTotalMCWeight; hDTotalMCWeight = nullptr;
   if (hDNPUWeight != nullptr) {
     fOut->WriteTObject(hDNPUWeight); delete hDNPUWeight; hDNPUWeight = nullptr;
   }
 
-  registry.publish("fOut", fOut);
-
-  gt.WriteTree(tOut);
 
   event.rng.setSize(20);
 
@@ -100,34 +93,24 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
 
 HRAnalyzer::~HRAnalyzer()
 {
-  if (DEBUG) logger.debug("HRAnalyzer::~HRAnalyzer","Calling destructor");
-
-  fIn->Close();
-  if (DEBUG) logger.debug("HRAnalyzer::~HRAnalyzer","Called destructor");
-
 }
 
 void HRAnalyzer::Reset()
 {
-  gt.Reset();
-
   gen->reset();
   mod->reset();
-  if (DEBUG) logger.debug("HRAnalyzer::Reset","Reset");
+
+  Analyzer::Reset();
 }
 
 
 
 void HRAnalyzer::Terminate()
 {
-  fOut->WriteTObject(tOut);
-  fOut->Close();
-  fOut = 0; tOut = 0;
-
   gen->terminate();
   mod->terminate();
 
-  if (DEBUG) logger.debug("HRAnalyzer::Terminate","Finished with output");
+  Analyzer::Terminate();
 }
 
 
@@ -137,20 +120,8 @@ void HRAnalyzer::Run()
 
   // INITIALIZE --------------------------------------------------------------------------
 
-  unsigned int nEvents = tIn->GetEntries();
-  unsigned int nZero = 0;
-  if (lastEvent >= 0 && lastEvent < (int)nEvents)
-    nEvents = lastEvent;
-  if (firstEvent >= 0)
-    nZero = firstEvent;
-
-  if (!fOut || !tIn) {
-    logger.error("HRAnalyzer::Run","NOT SETUP CORRECTLY");
-    exit(1);
-  }
-  unsigned int iE=0;
-
-  fOut->cd(); // to be absolutely sure
+  unsigned nZero, nEvents, iE=0;
+  setupRun(nZero, nEvents); 
 
   gen->initialize(registry);
   mod->initialize(registry);

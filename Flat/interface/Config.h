@@ -24,13 +24,13 @@ namespace pa {
   class Config {
   public:
     Config(const Analysis& a_, int DEBUG_ = 0) : 
-    DEBUG(DEBUG_),
-    analysis(a_),
-    tr("PandaAnalyzer", DEBUG+1),
-    isData(analysis.isData)
-    { 
+      DEBUG(DEBUG_),
+      analysis(a_),
+      tr("PandaAnalyzer", DEBUG+1),
+      isData(analysis.isData) { 
       tr.Start();
     }
+    // default copy/assign/delete are fine 
 
 
     const int DEBUG;
@@ -71,6 +71,8 @@ namespace pa {
       }
     }
     ~Utils(); 
+    Utils(const Utils&) = delete;
+    Utils& operator=(const Utils&) = delete; 
 
     double getCorr(CorrectionType ct, double x, double y=0);
     double getError(CorrectionType ct, double x, double y=0);

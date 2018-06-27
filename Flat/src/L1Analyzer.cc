@@ -9,8 +9,7 @@ using namespace pa;
 
 
 L1Analyzer::L1Analyzer(Analysis* a, int debug_/*=0*/) :
-  DEBUG(debug_), 
-  analysis(*a)
+  Analyzer("L1Analyzer", a, debug_)
 {
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Calling constructor");
 
@@ -19,8 +18,7 @@ L1Analyzer::L1Analyzer(Analysis* a, int debug_/*=0*/) :
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Reading inputs");
 
   // Read inputs
-  fIn.reset(TFile::Open(analysis.inpath));
-  tIn = static_cast<TTree*>(fIn->Get("ntuple/tree"));
+  getInput();
   tIn->SetBranchAddress("run", &event.run);
   tIn->SetBranchAddress("lumi", &event.lumi);
   tIn->SetBranchAddress("event", &event.event);
@@ -37,11 +35,7 @@ L1Analyzer::L1Analyzer(Analysis* a, int debug_/*=0*/) :
 
   // Define outputs
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Writing outputs");
-  fOut.reset(TFile::Open(analysis.outpath, "RECREATE"));
-  fOut->cd();
-  tOut = new TTree("events", "events");
-  registry.publish("fOut", fOut);
-  gt.WriteTree(tOut);
+  makeOutput(); 
 
   // read input data
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Called constructor");
@@ -58,20 +52,15 @@ L1Analyzer::~L1Analyzer()
 
 void L1Analyzer::Reset()
 {
-  gt.Reset();
   mod->reset();
-  if (DEBUG) logger.debug("L1Analyzer::Reset","Reset");
+  Analyzer::Reset();
 }
 
 
 
 void L1Analyzer::Terminate()
 {
-  fOut->WriteTObject(tOut);
-  fOut->Close();
-  fOut = 0; tOut = 0;
-
-  if (DEBUG) logger.debug("L1Analyzer::Terminate","Finished with output");
+  Analyzer::Terminate();
 }
 
 
@@ -81,20 +70,8 @@ void L1Analyzer::Run()
 
   // INITIALIZE --------------------------------------------------------------------------
 
-  unsigned int nEvents = tIn->GetEntries();
-  unsigned int nZero = 0;
-  if (lastEvent >= 0 && lastEvent < (int)nEvents)
-    nEvents = lastEvent;
-  if (firstEvent >= 0)
-    nZero = firstEvent;
-
-  if (!fOut || !tIn) {
-    logger.error("L1Analyzer::Run","NOT SETUP CORRECTLY");
-    exit(1);
-  }
-  unsigned int iE=0;
-
-  fOut->cd(); // to be absolutely sure
+  unsigned nZero, nEvents, iE=0;
+  setupRun(nZero, nEvents); 
 
   ProgressReporter pr("L1Analyzer::Run",&iE,&nEvents,10);
   TimeReporter tr("L1Analyzer", DEBUG);

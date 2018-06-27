@@ -19,78 +19,94 @@ namespace pa {
         BaseContainer() { }
         virtual ~BaseContainer() { }
       };
+
       template <typename T>
       class Container : public BaseContainer {
       public:
         Container(std::shared_ptr<T> ptr_) : ptr(ptr_) { }
         ~Container() { }
+        // default copy and assignment are fine 
         const std::shared_ptr<T> ptr; // don't ask me why this is a copy and not a reference
                                       // when I tried using a reference the use_count went negative
                                       // ???
       };
+
       template <typename T>
-        Container<T>* safe_cast(std::unique_ptr<BaseContainer>& base, TString name) {
-          auto* cntr = dynamic_cast<Container<T>*>(base.get());
-          if (cntr == nullptr) {
-            logger.error("Registry::safe_cast", "Requesting object of wrong type: "+name+"!");
-            throw std::runtime_error("");
-          }
-          return cntr;
+      Container<T>* safe_cast(std::shared_ptr<BaseContainer>& base, TString name) {
+        auto* cntr = dynamic_cast<Container<T>*>(base.get());
+        if (cntr == nullptr) {
+          logger.error("Registry::safe_cast", "Requesting object of wrong type: "+name+"!");
+          throw std::runtime_error("");
         }
+        return cntr;
+      }
 
     public:
       Registry() { }
       ~Registry() { }
+      Registry(const Registry& other) : _objs(other._objs), _const_objs(other._const_objs) { }
+      Registry& operator=(const Registry& other) { 
+        if (&other == this)
+          return *this; 
+        _objs = other._objs;
+        _const_objs = other._const_objs;
+        return *this; 
+      }
+
       template <typename T>
-        void publish(TString name, std::shared_ptr<T>& ptr) {
-          if (exists(name))
-            logger.warning("Registry::publish","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
-          _objs[name].reset(new Container<T>(ptr));
+      void publish(TString name, std::shared_ptr<T>& ptr) {
+        if (exists(name))
+          logger.warning("Registry::publish","Undefined behavior - multiple objects with name "+name+"!");
+        _objs[name].reset(new Container<T>(ptr));
+      }
+
+      template <typename T>
+      void publishConst(TString name, std::shared_ptr<T>& ptr) {
+        if (exists(name))
+          logger.warning("Registry::publishConst","Undefined behavior - multiple objects with name "+name+"!");
+        _const_objs[name].reset(new Container<T>(ptr));
+      }
+
+      template <typename T>
+      std::shared_ptr<T> access(TString name, bool silentFail = false) {
+        auto iter = _objs.find(name);
+        if (iter == _objs.end()) {
+          if (silentFail) {
+            logger.warning("Registry::access", "Could not access "+name+", returning (nil)!");
+            return std::shared_ptr<T>(nullptr);
+          } else {
+            logger.error("Registry::access", "Could not access "+name+"!");
+            throw std::runtime_error("");
+          }
         }
+        auto* cntr = safe_cast<T>(iter->second, name);
+        return cntr->ptr;
+      }
+
       template <typename T>
-        void publishConst(TString name, std::shared_ptr<T>& ptr) {
-          if (exists(name))
-            logger.warning("Registry::publishConst","UNDEFINED BEHAVIOR - multiple objects with name "+name+"!");
-          _const_objs[name].reset(new Container<T>(ptr));
-        }
-      template <typename T>
-        std::shared_ptr<T> access(TString name, bool silentFail = false) {
-          auto iter = _objs.find(name);
-          if (iter == _objs.end()) {
+      std::shared_ptr<const T> accessConst(TString name, bool silentFail = false) {
+        auto iter = _objs.find(name);
+        if (iter == _objs.end()) {
+          iter = _const_objs.find(name);
+          if (iter == _const_objs.end()) {
             if (silentFail) {
-              logger.warning("Registry::access", "Could not access "+name+", returning (nil)!");
-              return std::shared_ptr<T>(nullptr);
+              logger.warning("Registry::accessConst", "Could not access "+name+", returning (nil)!");
+              return std::shared_ptr<const T>(nullptr);
             } else {
-              logger.error("Registry::access", "Could not access "+name+"!");
+              logger.error("Registry::accessConst", "Could not access "+name+"!");
               throw std::runtime_error("");
             }
           }
-          auto* cntr = safe_cast<T>(iter->second, name);
-          return cntr->ptr;
         }
-      template <typename T>
-        std::shared_ptr<const T> accessConst(TString name, bool silentFail = false) {
-          auto iter = _objs.find(name);
-          if (iter == _objs.end()) {
-            iter = _const_objs.find(name);
-            if (iter == _const_objs.end()) {
-              if (silentFail) {
-                logger.warning("Registry::accessConst", "Could not access "+name+", returning (nil)!");
-                return std::shared_ptr<const T>(nullptr);
-              } else {
-                logger.error("Registry::accessConst", "Could not access "+name+"!");
-                throw std::runtime_error("");
-              }
-            }
-          }
-          auto* cntr = safe_cast<T>(iter->second, name);
-          return std::const_pointer_cast<const T>(cntr->ptr);
-        }
+        auto* cntr = safe_cast<T>(iter->second, name);
+        return std::const_pointer_cast<const T>(cntr->ptr);
+      }
+
       bool exists(TString name) { return !( _objs.find(name) == _objs.end()
                                             && _const_objs.find(name) == _const_objs.end() ); }
     private:
       // _objs can be accessed through access or accessConst; _const_objs only through accessConst
-      std::map<TString, std::unique_ptr<BaseContainer>> _objs, _const_objs;
+      std::map<TString, std::shared_ptr<BaseContainer>> _objs, _const_objs;
   };
   
   template <typename T>
@@ -98,6 +114,8 @@ namespace pa {
     public:
       BaseModule(TString name_, T& gt_): name(name_), gt(gt_) {  }
       virtual ~BaseModule() { }
+      BaseModule(const BaseModule&) = delete;
+      BaseModule& operator=(const BaseModule&) = delete; 
 
     protected:
       TString name;
