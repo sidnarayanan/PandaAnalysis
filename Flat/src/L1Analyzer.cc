@@ -18,7 +18,8 @@ L1Analyzer::L1Analyzer(Analysis* a, int debug_/*=0*/) :
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Reading inputs");
 
   // Read inputs
-  getInput();
+  getInput("ntuple/tree");
+  tIn->SetBranchAddress("metFilter", &event.metFilter);
   tIn->SetBranchAddress("run", &event.run);
   tIn->SetBranchAddress("lumi", &event.lumi);
   tIn->SetBranchAddress("event", &event.event);

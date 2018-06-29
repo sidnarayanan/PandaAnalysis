@@ -53,9 +53,9 @@ namespace pa {
       registry.publish("fOut", fOut);
     }
 
-    void getInput() {
+    void getInput(const char* treeName="events") {
       fIn.reset(TFile::Open(analysis.inpath));      
-      tIn = static_cast<TTree*>(fIn->Get("events"));
+      tIn = static_cast<TTree*>(fIn->Get(treeName));
     }
 
     void setupRun(unsigned &nZero, unsigned &nEvents) {

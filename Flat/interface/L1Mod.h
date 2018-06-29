@@ -13,6 +13,7 @@ namespace pa {
     Long64_t lumi;
     Long64_t event;
     int bunchCrossing;
+    int metFilter;
 
     LorentzVector *met_p4{nullptr};
     std::vector<LorentzVector> *jet_p4{nullptr};

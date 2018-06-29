@@ -26,7 +26,7 @@ def fn(input_name, isData, full_path):
     
     logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
-    a = analysis("l1")
+    a = analysis("l1", verbose=False)
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir

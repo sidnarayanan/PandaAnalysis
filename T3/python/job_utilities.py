@@ -21,7 +21,7 @@ _data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'  # data directory
 _host = socket.gethostname()                                   # where we're running
 _IS_T3 = (_host.startswith('t3') and _host.endswith('mit.edu'))# are we on the T3?
 REMOTE_READ = True                                             # should we read from hadoop or copy locally?
-local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcp from T2?
+local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcopy from T2?
 _task_name = getenv('SUBMIT_NAME')                             # name of this task
 _user = getenv('SUBMIT_USER')                                  # user running the task
 YEAR = 2016                                                    # what year's data is this analysis?
@@ -114,7 +114,7 @@ def input_to_output(name):
 #  - if local_copy and it exists locally, then:
 #    - if REMOTE_READ, read from hadoop
 #    - else copy it locally
-#  - else xrdcp it locally
+#  - else xrdcopy it locally
 def copy_local(long_name):
     full_path = long_name
     logger.info(_sname,full_path)
@@ -145,11 +145,11 @@ def copy_local(long_name):
                 copied = True
 
     if not copied:
-        cmd = "xrdcp --nopbar -f %s %s"%(full_path,input_name)
+        cmd = "xrdcopy --nopbar -f %s %s"%(full_path,input_name)
         logger.info(_sname+'.copy_local',cmd)
         ret = system(cmd)
         if ret:
-            logger.error(_sname+'.copy_local','Failed to xrdcp %s'%input_name)
+            logger.error(_sname+'.copy_local','Failed to xrdcopy %s'%input_name)
             return None 
         ftest = root.TFile.Open(input_name)
         if not(bool(ftest)) or ftest.IsZombie():

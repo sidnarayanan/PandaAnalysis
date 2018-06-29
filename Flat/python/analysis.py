@@ -29,8 +29,8 @@ def _analysis(name, verbose, **kwargs):
         a.dump()
     return a
 
-def analysis(name, **kwargs):
-    return _analysis(name, verbose=True, **kwargs)
+def analysis(name, verbose=True, **kwargs):
+    return _analysis(name, verbose=verbose, **kwargs)
 
 
 # predefined!

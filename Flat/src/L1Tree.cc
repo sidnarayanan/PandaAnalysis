@@ -27,6 +27,7 @@ void L1Tree::Reset() {
   met = -99;
   metphi = -99;
   mindphi = 99;
+  filter = 1;
   nJot = 0;
   jot12Mass = -99;
   jot12DEta = -99;
@@ -46,7 +47,7 @@ void L1Tree::Reset() {
     jotL1E[iA] = -99;
   }
   for (int iA=0; iA!=5; ++iA) {
-    finor[iA] = 0;
+    finor[iA] = -1;
   }
 }
 void L1Tree::WriteTree(TTree *t) {
@@ -60,6 +61,7 @@ void L1Tree::WriteTree(TTree *t) {
   Book("metphi",&metphi,"metphi/F");
   Book("mindphi",&mindphi,"mindphi/F");
   Book("finor",finor,"finor["+TString("5")+"]/I");
+  Book("filter",&filter,"filter/I");
   Book("nJot",&nJot,"nJot/I");
   Book("jotPt",jotPt,"jotPt["+TString("3")+"]/F");
   Book("jotEta",jotEta,"jotEta["+TString("3")+"]/F");

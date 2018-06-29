@@ -11,6 +11,7 @@ basedir = getenv('PANDA_FLATDIR') + '/'
 
 parser = argparse.ArgumentParser(description='plot stuff')
 parser.add_argument('--outdir',metavar='outdir',type=str)
+parser.add_argument('--finor', action='store_true')
 args = parser.parse_args()
 
 figsdir = args.outdir
@@ -21,27 +22,28 @@ from PandaCore.Utils.load import Load
 from PandaCore.Tools.Misc import *
 from PandaCore.Tools.root_interface import Selector
 from math import sqrt
-Load('HistogramDrawer')
+Load('GraphAsymmErrDrawer')
 root.gROOT.SetBatch()
 
 lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
 
-cut = 'fabs(jotEta[{0}])>2.75 && fabs(jotEta[{0}])<3 && jotPt[{0}]>100'
+cut = 'fabs(jotEta[{0}])>2.75 && fabs(jotEta[{0}])<3 && jotPt[{0}]>100 && filter==1'
 cut = tAND(cut, '!(fabs(jotEta[{0}]+2.75)<0.25 && fabs(jotPhi[{0}]-2.1)<0.25)')
+sigcut = 'finor[1]!=0' if args.finor else 'jotL1EGBX[{0}]==-1'
 
-plot = root.HistogramDrawer()
+plot = root.GraphAsymmErrDrawer()
 plot.SetTDRStyle()
-plot.InitLegend()
+plot.InitLegend(.6,.65,.88,.9)
 
 plotlog = root.HistogramDrawer()
 plotlog.SetTDRStyle()
-plotlog.InitLegend()
+plotlog.InitLegend(.6,.65,.88,.9)
 plotlog.Logy()
 
 s = Selector()
 
-infile_tmpl = basedir + '%s_AllEras.root'
+infile_tmpl = basedir + '%s.root'
 labels = ['MET', 'JetHT', 'SingleMuon']
 files = {l:root.TFile.Open(infile_tmpl%l) for l in labels}
 trees = {l:files[l].Get('events') for l in labels}
@@ -55,43 +57,48 @@ def fn(hbase, branch_tmpl, xtitle, postfix):
             branches = [branch_tmpl.format(iJ)]
             s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[{0}]>0').format(iJ))
             hden[label].Add(s.draw(branches, hbase=hbase))
-            s.read_tree(t, branches = branches, cut=tAND(cut, 'jotL1EGBX[{0}]==-1').format(iJ))
+            s.read_tree(t, branches = branches, cut=tAND(cut, tAND('jotPt[{0}]>0', sigcut)).format(iJ))
             hnum[label].Add(s.draw(branches, hbase=hbase))
 
-        hratio[label] = hnum[label].Clone()
-        for ib in xrange(1, hnum[label].GetNbinsX()+1):
-            den = hden[label].GetBinContent(ib)
-            if den > 0:
-                hratio[label].SetBinContent(ib, hnum[label].GetBinContent(ib) / den)
-                hratio[label].SetBinError(ib, hnum[label].GetBinError(ib) / den)
+        hratio[label] = root.TEfficiency(hnum[label], hden[label]).CreateGraph()
 
         hnum[label].GetXaxis().SetTitle(xtitle)
-        hnum[label].GetYaxis().SetTitle('Number of BX-1 matched jets')
+        if args.finor:
+            hnum[label].GetYaxis().SetTitle('Number of BX-1 FinOR')
+        else:
+            hnum[label].GetYaxis().SetTitle('Number of BX-1 matched jets')
         hden[label].GetXaxis().SetTitle(xtitle)
         hden[label].GetYaxis().SetTitle('Number of jets')
         hratio[label].SetMinimum(0)
-        hratio[label].SetMaximum(1)
+        hratio[label].SetMaximum(1.5)
         hratio[label].GetXaxis().SetTitle(xtitle)
-        hratio[label].GetYaxis().SetTitle('L1IsoEG BX=-1 eff')
+        hratio[label].SetLineWidth(2)
+        if args.finor:
+            hratio[label].GetYaxis().SetTitle('FinOR BX=-1 eff')
+        else:
+            hratio[label].GetYaxis().SetTitle('L1IsoEG BX=-1 eff')
 
     suffix = postfix
+    if args.finor:
+        suffix += '_finor'
 
     plotlog.Reset()
     plotlog.AddCMSLabel()
     for i,label in enumerate(trees):
-        plotlog.AddHistogram(hnum[label],'%s [%i evts]'%(label, hnum[label].Integral()),root.kData,i+1,'elp')
+        plotlog.AddHistogram(hnum[label],label,root.kData,i+1,'elp')
     plotlog.Draw(args.outdir+'/','oned_'+suffix+'_num')
 
     plotlog.Reset()
     plotlog.AddCMSLabel()
     for i,label in enumerate(trees):
-        plotlog.AddHistogram(hden[label],'%s [%i evts]'%(label, hden[label].Integral()),root.kData,i+1,'elp')
+        plotlog.AddHistogram(hden[label],label,root.kData,i+1,'elp')
     plotlog.Draw(args.outdir+'/','oned_'+suffix+'_den')
 
-    plot.Reset()
+    plot.Clear()
+    plot.ClearLegend()
     plot.AddCMSLabel()
     for i,label in enumerate(trees):
-        plot.AddHistogram(hratio[label],label,root.kData,i+1,'elp')
+        plot.AddGraph(hratio[label],label,i+1,1,'elp')
     plot.Draw(args.outdir+'/','oned_'+suffix+'_ratio')
 
 

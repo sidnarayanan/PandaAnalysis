@@ -32,7 +32,7 @@ root.gStyle.SetPalette(root.kCool)
 lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
 
-cut = 'fabs(jotEta[{0}])>2.4 || (jotNEMF[{0}]<0.9 && jotNHF[{0}]<0.8)'
+cut = 'fabs(jotEta[{0}])>2.4 || (jotNEMF[{0}]<0.9 && jotNHF[{0}]<0.8) && filter==1'
 if args.vbf:
     cut = tAND(cut, tAND('nJot>1', sel.mjj))
 elif args.spike:
@@ -61,11 +61,14 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
         branches = [x.format(iJ) for x in branch_tmpl]
         s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[{0}]>0').format(iJ))
         hden.Add(s.draw(branches, hbase=hbase))
-        s.read_tree(t, branches = branches, cut=tAND(cut, 'jotL1EGBX[{0}]==-1').format(iJ))
+        s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[{0}]>0 && jotL1EGBX[{0}]==-1').format(iJ))
         hnum.Add(s.draw(branches, hbase=hbase))
 
     hratio = hnum.Clone()
-    hratio.Divide(hden)
+    eff = root.TEfficiency(hnum, hden)
+    for ix in xrange(1, hratio.GetNbinsX()+1):
+        for iy in xrange(1, hratio.GetNbinsY()+1):
+            hratio.SetBinContent(ix, iy, eff.GetEfficiency(hratio.GetBin(ix, iy)))
 
     if args.vbf:
         suffix = 'vbf'
