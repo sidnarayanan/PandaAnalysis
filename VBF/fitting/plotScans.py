@@ -63,7 +63,7 @@ else:
 for f in listoffiles:
   try:
     fname = f.split('/')[-1]
-    fname = fname.replace('higgsCombine','').replace('.Asymptotic.mH120.root','')
+    fname = fname.replace('higgsCombine','').replace('.AsymptoticLimits.mH120.root','')
     cut1 = float(fname.split('_')[1])
     cut2 = float(fname.split('_')[4])
     cut1s.add(cut1)
@@ -80,12 +80,12 @@ def xformSet(s):
 
 cut1array = array('f',xformSet(cut1s))
 cut2array = array('f',xformSet(cut2s))
-h2 = root.TH2F('h2','h2',len(cut1array)-1,cut1array,len(cut2array)-1,cut2array)
+h2 = root.TH2F('h2','h2',len(cut2array)-1,cut2array,len(cut1array)-1,cut1array)
 h2x = h2.GetXaxis(); h2y = h2.GetYaxis();
-h2x.SetTitle(titles[var1])
-h2y.SetTitle(titles[var2])
+h2x.SetTitle(titles[var2])
+h2y.SetTitle(titles[var1])
 h2.GetZaxis().SetTitle('Toy limit')
-#h2.SetMaximum(0.5); h2.SetMinimum(0.15)
+h2.SetMaximum(0.5); h2.SetMinimum(0.2)
 h2.SetMarkerColor(0)
 
 for e in cut1s:
@@ -100,16 +100,20 @@ for e in cut1s:
         fname += '%s_%.2f__%s_%.2f'%(var1,e,var2,p)
       if var3:
         fname += '__%s'%(var3)
-      fname += '.Asymptotic.mH120.root'
+      fname += '.AsymptoticLimits.mH120.root'
       f = root.TFile(fname)
       t = f.Get('limit')
       t.GetEntry(2)
-      h2.SetBinContent(h2x.FindBin(e),h2y.FindBin(p),t.limit)
+      h2.SetBinContent(h2x.FindBin(p),h2y.FindBin(e),t.limit)
     except:
       pass
 
 c.Clear(); c.cd()
 h2.Draw('colz text')
+m = root.TMarker(1.5,1,29)
+m.SetMarkerSize(5)
+m.SetMarkerColorAlpha(root.kRed, 0.5)
+m.Draw('same')
 plot.AddCMSLabel(.16,.94)
 plot.SetLumi(36.6); plot.AddLumiLabel(True)
 plot.SetCanvas(c)

@@ -49,6 +49,8 @@ vmap['deta'] = 'jot12DEta'
 vmap['dphi'] = 'jot12DPhi'
 vmap['eta1'] = 'jot1Eta'
 vmap['eta2'] = 'jot2Eta'
+vmap['sf_l1'] = 'sf_l1'
+vmap['sf_l1_nospike'] = 'sf_l1_nospike'
 weights = {'nominal' : sel.weights[region]%lumi}
 
 

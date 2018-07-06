@@ -5,7 +5,7 @@ from sys import exit,stdout, argv
 
 which = argv[1]
 
-deta = [1.,2.,2.4,2.8,3.2,3.6,4,4.4,4.8]
+deta = [0.,0.3,0.6,1.,1.5,2.,2.4,2.8,3.2,3.6,4,4.4,4.8]
 dphi = [3.14*x/10 for x in range(1,11)] 
 mjj = range(100,1700,200)
 pt1 = [80+20*x for x in range(5)]
@@ -13,7 +13,7 @@ pt2 = [40+10*x for x in range(9)]
 
 datacards = {
         'cnc' : 'cnc_opt.txt',
-        'mjj' : 'mjj_opt.txt',
+        'mjj' : 'vbf_mjj_stat.txt',
         'deta' : 'deta_opt.txt',
         'dphi' : 'dphi_opt.txt',
         }

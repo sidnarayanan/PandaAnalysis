@@ -7,6 +7,8 @@ datacard=$4
 label=$(echo $thiscut | sed "s?[\(\)_]??g" | sed "s?[><&]?_?g" )
 thiscut=$(echo $thiscut | sed "s?&?\\\&?g")
 
+monox="MonoX_split"
+
 echo "$thiscut"
 echo "$scramdir" 
 echo "$outdir"
@@ -26,8 +28,8 @@ echo $CMSSW_BASE
 which combine
 
 cd $WD
-cp -r $scramdir/src/MonoX .
-cd MonoX
+cp -r $scramdir/src/$monox .
+cd $monox
 sed "s?XXXX?${thiscut}?g" configs/vbf_tmpl.py > configs/vbf_scan.py
 
 python buildModel.py vbf_scan
@@ -38,12 +40,12 @@ cd datacardsHiggs
 #combine -M Asymptotic vbf_combined_fewbins.txt -n $label --run=blind --noFitAsimov 
 #combine -M Asymptotic vbf_combined_binned.txt -n $label --run=blind --noFitAsimov 
 #combine -M Asymptotic vbf_combined.txt -n $label --run=blind --noFitAsimov 
-combine -M Asymptotic $datacard -n $label --run=blind --noFitAsimov 
+combine -M AsymptoticLimits $datacard -n $label --run=expected #blind --noFitAsimov 
 ls higgs*root
 mkdir -p $outdir
 ret=$( cp higgs*root $outdir )
 
 cd $WD
-rm -rf MonoX 
+rm -rf $monox
 
 exit $ret
