@@ -94,6 +94,11 @@ namespace pa {
         recalcJER = analysis.applyJER || analysis.rerunJER; // if JER is requested, always run it
         recluster = addSubMod<FatJetReclusterMod>();
         jetType = "AK8PFPuppi";
+      if      (analysis.year==2016) { // CSVv2 subjet b-tagging in 2016 
+        csvL = 0.5426; csvM = 0.8484; 
+      } else if (analysis.year==2017) { // DeepCSV subjet b-tagging in 2017
+        csvL = 0.1522; csvM = 0.4941;
+      }
     }
     virtual ~FatJetMod () { }
 

@@ -8,6 +8,7 @@ from sys import argv,exit
 import sys
 from os import environ,system,path,remove
 from argparse import ArgumentParser
+import subprocess
 
 sname = argv[0]
 parser = ArgumentParser()
@@ -186,6 +187,18 @@ for pd in arguments:
         args[pd] = [pd]
 
 for pd in args:
+    unmergedFiles = glob("{0}/{1}_*.root".format(environ['SUBMIT_OUTDIR'],pd))
+    unmergedSize = 0
+    for unmergedFile in unmergedFiles:
+        unmergedSize += path.getsize(unmergedFile)
+    if unmergedSize > 16106127360: # 15 GB
+        disk="scratch5"
+    else:
+        disk="tmp"
+    split_dir = '/%s/%s/split/%s/'%(disk, user, submit_name)
+    merged_dir = '/%s/%s/merged/%s/'%(disk, user, submit_name)
+    for d in [split_dir, merged_dir]:
+        system('mkdir -p ' + d)
     merge(args[pd],pd)
     merged_file = merged_dir + '%s.root'%(pd)
     hadd(merged_file ,outbase) # really an mv

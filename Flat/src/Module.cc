@@ -56,7 +56,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   }
 
   if (analysis.hbb) {
-    cfg.minJetPt = analysis.zllhbb ? 20 : 25;
+    cfg.minJetPt = 20;
     cfg.minGenFatJetPt = 200;
   }
   if (analysis.vbf || analysis.hbb || analysis.complicatedLeptons)
@@ -112,8 +112,6 @@ void ConfigMod::set_inputBranches()
 
     if (cfg.isData || analysis.mcTriggers) {
       bl.push_back("triggers");
-      if (analysis.hbb && analysis.year==2017)
-        bl.push_back("triggerObjects");
     }
 
   }
@@ -155,6 +153,11 @@ void ConfigMod::set_outputBranches()
     gt.RemoveBranches({".*JES.*"},{});
   if (analysis.varyJESTotal)
     gt.RemoveBranches({},{".*JESTotal.*"});
+  if (analysis.hbb)
+    gt.RemoveBranches(
+      {".*JES.*","looseGen.*","genLep.*","genElectron.*","genTau.*","gen.*Top.*","genMjj.*","genFat.*"},
+      {"pfmet.*"} // keep total up/down MET variations, difficult to handle the variation offline
+    );
 }
 
 void ConfigMod::readData(TString dirPath)
@@ -164,9 +167,15 @@ void ConfigMod::readData(TString dirPath)
 
   // pileup
   utils.openCorr(cNPV,dirPath+"moriond17/normalized_npv.root","data_npv_Wmn",1);
-  utils.openCorr(cPU,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeights",1);
-  utils.openCorr(cPUUp,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeightsUp",1);
-  utils.openCorr(cPUDown,dirPath+"moriond17/puWeights_80x_37ifb.root","puWeightsDown",1);
+  if (analysis.year==2017) {
+    utils.openCorr(cPU,dirPath+"pileup/puWeights_90x_41ifb.root","puWeights",1);
+    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsUp",1);
+    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsDown",1);
+  } else {
+    utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
+    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
+    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
+  }
 
   if (analysis.complicatedLeptons) {
     // Corrections checked out from Gui's repository on Nov 12, 2017 ~DGH
@@ -355,7 +364,7 @@ void ConfigMod::readData(TString dirPath)
   if (analysis.hbb) {
     utils.openCorr(cJetLoosePUID,
                    dirPath+"higgs/puid.root",
-                   "puid_76x_loose",2);
+                   "puid_80x_loose",2);
   }
 
   // photons

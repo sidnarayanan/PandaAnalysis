@@ -279,7 +279,7 @@ void PandaAnalyzer::IncrementAuxFile(bool close)
 
   TString path = TString::Format(auxFilePath.Data(),auxCounter++);
   fAux = TFile::Open(path.Data(), "RECREATE");
-  if (DEBUG) PDebug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
+  if (DEBUG) logger.debug("PandaAnalyzer::IncrementAuxFile", "Opening "+path);
   tAux = new TTree("inputs","inputs");
   
   pfInfo.resize(NMAXPF);

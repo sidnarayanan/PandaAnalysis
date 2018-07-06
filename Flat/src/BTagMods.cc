@@ -72,9 +72,10 @@ void BTagWeightMod::do_execute()
     gt.sf_csvWeights[shift]=1;
     for (auto* jw : bcands) {
       auto& jet = jw->get_base();
-      float discr = analysis.year == 2016 ?
-                      (analysis.useCMVA ? jet.cmva : jet.csv) :
-                      jet.deepCSVb;
+      float discr;
+      if      (analysis.useCMVA   ) discr = jet.cmva;
+      else if (analysis.useDeepCSV) discr = jet.deepCSVb + jet.deepCSVbb;
+      else                          discr = jet.csv;
       unsigned absid = abs(jw->flavor);
       auto flav = absid == 5 ? BTagEntry::FLAV_B : 
                                (absid == 4 ? BTagEntry::FLAV_C : BTagEntry::FLAV_UDSG);

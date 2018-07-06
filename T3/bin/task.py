@@ -128,7 +128,6 @@ def kill(idle=False):
     else:
         logger.warning('task.py','Trying to kill a task with no submissions!')
 
-
 def check_duplicates():
     url = jm.report_server + '/condor/query?task=%s'%(submit_name)
     completed = {}

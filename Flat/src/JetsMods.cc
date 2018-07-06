@@ -164,16 +164,23 @@ void JetMod::do_execute()
       auto& jet = jw.get_base();
       float aeta = abs(jet.eta());
       float pt = jw.pt;
-      if (aeta > maxJetEta || pt < minMinJetPt)
+      if (aeta > maxJetEta || jw.nominal->maxpt < minMinJetPt)
         continue;
-      if (isMatched(matchLeps.get(),0.16,jet.eta(),jet.phi()))
-        continue;
-      if (!analysis.hbb && isMatched(matchPhos.get(),0.16,jet.eta(),jet.phi()))
+      
+      if (isNominal) { // perform cleaning only on the nominal jet and save flags
+        if (isMatched(matchLeps.get(),0.16,jet.eta(),jet.phi()))
+          jw.isLep = true;
+        if (!analysis.hbb && isMatched(matchPhos.get(),0.16,jet.eta(),jet.phi()))
+          jw.isPho = true;
+        if (analysis.hbb && jet.puid < utils.getCorr(cJetLoosePUID, aeta,min(39.99f,pt)))
+          jw.isPileupJet = true;
+      }
+      if (jw.nominal->isLep || jw.nominal->isPho || jw.nominal->isPileupJet)
         continue;
       if ((analysis.vbf || analysis.hbb) && !jet.loose)
         continue;
 
-      float csv = centralOnly(analysis.year==2016 ? jet.csv : jet.deepCSVb, aeta);
+      float csv = centralOnly( (analysis.useDeepCSV? jet.deepCSVb + jet.deepCSVbb : jet.csv), aeta);
       float cmva = centralOnly(jet.cmva, aeta);
 
       if (pt > cfg.minBJetPt && aeta < 2.4) { // b jets
@@ -246,6 +253,7 @@ void JetMod::do_execute()
             gt.jotPhi[njet] = jet.phi();
             gt.jotM[njet] = jet.m();
             gt.jotCSV[njet] = csv;
+            gt.jotFlav[njet] = jw.flavor;
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
             gt.jotIso[njet] = jw.iso ? 1 : 0; 
@@ -585,7 +593,10 @@ void HbbSystemMod::do_execute()
   sort(btagsorted.begin(), btagsorted.end(),
        analysis.useCMVA ?
         [](const JetWrapper *x, const JetWrapper *y) { return x->base->cmva > y->base->cmva; } :
-        [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb > y->base->deepCSVb; }
+        (analysis.useDeepCSV ?
+         [](const JetWrapper *x, const JetWrapper *y) { return x->base->deepCSVb+x->base->deepCSVbb > y->base->deepCSVb+y->base->deepCSVbb; } :
+         [](const JetWrapper *x, const JetWrapper *y) { return x->base->csv > y->base->csv; }
+        )
       );
   map<const JetWrapper*, int> order; // needed for output indexing
   for (int i = 0; i != (int)jets.cleaned.size(); ++i)

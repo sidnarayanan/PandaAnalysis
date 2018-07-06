@@ -308,6 +308,9 @@ namespace pa {
     float genpt{0};
     float maxpt{0}; 
     bool iso{false};
+    bool isLep{false};
+    bool isPho{false};
+    bool isPileupJet{false};
     int central_idx{-1};
     int cleaned_idx{-1};
     float breg{-1}, bregwidth{-1}; 

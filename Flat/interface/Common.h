@@ -90,13 +90,14 @@ namespace pa {
     bool rerunJER = false;
     bool rerunJES = false;
     bool useCMVA = false;
+    bool useDeepCSV = false;
     bool unpackedGen = false; 
     bool varyJES = false;
     bool varyJESTotal = false;
     bool vbf = false;
     bool vbfhbb = false; 
     bool vqqhbb = false; 
-    bool zllhbb = false;
+    bool zllhbb = false; 
   };
 
   enum CorrectionType { //!< enum listing relevant corrections applied to MC
