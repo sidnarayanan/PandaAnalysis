@@ -36,7 +36,7 @@ cut = 'fabs(jotEta[{0}])>2.4 || (jotNEMF[{0}]<0.9 && jotNHF[{0}]<0.8) && filter=
 if args.vbf:
     cut = tAND(cut, tAND('nJot>1', sel.mjj))
 elif args.spike:
-    cut = tAND(cut, '!(fabs(jotEta[{0}]+2.75)<0.25 && fabs(jotPhi[{0}]-2.1)<0.25)')
+    cut = tAND(cut, '!(fabs(jotEta[{0}]+2.81)<0.2 && fabs(jotPhi[{0}]-2.01)<0.2)')
 
 plot = root.CanvasDrawer()
 plot.SetTDRStyle()
@@ -44,7 +44,7 @@ plot.AddPlotLabel(args.f.replace('_',' ').replace('AllEras','Run2016*'), .18, .7
 if args.vbf:
     plot.AddPlotLabel('#Delta#phi_{jj}<1.5, #Delta#eta_{jj}>1', .18, .72, False, 42, .04)
 elif args.spike:
-    plot.AddPlotLabel('|#phi-2.1|>0.15 or |#eta+2.75|>0.25', .18, .72, False, 42, .04)
+    plot.AddPlotLabel('|#phi-2.01|>0.2 or |#eta+2.81|>0.2', .18, .72, False, 42, .04)
 root.gStyle.SetPadRightMargin(0.2)
 c = root.TCanvas()
 plot.SetCanvas(c)

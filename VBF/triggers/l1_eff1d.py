@@ -29,10 +29,11 @@ lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
 
 cut = 'fabs(jotEta[{0}])>2.75 && fabs(jotEta[{0}])<3 && jotPt[{0}]>100 && filter==1'
-cut = tAND(cut, '!(fabs(jotEta[{0}]+2.75)<0.25 && fabs(jotPhi[{0}]-2.1)<0.25)')
+cut = tAND(cut, '!(fabs(jotEta[{0}]+2.81)<0.2 && fabs(jotPhi[{0}]-2.01)<0.2)')
 sigcut = 'finor[1]!=0' if args.finor else 'jotL1EGBX[{0}]==-1'
 
 plot = root.GraphAsymmErrDrawer()
+plot.SetLineWidth(3)
 plot.SetTDRStyle()
 plot.InitLegend(.6,.65,.88,.9)
 
@@ -45,6 +46,7 @@ s = Selector()
 
 infile_tmpl = basedir + '%s.root'
 labels = ['MET', 'JetHT', 'SingleMuon']
+#labels = ['MET']
 files = {l:root.TFile.Open(infile_tmpl%l) for l in labels}
 trees = {l:files[l].Get('events') for l in labels}
 
@@ -72,7 +74,7 @@ def fn(hbase, branch_tmpl, xtitle, postfix):
         hratio[label].SetMinimum(0)
         hratio[label].SetMaximum(1.5)
         hratio[label].GetXaxis().SetTitle(xtitle)
-        hratio[label].SetLineWidth(2)
+        hratio[label].SetLineWidth(3)
         if args.finor:
             hratio[label].GetYaxis().SetTitle('FinOR BX=-1 eff')
         else:
@@ -98,19 +100,19 @@ def fn(hbase, branch_tmpl, xtitle, postfix):
     plot.ClearLegend()
     plot.AddCMSLabel()
     for i,label in enumerate(trees):
-        plot.AddGraph(hratio[label],label,i+1,1,'elp')
+        plot.AddGraph(hratio[label],label,i+1,1,'lz')
     plot.Draw(args.outdir+'/','oned_'+suffix+'_ratio')
 
 
-hbase = root.TH1D('h0', 'h', 30, 40, 800)
+hbase = root.TH1D('h0', 'h', 20, 40, 600)
 fn(hbase, 'jotPt[{0}]', 'p_{T} [GeV]', 'jotPt')
 
-hbase = root.TH1D('h1', 'h', 30, 0, 800)
+hbase = root.TH1D('h1', 'h', 20, 0, 600)
 fn(hbase, 'jotPt[{0}]*jotNEMF[{0}]', 'EM p_{T} [GeV]', 'jotEMPt')
 
-hbase = root.TH1D('h2', 'h', 20, 30, 256)
-fn(hbase, 'jotL1Pt[{0}]', 'L1 p_{T} [GeV]', 'jotL1Pt')
-
-hbase = root.TH1D('h3', 'h', 20, 2.6, 3.2)
-fn(hbase, 'fabs(jotEta[{0}])', '#eta', 'jotEta')
-
+# hbase = root.TH1D('h2', 'h', 20, 30, 256)
+# fn(hbase, 'jotL1Pt[{0}]', 'L1 p_{T} [GeV]', 'jotL1Pt')
+ 
+# hbase = root.TH1D('h3', 'h', 20, 2.6, 3.2)
+# fn(hbase, 'fabs(jotEta[{0}])', '#eta', 'jotEta')
+ 

@@ -3,7 +3,7 @@
 from sys import argv, exit
 import argparse
 
-parser = argparse.ArgumentParser(description='root to npy file')
+parser = argparse.ArgumentParser(description='')
 parser.add_argument('--histfile',type=str)
 parser.add_argument('--histname',type=str)
 parser.add_argument('--outbranch',type=str,default='sf_l1')

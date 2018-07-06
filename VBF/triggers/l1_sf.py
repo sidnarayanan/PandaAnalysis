@@ -5,13 +5,13 @@ from sys import argv
 import argparse
 
 ### SET GLOBAL VARIABLES ###
-baseDir = getenv('PANDA_FLATDIR')+'/' 
+baseDir = '/data/t3home000/zdemirag/forSid/panda/v_004_16/'
 dataDir = baseDir
 
 parser = argparse.ArgumentParser(description='plot stuff')
 parser.add_argument('--outdir',metavar='outdir',type=str,default=None)
 parser.add_argument('--cut',metavar='cut',type=str,default='1==1')
-parser.add_argument('--region',metavar='region',type=str,default=None)
+parser.add_argument('--region',metavar='region',type=str,default='signal')
 parser.add_argument('--cat',type=str,default='mjj')
 args = parser.parse_args()
 lumi = 36000.
@@ -25,7 +25,7 @@ import ROOT as root
 root.gROOT.SetBatch()
 from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
-import PandaAnalysis.VBF.PandaSelection as sel
+import PandaAnalysis.VBF.TestSelection as sel
 #import PandaAnalysis.VBF.TriggerSelection as sel
 from PandaCore.Drawers.plot_utility import *
 
@@ -38,7 +38,9 @@ if args.cat!='loose':
 ### LOAD PLOTTING UTILITY ###
 
 plot = PlotUtility()
-plot.Stack(False)
+plot.Stack(True)
+plot.Ratio(True)
+plot.FixRatio(0.3)
 plot.SetTDRStyle("vbf")
 plot.InitLegend()
 plot.DrawMCErrors(False)
@@ -52,19 +54,16 @@ if args.cat == 'cnc':
     weight = sel.weights_cnc[region]%lumi
 else:
     weight = sel.weights[region]%lumi
-plot.mc_weight = weight
+plot.mc_weight = '1' # weight
 
 ### DEFINE PROCESSES ###
-vbf           = Process('VBF H(inv)',root.kSignal1)
-vbfl1           = Process('VBF H(inv) * #epsilon_{L1}^{JetHT}',root.kSignal2)
+vbf           = Process('VBF H(inv)',root.kData)
+vbfl1           = Process('VBF H(inv) #times #varepsilon_{L1}^{JetHT}',root.kExtra1)
 vbfl1.dashed = True
-vbfl1.additional_weight = 'sf_l1_jetht'
-vbfl1met        = Process('VBF H(inv) * #epsilon_{L1}^{MET}',root.kSignal3)
-vbfl1met.dotted = True
-vbfl1met.additional_weight = 'sf_l1_met'
+vbfl1.additional_weight = 'sf_l1'
 
 ### ASSIGN FILES TO PROCESSES ###
-for p in [vbf,vbfl1,vbfl1met]:
+for p in [vbf,vbfl1]:
     p.add_file(baseDir+'vbfHinv_m125.root')
     plot.add_process(p)
 
@@ -83,7 +82,7 @@ plot.add_distribution(recoil)
 
 #plot.add_distribution(FDistribution('barrelHT',0,1000,20,'Barrel H_{T} [GeV]','Events/50 GeV'))
 #plot.add_distribution(FDistribution('barrelJet1Pt',0,1000,20,'Barrel jet 1 p_{T} [GeV]','Events/50 GeV'))
-plot.add_distribution(FDistribution('jot12Mass',0,4000,20,'m_{jj} [GeV]','Events/200 GeV'))
+plot.add_distribution(FDistribution('jot12Mass',0,4000,10,'m_{jj} [GeV]','Events/400 GeV'))
 plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','Events'))
 plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","Events",filename='jot12DPhi'))
 plot.add_distribution(FDistribution("jot1Eta",-5,5,20,"Jet 1 #eta","Events"))
