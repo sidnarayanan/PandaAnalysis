@@ -29,10 +29,11 @@ void L1Tree::Reset() {
   mindphi = 99;
   filter = 1;
   nJot = 0;
+  nJotEC = 0;
   jot12Mass = -99;
   jot12DEta = -99;
   jot12DPhi = -99;
-  for (int iA=0; iA!=3; ++iA) {
+  for (int iA=0; iA!=4; ++iA) {
     jotPt[iA] = -99;
     jotEta[iA] = -99;
     jotPhi[iA] = -99;
@@ -44,10 +45,16 @@ void L1Tree::Reset() {
     jotL1Pt[iA] = -99;
     jotL1Eta[iA] = -99;
     jotL1Phi[iA] = -99;
-    jotL1E[iA] = -99;
   }
   for (int iA=0; iA!=5; ++iA) {
     finor[iA] = -1;
+  }
+  for (int iA=0; iA!=4; ++iA) {
+    l1EGPt[iA] = -99;
+    l1EGBX[iA] = 99;
+    l1EGEta[iA] = -99;
+    l1EGPhi[iA] = -99;
+    l1EGIso[iA] = -99;
   }
 }
 void L1Tree::WriteTree(TTree *t) {
@@ -60,22 +67,27 @@ void L1Tree::WriteTree(TTree *t) {
   Book("met",&met,"met/F");
   Book("metphi",&metphi,"metphi/F");
   Book("mindphi",&mindphi,"mindphi/F");
-  Book("finor",finor,"finor["+TString("5")+"]/I");
   Book("filter",&filter,"filter/I");
   Book("nJot",&nJot,"nJot/I");
-  Book("jotPt",jotPt,"jotPt["+TString("3")+"]/F");
-  Book("jotEta",jotEta,"jotEta["+TString("3")+"]/F");
-  Book("jotPhi",jotPhi,"jotPhi["+TString("3")+"]/F");
-  Book("jotE",jotE,"jotE["+TString("3")+"]/F");
-  Book("jotNEMF",jotNEMF,"jotNEMF["+TString("3")+"]/F");
-  Book("jotNHF",jotNHF,"jotNHF["+TString("3")+"]/F");
-  Book("jotL1EGBX",jotL1EGBX,"jotL1EGBX["+TString("3")+"]/I");
-  Book("jotL1EGIso",jotL1EGIso,"jotL1EGIso["+TString("3")+"]/I");
-  Book("jotL1Pt",jotL1Pt,"jotL1Pt["+TString("3")+"]/F");
-  Book("jotL1Eta",jotL1Eta,"jotL1Eta["+TString("3")+"]/F");
-  Book("jotL1Phi",jotL1Phi,"jotL1Phi["+TString("3")+"]/F");
-  Book("jotL1E",jotL1E,"jotL1E["+TString("3")+"]/F");
+  Book("nJotEC",&nJotEC,"nJotEC/I");
+  Book("jotPt",jotPt,"jotPt["+TString("4")+"]/F");
+  Book("jotEta",jotEta,"jotEta["+TString("4")+"]/F");
+  Book("jotPhi",jotPhi,"jotPhi["+TString("4")+"]/F");
+  Book("jotE",jotE,"jotE["+TString("4")+"]/F");
+  Book("jotNEMF",jotNEMF,"jotNEMF["+TString("4")+"]/F");
+  Book("jotNHF",jotNHF,"jotNHF["+TString("4")+"]/F");
+  Book("jotL1EGBX",jotL1EGBX,"jotL1EGBX["+TString("4")+"]/I");
+  Book("jotL1EGIso",jotL1EGIso,"jotL1EGIso["+TString("4")+"]/I");
+  Book("jotL1Pt",jotL1Pt,"jotL1Pt["+TString("4")+"]/F");
+  Book("jotL1Eta",jotL1Eta,"jotL1Eta["+TString("4")+"]/F");
+  Book("jotL1Phi",jotL1Phi,"jotL1Phi["+TString("4")+"]/F");
   Book("jot12Mass",&jot12Mass,"jot12Mass/F");
   Book("jot12DEta",&jot12DEta,"jot12DEta/F");
   Book("jot12DPhi",&jot12DPhi,"jot12DPhi/F");
+  Book("finor",finor,"finor["+TString("5")+"]/I");
+  Book("l1EGPt",l1EGPt,"l1EGPt["+TString("4")+"]/F");
+  Book("l1EGBX",l1EGBX,"l1EGBX["+TString("4")+"]/I");
+  Book("l1EGEta",l1EGEta,"l1EGEta["+TString("4")+"]/F");
+  Book("l1EGPhi",l1EGPhi,"l1EGPhi["+TString("4")+"]/F");
+  Book("l1EGIso",l1EGIso,"l1EGIso["+TString("4")+"]/F");
 }

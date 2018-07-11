@@ -14,6 +14,7 @@ parser.add_argument('--f',metavar='f',type=str)
 parser.add_argument('--outdir',metavar='outdir',type=str)
 parser.add_argument('--vbf',action='store_true')
 parser.add_argument('--spike',action='store_true')
+parser.add_argument('--finor',action='store_true')
 args = parser.parse_args()
 
 figsdir = args.outdir
@@ -32,11 +33,14 @@ root.gStyle.SetPalette(root.kCool)
 lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
 
-cut = 'fabs(jotEta[{0}])>2.4 || (jotNEMF[{0}]<0.9 && jotNHF[{0}]<0.8) && filter==1'
+cut = 'fabs(jotEta[{0}])>2.4 || (jotNEMF[{0}]<0.9 && jotNHF[{0}]<0.8) && filter==1 && jotPt[{0}]>0'
 if args.vbf:
     cut = tAND(cut, tAND('nJot>1', sel.mjj))
 elif args.spike:
-    cut = tAND(cut, '!(fabs(jotEta[{0}]+2.81)<0.2 && fabs(jotPhi[{0}]-2.01)<0.2)')
+    cut = tAND(cut, '!(fabs(jotL1Eta[{0}]+2.81)<0.2 && fabs(jotL1Phi[{0}]-2.07)<0.2)')
+if args.finor:
+    cut = tAND(cut, 'nJotEC==1 && fabs(jotEta[{0}])>2.25 && fabs(jotEta[{0}])<3')
+sigcut = 'finor[1]!=0' if args.finor else 'jotL1EGBX[{0}]==-1'
 
 plot = root.CanvasDrawer()
 plot.SetTDRStyle()
@@ -59,9 +63,9 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
     hden = hbase.Clone()
     for iJ in xrange(3):
         branches = [x.format(iJ) for x in branch_tmpl]
-        s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[{0}]>0').format(iJ))
+        s.read_tree(t, branches = branches, cut=cut.format(iJ))
         hden.Add(s.draw(branches, hbase=hbase))
-        s.read_tree(t, branches = branches, cut=tAND(cut, 'jotPt[{0}]>0 && jotL1EGBX[{0}]==-1').format(iJ))
+        s.read_tree(t, branches = branches, cut=tAND(cut, sigcut).format(iJ))
         hnum.Add(s.draw(branches, hbase=hbase))
 
     hratio = hnum.Clone()
@@ -76,6 +80,8 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
         suffix = 'spike'
     else:
         suffix = 'inclusive'
+    if args.finor:
+        suffix += '_finor'
     suffix += postfix
 
     plot.Reset()

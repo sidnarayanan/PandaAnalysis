@@ -29,7 +29,9 @@ lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
 
 cut = 'fabs(jotEta[{0}])>2.75 && fabs(jotEta[{0}])<3 && jotPt[{0}]>100 && filter==1'
-cut = tAND(cut, '!(fabs(jotEta[{0}]+2.81)<0.2 && fabs(jotPhi[{0}]-2.01)<0.2)')
+cut = tAND(cut, '!(fabs(jotL1Eta[{0}]+2.81)<0.2 && fabs(jotL1Phi[{0}]-2.07)<0.2)')
+if args.finor:
+    cut = tAND(cut, 'nJotEC==1')
 sigcut = 'finor[1]!=0' if args.finor else 'jotL1EGBX[{0}]==-1'
 
 plot = root.GraphAsymmErrDrawer()
@@ -50,7 +52,7 @@ labels = ['MET', 'JetHT', 'SingleMuon']
 files = {l:root.TFile.Open(infile_tmpl%l) for l in labels}
 trees = {l:files[l].Get('events') for l in labels}
 
-def fn(hbase, branch_tmpl, xtitle, postfix):
+def fn(hbase, branch_tmpl, xtitle, postfix, save=False):
     hnum = {}; hden = {}; hratio = {}
     for label,t in trees.iteritems():
         hnum[label] = hbase.Clone()
@@ -103,9 +105,15 @@ def fn(hbase, branch_tmpl, xtitle, postfix):
         plot.AddGraph(hratio[label],label,i+1,1,'lz')
     plot.Draw(args.outdir+'/','oned_'+suffix+'_ratio')
 
+    if save:
+        fout = root.TFile.Open('../../data/vbf16/trig/l1.root','update')
+        for label,h in hratio.iteritems():
+            fout.WriteTObject(h, 'h1_'+label+'_'+suffix, 'overwrite')
+
+
 
 hbase = root.TH1D('h0', 'h', 20, 40, 600)
-fn(hbase, 'jotPt[{0}]', 'p_{T} [GeV]', 'jotPt')
+fn(hbase, 'jotPt[{0}]', 'p_{T} [GeV]', 'jotPt', True)
 
 hbase = root.TH1D('h1', 'h', 20, 0, 600)
 fn(hbase, 'jotPt[{0}]*jotNEMF[{0}]', 'EM p_{T} [GeV]', 'jotEMPt')

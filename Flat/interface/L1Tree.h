@@ -13,7 +13,8 @@
 #include <map>
 
 // ENDCUSTOM
-#define NL1JET 3
+#define NL1JET 4
+#define NL1EG 4
 class L1Tree : public genericTree {
   public:
     L1Tree();
@@ -33,23 +34,28 @@ class L1Tree : public genericTree {
   float met;
   float metphi;
   float mindphi;
-  int finor[5];
   int filter;
   int nJot;
-  float jotPt[3];
-  float jotEta[3];
-  float jotPhi[3];
-  float jotE[3];
-  float jotNEMF[3];
-  float jotNHF[3];
-  int jotL1EGBX[3];
-  int jotL1EGIso[3];
-  float jotL1Pt[3];
-  float jotL1Eta[3];
-  float jotL1Phi[3];
-  float jotL1E[3];
+  int nJotEC;
+  float jotPt[4];
+  float jotEta[4];
+  float jotPhi[4];
+  float jotE[4];
+  float jotNEMF[4];
+  float jotNHF[4];
+  int jotL1EGBX[4];
+  int jotL1EGIso[4];
+  float jotL1Pt[4];
+  float jotL1Eta[4];
+  float jotL1Phi[4];
   float jot12Mass;
   float jot12DEta;
   float jot12DPhi;
+  int finor[5];
+  float l1EGPt[4];
+  int l1EGBX[4];
+  float l1EGEta[4];
+  float l1EGPhi[4];
+  float l1EGIso[4];
 };
 #endif
