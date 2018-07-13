@@ -26,12 +26,12 @@ def fn(input_name, isData, full_path):
     
     logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
-    a = breg(True)
+    a = breg()
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
     a.isData = isData
-    utils.set_year(a, 2016)
+    utils.set_year(a, 2017)
     a.processType = utils.classify_sample(full_path, isData)	
 
     skimmer = root.pa.PandaAnalyzer(a)
@@ -55,6 +55,9 @@ if __name__ == "__main__":
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
     
+    utils.report_start(outdir,outfilename,to_run.files)
+
+    wd = utils.isolate()
     utils.main(to_run, processed, fn)
 
     utils.hadd(processed.keys())
@@ -62,10 +65,10 @@ if __name__ == "__main__":
 
     ret = utils.stageout(outdir,outfilename)
     utils.cleanup('*.root')
+    utils.un_isolate(wd)
     utils.print_time('stageout and cleanup')
     if not ret:
         utils.report_done(lockdir,outfilename,processed)
-        utils.cleanup('*.lock')
         utils.print_time('create lock')
     else:
         exit(-1*ret)

@@ -12,6 +12,7 @@ basedir = getenv('PANDA_FLATDIR') + '/'
 parser = argparse.ArgumentParser(description='plot stuff')
 parser.add_argument('--outdir',metavar='outdir',type=str)
 parser.add_argument('--finor', action='store_true')
+parser.add_argument('--iso', action='store_true')
 args = parser.parse_args()
 
 figsdir = args.outdir
@@ -33,6 +34,8 @@ cut = tAND(cut, '!(fabs(jotL1Eta[{0}]+2.81)<0.2 && fabs(jotL1Phi[{0}]-2.07)<0.2)
 if args.finor:
     cut = tAND(cut, 'nJotEC==1')
 sigcut = 'finor[1]!=0' if args.finor else 'jotL1EGBX[{0}]==-1'
+if args.iso:
+    sigcut = tAND(sigcut, 'jotL1EGIso[{0}]>0')
 
 plot = root.GraphAsymmErrDrawer()
 plot.SetLineWidth(3)
@@ -79,12 +82,18 @@ def fn(hbase, branch_tmpl, xtitle, postfix, save=False):
         hratio[label].SetLineWidth(3)
         if args.finor:
             hratio[label].GetYaxis().SetTitle('FinOR BX=-1 eff')
+        elif args.iso:
+            hratio[label].GetYaxis().SetTitle('IsoEG30 BX=-1 eff')
         else:
-            hratio[label].GetYaxis().SetTitle('L1IsoEG BX=-1 eff')
+            hratio[label].GetYaxis().SetTitle('IsoEG30,EG40 BX=-1 eff')
 
     suffix = postfix
     if args.finor:
         suffix += '_finor'
+    elif args.iso:
+        suffix += '_egiso'
+    else:
+        suffix += '_eg'
 
     plotlog.Reset()
     plotlog.AddCMSLabel()

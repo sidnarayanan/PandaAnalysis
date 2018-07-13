@@ -31,10 +31,11 @@ void L1Mod::execute()
       gt.mindphi = min(gt.mindphi, (float)SignedDeltaPhi(gt.jotPhi[iJ], gt.metphi));
       for (int iTP = 0; iTP != (int)event.L1EG_bx->size(); ++iTP) {
         auto& tp = (*(event.L1EG_p4))[iTP]; 
-        if (tp.pt() < 30) 
+        float pt = tp.pt();
+        if (pt < 30) 
           continue; 
         int iso = (*(event.L1EG_iso))[iTP];
-        if (! (iso > 0))
+        if (!(iso > 0 || pt > 40))
           continue; 
         if (DeltaR2(jet.eta(), jet.phi(), tp.eta(), tp.phi()) < 0.16) { 
           int bx = (*(event.L1EG_bx))[iTP];

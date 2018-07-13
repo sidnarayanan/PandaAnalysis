@@ -395,7 +395,7 @@ void IsoJetMod::do_execute()
 
 
 const vector<double> BJetRegMod::Energies::dr_bins {
-  std::pow(0.05, 2), std::pow(0.1, 2), std::pow(0.2, 2), std::pow(0.3, 2), std::pow(0.4, 2)
+  pow(0.05, 2), pow(0.1, 2), pow(0.2, 2), pow(0.3, 2), pow(0.4, 2)
 };
 
 void BJetRegMod::do_execute()

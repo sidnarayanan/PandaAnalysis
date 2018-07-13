@@ -167,7 +167,7 @@ void ConfigMod::readData(TString dirPath)
 
   // pileup
   utils.openCorr(cNPV,dirPath+"moriond17/normalized_npv.root","data_npv_Wmn",1);
-  if (analysis.year==2017) {
+  if (analysis.year == 2017) {
     utils.openCorr(cPU,dirPath+"pileup/puWeights_90x_41ifb.root","puWeights",1);
     utils.openCorr(cPUUp,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsUp",1);
     utils.openCorr(cPUDown,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsDown",1);
