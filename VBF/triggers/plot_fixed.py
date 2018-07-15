@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from os import system,getenv
-from sys import argv
+from sys import argv, exit
 import argparse
 
 ### SET GLOBAL VARIABLES ###
@@ -14,7 +14,7 @@ parser.add_argument('--cut',metavar='cut',type=str,default='1==1')
 parser.add_argument('--data_cut',metavar='data_cut',type=str,default='1==1')
 parser.add_argument('--region',metavar='region',type=str,default=None)
 parser.add_argument('--cat',type=str,default='loose')
-parser.add_argument('--add_sf',action='store_true')
+parser.add_argument('--sf',type=str,default='1')
 args = parser.parse_args()
 lumi = 36000.
 blind=True
@@ -27,8 +27,7 @@ import ROOT as root
 root.gROOT.SetBatch()
 from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
-#import PandaAnalysis.VBF.PandaSelection as sel
-import PandaAnalysis.VBF.TestSelection as sel
+import PandaAnalysis.VBF.PandaSelection as sel
 #import PandaAnalysis.VBF.TriggerSelection as sel
 from PandaCore.Drawers.plot_utility import *
 
@@ -63,6 +62,7 @@ if args.cat == 'cnc':
     weight = sel.weights_cnc[region]%lumi
 else:
     weight = sel.weights[region]%lumi
+weight = weight.replace('sf_l1',args.sf)
 plot.mc_weight = weight
 
 ### DEFINE PROCESSES ###
@@ -171,6 +171,5 @@ plot.add_distribution(FDistribution("jot2Pt",40,500,20,"Jet 2 p_{T} [GeV]","Even
 
 ### DRAW AND CATALOGUE ###
 #region = '%s/%s'%(args.cat,region)
-if args.add_sf:
-    region = 'sfl1_'+region
+region += '_' + args.sf
 plot.draw_all(args.outdir+'/'+region+'_')

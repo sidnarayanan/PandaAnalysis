@@ -14,8 +14,8 @@ metFilter='metFilter==1 && egmFilter==1'
 #presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7 && nTau==0 && jetNMBtags==0 && jot1VBFID==1'
 presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7'
 presel = tAND(presel, 'nTau==0 && jetNMBtags==0 && jot1VBFID==1 && (fabs(jot1Eta)<3 || fabs(jot2Eta)<3)')
-presel = tAND(presel, 'fabs(jot1Eta+2.82)>0.2 || fabs(jot1Phi-2.01)>0.2')
-presel = tAND(presel, 'fabs(jot2Eta+2.82)>0.2 || fabs(jot2Phi-2.01)>0.2')
+presel = tAND(presel, 'fabs(jot1Eta+2.82)>0.4 || fabs(jot1Phi-2.01)>0.4')
+presel = tAND(presel, 'fabs(jot2Eta+2.82)>0.4 || fabs(jot2Phi-2.01)>0.4')
 cnc = 'fabs(jot12DEta)>4 && jot12Mass>1300 && fabs(jot12DPhi)<1.5'
 mjj = 'fabs(jot12DEta)>1 && fabs(jot12DPhi)<1.5'
 nminus1 = 'fabs(jot12DEta)>1'

@@ -29,8 +29,8 @@ root.gROOT.SetBatch()
 lumi=36000
 import PandaAnalysis.VBF.PandaSelection as sel 
 
-cut = 'fabs(jotEta[{0}])>2.75 && fabs(jotEta[{0}])<3 && jotPt[{0}]>100 && filter==1'
-cut = tAND(cut, '!(fabs(jotL1Eta[{0}]+2.81)<0.2 && fabs(jotL1Phi[{0}]-2.07)<0.2)')
+cut = 'fabs(jotEta[{0}])>2.75 && fabs(jotEta[{0}])<3 && filter==1'
+cut = tAND(cut, '!(fabs(jotEta[{0}]+2.81)<0.4 && fabs(jotPhi[{0}]-2.07)<0.4)')
 if args.finor:
     cut = tAND(cut, 'nJotEC==1')
 sigcut = 'finor[1]!=0' if args.finor else 'jotL1EGBX[{0}]==-1'

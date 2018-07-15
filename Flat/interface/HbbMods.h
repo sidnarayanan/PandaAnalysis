@@ -104,7 +104,7 @@ namespace pa {
       AnalysisMod("softactivity", event_, cfg_, utils_, gt_, level_) { }
     virtual ~SoftActivityMod () { }
 
-    virtual bool on() { return !analysis.genOnly && analysis.hbb && !analysis.vbf && !analysis.vqqhbb; }
+    virtual bool on() { return !analysis.genOnly && analysis.hbb && !analysis.vbf && !analysis.vqqhbb && !analysis.bjetRegTraining; }
     
   protected:
     void do_init(Registry& registry) {
