@@ -394,7 +394,7 @@ void IsoJetMod::do_execute()
 }
 
 
-const vector<double> BJetRegMod::Energies::dr_bins {
+const vector<double> BJetRegMod::Energies::dr2_bins {
   pow(0.05, 2), pow(0.1, 2), pow(0.2, 2), pow(0.3, 2), pow(0.4, 2)
 };
 
@@ -405,6 +405,8 @@ void BJetRegMod::do_execute()
   auto& jets = **currentJES;
 
   int N = jets.cleaned.size() - 1;
+
+  energies.clear();
 
   TLorentzVector vjet(jet.p4());
   TLorentzVector vraw(vjet); vraw *= jet.rawPt / jet.pt(); 
@@ -425,20 +427,22 @@ void BJetRegMod::do_execute()
   energies.jet_e = gt.jotRawE[N];
 
   float sumpt{0}, sumpt2{0};
-  int leading_pdgid = 0;
+  int leadingLepPdgId = 0;
+  fprintf(stderr,"we are on jet %i with pt=%f,%f\n", N, jet.pt(), jw.pt);
   for (const auto& pf : jet.constituents) {
-    TLorentzVector v(pf->p4()), vcent(v);
-    vcent.SetPtEtaPhiM(v.Pt(), v.Eta()-vraw.Eta(), SignedDeltaPhi(v.Phi(), vraw.Phi()), v.M());
-    float dr2 = pow(vcent.Eta(),2) + pow(vcent.Phi(),2);
+    TLorentzVector v(pf->p4());
+    float dr2 = DeltaR2(v.Eta(), v.Phi(), vraw.Eta(), vraw.Phi());
     float pt = pf->pt();
     sumpt += pt; sumpt2 += pow(pt, 2);
     if (pt > 0.3)
       gt.jotNPt03[N]++;
     int pdgid = abs(pf->pdgId());
+    fprintf(stderr,"  at pf=%i, pt=%f\n", pf.idx(), pf->pt());
     if (pf->q() != 0) {
       gt.jotTrk1Pt[N] = max(pt, gt.jotTrk1Pt[N]);
       if (pdgid == 11 || pdgid == 13) {
         gt.jotNLep[N]++;
+        fprintf(stderr,"    FOUND LEPTON %i %f %f\n", pdgid, pf->eta(), pf->phi());
         if (pt > gt.jotLep1Pt[N]) {
           gt.jotLep1Pt[N] = pt;
           gt.jotLep1Eta[N] = pf->eta();
@@ -447,20 +451,20 @@ void BJetRegMod::do_execute()
           gt.jotLep1PtRelRaw[N] = v.Perp(vraw.Vect()); 
           gt.jotLep1PtRelRawInv[N] = vraw.Perp(v.Vect());
           gt.jotLep1DeltaR[N] = sqrt(dr2);
-          leading_pdgid = pdgid;
+          leadingLepPdgId = pdgid;
           gt.jotLep1IsOther[N] = 0; 
         }
       }
     }
 
-    if (leading_pdgid == 11) 
+    if (leadingLepPdgId == 11) 
       gt.jotLep1IsEle[N] = 1; 
-    else if (leading_pdgid == 13)
+    else if (leadingLepPdgId == 13)
       gt.jotLep1IsMu[N] = 1;  // if neither, then the default is IsOther == 1
 
-    unsigned bin = lower_bound(Energies::dr_bins.begin(), Energies::dr_bins.end(), dr2)
-                   - Energies::dr_bins.begin();
-    if (bin < Energies::dr_bins.size()) {
+    unsigned bin = lower_bound(Energies::dr2_bins.begin(), Energies::dr2_bins.end(), dr2)
+                   - Energies::dr2_bins.begin();
+    if (bin < Energies::dr2_bins.size()) {
       Energies::pftype pf_type{Energies::pne};
       if (pdgid == 22 || pdgid == 11)
         pf_type = Energies::pem;
@@ -468,12 +472,12 @@ void BJetRegMod::do_execute()
         pf_type = Energies::pmu;
       else if (pf->q() != 0)
         pf_type = Energies::pch;
-      energies.pf[pf_type][bin].push_back(vcent);
+      energies.pf[pf_type][bin].push_back(v);
     }
   }
 
   gt.jotPtD[N] = sumpt > 0 ? sqrt(sumpt2)/sumpt : 0;
-  for (unsigned b = 0; b != Energies::dr_bins.size(); ++b) {
+  for (unsigned b = 0; b != Energies::dr2_bins.size(); ++b) {
     gt.jotEMRing[b][N] = energies.get_e(b, Energies::pem);
     gt.jotChRing[b][N] = energies.get_e(b, Energies::pch);
     gt.jotMuRing[b][N] = energies.get_e(b, Energies::pmu);
@@ -483,7 +487,7 @@ void BJetRegMod::do_execute()
   for (int pf_type = Energies::pem; pf_type != (int)Energies::pN; ++pf_type) {
     static std::array<float, static_cast<long unsigned>(shiftjetrings::N)> moments;
     // eta first
-    energies.get_moments(pf_type, &TLorentzVector::Eta, moments);
+    energies.get_moments(pf_type, &TLorentzVector::Eta, moments, jet.eta());
     auto eta_array = [&] () {
       switch (pf_type) {
         case Energies::pem: return &GeneralTree::jotEMEta;
@@ -496,7 +500,7 @@ void BJetRegMod::do_execute()
       (gt.*eta_array)[i][N] = moments[i];
 
     // phi second
-    energies.get_moments(pf_type, &TLorentzVector::Phi, moments);
+    energies.get_moments(pf_type, &TLorentzVector::Phi, moments, jet.phi());
     auto phi_array = [&] () {
       switch (pf_type) {
         case Energies::pem: return &GeneralTree::jotEMPhi;

@@ -79,6 +79,7 @@ void ConfigMod::set_inputBranches()
 {
   bl.setVerbosity(0);
   TString jetname = analysis.puppiJets ? "puppi" : "chs";
+  
 
   if (analysis.genOnly) {
     bl += {"genParticlesU"};
@@ -89,6 +90,7 @@ void ConfigMod::set_inputBranches()
            "pfMet", "caloMet", "puppiMet", "rawMet", "trkMet",
            "recoil","metFilters","trkMet"};
 
+    bool breg = analysis.bjetBDTReg || analysis.bjetDeepReg || analysis.bjetRegTraining; 
     if (analysis.ak8) {
       bl += {jetname+"AK8Jets", jetname+"AK8Subjets"};
       if (analysis.hbb)
@@ -98,16 +100,16 @@ void ConfigMod::set_inputBranches()
       if (analysis.hbb)
         bl.push_back("ca15GenJets");
     }
-    if (analysis.recluster || analysis.bjetBDTReg ||
+    if (analysis.recluster || breg ||
         analysis.deep || analysis.hbb || 
         analysis.complicatedPhotons || analysis.recalcECF) {
       bl.push_back("pfCandidates");
     }
-    if (analysis.deepTracks || analysis.bjetBDTReg || analysis.hbb) {
+    if (analysis.deepTracks || breg || analysis.hbb) {
       bl += {"tracks","vertices"};
     }
 
-    if (analysis.bjetBDTReg || analysis.deepSVs)
+    if (breg || analysis.deepSVs)
       bl.push_back("secondaryVertices");
 
     if (cfg.isData || analysis.mcTriggers) {

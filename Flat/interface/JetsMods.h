@@ -103,7 +103,7 @@ namespace pa {
       AnalysisMod("bjetreg", event_, cfg_, utils_, gt_, level_) { }
     virtual ~BJetRegMod () {}
 
-    bool on() { return analysis.bjetBDTReg || analysis.bjetDeepReg; }
+    bool on() { return analysis.bjetBDTReg || analysis.bjetDeepReg || analysis.bjetRegTraining; }
   protected:
     void do_init(Registry& registry) {
       currentJet = registry.access<JetWrapper*>("currentJet");
@@ -113,7 +113,7 @@ namespace pa {
     void do_reset() { energies.clear(); }
   private:
     struct Energies {
-      static const std::vector<double> dr_bins;
+      static const std::vector<double> dr2_bins;
       enum pftype {
         pem, pch, pmu, pne, pN
       };
@@ -135,7 +135,7 @@ namespace pa {
 
       typedef double (TLorentzVector::*vec_func) () const;
       template <long unsigned int I>
-      void get_moments(int pft, vec_func f, std::array<float,I>& moments ) {
+      void get_moments(int pft, vec_func f, std::array<float,I>& moments, float shift=0) {
         std::fill(moments.begin(), moments.end(), 0);
         // first get the mean
         float sumw{0};
@@ -143,7 +143,7 @@ namespace pa {
         for (auto& bin : pf[pft]) {
           x.reserve(x.size() + bin.size());
           for (auto& v : bin) {
-            x.emplace_back((v.*f)(),v.E());
+            x.emplace_back((v.*f)() - shift, v.E());
             sumw += v.E();
           }
         }
@@ -152,7 +152,7 @@ namespace pa {
           return;
 
         for (auto& xx : x)
-          moments[0] += (xx.first * xx.second); 
+          moments[0] += xx.first * xx.second; 
         moments[0] /= sumw;
 
         for (unsigned ex = 1; ex != I; ++ ex) {

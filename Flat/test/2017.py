@@ -22,23 +22,23 @@ import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-a = vqqhbb()
+a = breg()
 a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 a.isData = False
-a.processType = root.pa.kH 
+a.processType = root.pa.kTT 
 utils.set_year(a, 2017)
 
 skimmer = root.pa.PandaAnalyzer(a, debug_level)
 
 #skimmer.firstEvent=0
-skimmer.lastEvent=400
+skimmer.lastEvent=10
 if a.isData:
     utils.add_json(skimmer)
 
 #skimmer.AddPresel(root.pa.LowGenBosonPtSel())
-skimmer.AddPresel(root.pa.VqqHbbSel())
+#skimmer.AddPresel(root.pa.VqqHbbSel())
 #skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.Run()

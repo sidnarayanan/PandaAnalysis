@@ -17,6 +17,7 @@
 #include "LepPhoMods.h"
 #include "TheoryMods.h"
 #include "HbbMods.h"
+#include "DebugMods.h"
 
 
 namespace pa {
