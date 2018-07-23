@@ -71,6 +71,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
   // Read inputs
   getInput();
+
   event.setStatus(*tIn, {"!*"});
   event.setAddress(*tIn, cfgmod.get_inputBranches());
 

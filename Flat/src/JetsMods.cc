@@ -439,7 +439,7 @@ void BJetRegMod::do_execute()
     int pdgid = abs(pf->pdgId());
     fprintf(stderr,"  at pf=%i, pt=%f\n", pf.idx(), pf->pt());
     if (pf->q() != 0) {
-      gt.jotTrk1Pt[N] = max(pt, gt.jotTrk1Pt[N]);
+      gt.jotChTrk1Pt[N] = max(pt, gt.jotChTrk1Pt[N]);
       if (pdgid == 11 || pdgid == 13) {
         gt.jotNLep[N]++;
         fprintf(stderr,"    FOUND LEPTON %i %f %f\n", pdgid, pf->eta(), pf->phi());
@@ -456,6 +456,7 @@ void BJetRegMod::do_execute()
         }
       }
     }
+    gt.jotTrk1Pt[N] = max(pt, gt.jotTrk1Pt[N]);
 
     if (leadingLepPdgId == 11) 
       gt.jotLep1IsEle[N] = 1; 

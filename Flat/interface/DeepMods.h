@@ -7,6 +7,7 @@
 #include "fastjet/contrib/Njettiness.hh"
 #include "PhysicsTools/TensorFlow/interface/TensorFlow.h"
 #include "TMVA/Reader.h"
+#include <algorithm>
 
 namespace pa {
 
