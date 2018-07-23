@@ -78,7 +78,7 @@ class GeneralTree : public genericTree {
     ~GeneralTree();
     void WriteTree(TTree* t);
     void Fill() { treePtr->Fill(); }
-    void Reset();
+    void Reset();    void SetAuxTree(TTree*);
 // STARTCUSTOM PUBLIC
     const std::vector<double>& get_betas() const { return betas; }
     const std::vector<int>& get_ibetas() const { return ibetas; }
@@ -195,7 +195,6 @@ class GeneralTree : public genericTree {
     std::map<TString,float> signal_weights;
     std::map<csvShift,float> sf_csvWeights;
     static TString csvShiftName(csvShift shift);
-    virtual void SetAuxTree(TTree *t);
 // ENDCUSTOM
   private:
 // STARTCUSTOM PRIVATE
