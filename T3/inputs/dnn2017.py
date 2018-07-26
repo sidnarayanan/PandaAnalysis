@@ -27,6 +27,8 @@ def fn(input_name, isData, full_path):
     logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
     a = breg(True)
+    a.bjetBDTReg = True
+    a.bjetDeepReg = True
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
@@ -36,9 +38,7 @@ def fn(input_name, isData, full_path):
     if a.processType in {root.pa.kTT, root.pa.kH}:
         a.reclusterGen = True # only turn on if necessary
 
-    skimmer = root.pa.PandaAnalyzer(a,0)
-    #skimmer.AddPresel(root.pa.VHbbSel())
-    #skimmer.AddPresel(root.pa.TriggerSel())
+    skimmer = root.pa.PandaAnalyzer(a)
 
     return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
 
@@ -59,6 +59,9 @@ if __name__ == "__main__":
     outfilename = to_run.name+'_%i.root'%(submit_id)
     processed = {}
     
+    utils.report_start(outdir,outfilename,to_run.files)
+    
+    wd = utils.isolate()
     utils.main(to_run, processed, fn)
 
     utils.hadd(processed.keys())
@@ -66,6 +69,7 @@ if __name__ == "__main__":
 
     ret = utils.stageout(outdir,outfilename)
     utils.cleanup('*.root')
+    utils.un_isolate(wd)
     utils.print_time('stageout and cleanup')
     if not ret:
         utils.report_done(lockdir,outfilename,processed)

@@ -30,7 +30,6 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
   ADDMOD(MapMod);
-  ADDMOD(PFDumpMod);
   if (analysis.unpackedGen)
     ADDMOD(DeepGenMod<UnpackedGenParticle>);
   else

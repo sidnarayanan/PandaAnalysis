@@ -5,6 +5,7 @@ WD=$PWD
 env
 python -c "import sys; import socket; sys.stderr.write('hostname = '+socket.gethostname()+'\n');"
 uname -a 1>&2 
+lsb_release -a 1>&2 
 hostname 1>&2
 
 export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch

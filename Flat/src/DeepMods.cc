@@ -129,12 +129,11 @@ void BRegDeepMod::do_execute()
   inputs[38] = gt.jotLep1IsEle[N];
   inputs[39] = gt.jotLep1IsMu[N];
   inputs[40] = gt.jotLep1IsOther[N];
-  inputs[41] = gt.jotRawM[N]*gt.jotRawPt[N]/gt.jotPt[0][N];
+  inputs[41] = gt.jotRawM[N];
   inputs[42] = gt.jotPtD[N];
 
 
   /*
-
   // defined in data/trainings/breg_training_2017.cfg
   inputs[ 0] = gt.jotRawPt[N];
   inputs[ 1] = gt.jotEta[N];
@@ -183,16 +182,21 @@ void BRegDeepMod::do_execute()
   inputs[44] = gt.jotNeRing[2][N];
   inputs[45] = gt.jotNeRing[3][N];
   inputs[46] = gt.jotNeRing[4][N];
-
   */
 
-  // for (auto& i : inputs)
-  //   i = dnn_clean(i); 
+  for (auto& i : inputs)
+    i = dnn_clean(i); 
 
   eval();
 
+
   jw.breg = outputs[0];
   jw.bregwidth = 0.5 * (outputs[2] - outputs[1]);
+  
+  // from /afs/cern.ch/user/n/nchernya/public/breg_training/2017_updated_newJEC/config_2017_updated.json 
+  float y_std = 0.28492164611816406, y_mean = 1.0596693754196167;
+  jw.breg = (y_std * jw.breg) + y_mean;
+  jw.bregwidth *= y_std; 
 
   //  jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
   //jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
@@ -222,7 +226,8 @@ void TFInferMod::eval()
   vector<tf::Tensor> t_o;
   tf::run(sess.get(), t_i, outputNames, &t_o);
   for (int idx = 0; idx != n_outputs; ++idx) {
-    outputs[idx] = t_o[idx].tensor<float,2>()(0,0);
+    outputs[idx] = t_o[0].matrix<float>()(0,idx);
+    //outputs[idx] = t_o[idx].tensor<float,2>()(0,0);
   }
 }
 

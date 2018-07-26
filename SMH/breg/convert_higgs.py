@@ -17,7 +17,8 @@ def add_idx(x, i):
     return sub(r'jot([A-z]*)',r'jot\1[hbbjtidx[%i]]'%i, x)
 
 branches = {}
-cats = ['inputs', 'inputs_dr', 'inputs_etaphi', 'targets', 'misc']
+cats = ['inputs', 'targets', 'misc_higgs']
+#cats = ['inputs', 'inputs_dr', 'inputs_etaphi', 'targets', 'misc']
 for cat in cats:
     f = open(basedir+cat+'.cfg')
     for l in f.readlines():
@@ -27,6 +28,10 @@ for cat in cats:
         if x.endswith('_[]'):
             branches.setdefault(cat+'_hbb0',[]).extend([add_idx(x.replace('[]','%i'%i), 0) for i in xrange(5)])
             branches.setdefault(cat+'_hbb1',[]).extend([add_idx(x.replace('[]','%i'%i), 1) for i in xrange(5)])
+        elif x.endswith('[0]'):
+            branches.setdefault(cat+'_hbb0',[]).append(x)
+        elif x.endswith('[1]'):
+            branches.setdefault(cat+'_hbb1',[]).append(x)
         else:
             branches.setdefault(cat+'_hbb0',[]).append(add_idx(x,0))
             branches.setdefault(cat+'_hbb1',[]).append(add_idx(x,1))

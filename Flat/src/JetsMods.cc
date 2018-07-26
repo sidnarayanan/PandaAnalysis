@@ -249,6 +249,7 @@ void JetMod::do_execute()
           if (isNominal) {
             if (!analysis.hbb && jet.matchedGenJet.isValid())
               gt.jotGenPt[njet] = jet.matchedGenJet->pt(); 
+            gt.jotSmear[njet] = jw.pt / jet.pt(); // smeared / nominal
             gt.jotEta[njet] = jet.eta();
             gt.jotPhi[njet] = jet.phi();
             gt.jotM[njet] = jet.m();
@@ -428,7 +429,6 @@ void BJetRegMod::do_execute()
 
   float sumpt{0}, sumpt2{0};
   int leadingLepPdgId = 0;
-  fprintf(stderr,"we are on jet %i with pt=%f,%f\n", N, jet.pt(), jw.pt);
   for (const auto& pf : jet.constituents) {
     TLorentzVector v(pf->p4());
     float dr2 = DeltaR2(v.Eta(), v.Phi(), vraw.Eta(), vraw.Phi());
@@ -437,12 +437,10 @@ void BJetRegMod::do_execute()
     if (pt > 0.3)
       gt.jotNPt03[N]++;
     int pdgid = abs(pf->pdgId());
-    fprintf(stderr,"  at pf=%i, pt=%f\n", pf.idx(), pf->pt());
     if (pf->q() != 0) {
       gt.jotChTrk1Pt[N] = max(pt, gt.jotChTrk1Pt[N]);
       if (pdgid == 11 || pdgid == 13) {
         gt.jotNLep[N]++;
-        fprintf(stderr,"    FOUND LEPTON %i %f %f\n", pdgid, pf->eta(), pf->phi());
         if (pt > gt.jotLep1Pt[N]) {
           gt.jotLep1Pt[N] = pt;
           gt.jotLep1Eta[N] = pf->eta();
@@ -634,14 +632,15 @@ void HbbSystemMod::do_execute()
         gt.jotDeepBRegWidth[i] = hbbdJetRef.bregwidth;
         gt.jotDeepBRegSampled[i] = (event.rng.normal() * hbbdJetRef.bregwidth)  + hbbdJetRef.breg;
       }
+      auto scale_fn = [&](float x) { return 1 + (gt.jotPt[shift][idx] / hbbdJetRef.base->pt()) * (x - 1); };
       hbbd_dcorr[i].SetPtEtaPhiM(
-            gt.jotPt[shift][idx] * gt.jotDeepBReg[i],
+            gt.jotPt[shift][idx] * scale_fn(gt.jotDeepBReg[i]),
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]
           );
       hbbd_qcorr[i].SetPtEtaPhiM(
-            gt.jotPt[shift][idx] * gt.jotDeepBRegSampled[i],
+            gt.jotPt[shift][idx] * scale_fn(gt.jotDeepBRegSampled[i]),
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]

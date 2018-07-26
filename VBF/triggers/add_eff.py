@@ -5,7 +5,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--histfile',type=str)
-parser.add_argument('--outbranch',type=str,default='sf_l1')
+parser.add_argument('--outbranch',type=str,default='sf_l1finor')
 parser.add_argument('outfile',metavar='outfile',type=str,nargs='+',help='input file(s) to process')
 args = parser.parse_args()
 
@@ -51,11 +51,13 @@ for fpath in args.outfile:
     fba.newBranchName = args.outbranch
     fba.formula = formula.format(1)
     fba.addBranch(t)
+    '''
     fba.newBranchName = args.outbranch+'_Up'
     fba.formula = formula.format(1.2)
     fba.addBranch(t)
     fba.newBranchName = args.outbranch+'_Down'
     fba.formula = formula.format(0.8)
     fba.addBranch(t)
+    '''
     f.WriteTObject(t, 'events', 'overwrite')
     f.Close()

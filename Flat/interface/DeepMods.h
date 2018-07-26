@@ -86,19 +86,25 @@ namespace pa {
                 GeneralTree& gt_,
                 int level_=0) :
       TFInferMod("bregdeep", event_, cfg_, utils_, gt_, level_) {
-      n_inputs = 47;
-      n_outputs = 5;
-      inputName = "input";
+      n_inputs = 43;
+      //n_inputs = 47;
+      n_outputs = 3;
+      inputName = "ffwd_inp";
+      //inputName = "input";
+      /*
       outputNames.reserve(n_outputs);
       for (int i = 0; i != n_outputs; ++i)
         outputNames.push_back(Form("output_%i/BiasAdd", i));
+      */
+      outputNames.push_back("ffwd_out/BiasAdd");
     }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetDeepReg; }
   protected:
     void do_readData(TString dirPath) {
       TString modelfile = dirPath+"/trainings/graph.pb";
-      downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg/v2/quantiles/graph.pb",
+      //downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg/v2/quantiles/graph.pb",
+      downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg_training_2017_updated.pb",
                    modelfile, true);
       build(modelfile);
     }

@@ -401,6 +401,7 @@ class GeneralTree : public genericTree {
   float jotPhi[20];
   float jotCSV[20];
   int jotVBFID[20];
+  float jotSmear[20];
   float jotM[20];
   float jotCMVA[20];
   int jotIso[20];
@@ -425,6 +426,7 @@ class GeneralTree : public genericTree {
   float jotLep1PtRelRaw[20];
   float jotLep1PtRelRawInv[20];
   float jotLep1DeltaR[20];
+  float jotChTrk1Pt[20];
   float jotTrk1Pt[20];
   float jotVtxPt[20];
   float jotVtxMass[20];

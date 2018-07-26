@@ -23,6 +23,8 @@ import PandaAnalysis.T3.job_utilities as utils
 Load('PandaAnalyzer')
 
 a = breg()
+a.bjetBDTReg = False
+a.bjetDeepReg = False
 a.inpath = torun
 a.outpath = 'testskim.root'
 a.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'

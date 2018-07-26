@@ -13,7 +13,8 @@ import PandaCore.Tools.Functions
 import numpy as np
 
 branches = {}
-cats = ['inputs', 'inputs_dr', 'inputs_etaphi', 'targets', 'misc']
+#cats = ['inputs', 'inputs_dr', 'inputs_etaphi', 'targets', 'misc']
+cats = ['inputs', 'targets', 'misc']
 for cat in cats:
     branches[cat] = []
     f = open(basedir+cat+'.cfg')
