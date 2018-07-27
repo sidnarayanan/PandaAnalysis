@@ -87,7 +87,7 @@ void BRegDeepMod::do_execute()
   auto& jw = **currentJet;
   int N = jw.cleaned_idx;
 
-  // defined in data/trainings/breg_training_2017.cfg
+  /*
   inputs[ 0] = gt.jotRawPt[N];
   inputs[ 1] = gt.jotEta[N];
   inputs[ 2] = gt.rho;
@@ -131,10 +131,10 @@ void BRegDeepMod::do_execute()
   inputs[40] = gt.jotLep1IsOther[N];
   inputs[41] = gt.jotRawM[N];
   inputs[42] = gt.jotPtD[N];
+  */
 
 
-  /*
-  // defined in data/trainings/breg_training_2017.cfg
+  // defined in SMH/breg/inputs.cfg
   inputs[ 0] = gt.jotRawPt[N];
   inputs[ 1] = gt.jotEta[N];
   inputs[ 2] = gt.jotPhi[N];
@@ -149,40 +149,43 @@ void BRegDeepMod::do_execute()
   inputs[11] = gt.jotNHF[N];
   inputs[12] = gt.jotNLep[N];
   inputs[13] = gt.jotLep1Pt[N];
-  inputs[14] = gt.jotLep1PtRelRaw[N];
-  inputs[15] = gt.jotLep1PtRelRawInv[N];
-  inputs[16] = gt.jotLep1DeltaR[N];
-  inputs[17] = gt.jotTrk1Pt[N];
-  inputs[18] = gt.jotVtxPt[N];
-  inputs[19] = gt.jotVtxMass[N];
-  inputs[20] = gt.jotVtx3DVal[N];
-  inputs[21] = gt.jotVtx3DErr[N];
-  inputs[22] = gt.jotVtxNtrk[N];
-  inputs[23] = gt.jotLep1IsEle[N];
-  inputs[24] = gt.jotLep1IsMu[N];
-  inputs[25] = gt.jotLep1IsOther[N];
-  inputs[26] = gt.jotNPt03[N];
-  inputs[27] = gt.jotEMRing[0][N];
-  inputs[28] = gt.jotEMRing[1][N];
-  inputs[29] = gt.jotEMRing[2][N];
-  inputs[30] = gt.jotEMRing[3][N];
-  inputs[31] = gt.jotEMRing[4][N];
-  inputs[32] = gt.jotChRing[0][N];
-  inputs[33] = gt.jotChRing[1][N];
-  inputs[34] = gt.jotChRing[2][N];
-  inputs[35] = gt.jotChRing[3][N];
-  inputs[36] = gt.jotChRing[4][N];
-  inputs[37] = gt.jotMuRing[0][N];
-  inputs[38] = gt.jotMuRing[1][N];
-  inputs[39] = gt.jotMuRing[2][N];
-  inputs[40] = gt.jotMuRing[3][N];
-  inputs[41] = gt.jotMuRing[4][N];
-  inputs[42] = gt.jotNeRing[0][N];
-  inputs[43] = gt.jotNeRing[1][N];
-  inputs[44] = gt.jotNeRing[2][N];
-  inputs[45] = gt.jotNeRing[3][N];
-  inputs[46] = gt.jotNeRing[4][N];
-  */
+  inputs[14] = gt.jotLep1Eta[N];
+  inputs[15] = gt.jotLep1Phi[N];
+  inputs[16] = gt.jotLep1PtRelRaw[N];
+  inputs[17] = gt.jotLep1PtRelRawInv[N];
+  inputs[18] = gt.jotLep1DeltaR[N];
+  inputs[19] = gt.jotTrk1Pt[N];
+  inputs[20] = gt.jotChTrk1Pt[N];
+  inputs[21] = gt.jotVtxPt[N];
+  inputs[22] = gt.jotVtxMass[N];
+  inputs[23] = gt.jotVtx3DVal[N];
+  inputs[24] = gt.jotVtx3DErr[N];
+  inputs[25] = gt.jotVtxNtrk[N];
+  inputs[26] = gt.jotLep1IsEle[N];
+  inputs[27] = gt.jotLep1IsMu[N];
+  inputs[28] = gt.jotLep1IsOther[N];
+  inputs[29] = gt.jotNPt03[N];
+  inputs[30] = gt.jotEMRing[0][N];
+  inputs[31] = gt.jotEMRing[1][N];
+  inputs[32] = gt.jotEMRing[2][N];
+  inputs[33] = gt.jotEMRing[3][N];
+  inputs[34] = gt.jotEMRing[4][N];
+  inputs[35] = gt.jotChRing[0][N];
+  inputs[36] = gt.jotChRing[1][N];
+  inputs[37] = gt.jotChRing[2][N];
+  inputs[38] = gt.jotChRing[3][N];
+  inputs[39] = gt.jotChRing[4][N];
+  inputs[40] = gt.jotMuRing[0][N];
+  inputs[41] = gt.jotMuRing[1][N];
+  inputs[42] = gt.jotMuRing[2][N];
+  inputs[43] = gt.jotMuRing[3][N];
+  inputs[44] = gt.jotMuRing[4][N];
+  inputs[45] = gt.jotNeRing[0][N];
+  inputs[46] = gt.jotNeRing[1][N];
+  inputs[47] = gt.jotNeRing[2][N];
+  inputs[48] = gt.jotNeRing[3][N];
+  inputs[49] = gt.jotNeRing[4][N];
+  inputs[50] = gt.rho;
 
   for (auto& i : inputs)
     i = dnn_clean(i); 
