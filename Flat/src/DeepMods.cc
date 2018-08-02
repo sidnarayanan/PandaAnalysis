@@ -197,9 +197,9 @@ void BRegDeepMod::do_execute()
   jw.bregwidth = 0.5 * (outputs[2] - outputs[1]);
   
   // from /afs/cern.ch/user/n/nchernya/public/breg_training/2017_updated_newJEC/config_2017_updated.json 
-  float y_std = 0.28492164611816406, y_mean = 1.0596693754196167;
-  jw.breg = (y_std * jw.breg) + y_mean;
-  jw.bregwidth *= y_std; 
+  // float y_std = 0.28492164611816406, y_mean = 1.0596693754196167;
+  // jw.breg = (y_std * jw.breg) + y_mean;
+  // jw.bregwidth *= y_std; 
 
   //  jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
   //jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
