@@ -214,16 +214,16 @@ void GeneralTree::Reset() {
   genBosonEta = -99;
   genBosonMass = -99;
   genBosonPhi = -99;
+  genJet1Pt = -99;
+  genJet2Pt = -99;
+  genJet1Eta = -99;
+  genJet2Eta = -99;
   genMuonPt = -99;
   genMuonEta = -99;
   genElectronPt = -99;
   genElectronEta = -99;
   genTauPt = -99;
   genTauEta = -99;
-  genJet1Pt = -99;
-  genJet2Pt = -99;
-  genJet1Eta = -99;
-  genJet2Eta = -99;
   genMjj = -99;
   genTopPt = -99;
   genAntiTopPt = -99;
@@ -469,27 +469,6 @@ void GeneralTree::Reset() {
     fjsjCSV[iA] = -99;
     fjsjQGL[iA] = -99;
   }
-  for (int iS=0; iS!=43; ++iS) {
-    nJet[iS] = 0;
-    nJot[iS] = 0;
-    nIsoJet[iS] = 0;
-    jetNBtags[iS] = 0;
-    jetNMBtags[iS] = 0;
-    isojetNBtags[iS] = 0;
-    isojetNMBtags[iS] = 0;
-    hbbpt[iS] = -99;
-    hbbeta[iS] = -99;
-    hbbphi[iS] = -99;
-    hbbm[iS] = -99;
-    hbbm_reg[iS] = -99;
-    hbbpt_reg[iS] = -99;
-    hbbm_dreg[iS] = -99;
-    hbbpt_dreg[iS] = -99;
-    hbbm_qreg[iS] = -99;
-    hbbpt_qreg[iS] = -99;
-    hbbCosThetaJJ[iS] = -99;
-    hbbCosThetaCSJ1[iS] = -99;
-  }
   for (int iS=0; iS!=3; ++iS) {
     pfmet[iS] = -99;
     pfmetphi[iS] = -99;
@@ -533,6 +512,32 @@ void GeneralTree::Reset() {
     topMassLep1Met[iS] = -99;
     topWBosonCosThetaCS[iS] = -99;
   }
+  for (int iS=0; iS!=43; ++iS) {
+    nJet[iS] = 0;
+    nJot[iS] = 0;
+    nIsoJet[iS] = 0;
+    jetNBtags[iS] = 0;
+    jetNMBtags[iS] = 0;
+    isojetNBtags[iS] = 0;
+    isojetNMBtags[iS] = 0;
+    hbbpt[iS] = -99;
+    hbbeta[iS] = -99;
+    hbbphi[iS] = -99;
+    hbbm[iS] = -99;
+    hbbm_reg[iS] = -99;
+    hbbpt_reg[iS] = -99;
+    hbbm_dreg[iS] = -99;
+    hbbpt_dreg[iS] = -99;
+    hbbm_qreg[iS] = -99;
+    hbbpt_qreg[iS] = -99;
+    hbbCosThetaJJ[iS] = -99;
+    hbbCosThetaCSJ1[iS] = -99;
+  }
+  for (int iS=0; iS!=43; ++iS) {
+    for (int iA=0; iA!=20; ++iA) {
+      jotPt[iS][iA] = -99;
+    }
+  }
   for (int iS=0; iS!=5; ++iS) {
     for (int iA=0; iA!=20; ++iA) {
       jotEMRing[iS][iA] = -99;
@@ -560,11 +565,6 @@ void GeneralTree::Reset() {
       fjPt[iS][iA] = -99;
       fjM[iS][iA] = -99;
       hbbjtidx[iS][iA] = 0;
-    }
-  }
-  for (int iS=0; iS!=43; ++iS) {
-    for (int iA=0; iA!=20; ++iA) {
-      jotPt[iS][iA] = -99;
     }
   }
 }
@@ -750,6 +750,10 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("genBosonEta",&genBosonEta,"genBosonEta/F");
   Book("genBosonMass",&genBosonMass,"genBosonMass/F");
   Book("genBosonPhi",&genBosonPhi,"genBosonPhi/F");
+  Book("genJet1Pt",&genJet1Pt,"genJet1Pt/F");
+  Book("genJet2Pt",&genJet2Pt,"genJet2Pt/F");
+  Book("genJet1Eta",&genJet1Eta,"genJet1Eta/F");
+  Book("genJet2Eta",&genJet2Eta,"genJet2Eta/F");
   Book("nJet",&(nJet[0]),"nJet/I");
   Book("nJet_JESTotalUp",&(nJet[1]),"nJet_JESTotalUp/I");
   Book("nJet_JESTotalDown",&(nJet[2]),"nJet_JESTotalDown/I");
@@ -1395,10 +1399,6 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("genElectronEta",&genElectronEta,"genElectronEta/F");
     Book("genTauPt",&genTauPt,"genTauPt/F");
     Book("genTauEta",&genTauEta,"genTauEta/F");
-    Book("genJet1Pt",&genJet1Pt,"genJet1Pt/F");
-    Book("genJet2Pt",&genJet2Pt,"genJet2Pt/F");
-    Book("genJet1Eta",&genJet1Eta,"genJet1Eta/F");
-    Book("genJet2Eta",&genJet2Eta,"genJet2Eta/F");
     Book("genMjj",&genMjj,"genMjj/F");
   }
   if (is_fatjet) {

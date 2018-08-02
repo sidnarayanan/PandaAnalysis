@@ -138,7 +138,7 @@ void ConfigMod::set_outputBranches()
                                      "scaleDown","pdf.*","gen.*",
                                      "sf_tt.*","sf_qcdTT.*",
                                      "trueGenBosonPt","sf_qcd.*","sf_ewk.*",
-                                     "nHF.*", "nB.*","lheHT","jotPt","jotEta"};
+                                     "nHF.*", "nB.*","lheHT"};
     if (analysis.deepGen) {
       keepable.push_back("fjECFN.*");
       keepable.push_back("fjTau.*");
