@@ -580,7 +580,7 @@ void KFactorMod::do_vpt()
 
     // calculate the mjj 
     TLorentzVector vGenJet;
-    if (analysis.vbf) {
+    if (analysis.vbf || analysis.genOnly) {
       // first find high pT leptons
       std::vector<const GenParticle*> genLeptons;
       for (auto* genptr : *genP) {
@@ -631,7 +631,8 @@ void KFactorMod::do_vpt()
 
     for (auto* genptr : *genP) {
       auto& gen = pToGRef(genptr);
-      if (found) break;
+      if (found) 
+        break;
       int apdgid = abs(gen.pdgid);
       if (apdgid==target)     {
         bool foundChild = false;
@@ -705,7 +706,7 @@ void KFactorMod::do_vpt()
       } // target matches
     } // gen particle loop ends
 
-    //now for the cases where we did not find a gen boson
+    // now for the cases where we did not find a gen boson
     if (gt.genBosonPt < 0) {
 
       TLorentzVector vpt(0,0,0,0);
@@ -722,9 +723,9 @@ void KFactorMod::do_vpt()
              part.statusFlags == GenParticle::kIsDirectTauDecayProduct || 
              part.statusFlags == GenParticle::kIsDirectPromptTauDecayProduct )) {
 
-          //ideally you want to have dressed leptons (lepton + photon), 
-          //but we have in any ways have a photon veto in the analysis.
-          //if it's a gen-only analysis, cannot check wrt reco leps, accept anyway
+          // ideally you want to have dressed leptons (lepton + photon), 
+          // but we have in any ways have a photon veto in the analysis.
+          // if it's a gen-only analysis, cannot check wrt reco leps, accept anyway
           if (analysis.genOnly || isMatched(looseLeps.get(),0.01,part.eta(),part.phi()))
             vpt += part.p4();
         }
