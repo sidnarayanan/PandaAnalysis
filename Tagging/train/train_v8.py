@@ -9,7 +9,8 @@ trainer = root.TMVATrainer('top_ecfbdt_v0',flatdir+'training/')
 trainer.treename = 'events'
 trainer.sigweight = 'weight'
 trainer.bgweight = 'weight'
-sanitycut='clf_IsMatched==1 && gen_size<1.2 && gen_pt<1200 && clf_MSD>110 && clf_MSD<210'
+sanitycut='clf_IsMatched==1 && gen_pt<1200 && clf_MSD>110 && clf_MSD<210 && clf_ECFN_2_4_20>0'
+trainer.sigcut=tAND(sanitycut, 'gen_size<1.2')
 trainer.bgcut=sanitycut
 
 for v in cfg.variables:

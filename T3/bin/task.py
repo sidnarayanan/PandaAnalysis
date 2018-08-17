@@ -267,7 +267,7 @@ def check(stdscr=None):
         else:
             url = jm.report_server + '/condor/query?task=%s'%(submit_name)
             for r in json.load(urlopen(url)):
-                if r[2] is not None:
+                if r[2] is not None and r[-1] == 0:
                     processedfiles.add(r[0])
 
         # determine what samples from previous resubmissions are still running

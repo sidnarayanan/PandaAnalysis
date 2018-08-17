@@ -24,6 +24,7 @@ REMOTE_READ = True                                             # should we read 
 local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcopy from T2?
 _task_name = getenv('SUBMIT_NAME')                             # name of this task
 _user = getenv('SUBMIT_USER')                                  # user running the task
+_job_id = None                                                 # identifying string for this job
 YEAR = 2016                                                    # what year's data is this analysis?
 MAXCOPY = 3                                                    # maximum number of stagein attempts
 
@@ -183,7 +184,7 @@ def cleanup(fname, _verbose=True):
 def hadd(good_inputs, output='output.root'):
     good_outputs = ' '.join([input_to_output(x) for x in good_inputs])
     cmd = 'hadd -f ' + output + ' ' + good_outputs
-    print cmd
+    logger.info(_sname+'.hadd', cmd)
     ret = system(cmd)    
     if not ret:
         logger.info(_sname+'.hadd','Merging exited with code %i'%ret)
@@ -325,16 +326,17 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
 
 # report home that the job has started
 def report_start(outdir,outfilename,args):
+    global _job_id
     if not cb.textlock:
+        _job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:]) + '_' + str(int(time()))
+        hashed = [cb.md5hash(x) for x in args]
+        payload = {'starttime' : int(time()),
+                   'host' : _host, 
+                   'task' : _task_name + '_' + _user,
+                   'job_id' : _job_id,
+                   'args' : hashed}
         for _ in xrange(5):
             try:
-                hashed = [cb.md5hash(x) for x in args]
-                job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
-                payload = {'starttime' : int(time()),
-                           'host' : _host, 
-                           'task' : _task_name + '_' + _user,
-                           'job_id' : job_id,
-                           'args' : hashed}
                 r = requests.post(cb.report_server+'/condor/start', json=payload)
                 if r.status_code == 200:
                     logger.info('T3.job_utilities.report_start', 'return=%s'%(str(r).strip()))
@@ -363,10 +365,9 @@ def report_done(outdir,outfilename,processed):
         # this really has to work, so go forever
         while True:
             try:
-                job_id = '_'.join(outfilename.replace('.root','').split('_')[-2:])
                 payload = {'timestamp' : int(time()),
                            'task' : _task_name + '_' + _user,
-                           'job_id' : job_id,
+                           'job_id' : _job_id,
                            'args' : [cb.md5hash(v) for _,v in processed.iteritems()]}
                 logger.info('T3.job_utilities.report_done',
                             'payload=\n%s'%repr(payload))
