@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import json
 import curses
-import argparse
-import subprocess
 import cPickle as pickle
 
 from re import sub
@@ -16,10 +13,12 @@ from itertools import chain
 from time import time, sleep, strftime
 from os import system,getenv,getuid,path,popen
 
+from PandaCore.Tools.script import * 
 import PandaCore.Tools.job_management as jm
-from PandaCore.Utils.logging import logger
 
 ### Global definitions ###
+
+validate_env()
 
 # environment:
 logdir=getenv('SUBMIT_LOGDIR')
@@ -31,28 +30,13 @@ cmssw_base=getenv('CMSSW_BASE')
 incfg = workdir+'/local_all.cfg'
 outcfg = workdir+'/local.cfg'
 
-if any([x is None for x in [lockdir, workdir, logdir, cmssw_base]]):
-    logger.error('task.py','Your environment is incomplete!')
+args = parse(('--nfiles', {'type':int, 'default':-1}),
+             ('--monitor', {'type':int, 'default':0}),
+             *[(x, STORE_TRUE) for x in 
+                ['--kill', '--kill_idle', '--check', '--submit', '--build_only', 
+                 '--submit_only', '--clean_output', '--check_duplicates', 
+                 '--clean_duplicates', '--clean', '--force', '--silent', '--randomize']])
 
-# argument parsing:
-parser = argparse.ArgumentParser(description='task')
-parser.add_argument('--kill',action='store_true')
-parser.add_argument('--kill_idle',action='store_true')
-parser.add_argument('--check',action='store_true')
-parser.add_argument('--submit',action='store_true')
-parser.add_argument('--build_only',action='store_true')
-parser.add_argument('--submit_only',action='store_true')
-parser.add_argument('--clean_output',action='store_true')
-parser.add_argument('--check_duplicates',action='store_true')
-parser.add_argument('--clean_duplicates',action='store_true')
-parser.add_argument('--clean',action='store_true')
-parser.add_argument('--lockdir',type=str,default=lockdir)
-parser.add_argument('--force',action='store_true')
-parser.add_argument('--nfiles',type=int,default=-1)
-parser.add_argument('--silent',action='store_true')
-parser.add_argument('--monitor',type=int,default=0)
-args = parser.parse_args()
-lockdir = args.lockdir
 if args.clean:
     args.clean_output = True
 if args.submit:
@@ -101,7 +85,8 @@ def init_colors():
 
 # for submission:
 def build_snapshot(N):
-    system('%s/src/PandaAnalysis/T3/bin/buildMergedInputs.sh -t -n %i'%(cmssw_base, N))
+    cmd = '%s/src/PandaAnalysis/T3/bin/buildMergedInputs.sh -n %i'%(cmssw_base, N)
+    system(cmd)
 
 def submit(silent=False):
     now = int(time())
@@ -109,7 +94,7 @@ def submit(silent=False):
     system('cp %s %s'%(outcfg,frozen_outcfg)) 
 
     s = jm.Submission(frozen_outcfg,workdir+'/submission.pkl')
-    s.execute()
+    s.execute(randomize=args.randomize)
     s.save()
 
     if not silent:
@@ -288,7 +273,6 @@ def check(stdscr=None):
         t2_files = list(chain.from_iterable([x.files for x in t2_samples]))
         t3_files = list(chain.from_iterable([x.files for x in t3_samples]))
         idle_files = list(chain.from_iterable([x.files for x in idle_samples]))
-
 
         # for fancy display
         outputs = {}
