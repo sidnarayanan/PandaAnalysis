@@ -52,23 +52,7 @@ else:
 
 # derived from t3serv006.mit.edu:/etc/bestman2/conf/bestman2.rc
 _gsiftp_doors = [
-        't3btch000.mit.edu',
-        't3btch001.mit.edu',
-        't3btch003.mit.edu',
-        't3btch004.mit.edu',
-        't3btch005.mit.edu',
-        't3btch006.mit.edu',
-        't3btch010.mit.edu',
-        't3btch013.mit.edu',
-        't3btch014.mit.edu',
-        't3btch018.mit.edu',
-        't3btch021.mit.edu',
-        't3btch025.mit.edu',
-        't3btch026.mit.edu',
-        't3btch027.mit.edu',
-        't3btch028.mit.edu',
-        't3btch029.mit.edu',
-        't3btch030.mit.edu',
+        't3serv010.mit.edu',
         ]
 
 
@@ -243,12 +227,8 @@ def drop_branches(to_drop=None, to_keep=None):
 # then, check if the file exists:
 #  - if _IS_T3, use os.path.isfile
 #  - else, use lcg-ls
-def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
+def stageout(outdir,outfilename,infilename='output.root',n_attempts=10):
     gsiftp_doors = _gsiftp_doors[:]
-    if ls is None:
-        # if it's not on hadoop, copy the file to test it exists, to force nfs refresh
-        ls = not('hadoop' in outdir) 
-    ls = False # override, I don't trust network-mounted filesystems anymore 
     if stageout_protocol is None:
         logger.error(_sname+'.stageout',
                'Stageout protocol has not been satisfactorily determined! Cannot proceed.')
@@ -256,50 +236,38 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10,ls=None):
     timeout = 300
     ret = -1
     for i_attempt in xrange(n_attempts):
-        door = choice(gsiftp_doors); gsiftp_doors.remove(door)
+#        door = choice(gsiftp_doors); gsiftp_doors.remove(door)
+        door = gsiftp_doors[0]
         failed = False
         if stageout_protocol == 'cp':
-            cpargs =     ' '.join(['cp',
-                                   '-v', 
-                                   '$PWD/%s'%infilename,
-                                   '%s/%s'%(outdir,outfilename)])
-            if ls:
-                lsargs = ' '.join(['ls',
-                                   '%s/%s'%(outdir,outfilename)])
-            else:
-                lsargs = ' '.join(['cp',
-                                   '-v',
-                                   '%s/%s'%(outdir,outfilename),
-                                   '$PWD/testfile'])
+            cpargs =     ['cp',
+                          '-v', 
+                          '$PWD/%s'%infilename,
+                          '%s/%s'%(outdir,outfilename)]
+            lsargs = cpargs[:]
+            lsargs[-2] = lsargs[-1]
+            lsargs[-1] = '$PWD/testfile'
         elif stageout_protocol == 'gfal':
-            cpargs =     ' '.join(['gfal-copy',
-                                   '-f', 
-                                   '--transfer-timeout %i'%timeout,
-                                   '$PWD/%s'%infilename,
-                                   'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)])
-            if ls:
-                lsargs = ' '.join(['gfal-ls',
-                                   'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)])
-            else:
-                lsargs = ' '.join(['gfal-copy',
-                                   '-f', 
-                                   '--transfer-timeout %i'%timeout,
-                                   'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename),
-                                   '$PWD/testfile'])
+            cpargs =     ['gfal-copy',
+                          '-f', 
+                          '--transfer-timeout %i'%timeout,
+                          '$PWD/%s'%infilename,
+                          'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)]
+            lsargs = cpargs[:]
+            lsargs[-2] = lsargs[-1]
+            lsargs[-1] = '$PWD/testfile'
         elif stageout_protocol == 'lcg':
-            cpargs =     ' '.join(['lcg-cp',
-                                   '-v -D srmv2 -b', 
-                                   'file://$PWD/%s'%infilename,
-                                   'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)])
-            if ls:       
-                lsargs = ' '.join(['lcg-ls',
-                                   '-v -D srmv2 -b', 
-                                   'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)])
-            else:
-                lsargs = ' '.join(['lcg-cp',
-                                   '-v -D srmv2 -b', 
-                                   'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename),
-                                   'file://$PWD/testfile'])
+            cpargs =     ['lcg-cp',
+                          '-v -D srmv2 -b', 
+                          'file://$PWD/%s'%infilename,
+                          'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)]
+            lsargs = cpargs[:]
+            lsargs[-2] = lsargs[-1]
+            lsargs[-1] = 'file://$PWD/testfile'
+
+        cpargs = ' '.join(cpargs)
+        lsargs = ' '.join(lsargs)
+
         logger.info(_sname+'.stageout',cpargs)
         ret = system(cpargs)
         if not ret:

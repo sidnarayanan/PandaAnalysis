@@ -9,17 +9,17 @@ from glob import glob
 from re import sub as rsub
 import cPickle as pickle
 from itertools import chain 
+from PandaCore.Tools.script import * 
 
 ## TODO: matrix of errors correlated with
 ## hosts where job was running
 
 logdir = getenv('SUBMIT_LOGDIR')
 workdir = getenv('SUBMIT_WORKDIR')
-parser = argparse.ArgumentParser(description='analyze log files')
-parser.add_argument('--verbose',action='store_true')
-parser.add_argument('--dump',action='store_true')
-parser.add_argument('--submission',type=int,nargs='+',default=None)
-args = parser.parse_args()
+args = parse(('--submission', {'type':int, 'nargs':'+', 'default':None}),
+             ('--verbose', STORE_TRUE),
+             ('--dump', STORE_TRUE),
+             ('--nodone', STORE_TRUE))
 logdirpath = '$SUBMIT_LOGDIR/' if args.submission is None else '$SUBMIT_LOGDIR/[%s]_'%(''.join(map(str,args.submission)))
 
 def sub(x, y, z):
@@ -27,15 +27,17 @@ def sub(x, y, z):
 
 def clean(x):
     x = x.replace('+', '\+')
-    x = sub(x, '\n', '')
-    x = sub(x, 'input_[.0-9A-Z\-]*\.root', 'X.root')
-    x = sub(x, '[0-9][0-9][0-9][0-9]+', 'X')
-    x = sub(x, '/mnt/hadoop.*root', 'X.root')
-    x = sub(x, '/store/user.*root', 'X.root')
-    x = sub(x, '/data/t3.*lock', 'X.lock')
-    x = sub(x, 'branch:.*', '')
-    x = sub(x, '/mnt/hadoop.*npz', 'X.npz')
-    x = sub(x, 'object at [a-zA-Z0-9]*', 'object at ADDRESS') 
+    x = sub(x, r'\n', '')
+    x = sub(x, r'[\.0-9A-Za-z\-_]*\.root', 'X.root')
+    x = sub(x, r'[0-9][0-9][0-9][0-9]+', 'X')
+    x = sub(x, r'/mnt/hadoop.*root', 'X.root')
+    x = sub(x, r'/store/user.*root', 'X.root')
+    x = sub(x, r'/data/t3.*lock', 'X.lock')
+    x = sub(x, r'branch:.*', '')
+    x = sub(x, r'/mnt/hadoop.*npz', 'X.npz')
+    x = sub(x, r'object at [a-zA-Z0-9]*', 'object at ADDRESS') 
+    x = sub(x, r'\033\[91m', '')
+    x = sub(x, r't3btch[0-9][0-9][0-9]', 't3btchX')
     return x 
 
 cmd = 'grep -i "error\|fatal" %s*err'%logdirpath
@@ -85,12 +87,20 @@ if args.dump:
     system('mkdir -p logs_dump')
     system('rm -f logs_dump/*')
 
+done = set([])
+cmd = r'grep -i "report_done.*Response \[200\]"  %s*err'%logdirpath
+for l in subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.readlines():
+    f = sub(l.split(':')[0].split('/')[-1], '.err', '')
+    done.add(f)
+
 for i,c in enumerate(correlations):
     if args.verbose:
         print 'Failed with error class %i:'%i
     files = {}
     hosts = {}
     for f in sorted(aggregates[list(c)[0]]):
+        if args.nodone and f in done:
+            continue
         cmd = 'grep -o "pandaf[^ ]*\.root" $SUBMIT_LOGDIR/%s.err'%(f)
         for l in subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.readlines():
             ll = l.strip()
@@ -102,8 +112,8 @@ for i,c in enumerate(correlations):
             for l in subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.readlines():
                 ll = l.strip()
                 if ll not in hosts:
-                    hosts[ll] = []
-                hosts[ll].append( '%s/%s.err'%(logdir, f))
+                    hosts[ll] = set([])
+                hosts[ll].add( '%s/%s.err'%(logdir, f) )
     if args.verbose:
         for f,n in files.iteritems():
             print '   ',f,n
