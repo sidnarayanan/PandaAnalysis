@@ -2,37 +2,24 @@
 
 from os import system,getenv
 from sys import argv
-import argparse
+from PandaCore.Tools.script import * 
+from PandaCore.Tools.Misc import *
+import PandaCore.Tools.Functions
+from PandaCore.Drawers.plot_utility import *
 
 ### SET GLOBAL VARIABLES ###
 baseDir = getenv('PANDA_FLATDIR')+'/' 
-dataDir = baseDir#.replace('0_4','0_4_egfix')
-parser = argparse.ArgumentParser(description='plot stuff')
-parser.add_argument('--outdir',metavar='outdir',type=str,default=None)
-parser.add_argument('--cut',metavar='cut',type=str,default='1==1')
-parser.add_argument('--region',metavar='region',type=str,default=None)
-parser.add_argument('--tt',metavar='tt',type=str,default='')
-args = parser.parse_args()
+dataDir = baseDir
+
+args = parse('--outdir', 
+             ('--cut', {'default':'1==1'}),
+             '--region')
 lumi = 35800.
 blind=True
 region = args.region
 sname = argv[0]
 
-argv=[]
-import ROOT as root
-root.gROOT.SetBatch()
-from PandaCore.Tools.Misc import *
-import PandaCore.Tools.Functions
-#import PandaAnalysis.Monotop.MonojetSelection as sel
-#import PandaAnalysis.Monotop.LooseSelection as sel
-#import PandaAnalysis.Monotop.TightSelection as sel
-import PandaAnalysis.Monotop.OneFatJetSelection as sel
-#import PandaAnalysis.Monotop.TestSelection as sel
-from PandaCore.Drawers.plot_utility import *
-
 ### DEFINE REGIONS ###
-
-cut = tAND(sel.cuts[args.region],args.cut)
 
 ### LOAD PLOTTING UTILITY ###
 plot = PlotUtility()
@@ -41,7 +28,7 @@ plot.SetTDRStyle()
 plot.InitLegend()
 plot.DrawMCErrors(True)
 #plot.AddCMSLabel()
-plot.cut = cut
+plot.cut = args.cut 
 plot.SetEvtNum("eventNumber")
 plot.SetLumi(lumi/1000)
 plot.SetNormFactor(True)
@@ -49,7 +36,7 @@ plot.AddSqrtSLabel()
 plot.do_overflow = True
 plot.do_underflow = True
 
-weight = sel.weights[region]%lumi
+weight = 'normalizedWeight' 
 plot.mc_weight = weight
 
 #logger.info('cut',plot.cut)
@@ -84,8 +71,8 @@ plot.add_distribution(recoil)
 
 # plot.add_distribution(FDistribution('nJet',0.5,6.5,6,'N_{jet}','Events'))
 # plot.add_distribution(FDistribution('npv',0,45,45,'N_{PV}','Events'))
-plot.add_distribution(FDistribution('fj1MSD',0,250,20,'fatjet m_{SD} [GeV]','Arbitrary units'))
-plot.add_distribution(FDistribution('fj1Pt',250,1000,20,'fatjet p_{T} [GeV]','Arbitrary units'))
+plot.add_distribution(FDistribution('fjMSD[0]',0,250,20,'fatjet m_{SD} [GeV]','Arbitrary units'))
+plot.add_distribution(FDistribution('fjPt[0]',250,1000,20,'fatjet p_{T} [GeV]','Arbitrary units'))
 plot.add_distribution(FDistribution('top_ecf_bdt',-1,1,20,'Top BDT','Arbitrary units'))
 # plot.add_distribution(FDistribution('fj1MaxCSV',0,1,20,'fatjet max CSV','Events'))
 # plot.add_distribution(FDistribution('fj1Tau32',0,1,20,'fatjet #tau_{32}','Events'))

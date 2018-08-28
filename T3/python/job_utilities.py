@@ -19,17 +19,18 @@ import PandaCore.Tools.job_config as cb
 _sname = 'T3.job_utilities'                                    # name of this module
 _data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'  # data directory
 _host = socket.gethostname()                                   # where we're running
-_IS_T3 = (_host.startswith('t3') and _host.endswith('mit.edu'))# are we on the T3?
-REMOTE_READ = True                                             # should we read from hadoop or copy locally?
+_is_t3 = (_host.startswith('t3') and _host.endswith('mit.edu'))# are we on the T3?
+_remote_read = True                                            # should we read from hadoop or copy locally?
 local_copy = bool(environ.get('SUBMIT_LOCALACCESS', True))     # should we always xrdcopy from T2?
 _task_name = getenv('SUBMIT_NAME')                             # name of this task
 _user = getenv('SUBMIT_USER')                                  # user running the task
 _job_id = None                                                 # identifying string for this job
-YEAR = 2016                                                    # what year's data is this analysis?
-MAXCOPY = 3                                                    # maximum number of stagein attempts
+_year = 2016                                                   # what year's data is this analysis?
+maxcopy = 3                                                    # maximum number of stagein attempts
+_to_hdfs = bool(getenv('SUBMIT_HDFSCACHE', False))             # should we cache on hdfs instead of local
 
 stageout_protocol = None                                       # what stageout should we use?
-if _IS_T3:
+if _is_t3:
     stageout_protocol = 'cp' 
 elif system('which gfal-copy') == 0:
     stageout_protocol = 'gfal'
@@ -68,9 +69,9 @@ def print_time(label):
 
 # set the data-taking period
 def set_year(analysis, year):
-    global YEAR
+    global _year
     analysis.year = year
-    YEAR = year
+    _year = year
 
 # isolate the job
 def isolate():
@@ -97,7 +98,7 @@ def input_to_output(name):
 
 # find data and bring it into the job somehow 
 #  - if local_copy and it exists locally, then:
-#    - if REMOTE_READ, read from hadoop
+#    - if _remote_read, read from hadoop
 #    - else copy it locally
 #  - else xrdcopy it locally
 def copy_local(long_name):
@@ -113,13 +114,13 @@ def copy_local(long_name):
         local_path = full_path.replace('root://t3serv006.mit.edu/','/mnt/hadoop')
     else:
         local_path = full_path.replace('root://xrootd.cmsaf.mit.edu/','/mnt/hadoop/cms')
-    logger.info(_sname+'.copy_local','Local access is configured to be %s'%('on' if local_copy else 'off'))
+    logger.info(_sname+'.copy_local','Local access is %s'%('on' if local_copy else 'off'))
     if local_copy and path.isfile(local_path): 
         # apparently SmartCached files can be corrupted...
         ftest = root.TFile(local_path)
         if bool(ftest) and not(ftest.IsZombie()):
             logger.info(_sname+'.copy_local','Opting to read locally')
-            if REMOTE_READ:
+            if _remote_read:
                 return local_path
             else:
                 cmd = 'cp %s %s'%(local_path, input_name)
@@ -130,6 +131,17 @@ def copy_local(long_name):
                 copied = True
 
     if not copied:
+        if _to_hdfs and _is_t3:
+            input_name = full_path.replace('root://xrootd.cmsaf.mit.edu/','/mnt/hadoop/cms')
+            input_name = input_name.replace('paus',_user)
+            parent = '/'.join(input_name.split('/')[:-1])
+            if not path.isdir(parent):
+                try:
+                    logger.info(_sname+'.copy_local', 'creating parent at '+parent)
+                    os.makedirs(parent)
+                except OSError as e:
+                    logger.warning(_sname+'.copy_local', str(e))
+                    pass 
         cmd = "xrdcopy --nopbar -f %s %s"%(full_path,input_name)
         logger.info(_sname+'.copy_local',cmd)
         ret = system(cmd)
@@ -139,6 +151,7 @@ def copy_local(long_name):
         ftest = root.TFile.Open(input_name)
         if not(bool(ftest)) or ftest.IsZombie():
             logger.error(_sname+'.copy_local', 'Copy succeeded but %s is corrupt'%input_name)
+            cleanup(input_name)
             return None 
         copied = True
             
@@ -222,10 +235,10 @@ def drop_branches(to_drop=None, to_keep=None):
 
 
 # stageout a file (e.g. output or lock)
-#  - if _IS_T3, execute a simple cp
+#  - if _is_t3, execute a simple cp
 #  - else, use lcg-cp
 # then, check if the file exists:
-#  - if _IS_T3, use os.path.isfile
+#  - if _is_t3, use os.path.isfile
 #  - else, use lcg-ls
 def stageout(outdir,outfilename,infilename='output.root',n_attempts=10):
     gsiftp_doors = _gsiftp_doors[:]
@@ -240,30 +253,26 @@ def stageout(outdir,outfilename,infilename='output.root',n_attempts=10):
         door = gsiftp_doors[0]
         failed = False
         if stageout_protocol == 'cp':
-            cpargs =     ['cp',
-                          '-v', 
-                          '$PWD/%s'%infilename,
-                          '%s/%s'%(outdir,outfilename)]
-            lsargs = cpargs[:]
-            lsargs[-2] = lsargs[-1]
-            lsargs[-1] = '$PWD/testfile'
+            cpargs = ['cp',
+                      '-v', 
+                      '$PWD/%s'%infilename,
+                      '%s/%s'%(outdir,outfilename)]
+            lsargs = ['ls']
         elif stageout_protocol == 'gfal':
-            cpargs =     ['gfal-copy',
-                          '-f', 
-                          '--transfer-timeout %i'%timeout,
-                          '$PWD/%s'%infilename,
-                          'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)]
-            lsargs = cpargs[:]
-            lsargs[-2] = lsargs[-1]
-            lsargs[-1] = '$PWD/testfile'
+            cpargs = ['gfal-copy',
+                      '-f', 
+                      '--transfer-timeout %i'%timeout,
+                      '$PWD/%s'%infilename,
+                      'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)]
+            lsargs = ['gfal-stat']
         elif stageout_protocol == 'lcg':
-            cpargs =     ['lcg-cp',
-                          '-v -D srmv2 -b', 
-                          'file://$PWD/%s'%infilename,
-                          'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)]
-            lsargs = cpargs[:]
-            lsargs[-2] = lsargs[-1]
-            lsargs[-1] = 'file://$PWD/testfile'
+            cpargs = ['lcg-cp',
+                      '-v -D srmv2 -b', 
+                      'file://$PWD/%s'%infilename,
+                      'gsiftp://%s:2811//%s/%s'%(door,outdir,outfilename)]
+            lsargs = ['lcg-ls',
+                      '-v -D srmv2 -b']
+        lsargs.append(cpargs[-1])
 
         cpargs = ' '.join(cpargs)
         lsargs = ' '.join(lsargs)
@@ -390,9 +399,9 @@ _jsons = {
         2017 : '/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt',
         }
 def add_json(skimmer):
-    json_path = _jsons.get(YEAR, None)
+    json_path = _jsons.get(_year, None)
     if not json_path:
-        logger.error("T3.job_utilities.add_json", "Unknown key = "+str(YEAR))
+        logger.error("T3.job_utilities.add_json", "Unknown key = "+str(_year))
     json_path = _data_dir + json_path
     with open(json_path) as jsonFile:
         payload = json.load(jsonFile)
@@ -432,7 +441,7 @@ def run_HRAnalyzer(*args, **kwargs):
 def main(to_run, processed, fn):
     print_time('loading')
     for f in to_run.files:
-        for _ in xrange(MAXCOPY):
+        for _ in xrange(maxcopy):
             input_name = copy_local(f)
             if input_name is not None:
                 break

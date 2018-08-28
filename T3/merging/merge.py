@@ -9,22 +9,21 @@ import sys
 from os import environ,system,path,remove
 from argparse import ArgumentParser
 import subprocess
+from PandaCore.Tools.script import * 
 
 sname = argv[0]
-parser = ArgumentParser()
-parser.add_argument('--silent', action='store_true')
-parser.add_argument('--cfg', type=str, default='common')
-parser.add_argument('--skip_missing', action='store_true')
-parser.add_argument('arguments', type=str, nargs='+')
-args = parser.parse_args()
+args = parse(('--silent', STORE_TRUE),
+             ('-cfg', {'default':'common', 'type':str}),
+             ('--skip_missing', STORE_TRUE),
+             ('arguments', {'type':str, 'nargs':'+'}))
+
 arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
-argv=[]
 
-import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Utils.load import Load
+from PandaCore.Utils.load import *
+from PandaCore.Tools.models import * 
 
 if 'leptonic' in args.cfg:
     from PandaCore.Tools.process_leptonic import *
