@@ -25,7 +25,7 @@ sname = argv[0]
 plot = PlotUtility()
 plot.Stack(False)
 plot.SetTDRStyle()
-plot.InitLegend()
+plot.InitLegend(0.25, 0.65, 0.9, 0.88, 2)
 plot.DrawMCErrors(True)
 #plot.AddCMSLabel()
 plot.cut = args.cut 
@@ -33,10 +33,11 @@ plot.SetEvtNum("eventNumber")
 plot.SetLumi(lumi/1000)
 plot.SetNormFactor(True)
 plot.AddSqrtSLabel()
-plot.do_overflow = True
-plot.do_underflow = True
+plot.do_overflow = False
+plot.do_underflow = False
+plot.n_threads = 10
 
-weight = 'normalizedWeight' 
+weight = 'normalizedWeight * sf_qcdV * sf_ewkV' 
 plot.mc_weight = weight
 
 #logger.info('cut',plot.cut)
@@ -46,27 +47,27 @@ plot.mc_weight = weight
 #plot.add_systematic('PDF','pdfUp','pdfDown',root.kBlue+2)
 
 ### DEFINE PROCESSES ###
-zjets         = Process('Z+jets',root.kZjets)
+znunu         = Process('Z(#nu#nu)+jets',root.kZjets)
+zll           = Process('Z(ll)+jets',root.kExtra2)
 wjets         = Process('W+jets',root.kWjets)
 ttbar         = Process('t#bar{t}',root.kTTbar)
 signal1        = Process('m_{V}=1.75 TeV, m_{#chi}=1 GeV',root.kSignal)
-signal2        = Process('m_{#phi}=2.9 TeV, m_{#psi}=100 GeV',root.kSignal2)
-processes = [ttbar,wjets, zjets, signal1, signal2]
+signal2        = Process('m_{#phi}=1.7 TeV, m_{#psi}=100 GeV',root.kSignal2)
+processes = [ttbar,wjets, znunu, zll, signal1, signal2]
 
 ### ASSIGN FILES TO PROCESSES ###
-zjets.add_file(baseDir+'ZtoNuNu.root')
+zll.add_file(baseDir+'ZJets.root')
+znunu.add_file(baseDir+'ZtoNuNu.root')
 ttbar.add_file(baseDir+'TTbar.root')
 wjets.add_file(baseDir+'WJets.root')
 signal1.add_file(baseDir+'Vector_MonoTop_NLO_Mphi-1750_Mchi-1_gSM-0p25_gDM-1p0_13TeV-madgraph.root')
-signal2.add_file(baseDir+'Scalar_MonoTop_LO_Mphi-2900_Mchi-100_13TeV-madgraph.root')
+signal2.add_file(baseDir+'Scalar_MonoTop_LO_Mphi-1700_Mchi-100_13TeV-madgraph.root')
 
 for p in processes:
     plot.add_process(p)
 
-recoilBins = [250,280,310,350,400,450,600,1000]
-nRecoilBins = len(recoilBins)-1
 
-recoil=VDistribution("pfmet",recoilBins,"p_{T}^{miss} [GeV]","Arbitrary units")
+recoil=FDistribution("pfmet",200,1000,20,"p_{T}^{miss} [GeV]","Arbitrary units")
 plot.add_distribution(recoil)
 
 # plot.add_distribution(FDistribution('nJet',0.5,6.5,6,'N_{jet}','Events'))
