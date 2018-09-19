@@ -22,11 +22,11 @@ force = True
 # sigfiles += glob(flatdir+'/ST*root')
 # coupling_scan = False
 
-#sigfiles += glob(flatdir+'/Scalar*root')
-#coupling_scan = False
+sigfiles += glob(flatdir+'/Scalar*root')
+coupling_scan = False
 
-sigfiles += glob(flatdir+'/Vector*root')
-coupling_scan = True
+#sigfiles += glob(flatdir+'/Vector*root')
+#coupling_scan = True
 
 if coupling_scan:
     fweights = open('../signal_weights.dat')
@@ -73,6 +73,33 @@ for ff in sigfiles:
                     else:
                         mask[cfg] = False
             cfglines.append(cfg)
+    else:
+        replacements = {
+               'Scalar_MonoTop_LO_Mphi-':'',
+               '_13TeV-madgraph':'',
+               '_Mchi-':'_',
+            }
+        for k,v in replacements.iteritems():
+            f = f.replace(k,v)
+        mV,mChi = map(int,f.split('_'))
+        model = 'scalar'
+        for w in weights:
+            cfg = '%s %i_%i %s'%(model,mV,mChi,w) 
+            if force:
+                mask[cfg] = True
+            else:
+                if len(glob(scansdir+'/'+model+'/'+w+'/higgsCombine*%i_%i*root'%(mV,mChi)))==0:
+                    mask[cfg] = True
+                else:
+                    checkfilepath = glob(scansdir+'/'+model+'/'+w+'/higgsCombine*%i_%i*root'%(mV,mChi))[0]
+                    f = root.TFile(checkfilepath)
+                    t = f.Get('limit')
+                    if not(t) or t.GetEntriesFast()<6:
+                        print 'corrupt:',checkfilepath
+                        mask[cfg] = True
+                    else:
+                        mask[cfg] = False
+            cfglines.append(cfg)
 
 to_submit = []
 for i in xrange(len(cfglines)):
@@ -81,14 +108,14 @@ for i in xrange(len(cfglines)):
         to_submit.append(cfg)
 
 
-fout = open('submit.cfg','w')
-fout.write(cfgheader+'\n')
-for l in cfglines:
-    fout.write(l+'\n')
-fout.close()
+# fout = open('submit.cfg','w')
+# fout.write(cfgheader+'\n')
+# for l in cfglines:
+#     fout.write(l+'\n')
+# fout.close()
 
 args_template = '%s '%scramdir
-args_template += '--template correlated_tmpl.txt '
+args_template += '--template newewk_tmpl.txt '
 args_template += '--indir %s '%fittingdir
 args_template += '--outdir %s '%scansdir
 args_template += '--cfg '
