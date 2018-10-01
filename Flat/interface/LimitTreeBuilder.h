@@ -66,7 +66,7 @@ public:
 	std::vector<Process*> GetProcesses() { return ps; }
 	void Run() { 
 		for (auto p : ps) { 
-			PInfo("LimitTreeBuilder::Region::Run",TString::Format("%s",name.Data())); 
+			logger.info("LimitTreeBuilder::Region::Run",TString::Format("%s",name.Data())); 
 			p->Run(); 
 		} 
 	}

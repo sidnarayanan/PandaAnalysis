@@ -2,118 +2,87 @@
 
 import argparse
 from sys import argv
+import json 
 
 NBINS=20
 
 parser = argparse.ArgumentParser(description='fit stuff')
 parser.add_argument('--indir',metavar='indir',type=str)
-parser.add_argument('--syst',metavar='syst',type=str,default='cent')
+parser.add_argument('--syst',metavar='syst',type=str,default='')
+parser.add_argument('--pt',metavar='pt',type=int)
+parser.add_argument('--wp',type=str,default='tight')
 args = parser.parse_args()
 basedir = args.indir
 argv=[]
 
 from math import sqrt
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
+from PandaAnalysis.Tagging.TnPSel import pt_cut, pt_bins
 Load('HistogramDrawer')
 
 def imp(w_):
   return getattr(w_,'import')
 
-plot_labels = {
-    'smeared' : 'JER smeared',
-    'scaleUp' : 'JES Up',
-    'scaleDown' : 'JES Down',
-    'smearedSJ' : 'SJ JER smeared',
-    'scaleSJUp' : 'SJ JES Up',
-    'scaleSJDown' : 'SJ JES Down',
-    'topPt' : 'No top p_{T} weight',
-    'btagUp' : 'b-tag Up',
-    'btagDown' : 'b-tag Down',
-    'mistagUp' : 'b-mistag Up',
-    'mistagDown' : 'b-mistag Down',
-    'mergeUp' : 'Merging radius Up',
-    'mergeDown' : 'Merging radius Down',
-    'cent' : 'Nominal'
-    }
+if len(args.syst) > 0 and not args.syst.startswith('_'):
+  args.syst = '_' + args.syst 
 
-plot_postfix = ''
-plot_label = plot_labels[args.syst]
-if args.syst!='cent':
-  if args.syst=='smeared':
-    postfix = 'Smeared'
-  elif args.syst=='scaleUp':
-    postfix = 'ScaleUp'
-  elif args.syst=='scaleDown':
-    postfix = 'ScaleDown'
-  elif args.syst=='smearedSJ':
-    postfix = 'Smeared_sj'
-  elif args.syst=='scaleSJUp':
-    postfix = 'ScaleUp_sj'
-  elif args.syst=='scaleSJDown':
-    postfix = 'ScaleDown_sj'
-  else:
-    postfix = ''
-  if postfix!='':
-    plot_postfix = postfix
-  else:
-    plot_postfix = args.syst
-  args.syst += '_'
-else:
-  postfix = ''
-  args.syst = ''
+plot_labels = {
+    '_smeared' : 'JER smeared',
+    '_scaleUp' : 'JES Up',
+    '_scaleDown' : 'JES Down',
+    '_btagUp' : 'b-tag Up',
+    '_btagDown' : 'b-tag Down',
+    '_mistagUp' : 'b-mistag Up',
+    '_mistagDown' : 'b-mistag Down',
+    '_mergeUp' : 'Merging radius Up',
+    '_mergeDown' : 'Merging radius Down',
+    '' : 'Nominal'
+    }
+plot_label = pt_cut(args.pt).replace('fjPt && fjPt','p_{T}') + ' ' + plot_labels[args.syst]
+plot_postfix = '_%s_%i'%(args.wp, args.pt) + args.syst 
+
 
 plot = {}
 for iC in [0,1]:
   plot[iC] = root.HistogramDrawer()
   plot[iC].Ratio(1)
-  plot[iC].FixRatio(.4)
+  plot[iC].FixRatio(1)
   plot[iC].DrawMCErrors(False)
   plot[iC].Stack(True)
   plot[iC].DrawEmpty(True)
   plot[iC].SetTDRStyle()
   plot[iC].AddCMSLabel()
-  plot[iC].SetLumi(36.6)
+  plot[iC].SetLumi(36)
   plot[iC].AddLumiLabel(True)
   plot[iC].InitLegend()
 
 hprong = {}; dhprong = {}; pdfprong = {}; norm = {}; smeared = {}; smear = {}; mu = {}; hdata = {}; dh_data={}
 mcnorms = {}; mcerrs = {}
-mass = root.RooRealVar("m","m_{SD} [GeV]",50,450)
+mass = root.RooRealVar("m","m_{SD} [GeV]",50,350)
 
 ftemplate = {
-      'pass' : root.TFile(basedir+'tag_pass_%shists.root'%args.syst),
-      'fail' : root.TFile(basedir+'tag_fail_%shists.root'%args.syst),
+      'pass' : root.TFile(basedir+'pass_%s_%i_%shists.root'%(args.wp,args.pt,args.syst)),
+      'fail' : root.TFile(basedir+'fail_%s_%i_%shists.root'%(args.wp,args.pt,args.syst)),
     }
 
-inputs = {
-    1 : ['QCD','Z+g','Z+q','W+g','W+q','Top [unmatched]'],
-    2 : ['Diboson', 'Top [W-matched]'],
-    3 : ['Top [t-matched]'],
-    }
-
-def build_sum_hist(cat,nprong):
+def get_hist(cat,nprong):
   f = ftemplate[cat]
-  hsum = None
-  for i in inputs[nprong]:
-    if not hsum:
-      hsum = f.Get('h_fj1MSD%s_%s'%(postfix,i)).Clone('h_%s_%i'%(cat,nprong))
-    else:
-      hsum.Add(f.Get('h_fj1MSD%s_%s'%(postfix,i)))
-  return hsum
+  hsum = f.Get('h_fjMSD_%iMinusprong'%nprong).Clone('h_%s_%i'%(cat,nprong))
+  return hsum 
 
 # get histograms
-hdata[1] = ftemplate['pass'].Get('h_fj1MSD%s_Data'%postfix)
+hdata[1] = ftemplate['pass'].Get('h_fjMSD_Data')
 dh_data[1] = root.RooDataHist('dh_data1','dh_data1',root.RooArgList(mass),hdata[1])
-hprong[(3,1)] = build_sum_hist('pass',3) 
-hprong[(2,1)] = build_sum_hist('pass',2) 
-hprong[(1,1)] = build_sum_hist('pass',1) 
+hprong[(3,1)] = get_hist('pass',3) 
+hprong[(2,1)] = get_hist('pass',2) 
+hprong[(1,1)] = get_hist('pass',1) 
 
-hdata[0] = ftemplate['fail'].Get('h_fj1MSD%s_Data'%postfix)
+hdata[0] = ftemplate['fail'].Get('h_fjMSD_Data')
 dh_data[0] = root.RooDataHist('dh_data0','dh_data0',root.RooArgList(mass),hdata[0])
-hprong[(3,0)] = build_sum_hist('fail',3) 
-hprong[(2,0)] = build_sum_hist('fail',2) 
-hprong[(1,0)] = build_sum_hist('fail',1) 
+hprong[(3,0)] = get_hist('fail',3) 
+hprong[(2,0)] = get_hist('fail',2) 
+hprong[(1,0)] = get_hist('fail',1) 
 
 # build pdfs
 for iC in [0,1]:
@@ -142,23 +111,10 @@ for iP in [3,2,1]:
       smeared[cat] = root.RooFFTConvPdf('conv%i%i'%cat,'conv%i%i'%cat,mass,pdfprong[cat],jesr)
     else:
       smeared[cat] = pdfprong[cat]
-'''
-for iP in [3,2,1]:
-  mu[iP] = root.RooRealVar('mu%i'%iP,'mu%i'%iP,10,-25,25)
-  smear[iP] = root.RooGaussian('gauss%i'%iP,'gauss%i'%iP,mass,mu[iP],sigma)
-  for iC in [0,1]:
-    cat = (iP,iC)
-    if iP<3:
-      smeared[cat] = pdfprong[cat]
-    else:
-      smeared[cat] = root.RooFFTConvPdf('conv%i%i'%cat,'conv%i%i'%cat,mass,pdfprong[cat],smear[iP])
-'''
 
 model = {}
-# nsigtotal = root.RooFormulaVar('nsigtotal','norm30+norm31',root.RooArgList(norm[(3,0)],norm[(3,1)]))
 nsigtotal_ = mcnorms[(3,0)]+mcnorms[(3,1)]
 nsigtotal = root.RooRealVar('nsigtotal','nsigtotal',nsigtotal_,0.5*nsigtotal_,2*nsigtotal_)
-# eff_ = norm[(3,1)].getVal()/(norm[(3,1)].getVal()+norm[(3,0)].getVal())
 
 def calcEffAndErr(p,perr,f,ferr):
   eff_ = p/(p+f)
@@ -219,9 +175,9 @@ colors = {
   3:root.kOrange
 }
 labels = {
-  1:'Unmatched',
-  2:'Matched W',
-  3:'Matched top',
+  1:'1-prong',
+  2:'2-prong',
+  3:'3-prong',
 }
 
 eff_val = eff.getVal()
@@ -271,7 +227,7 @@ for iC in [0,1]:
   hmodel = root.TH1D(); hmodel_.Copy(hmodel)
   hmodel.SetLineWidth(3);
   hmodel.SetLineColor(root.kBlue+10)
-  hmodel.GetXaxis().SetTitle('fatjet m_{SD} %s [GeV]'%postfix)
+  hmodel.GetXaxis().SetTitle('CA15 m_{SD} [GeV]')
   hmodel.GetYaxis().SetTitle('Events/10 GeV')
 
   signorm_val = (eff_val if iC==1 else 1-eff_val)*nsigtotal_val
@@ -329,10 +285,18 @@ s.append( '\tPre-fit mass efficiency was %f'%(effMass_) )
 s.append( '\tPost-fit mass efficiency is %f +/-%.5g'%(effMass,effMassErr) )
 s.append( '\tPre-fit mass+tag efficiency was %f'%(effMass_*eff_) )
 s.append( '\tPost-fit mass+tag efficiency is %f +%.5g -%.5g'%(effMass*eff.getVal(),effMass*abs(eff.getErrorHi()),effMass*abs(eff.getErrorLo())) )
-s.append( '\tSF = %f +%f -%f'%(effMass*eff.getVal()/(eff_*effMass_), effMass*abs(eff.getErrorHi())/(eff_*effMass_), effMass*abs(eff.getErrorLo())/(eff_*effMass_)) )
+sf = effMass*eff.getVal()/(eff_*effMass_)
+sf_hi = effMass*abs(eff.getErrorHi())/(eff_*effMass_)
+sf_lo = effMass*abs(eff.getErrorLo())/(eff_*effMass_) 
+s.append( '\tSF = %f +%f -%f'%(sf, sf_hi, sf_lo))
 
 s = '\n'.join(s)
 
 with open(basedir+'/fits/summary%s.txt'%plot_postfix,'w') as fout:
   fout.write(s)
+with open(basedir+'/fits/summary%s.json'%plot_postfix,'w') as fout:
+  data = {'sf':sf, 'hi':sf_hi, 'lo':sf_lo,
+          'pt':pt_bins[args.pt],
+          'wp':args.wp}
+  json.dump(data, fout)
 print s

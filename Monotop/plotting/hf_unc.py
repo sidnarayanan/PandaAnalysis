@@ -18,7 +18,7 @@ sname = argv[0]
 argv=[]
 import ROOT as root
 root.gROOT.SetBatch()
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
 import PandaAnalysis.Monotop.CombinedSelection as sel

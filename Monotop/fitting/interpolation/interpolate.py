@@ -14,7 +14,7 @@ sname = argv[0]
 argv=[]
 
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.root_interface import read_tree, draw_hist
 import ROOT as root
 
@@ -42,7 +42,7 @@ def interpolate():
     f_interp_path = basedir+'/interpolate/hists/%s.root'%(args.mass_interp)
     f_interp = root.TFile.Open(f_interp_path)
 
-    PInfo(sname, 'We want to interpolate point %s'%args.mass_interp)
+    logger.info(sname, 'We want to interpolate point %s'%args.mass_interp)
 
     if not args.mass_reco:
         m_V,m_DM = [int(x) for x in args.mass_interp.split('_')]
@@ -62,7 +62,7 @@ def interpolate():
 
         args.mass_reco = '%i_%i'%(m_V_reco,m_DM_reco)
 
-    PInfo(sname, 'We have chosen as the reconstructed point %s'%args.mass_reco)
+    logger.info(sname, 'We have chosen as the reconstructed point %s'%args.mass_reco)
 
     f_reco_path = basedir+'/signals_3/fittingForest_signal_vector_%s.root'%(args.mass_reco)
     f_reco = root.TFile.Open(f_reco_path)
@@ -79,7 +79,7 @@ def interpolate():
         branches = [metname]
         h_interp = f_interp.Get('h_%s'%g)
         g_reco = 'nominal' # = g
-        PInfo(sname,'Interpolating %s with %s'%(g,g_reco))
+        logger.info(sname,'Interpolating %s with %s'%(g,g_reco))
         h_reco_gen = f_reco_gen.Get('h_%s'%g_reco)
         h_ratio = h_interp.Clone(); h_ratio.Divide(h_reco_gen)
         ba.newBranchName = 'interp_%s'%g

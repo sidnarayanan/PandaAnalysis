@@ -13,7 +13,7 @@ argv=[]
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 import PandaCore.Tools.job_config as cb
 import PandaAnalysis.Tagging.cfg_v8 as tagcfg
 import PandaAnalysis.T3.job_utilities as utils
@@ -24,7 +24,7 @@ data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
 def fn(input_name, isData, full_path):
     
-    PInfo(sname+'.fn','Starting to process '+input_name)
+    logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
     skimmer = root.PandaAnalyzer()
     analysis = wlnhbb_ca15(True)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             to_run = s
             break
     if not to_run:
-        PError(sname,'Could not find a job for PROCID=%i'%(which))
+        logger.error(sname,'Could not find a job for PROCID=%i'%(which))
         exit(3)
     
     outdir = getenv('SUBMIT_OUTDIR')
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     utils.cleanup('*.root')
     utils.print_time('stageout and cleanup')
     if not ret:
-        utils.write_lock(lockdir,outfilename,processed)
+        utils.report_done(lockdir,outfilename,processed)
         utils.cleanup('*.lock')
         utils.print_time('create lock')
     else:

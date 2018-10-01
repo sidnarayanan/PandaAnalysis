@@ -16,7 +16,7 @@ basedir = getenv('PANDA_FITSCAN')
 argv=[]
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 
 ##Color palette
 

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from re import sub 
+
 variables = []
 
-formulae = [ (x,'F',x.replace('ecfN','fj1ECFN')) for x in 
+formulae = [ (x,'F',sub(r'_([0-9][0-9])', r'_\1[0]', x.replace('ecfN','fjECFN'))) for x in 
     [   
             'ecfN_1_2_20/pow(ecfN_1_2_10,2.00)',
             'ecfN_1_3_40/ecfN_2_3_20',
@@ -17,8 +19,8 @@ formulae = [ (x,'F',x.replace('ecfN','fj1ECFN')) for x in
             'ecfN_2_4_20/pow(ecfN_1_3_20,2.00)',
     ]
 ]
-formulae.append(['tau32SD','F','fj1Tau32SD'])
-formulae.append(['htt_frec','F','fj1HTTFRec'])
+formulae.append(['tau32SD','F','fjTau32SD[0]'])
+formulae.append(['htt_frec','F','fjHTTFRec[0]'])
 
 spectators = [
           ('pt','F'),
@@ -26,3 +28,9 @@ spectators = [
               ]
 
 
+
+if __name__ == '__main__':
+    from pprint import pprint
+    pprint(variables)
+    pprint(formulae)
+    pprint(spectators)

@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 
-from PandaCore.Tools.Load import Load 
-from PandaCore.Tools.Misc import PInfo, PError
+from PandaCore.Utils.load import Load 
+from PandaCore.Utils.logging import logger
 import ROOT as root
 
 Load('PandaAnalyzer')
 
 def _dump(a):
-    PInfo('PandaAnalysis.Flat.analysis','Summary of analysis %s:'%(a.name))
+    logger.info('PandaAnalysis.Flat.analysis','Summary of analysis %s:'%(a.name))
     for k in dir(a):
         if k[0] == '_':
             continue
         if type(getattr(a, k)) != int:
             continue
-        PInfo('PandaAnalysis.Flat.analysis','    %20s = %s'%(k, 'True' if getattr(a, k) else 'False'))
+        logger.info('PandaAnalysis.Flat.analysis','    %20s = %s'%(k, 'True' if getattr(a, k) else 'False'))
 
 
 
 def _analysis(name, verbose, **kwargs):
-    a = root.Analysis(name)
+    a = root.pa.Analysis(name)
     for k,v in kwargs.iteritems():
         if not hasattr(a, k):
-            PError('PandaAnalysis.Flat.analysis','Could not set property %s'%k)
+            logger.error('PandaAnalysis.Flat.analysis','Could not set property %s'%k)
             return None 
         setattr(a, k, bool(v))
     setattr(a, 'dump', lambda : _dump(a))
@@ -29,8 +29,8 @@ def _analysis(name, verbose, **kwargs):
         a.dump()
     return a
 
-def analysis(name, **kwargs):
-    return _analysis(name, verbose=True, **kwargs)
+def analysis(name, verbose=True, **kwargs):
+    return _analysis(name, verbose=verbose, **kwargs)
 
 
 # predefined!
@@ -46,6 +46,44 @@ vbf = lambda v=False : _analysis(
         fatjet = False,
         btagSFs = False,
         puppiJets = False
+    )
+
+vqqhbb = lambda v=False : _analysis(
+        name = 'vbfhbb',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        vqqhbb = True, 
+        fatjet = True,
+        btagSFs = True,
+        hfCounting = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+    )
+
+vbfhbb = lambda v=False : _analysis(
+        name = 'vbfhbb',
+        verbose = v,
+        ak8 = True,
+        hbb = True,
+        fatjet = True,
+        btagSFs = True,
+        btagWeights = True,
+        useCMVA = True,
+        hfCounting = True,
+        bjetBDTReg = False,
+        bjetDeepReg = True,
+        varyJES = False,
+        varyJESTotal = True,
+        rerunJES = False,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+        vbf = True,
     )
 
 monoh = lambda v=False : _analysis(
@@ -83,6 +121,35 @@ deepgen = lambda v=False : _analysis(
         genOnly = True,
     )
 
+kfac = lambda v=False : _analysis(
+        name = 'kfac',
+        verbose = v,
+        hbb = True,
+        genOnly = True,
+    )
+
+breg = lambda v=False : _analysis(
+        name = 'breg',
+        verbose = v,
+        ak8 = False,
+        hbb = True,
+        fatjet = False,
+        btagSFs = False,
+        btagWeights = False,
+        useCMVA = False,
+        useDeepCSV = True,
+        complicatedLeptons = True,
+        hfCounting = True,
+        bjetRegTraining = True,
+        bjetBDTReg = False,
+        bjetDeepReg = False,
+        varyJES = True,
+        rerunJES = True,
+        rerunJER = True,
+        jetFlavorPartons = False,
+        jetFlavorJets = True,
+    )
+
 wlnhbb = lambda v=False : _analysis(
         name = 'wlnhbb',
         verbose = v,
@@ -93,59 +160,45 @@ wlnhbb = lambda v=False : _analysis(
         fatjet = True,
         btagSFs = True,
         btagWeights = True,
-        useCMVA = True,
+        useCMVA = False,
+        useDeepCSV = True,
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
-        bjetRegression = True,
+        bjetRegTraining = False,
+        bjetBDTReg = True,
+        bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
+        mcTriggers = True,
     )
-zllhbb = lambda v=False : _analysis(
-        name = 'zllhbb',
+wlnhbb2017 = lambda v=False : _analysis(
+        name = 'wlnhbb',
         verbose = v,
         ak8 = True,
         hbb = True,
-        ZllHbb = True,
         monoh = False,
         recoil = True,
         fatjet = True,
         btagSFs = True,
         btagWeights = True,
-        useCMVA = True,
+        useCMVA = False,
+        useDeepCSV = True,
         complicatedLeptons = True,
         hfCounting = True,
         recluster = False,
-        reclusterGen = False,
-        bjetRegression = True,
+        bjetRegTraining = False,
+        bjetBDTReg = True,
+        bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,
+        rerunJER = True,
         jetFlavorPartons = False,
         jetFlavorJets = True,
-    )
-wlnhbb_ca15 = lambda v=False : _analysis(
-        name = 'wlnhbb',
-        verbose = v,
-        ak8 = False,
-        hbb = True,
-        monoh = False,
-        recoil = True,
-        fatjet = True,
-        btagSFs = True,
-        btagWeights = True,
-        useCMVA = True,
-        complicatedLeptons = True,
-        hfCounting = True,
-        recluster = False,
-        reclusterGen = False,
-        bjetRegression = True,
-        varyJES = True,
-        rerunJES = True,
-        jetFlavorPartons = False,
-        jetFlavorJets = True,
+        mcTriggers = True,
     )
 
 vv = lambda v=False : _analysis(

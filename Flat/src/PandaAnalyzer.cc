@@ -4,163 +4,179 @@
 #include <vector>
 
 
-// only contain the main methods
-
 using namespace panda;
 using namespace std;
+using namespace pa;
 
-PandaAnalyzer::PandaAnalyzer(int debug_/*=0*/) 
+#define ADDMOD(X) mods_all.back()->addSubMod<X>()
+
+
+PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
+  Analyzer("PandaAnalyzer", a, debug_),
+  cfgmod(analysis, gt, DEBUG),
+  wIDs(v_make_shared<TString>())
 {
-  DEBUG = debug_;
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
 
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
-  gt = new GeneralTree();
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Built GeneralTree");
-  ibetas = gt->get_ibetas();
-  Ns = gt->get_Ns();
-  orders = gt->get_orders();
-  if (DEBUG) PDebug("PandaAnalyzer::PandaAnalyzer","Called constructor");
-}
+  Config& cfg = cfgmod.cfg;
+  Utils& utils = cfgmod.utils;
 
+  gblmod = new GlobalMod(event, cfg, utils, gt);
+  mods_all.emplace_back(gblmod);
 
-PandaAnalyzer::~PandaAnalyzer() 
-{
-  if (DEBUG) PDebug("PandaAnalyzer::~PandaAnalyzer","Calling destructor");
-}
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
 
+  // Define analyses
+  preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
+  mods_all.emplace_back(preselmod);
+  ADDMOD(MapMod);
+  if (analysis.unpackedGen)
+    ADDMOD(DeepGenMod<UnpackedGenParticle>);
+  else
+    ADDMOD(DeepGenMod<GenParticle>);
+  ADDMOD(TriggerMod);
+  ADDMOD(SimpleLeptonMod);
+  ADDMOD(ComplicatedLeptonMod);
+  ADDMOD(SimplePhotonMod);
+  ADDMOD(ComplicatedPhotonMod);
+  ADDMOD(RecoilMod);
+  ADDMOD(FatJetMod);
+  ADDMOD(JetMod);
+  ADDMOD(TauMod);
 
-void PandaAnalyzer::ResetBranches() 
-{
-  genObjects.clear();
-  matchPhos.clear();
-  matchEles.clear();
-  matchLeps.clear();
-  looseLeps.clear();
-  tightLeps.clear();
-  loosePhos.clear();
-  cleanedJets.clear();
-  isoJets.clear();
-  centralJets.clear();
-  bCandJets.clear();
-  bCandJetGenFlavor.clear();
-  bCandJetGenPt.clear();
-  genJetsNu.clear();
-  validGenP.clear();
-  fj1 = 0;
-  for (TLorentzVector v_ : {vPFMET, vPuppiMET, vpfUW, vpfUZ, vpfUA, vpfU,
-                            vpuppiUW, vpuppiUZ, vpuppiUA, vpuppiU,
-                            vJet, vBarrelJets})
-  {
-    v_.SetPtEtaPhiM(0,0,0,0);
-  }
-  vMETNoMu.SetMagPhi(0,0);
-  gt->Reset();
-  if (DEBUG) PDebug("PandaAnalyzer::ResetBranches","Reset");
-}
+  postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
+  mods_all.emplace_back(postselmod);
+  ADDMOD(GenPMod);
+  ADDMOD(JetFlavorMod); 
+  ADDMOD(HbbMiscMod);
+  ADDMOD(GenVHMod); 
+  ADDMOD(KinFitMod);
+  ADDMOD(InclusiveLeptonMod);
+  ADDMOD(SoftActivityMod);
+  ADDMOD(FatJetMatchingMod);
+  ADDMOD(BTagSFMod);
+  ADDMOD(BTagWeightMod);
+  ADDMOD(TriggerEffMod);
+  ADDMOD(GenStudyEWKMod);
+  ADDMOD(QCDUncMod);
+  ADDMOD(GenLepMod);
+  ADDMOD(GenJetNuMod);
+  ADDMOD(HFCountingMod);
+  ADDMOD(KFactorMod);
 
+  for (auto& mod : mods_all)
+    mod->print();
 
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
+  // Read inputs
+  getInput();
 
-void PandaAnalyzer::Terminate() 
-{
-  fOut->WriteTObject(tOut);
-  fOut->Close();
-  fOut = 0; tOut = 0;
+  event.setStatus(*tIn, {"!*"});
+  event.setAddress(*tIn, cfgmod.get_inputBranches());
 
-  if (analysis->deep)
-    IncrementAuxFile(true);
-  if (analysis->deepGen)
-    IncrementGenAuxFile(true);
-
-  for (unsigned i = 0; i != cN; ++i) {
-    delete h1Corrs[i];
-    h1Corrs[i] = 0;
-  }
-  for (unsigned i = 0; i != cN; ++i) {
-    delete h2Corrs[i];
-    h2Corrs[i] = 0;
-  }
-  for (auto *f : fCorrs)
-    if (f)
-      f->Close();
-
-  delete btagCalib;
-  delete sj_btagCalib;
-  for (auto *reader : btagReaders)
-    delete reader;
-
-  for (auto& iter : ak8UncReader)
-    delete iter.second;
-
-  delete ak8JERReader;
-
-  for (auto& iter : ak4UncReader)
-    delete iter.second;
-
-  for (auto& iter : ak4ScaleReader) {
-    delete iter.second;
+  TH1D* hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
+  hDTotalMCWeight->SetDirectory(0);
+  TH1D* hDNPUWeight = nullptr; {
+    TH1D* hbase = static_cast<TH1D*>(fIn->Get("hNPVReco"));
+    if (hbase == nullptr)
+      hbase = static_cast<TH1D*>(fIn->Get("hNPVTrue"));
+    if (hbase != nullptr) {
+      hDNPUWeight = static_cast<TH1D*>(hbase->Clone("hDNPUWeight"));
+      hDNPUWeight->SetDirectory(0);
+    }
   }
 
-  delete ak4JERReader;
+  TTree* tW = static_cast<TTree*>(fIn->Get("weights"));
+  if (tW && analysis.processType == kSignal) {
+    if (tW->GetEntries()!=377 && tW->GetEntries()!=22) {
+      logger.error("PandaAnalyzer::PandaAnalyzer",
+          TString::Format("Reweighting failed because only found %u weights!",
+                          unsigned(tW->GetEntries())));
+      throw runtime_error("");
+    }
+    TString *id = new TString();
+    tW->SetBranchAddress("id",&id);
+    unsigned nW = tW->GetEntriesFast();
+    for (unsigned iW=0; iW!=nW; ++iW) {
+      tW->GetEntry(iW);
+      wIDs->push_back(*id);
+    }
+  } else if (analysis.processType==kSignal) {
+    logger.error("PandaAnalyzer::PandaAnalyzer","This is a signal file, but the weights are missing!");
+    throw runtime_error("");
+  }
+  registry.publishConst("wIDs", wIDs);
 
-  delete activeArea;
-  delete areaDef;
-  delete jetDef;
-  delete jetDefKt;
-  delete jetDefGen;
-  delete softDrop;
+  // Define outputs
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Writing outputs");
+  gt.is_monohiggs      = (analysis.monoh || analysis.hbb);
+  gt.is_hbb            = analysis.hbb;
+  gt.is_vh             = analysis.vqqhbb; 
+  gt.is_vbf            = analysis.vbf;
+  gt.is_fatjet         = (analysis.fatjet || analysis.deepGen);
+  gt.is_leptonic       = analysis.complicatedLeptons;
+  gt.is_photonic       = analysis.complicatedPhotons;
+  gt.is_monotop        = !(analysis.monoh || analysis.hbb || analysis.vbf);
+  gt.is_breg           = analysis.bjetRegTraining;
+  gt.btagWeights       = analysis.btagWeights;
+  gt.useCMVA           = analysis.useCMVA;
+  for (auto& id : *wIDs)
+    gt.signal_weights[id] = 1;
 
+  makeOutput(); 
+
+  fOut->WriteTObject(hDTotalMCWeight); delete hDTotalMCWeight; hDTotalMCWeight = nullptr;
+  if (hDNPUWeight != nullptr) {
+    fOut->WriteTObject(hDNPUWeight); delete hDNPUWeight; hDNPUWeight = nullptr;
+  }
+
+  event.rng.setSize(20);
+
+<<<<<<< HEAD
   delete hDTotalMCWeight;
   if(hDNPUWeight) delete hDNPUWeight;
   
   delete bjetregReader;
   delete rochesterCorrection;
+=======
+  // read input data
+  cfgmod.readData(analysis.datapath);
+  for (auto& mod : mods_all)
+    mod->readData(analysis.datapath);
+>>>>>>> sid/master
 
-  delete ecfcalc;
-  delete grid;
-
-  if (DEBUG) PDebug("PandaAnalyzer::Terminate","Finished with output");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Called constructor");
 }
 
 
-// run
-void PandaAnalyzer::Run() 
+PandaAnalyzer::~PandaAnalyzer()
 {
+}
 
-  fOut->cd(); // to be absolutely sure
+void PandaAnalyzer::AddGoodLumiRange(int run, int l0, int l1)
+{
+  auto run_ = goodLumis.find(run);
+  if (run_==goodLumis.end()) { // don't know about this run yet
+    vector<LumiRange> newLumiList;
+    newLumiList.emplace_back(l0,l1);
+    goodLumis[run] = newLumiList;
+  } else {
+    run_->second.emplace_back(l0,l1);
+  }
+}
 
-  // INITIALIZE --------------------------------------------------------------------------
 
-  unsigned int nEvents = tIn->GetEntries();
-  unsigned int nZero = 0;
-  if (lastEvent>=0 && lastEvent<(int)nEvents)
-    nEvents = lastEvent;
-  if (firstEvent>=0)
-    nZero = firstEvent;
-
-  if (!fOut || !tIn) {
-    PError("PandaAnalyzer::Run","NOT SETUP CORRECTLY");
-    exit(1);
+bool PandaAnalyzer::PassGoodLumis(int run, int lumi)
+{
+  auto run_ = goodLumis.find(run);
+  if (run_==goodLumis.end()) {
+    // matched no run
+    if (DEBUG)
+      logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i",run));
+    return false;
   }
 
-  // get bounds
-  genBosonPtMin=150, genBosonPtMax=1000;
-  if (!isData && h1Corrs[cZNLO]) {
-    genBosonPtMin = h1Corrs[cZNLO]->GetHist()->GetBinCenter(1);
-    genBosonPtMax = h1Corrs[cZNLO]->GetHist()->GetBinCenter(h1Corrs[cZNLO]->GetHist()->GetNbinsX());
-  }
-
-  if (analysis->ak8) {
-    if (analysis->puppiJets)
-      fatjets = &event.puppiAK8Jets;
-    else
-      fatjets = &event.chsAK8Jets;
-  } else if (analysis->fatjet) {
-    if (analysis->puppiJets)
-      fatjets = &event.puppiCA15Jets;
-    else
-      fatjets = &event.chsCA15Jets;
-  }
-
+<<<<<<< HEAD
   jets = &event.chsAK4Jets;
 
   // these are bins of b-tagging eff in pT and eta, derived in 8024 TT MC
@@ -372,27 +388,53 @@ void PandaAnalyzer::Run()
     triggerHandlers[kEleFakeTrig].addTriggers(paths);
 
     RegisterTriggers();
+=======
+  // found the run, now look for a lumi range
+  for (auto &range : run_->second) {
+    if (range.Contains(lumi)) {
+      if (DEBUG)
+        logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Accepting run=%i, lumi=%i",run,lumi));
+      return true;
+    }
+>>>>>>> sid/master
   }
 
-  if (analysis->ak8)
-    FATJETMATCHDR2 = 0.64;
-
-  fOut->cd(); // to be absolutely sure
-
-  // set up reporters
-  unsigned int iE=0;
-  ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,10);
-  tr = new TimeReporter("PandaAnalyzer::Run",DEBUG+1);
+  // matched no lumi range
+  if (DEBUG)
+    logger.debug("PandaAnalyzer::PassGoodLumis",TString::Format("Failing run=%i, lumi=%i",run,lumi));
+  return false;
+}
 
 
-  // EVENTLOOP --------------------------------------------------------------------------
-  for (iE=nZero; iE!=nEvents; ++iE) {
-    tr->Start();
-    pr.Report();
-    ResetBranches();
-    event.getEntry(*tIn,iE);
+bool PandaAnalyzer::PassPresel(Selection::Stage stage)
+{
+  if (selections.size() == 0)
+    return true;
 
+  bool pass = false;
+  for (auto& s : selections) {
+    if (s->anded())
+      continue;
+    if (DEBUG>1)
+      logger.debug("PandaAnalyzer::PassPresel",s->get_name());
+    if (s->accept(stage)) {
+      pass = true;
+      break;
+    }
+  }
 
+  for (auto& s : selections) {
+    if (s->anded()) {
+      if (DEBUG>1)
+        logger.debug("PandaAnalyzer::PassPresel",s->get_name());
+      pass = pass && s->accept(stage);
+    }
+  }
+
+  return pass;
+}
+
+<<<<<<< HEAD
     tr->TriggerEvent(TString::Format("GetEntry %u",iE));
     if (DEBUG > 5) {
       PDebug("PandaAnalyzer::Run::Dump","");
@@ -419,215 +461,87 @@ void PandaAnalyzer::Run()
     }
     
     gt->filter_maxRecoil = event.recoil.max;
+=======
+>>>>>>> sid/master
 
-    if (!PassPresel(Selection::sRecoil))
+
+void PandaAnalyzer::Reset()
+{
+  for (auto& mod : mods_all)
+    mod->reset();
+
+  Analyzer::Reset();
+}
+
+
+
+void PandaAnalyzer::Terminate()
+{
+  for (auto& mod : mods_all)
+    mod->terminate();
+
+  Analyzer::Terminate();
+}
+
+
+// run
+void PandaAnalyzer::Run()
+{
+
+  // INITIALIZE --------------------------------------------------------------------------
+  unsigned nZero, nEvents, iE=0;
+  setupRun(nZero, nEvents); 
+
+  for (auto& mod : mods_all)
+    mod->initialize(registry);
+
+  ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
+  TimeReporter& tr = cfgmod.cfg.tr;
+  tr.TriggerEvent("configuration"); 
+
+  // EVENTLOOP --------------------------------------------------------------------------
+  for (iE=nZero; iE!=nEvents; ++iE) {
+    pr.Report();
+
+    Reset();
+    event.getEntry(*tIn,iE);
+    tr.TriggerEvent(TString::Format("GetEntry %u",iE));
+
+    gblmod->execute();
+
+    if (analysis.isData && !PassGoodLumis(gt.runNumber,gt.lumiNumber))
+        continue;
+
+    preselmod->execute();
+
+    if (!PassPresel(Selection::sReco))
       continue;
 
-    // event info
-    gt->mcWeight = event.weight;
-    gt->runNumber = event.runNumber;
-    gt->lumiNumber = event.lumiNumber;
-    gt->eventNumber = event.eventNumber;
-    gt->isData = isData ?  1 : 0; 
-    gt->npv = event.npv;
-    gt->pu = event.npvTrue;
-    gt->metFilter = (event.metFilters.pass()) ? 1 : 0;
-    gt->metFilter = (gt->metFilter==1 && !event.metFilters.badPFMuons) ? 1 : 0;
-    gt->metFilter = (gt->metFilter==1 && !event.metFilters.badChargedHadrons) ? 1 : 0;
+    postselmod->execute();
 
-    if (isData) {
-      // check the json
-      if (!PassGoodLumis(gt->runNumber,gt->lumiNumber))
-        continue;
-
-    } else { // !isData
-      gt->sf_npv = GetCorr(cNPV,gt->npv);
-      gt->sf_pu = GetCorr(cPU,gt->pu);
-      gt->sf_puUp = GetCorr(cPUUp,gt->pu);
-      gt->sf_puDown = GetCorr(cPUDown,gt->pu);
-    }
-
-    // save triggers
-    if (isData || analysis->applyMCTriggers) {
-      for (unsigned iT = 0; iT != kNTrig; ++iT) {
-        auto &th = triggerHandlers.at(iT);
-        for (auto iP : th.indices) {
-          if (event.triggerFired(iP)) {
-              gt->trigger |= (1 << iT);
-              break;
-          }
-        }
-      }
-    }
-
-    if (analysis->rerunJES)
-      SetupJES();
-
-    tr->TriggerEvent("initialize");
-
-    // met
-    gt->pfmetRaw = event.rawMet.pt;
-    gt->pfmet = event.pfMet.pt;
-    gt->pfmetphi = event.pfMet.phi;
-    gt->calomet = event.caloMet.pt;
-    gt->sumETRaw = event.pfMet.sumETRaw;
-    gt->puppimet = event.puppiMet.pt;
-    gt->puppimetphi = event.puppiMet.phi;
-    gt->trkmet = event.trkMet.pt;
-    gt->trkmetphi = event.trkMet.phi;
-    vPFMET.SetPtEtaPhiM(gt->pfmet,0,gt->pfmetphi,0);
-    vPuppiMET.SetPtEtaPhiM(gt->puppimet,0,gt->puppimetphi,0);
-    vMETNoMu.SetMagPhi(gt->pfmet,gt->pfmetphi); //       for trigger eff
-    if (analysis->varyJES) {
-      gt->pfmetUp = event.pfMet.ptCorrUp;
-      gt->pfmetDown = event.pfMet.ptCorrDown;
-    }
-
-    tr->TriggerEvent("met");
-
-    if (!isData) {
-      // take care of bug in panda version <= 009
-      // replace duplicate gen particles with preferred version.
-      // template type could be inferred but let's be explicit
-      // so we can read it.
-      if (event.genParticles.size() > 0) {
-        RemoveGenDups<GenParticle>(event.genParticles);
-      } else {
-        RemoveGenDups<UnpackedGenParticle>(event.genParticlesU);
-      }
-
-      // do this up here before the preselection
-      if (analysis->deepGen) {
-        if (event.genParticles.size() > 0) 
-          FillGenTree<GenParticle>();
-        else
-          FillGenTree<UnpackedGenParticle>();
-        if (gt->genFatJetPt > 400 || analysis->deepExC) 
-          tAux->Fill();
-        if (tAux->GetEntriesFast() == 2500)
-          IncrementGenAuxFile();
-        tr->TriggerEvent("fill gen aux");
-      }
-    }
-
-
-    if (!analysis->genOnly) {
-      // electrons and muons
-      if (analysis->complicatedLeptons) {
-        ComplicatedLeptons();
-      } else {
-        SimpleLeptons();
-      }
-      if (analysis->hbb) {
-        InclusiveLeptons();
-      }
-   
-      // photons
-      if (analysis->complicatedPhotons) {
-        ComplicatedPhotons();
-      } else {
-        SimplePhotons();
-      }
-
-      // recoil!
-      if (analysis->recoil)
-        Recoil();
-
-      // fatjets
-      if (analysis->fatjet) {
-        FatjetBasics();
-        if (analysis->recluster)
-          FatjetRecluster();
-        tr->TriggerEvent("fatjet");
-      }
-
-      // first identify interesting jets
-      JetBasics();
-
-      if (analysis->hbb) {
-        // Higgs reconstruction for resolved analysis - highest pt pair of b jets
-        JetHbbReco();
-      }
-
-      Taus();
-
-      if (!PassPresel(Selection::sReco)) // only check reco presel here
-        continue;
-
-      if (analysis->hbb) {
-        JetHbbSoftActivity();
-        GetMETSignificance();
-      }
-    }
-
-    if (!isData) {
-      if (!analysis->genOnly) {
-        if (analysis->fatjet)
-          FatjetMatching();
-
-        if (analysis->btagSFs)
-          JetBtagSFs();
-        if (analysis->btagWeights)
-          JetCMVAWeights();
-        
-        TriggerEffs();
-
-        if (analysis->complicatedLeptons ||
-            analysis->complicatedPhotons)
-          GenStudyEWK();
-        else
-          LeptonSFs();
-
-        PhotonSFs();
-      }
-
-      QCDUncs();
-      if (analysis->hbb)
-        LHEInfo();
-      SignalReweights();
-
-      if (analysis->vbf)
-        SaveGenLeptons();
-
-      SignalInfo();
-
-      if (analysis->reclusterGen && analysis->hbb) {
-        GenJetsNu();
-        MatchGenJets(genJetsNu);
-      }
-
-      if (analysis->hfCounting)
-        HeavyFlavorCounting();
-
-       TopPTReweight();
-       VJetsReweight();
-    }
-
-    
     if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
 
-    if (analysis->deep || analysis->hbb)
-      FatjetPartons();
-    if (analysis->deep) {
-      FillPFTree();
-      tAux->Fill();
-      if (tAux->GetEntriesFast() == 2500)
-        IncrementAuxFile();
-      tr->TriggerEvent("aux fill");
-    }
+//     if (analysis.deep || analysis.hbb)
+//       FatJetPartons();
+//     if (analysis.deep) {
+//       FillPFTree();
+//       tAux->Fill();
+//       if (tAux->GetEntriesFast() == 2500)
+//         IncrementAuxFile();
+//       tr->TriggerEvent("aux fill");
+//     }
 
-    gt->Fill();
+    gt.Fill();
 
-    tr->TriggerEvent("fill");
+    tr.TriggerEvent("fill");
 
-  } // entry loop
+  }
 
-  tr->Summary();
-  for (auto* s : selections) 
-    s->report(); 
+  tr.Summary();
+  for (auto& s : selections)
+    s->report();
 
-  if (DEBUG) { PDebug("PandaAnalyzer::Run","Done with entry loop"); }
+  if (DEBUG) { logger.debug("PandaAnalyzer::Run","Done with entry loop"); }
 
 } // Run()
-

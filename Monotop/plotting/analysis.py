@@ -68,8 +68,8 @@ if args.bdtcut:
 if args.masscut:
     plot.AddPlotLabel('%i < m_{SD} < 210 GeV'%(int(args.masscut)),.18,.7,False,42,.04)
 
-#PInfo('cut',plot.cut)
-#PInfo('weight',plot.mc_weight)
+#logger.info('cut',plot.cut)
+#logger.info('weight',plot.mc_weight)
 
 #plot.add_systematic('QCD scale','scaleUp','scaleDown',root.kRed+2)
 #plot.add_systematic('PDF','pdfUp','pdfDown',root.kBlue+2)

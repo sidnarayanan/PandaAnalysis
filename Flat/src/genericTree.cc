@@ -5,8 +5,10 @@ genericTree::RemoveBranches(std::vector<TString> droppable,
                             std::vector<TString> keeppable)
 {
 
-  for (auto &s : droppable)
+  for (auto &s : droppable) {
     r_droppable.emplace_back(s);
+  }
+
   for (auto &s : keeppable)
     r_keeppable.emplace_back(s);
 

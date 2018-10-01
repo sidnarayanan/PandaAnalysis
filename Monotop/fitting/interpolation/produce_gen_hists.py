@@ -13,7 +13,7 @@ argv=[]
 
 import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import Load
 from PandaCore.Tools.root_interface import read_tree, draw_hist, rename_dtypes
 
 Load('Normalizer')
@@ -49,7 +49,7 @@ def stage_in_file(source,target):
     source = 'root://xrootd.cmsaf.mit.edu/' + source
     source = source.replace('/mnt/hadoop/cms','')
     cmd = 'xrdcp %s %s'%(source,target)
-    PInfo(sname+'.stage_in_file', cmd)
+    logger.info(sname+'.stage_in_file', cmd)
     system(cmd)
 
 # copy slowly to keep Max happy
@@ -57,7 +57,7 @@ event_cutoff = 5e5
 def stage_in_list():
     system('mkdir -p unmerged')
     flist = open(list_dir+'%i_%i.txt'%(m_V,m_DM))
-    PInfo(sname+'.stage_in_list','Reading '+list_dir+'%i_%i.txt'%(m_V,m_DM))
+    logger.info(sname+'.stage_in_list','Reading '+list_dir+'%i_%i.txt'%(m_V,m_DM))
     total_events = 0 
     for l in flist:
         in_name = l.strip()
@@ -76,7 +76,7 @@ def stage_in_files():
     t2dir = t2dir.split('/')[:-1]
     t2dir = '/'.join(t2dir)
     t2dir = t2dir.replace('/mnt/hadoop/cms','root://xrootd.cmsaf.mit.edu/')
-    PInfo(sname+'.stage_in_files','Reading files from %s'%t2dir)
+    logger.info(sname+'.stage_in_files','Reading files from %s'%t2dir)
     cmd = 'xrdcp -r --parallel 4 %s unmerged'%(t2dir)
     system(cmd)
 
@@ -138,7 +138,7 @@ def draw_all():
     n_per = 50
     nominal_arr = None
     for iw in xrange(0, n_weights, n_per): 
-        PInfo(sname,'Extracting %i -> %i'%(iw,iw+n_per))
+        logger.info(sname,'Extracting %i -> %i'%(iw,iw+n_per))
 
         xarr = read_tree(t_in, ['genBosonPt'] + weight_strs[iw:iw + n_per])
 
@@ -159,7 +159,7 @@ def stageout():
     cmd = 'mkdir -p %s/interpolate/%s'%(getenv('PANDA_FITTING'),outdir)
     system(cmd)
     cmd = 'mv hists.root %s/interpolate/%s/%i_%i.root'%(getenv('PANDA_FITTING'),outdir,m_V,m_DM)
-    PInfo(sname+'.stageout',cmd)
+    logger.info(sname+'.stageout',cmd)
     system(cmd)
 
 xsec = get_xsec() # do this first in case it's missing

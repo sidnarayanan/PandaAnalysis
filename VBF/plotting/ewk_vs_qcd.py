@@ -16,7 +16,7 @@ lumi = 12900.
 
 import ROOT as root
 from ROOT import gROOT
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 from PandaAnalysis.VBF.LooseSelection import *
 from array import array

@@ -1,49 +1,63 @@
 #!/usr/bin/env python
 
-from sys import argv
-from os import getenv
-which = argv[1]
+from sys import argv, exit
+import argparse
+
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('--histfile',type=str)
+parser.add_argument('--outbranch',type=str,default='sf_l1finor')
+parser.add_argument('outfile',metavar='outfile',type=str,nargs='+',help='input file(s) to process')
+args = parser.parse_args()
+
 argv = []
 
 import ROOT as root
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
+import PandaCore.Tools.Functions 
 
-Load('BranchAdder')
+Load('PandaCoreTools')
+ 
+hba = { 'smu' : root.H2BranchAdder(),
+        'jet' : root.H2BranchAdder() }
+hfile = root.TFile.Open(args.histfile)
+ptformula = 'jot%iPt'
+etaformula = 'fabs(jot%iEta)'
+hbranch = 'sf_l1%s_jot%i'
+hsmu = hfile.Get('h_SingleMuon_spike_finor_pteta')
+hjet = hfile.Get('h_JetHT_spike_finor_pteta')
+hba['smu'].setH(hsmu)
+hba['jet'].setH(hjet)
 
-cuts = {
-    'BB' : 'fabs(jot1Eta)<3 && fabs(jot2Eta)<3',
-#    'FF' : 'fabs(jot1Eta)>3 && fabs(jot2Eta)>3',
-    'BF' : '!(fabs(jot1Eta)<3 && fabs(jot2Eta)<3) && !(fabs(jot1Eta)>3 && fabs(jot2Eta)>3)'
-}
+fba = root.FormulaBranchAdder()
+#formula = 'TMath::Max(0,TMath::Min(1,(1-{0}*((sf_l1smu_jot1*(jot1Pt<300)) + (sf_l1jet_jot1*(jot1Pt>300))))*(1-{0}*((sf_l1smu_jot1*(jot1Pt<300)) + (sf_l1jet_jot1*(jot1Pt>300))))))'
+formula = '(1-sf_l1smu_jot1)*(1-sf_l1smu_jot2)'
+#fba.formula = '(1-{0}_jot1)*(1-{0}_jot2)'.format(args.outbranch)
+#fba.formula = '((1-sf_l1_jot1) * (1-sf_l1_jot2))'
 
-nmu = 2
-
-f = root.TFile(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/vbf16/trig/param_nmu%i.root'%nmu)
-
-def add_individual(key):
-  fin = root.TFile(which, 'UPDATE')
-  t = fin.Get('events')
-  ba = root.BranchAdder()
-  ba.defaultValue = 1
-  ba.formula = 'jot12Mass'
-  ba.cut = cuts[key]
-  ba.newBranchName = 'sf_metTrig_nmu%i_%s'%(nmu, key)
-  ba.AddBranchFromHistogram(t, f.Get('h_jot12Mass_%s'%key))
-  fin.WriteTObject(t, 'events', 'Overwrite')
-  fin.Close()
-  
-
-def combine():
-  fin = root.TFile(which, 'UPDATE')
-  t = fin.Get('events')
-  ba = root.BranchAdder()
-  ba.formula = 'sf_metTrig_nmu%i_BB * sf_metTrig_nmu%i_BF'%(nmu, nmu)
-  ba.newBranchName = 'sf_metTrig_nmu%i'%nmu
-  ba.AddBranchFromFormula(t)
-  fin.WriteTObject(t, 'events', 'Overwrite')
-  fin.Close()
-
-for k in cuts:
-  add_individual(k)
-combine()
+for fpath in args.outfile:
+    f = root.TFile.Open(fpath,'update')
+    t = f.Get('events')
+    for i in [1,2]:
+        for pd in ['smu','jet']:
+            hba[pd].formulaX = ptformula%i
+            hba[pd].formulaY = etaformula%i 
+            hba[pd].newBranchName = hbranch%(pd,i)
+            hba[pd].addBranch(t)
+    f.WriteTObject(t, 'events', 'overwrite')
+    f.Close()
+    f = root.TFile.Open(fpath,'update')
+    t = f.Get('events')
+    fba.newBranchName = args.outbranch
+    fba.formula = formula.format(1)
+    fba.addBranch(t)
+    '''
+    fba.newBranchName = args.outbranch+'_Up'
+    fba.formula = formula.format(1.2)
+    fba.addBranch(t)
+    fba.newBranchName = args.outbranch+'_Down'
+    fba.formula = formula.format(0.8)
+    fba.addBranch(t)
+    '''
+    f.WriteTObject(t, 'events', 'overwrite')
+    f.Close()

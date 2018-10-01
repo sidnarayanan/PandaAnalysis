@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> sid/master
 d = {
     'test'                          : ['Diboson_ww'],
     'WZinc'                         : ['WZ_TuneCP5_13TeV-pythia8'],

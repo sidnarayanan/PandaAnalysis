@@ -32,8 +32,8 @@ for dataset in datasets:
       best = v
       bestvol = vvol
     else:
-      PWarning('cleanProd.py','dataset=%s'%dataset)
-      PWarning('cleanProd.py','\t %s (%.2f) vs %s (%.2f)'%(v,vvol,best,bestvol))
+      logger.warning('cleanProd.py','dataset=%s'%dataset)
+      logger.warning('cleanProd.py','\t %s (%.2f) vs %s (%.2f)'%(v,vvol,best,bestvol))
   for v in versions:
     if v!=best:
       toRemove.append(dataset+'/'+v)

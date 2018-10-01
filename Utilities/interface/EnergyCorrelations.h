@@ -18,14 +18,14 @@
 
 
 
-namespace pandaecf {
+namespace pa {
   /**
    * \brief delta-r-squared metric between two pseudojets
    * @param  j1 first jet
    * @param  j2 second jet
    * @return    \f$dR^2\f$
    */
-   double DeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2);
+   double jetDeltaR2(const fastjet::PseudoJet& j1, const fastjet::PseudoJet& j2);
 
 
   /**
@@ -102,7 +102,7 @@ namespace pandaecf {
   }
 
 
-  class Calculator {
+  class ECFCalculator {
   public:
     enum param {
       oP=0, nP, bP, ecfP
@@ -110,9 +110,9 @@ namespace pandaecf {
     typedef std::tuple<int, int, int, double> data_type;
     typedef std::tuple<int, int, int> pos_type;
 
-    Calculator(int maxN = 4,
+    ECFCalculator(int maxN = 4,
                std::vector<float> bs = {0.5, 1, 2, 4});
-    ~Calculator() { }
+    ~ECFCalculator() { }
 
     data_type access(int pos) const { return access(_oneToThree(pos)); }
     data_type access(pos_type pos) const;
@@ -121,13 +121,13 @@ namespace pandaecf {
     // just a forward iterator
     class iterator {
     private:
-      const Calculator *_c;
+      const ECFCalculator *_c;
       int _pos;
       data_type _data;
 
       void _access() { _data = _c->access(_pos); }
     public:
-      iterator(const Calculator *c, int pos = 0): _c(c), _pos(pos) { _access(); }
+      iterator(const ECFCalculator *c, int pos = 0): _c(c), _pos(pos) { _access(); }
       iterator(const iterator& rhs): _c(rhs._c), _pos(rhs._pos), _data(rhs._data) { }
       ~iterator() { }
 

@@ -4,6 +4,7 @@ d = {
     'MET'                 : ['MET'],
     'SingleElectron'      : ['SingleElectron'],
     'DoubleEG'            : ['DoubleEG'],
+    'DoubleMuon'          : ['DoubleMuon'],
     'SinglePhoton'        : ['SinglePhoton'],
 
     'Diboson'             : ['Diboson_ww','Diboson_wz','Diboson_zz'],
@@ -31,15 +32,24 @@ d = {
                              'WJets_ht800to1200','WJets_ht1200to2500','WJets_ht2500toinf'],
     'WJets_nlo'           : ['WJets_pt%sto%s'%(str(x[0]),str(x[1])) for x in 
                              [(100,250),(250,400),(400,600),(600,'inf')] ],
+    'WJets_njet'          : ['W%iJetsToLNu_WpT%sto%s_CP5'%(n,str(x[0]),str(x[1]))
+                             for x in [(50,150),(150,250),(250,400),(400,'inf')] 
+                             for n in [1,2] ],
     'ZJets'               : ['ZJets_ht%sto%s'%(str(x[0]),str(x[1])) for x in 
                                 [(100,200),(200,400),(400,600),(600,800),(800,1200),(1200,2500),(2500,'inf')]],
     'ZJets_nlo'           : ['ZJets_pt%sto%s'%(str(x[0]),str(x[1])) for x in 
                              [(50,100),(100,250),(250,400),(400,650),(650,'inf')] ],
+    'ZJets_njet'          : ['Z%iJets_ZpT%sto%s_CP5'%(n,str(x[0]),str(x[1]))
+                             for x in [(50,150),(150,250),(250,400),(400,'inf')] 
+                             for n in [1,2] ],
     'ZtoNuNu'             : ['ZtoNuNu_ht100to200','ZtoNuNu_ht200to400','ZtoNuNu_ht400to600',
                              'ZtoNuNu_ht600to800','ZtoNuNu_ht800to1200','ZtoNuNu_ht1200to2500',
                              'ZtoNuNu_ht2500toinf'],
     'ZtoNuNu_nlo'         : ['ZtoNuNu_pt%sto%s'%(str(x[0]),str(x[1])) for x in 
                              [(100,250),(250,400),(400,650),(650,'inf')] ],
+    'ZtoNuNu_njet'        : ['Z%iJetsToNuNu_ZpT%sto%s_CP5'%(n,str(x[0]),str(x[1]))
+                             for x in [(150,250),(250,400),(400,'inf')] 
+                             for n in [1,2] ],
 
     'ZpTT'                : ['ZpTT_med-%i'%m for m in [1000,1250,1500,2000,2500,3000,3500,4000,500,750]],
     'ZpWW'                : ['ZpWW_med-%i'%m for m in [1000,1200,1400,1600,1800,2000,2500,800]],
@@ -52,4 +62,5 @@ d = {
                               (2500,300), (2500,400), (2500,500), (2500,600), (2500,700), (2500,800), 
                               (600,300), (600,400), (800,300), (800,400), (800,500), (800,600)]
                             ],
+    'VqqHbb'              : ['WmQQHbb', 'WpQQHbb', 'ZQQHbb_mH125'],
 }

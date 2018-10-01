@@ -14,7 +14,7 @@ ak4bTagSF = 'sf_btag0*(isojetNBtags==0)+sf_btag1*(isojetNBtags==1)+1*(isojetNBta
 photonSF = '0.93'
 
 
-presel = 'nFatjet==1 && fj1Pt>250 && TMath::Abs(fj1Eta)<2.4 && fj1Tau32<0.61 && 110<fj1MSD && fj1MSD<210'
+presel = 'nFatJet==1 && fj1Pt>250 && TMath::Abs(fj1Eta)<2.4 && fj1Tau32<0.61 && 110<fj1MSD && fj1MSD<210'
 cuts = {
     # analysis regions
     'signal'            : tAND(metFilter,tAND(presel,'pfmet>175 && puppimet>250 && dphipuppimet>1.1 && (nLooseMuon+nLooseElectron+nLoosePhoton+nTau)==0 && fj1MaxCSV>0.46 && isojetNBtags==0')),

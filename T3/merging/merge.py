@@ -8,22 +8,22 @@ from sys import argv,exit
 import sys
 from os import environ,system,path,remove
 from argparse import ArgumentParser
+import subprocess
+from PandaCore.Tools.script import * 
 
 sname = argv[0]
-parser = ArgumentParser()
-parser.add_argument('--silent', action='store_true')
-parser.add_argument('--cfg', type=str, default='common')
-parser.add_argument('--skip_missing', action='store_true')
-parser.add_argument('arguments', type=str, nargs='+')
-args = parser.parse_args()
+args = parse(('--silent', STORE_TRUE),
+             ('-cfg', {'default':'common', 'type':str}),
+             ('--skip_missing', STORE_TRUE),
+             ('arguments', {'type':str, 'nargs':'+'}))
+
 arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
-argv=[]
 
-import ROOT as root
 from PandaCore.Tools.Misc import *
-from PandaCore.Tools.Load import Load
+from PandaCore.Utils.load import *
+from PandaCore.Tools.models import * 
 
 if 'leptonic' in args.cfg:
     from PandaCore.Tools.process_leptonic import *
@@ -67,25 +67,29 @@ def hadd(inpath,outpath):
     if type(inpath)==type('str'):
         infiles = glob(inpath)
         if len(infiles) > 1: # if 1 file, use mv
-            PInfo(sname,'hadding %s into %s'%(inpath,outpath))
+            logger.info(sname,'hadding %s into %s'%(inpath,outpath))
             cmd = '%s %s %s %s'%(hadd_cmd, outpath,inpath,suffix)
             system(cmd)
             return True
     else:
         infiles = inpath
     if len(infiles)==0:
-        PWarning(sname,'nothing hadded into '+outpath)
+        logger.warning(sname,'nothing hadded into '+outpath)
         return False
     elif len(infiles)==1:
-        PInfo(sname,'moving %s to %s'%(inpath[0],outpath))
-        cmd = 'mv -v %s %s'%(infiles[0],outpath)
+        logger.info(sname,'moving %s to %s'%(inpath[0],outpath))
+        if infiles[0].startswith('/tmp'):
+            mv = 'mv'
+        else:
+            mv = 'cp'
+        cmd = '%s -v %s %s'%(mv,infiles[0],outpath)
     else:
         cmd = '%s %s '%(hadd_cmd, outpath)
         for f in infiles:
             if path.isfile(f):
                 cmd += '%s '%f
-        PInfo(sname,'hadding into %s'%(outpath))
-    if VERBOSE: PInfo(sname,cmd)
+        logger.info(sname,'hadding into %s'%(outpath))
+    if VERBOSE: logger.info(sname,cmd)
     system(cmd+suffix)
     return True
 
@@ -101,10 +105,10 @@ def normalizeFast(fpath,opt):
                 if fpath in k:
                     xsec = v[2]
     if xsec<0:
-        PError(sname,'could not find xsec, skipping %s!'%opt)
+        logger.warning(sname,'could not find xsec, skipping %s!'%opt)
         return
     xsec *= xsecscale
-    PInfo(sname,'normalizing %s (%s) ...'%(fpath,opt))
+    logger.info(sname,'normalizing %s (%s) ...'%(fpath,opt))
     n = root.Normalizer();
     if not VERBOSE:
         n.reportFreq = 2
@@ -162,14 +166,15 @@ def merge(shortnames,mergedname):
             normalizeFast(split_dir + '%s.root'%(shortname),xsec)
         if not success:
             if not skip_missing:
-                PError(sname, 'Could not merge %s, exiting!'%shortname)
+                logger.error(sname, 'Could not merge %s, exiting!'%shortname)
                 exit(1)
             else:
                 to_skip.append(shortname)
     to_hadd = [split_dir + '%s.root'%(x) for x in shortnames if x not in to_skip]
     hadd(to_hadd, merged_dir + '%s.root'%(mergedname))
     for f in to_hadd:
-        system('rm -f %s'%f)
+        if f.startswith('/tmp'):
+            system('rm -f %s'%f)
 
 
 args = {}
@@ -181,9 +186,22 @@ for pd in arguments:
         args[pd] = [pd]
 
 for pd in args:
+    unmergedFiles = glob("{0}/{1}_*.root".format(environ['SUBMIT_OUTDIR'],pd))
+    unmergedSize = 0
+    for unmergedFile in unmergedFiles:
+        unmergedSize += path.getsize(unmergedFile)
+    if unmergedSize > 16106127360: # 15 GB
+        disk="scratch5"
+    else:
+        disk="tmp"
+    split_dir = '/%s/%s/split/%s/'%(disk, user, submit_name)
+    merged_dir = '/%s/%s/merged/%s/'%(disk, user, submit_name)
+    for d in [split_dir, merged_dir]:
+        system('mkdir -p ' + d)
     merge(args[pd],pd)
     merged_file = merged_dir + '%s.root'%(pd)
     hadd(merged_file ,outbase) # really an mv
-    system('rm -f %s'%merged_file)
-    PInfo(sname,'finished with '+pd)
+    if merged_file.startswith('/tmp'):
+        system('rm -f %s'%merged_file)
+    logger.info(sname,'finished with '+pd)
 

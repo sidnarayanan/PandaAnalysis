@@ -1,9 +1,5 @@
 #!/bin/bash
 
-: ${SUBMIT_WORKDIR:?"Need to set SUBMIT_WORKDIR"}
-: ${SUBMIT_OUTDIR:?"Need to set SUBMIT_OUTDIR"}
-: ${SUBMIT_LOGDIR:?"Need to set SUBMIT_LOGDIR"}
-
 myName=$(echo $0 | sed -e "s?.*/??g")
 
 PInfo -n "$myName" "Cleaning up staging areas..."
@@ -11,13 +7,9 @@ WD=$SUBMIT_WORKDIR
 rm -rf $WD/*
 rm -rf $SUBMIT_LOGDIR/*
 
-doTar=0
 filesetSize=20
-while getopts ":tn:" opt; do
+while getopts ":n:" opt; do
   case $opt in
-    t)
-      doTar=1
-      ;;
     n)
       filesetSize=$OPTARG
       ;;
@@ -28,18 +20,19 @@ while getopts ":tn:" opt; do
   esac 
 done
 
+
 PInfo -n "$myName" "Acquiring configuration..."
-wget -O ${WD}/list.cfg $PANDA_CFG
-${CMSSW_BASE}/src/PandaAnalysis/T3/bin/configBuilder.py --infile ${WD}/list.cfg --outfile ${WD}/local.cfg --nfiles $filesetSize
+wget -nv -O ${WD}/list.cfg $PANDA_CFG
+${CMSSW_BASE}/src/PandaAnalysis/T3/bin/configBuilder.py --infile "${WD}/list.cfg" \
+                                                        --outfile "${WD}/local.cfg" \
+                                                        --nfiles "$filesetSize" 
 cp -v ${WD}/list.cfg ${WD}/list_all.cfg 
 cp -v ${WD}/local.cfg ${WD}/local_all.cfg 
 
 cd $CMSSW_BASE/
-if [[ $doTar == 1 ]]; then
-  PInfo -n "$myName" "Tarring up CMSSW..."
-  tar --exclude-vcs -chzf cmssw.tgz src python biglib bin lib objs test external # h = --dereference symlinks
-  mv -v cmssw.tgz ${WD}
-fi
+PInfo -n "$myName" "Tarring up CMSSW..."
+tar --exclude-vcs -chzf cmssw.tgz src python biglib bin lib objs test external 
+mv -v cmssw.tgz ${WD}
 
 PInfo -n "$myName" "Creating executable..."
 cd ${CMSSW_BASE}/src/PandaAnalysis/T3/inputs/

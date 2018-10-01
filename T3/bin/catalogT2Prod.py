@@ -9,7 +9,7 @@ from sys import argv
 import argparse
 
 parser = argparse.ArgumentParser(description='make config file')
-parser.add_argument('--catalog',type=str,default='/home/cmsprod/catalog/t2mit/pandaf/009')
+parser.add_argument('--catalog',type=str,default='/home/cmsprod/catalog/t2mit/pandaf/012')
 parser.add_argument('--user_catalog', action='store_true')
 parser.add_argument('--mc_catalog',type=str,default=None)
 parser.add_argument('--data_catalog',type=str,default=None)
@@ -19,8 +19,10 @@ parser.add_argument('--include',nargs='+',type=str,default=None)
 parser.add_argument('--exclude',nargs='+',type=str,default=None)
 parser.add_argument('--smartcache',action='store_true')
 parser.add_argument('--force',action='store_true')
+parser.add_argument('--max_files',type=int,default=-1)
 args = parser.parse_args()
 
+args.catalog = '/' + args.catalog.strip('/')
 if not args.mc_catalog:
     args.mc_catalog = args.catalog
 if not args.data_catalog:
@@ -41,7 +43,7 @@ class CatalogSample:
         self.files = []
     def add_file(self,f):
         self.files.append(f)
-    def get_lines(self,smartcache_args=None):
+    def get_lines(self,smartcache_args=None,max_lines=-1):
         lines = []
         nickname = self.name+'_%i'
         for f in self.files:
@@ -50,13 +52,16 @@ class CatalogSample:
             book_ = '/'.join(args.catalog.split('/')[-2:])
             lines.append('{0:<25} {2:<10} {3:<15} {1}\n'.format(nickname,f,self.dtype,self.xsec)) 
             if smartcache_args is not None:
-                smartcache_args.append('/cms/store/user/paus/%s/%s'%(book_,ds_))
+                smartcache_args.append(ds_)
+        if max_lines > 0:
+            lines = lines[:max_lines]
         return lines
 
 def smartcache(arguments):
-    #arguments = ' '.join(arguments)
-    for a in arguments:
-        cmd = ('dynamoCache request --datasets %s'%(a))
+    book = args.catalog.strip('/').split('/')[-1]
+    arguments = ' '.join(arguments)
+    for a in [arguments]:
+        cmd = ('python2.6 $(which dynamo-request) --panda %s --sample %s'%(book, a))
         #print cmd
         system(cmd)
 
@@ -106,7 +111,7 @@ def cat(catalog, condition=lambda x : True):
           could_not_find.append(shortname)
         if properties[0] not in samples:
             samples[properties[0]] = CatalogSample(*properties)
-        PInfo(argv[0], 'Selecting %s'%properties[0])
+        logger.info(argv[0], 'Selecting %s'%properties[0])
         sample = samples[properties[0]]
         for rfpath in glob(d+'/RawFiles.*'):
             rawfile = open(rfpath)
@@ -120,24 +125,24 @@ if args.user_catalog:
     cat(args.catalog.replace('cmsprod',user).replace('t2','t3'))
 
 if len(could_not_find)>0:
-    PWarning(argv[0],"Could not properly catalog following datasets (force=%s)"%('True' if args.force else 'False'))
+    logger.warning(argv[0],"Could not properly catalog following datasets (force=%s)"%('True' if args.force else 'False'))
     for c in could_not_find:
-        PWarning(argv[0],'\t'+c)
+        logger.warning(argv[0],'\t'+c)
 
 cfg_file = open(args.outfile,'w')
 lines = []
 smartcache_args = [] if args.smartcache else None
 for k in sorted(samples):
     sample = samples[k]
-    lines += sample.get_lines(smartcache_args)
+    lines += sample.get_lines(smartcache_args, args.max_files)
 for iL in xrange(len(lines)):
     cfg_file.write(lines[iL]%(iL))
 
 cfg_file.close()
-PInfo(argv[0],'Cataloged %i files for %i datasets'%(len(lines),len(samples)))
-PInfo(argv[0],'Output written to '+args.outfile)
+logger.info(argv[0],'Cataloged %i files for %i datasets'%(len(lines),len(samples)))
+logger.info(argv[0],'Output written to '+args.outfile)
 
 if args.smartcache:
     smartcache_datasets = list(set(smartcache_args))
-    PInfo(argv[0],'Making smartcache requests for files')
+    logger.info(argv[0],'Making smartcache requests for files')
     smartcache(smartcache_datasets)

@@ -61,8 +61,8 @@ weight = sel.weights[region]%lumi
 # weight = tTIMES(weight,'sf_sjbtag0MUp*(fj1MaxCSV<0.54)+sf_sjbtag1MUp*(fj1MaxCSV>0.54)')
 plot.mc_weight = weight
 
-#PInfo('cut',plot.cut)
-#PInfo('weight',plot.mc_weight)
+#logger.info('cut',plot.cut)
+#logger.info('weight',plot.mc_weight)
 
 if args.region=='dimuon':
     plot.add_systematic('HF uncertainty','0.964*(%s) + 1.2*(%s)'%(lf,hf),'1.036*(%s) + 0.8*(%s)'%(lf,hf),root.kRed+2)

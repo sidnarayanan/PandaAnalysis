@@ -58,7 +58,7 @@ void TagTree::Reset() {
     partonSize = -1;
     partonIsReco = 0;
     partonPdgId = 0;
-    nFatjet = 0;
+    nFatJet = 0;
     fj1Tau32 = -1;
     fj1Tau21 = -1;
     fj1Tau32SD = -1;
@@ -116,7 +116,7 @@ void TagTree::WriteTree(TTree *t) {
     Book("partonSize",&partonSize,"partonSize/F");
     Book("partonIsReco",&partonIsReco,"partonIsReco/I");
     Book("partonPdgId",&partonPdgId,"partonPdgId/I");
-    Book("nFatjet",&nFatjet,"nFatjet/I");
+    Book("nFatJet",&nFatJet,"nFatJet/I");
     Book("fj1Tau32",&fj1Tau32,"fj1Tau32/F");
     Book("fj1Tau21",&fj1Tau21,"fj1Tau21/F");
     Book("fj1Tau32SD",&fj1Tau32SD,"fj1Tau32SD/F");

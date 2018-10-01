@@ -13,7 +13,7 @@ args = parser.parse_args()
 sname = argv[0]
 argv = []
 
-from PandaCore.Tools.Load import *
+from PandaCore.Utils.load import *
 from PandaCore.Tools.Misc import *
 import ROOT as root
 
