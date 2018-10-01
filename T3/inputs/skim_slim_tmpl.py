@@ -108,7 +108,6 @@ def fn(input_name,isData,full_path):
         tree = fin.FindObjectAny("events")
         weight_table = fin.FindObjectAny('weights')
         hweights = fin.FindObjectAny("hSumW")
-	hnpuweights = fin.FindObjectAny("hNPVTrue")
     except:
         logger.error(sname+'.fn','Could not read %s'%input_name)
         return False # file open error => xrootd?
@@ -118,21 +117,19 @@ def fn(input_name,isData,full_path):
     if not hweights:
         logger.error(sname+'.fn','Could not recover hweights in %s'%input_name)
         return False
-    if not hnpuweights:
-        hnpuweights = None
     if not weight_table:
         weight_table = None
 
     output_name = input_name.replace('input','output')
     skimmer.SetDataDir(data_dir)
     if isData:
-        with open(data_dir+'/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt') as jsonFile:
+        with open(data_dir+'/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
             payload = json.load(jsonFile)
             for run_str,lumis in payload.iteritems():
                 run = int(run_str)
                 for l in lumis:
                     skimmer.AddGoodLumiRange(run,l[0],l[1])
-    rinit = skimmer.Init(tree,hweights,hnpuweights,weight_table)
+    rinit = skimmer.Init(tree,hweights,weight_table)
     if rinit:
         logger.error(sname+'.fn','Failed to initialize %s!'%(input_name))
         return False 

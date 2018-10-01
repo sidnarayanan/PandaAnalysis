@@ -496,43 +496,7 @@ def add_json(skimmer):
 
 
 # some common stuff that doesn't need to be configured
-<<<<<<< HEAD
-def run_PandaAnalyzer(skimmer, isData, input_name):
-    # read the inputs
-    try:
-        fin = root.TFile.Open(input_name)
-        tree = fin.FindObjectAny("events")
-        weight_table = fin.FindObjectAny('weights')
-        hweights = fin.FindObjectAny("hSumW")
-	hnpuweights = fin.FindObjectAny("hNPVTrue")
-    except:
-        PError(_sname+'.run_PandaAnalyzer','Could not read %s'%input_name)
-        return False # file open error => xrootd?
-    if not tree:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover tree in %s'%input_name)
-        return False
-    if not hweights:
-        PError(_sname+'.run_PandaAnalyzer','Could not recover hweights in %s'%input_name)
-        return False
-    if not hnpuweights:
-        hnpuweights = None
-    if not weight_table:
-        weight_table = None
-
-    output_name = input_to_output(input_name)
-    skimmer.SetDataDir(_data_dir)
-    if isData:
-        add_json(skimmer, _data_dir+'/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt')
-
-    rinit = skimmer.Init(tree,hweights,hnpuweights,weight_table)
-    if rinit:
-        PError(_sname+'.run_PandaAnalyzer','Failed to initialize %s!'%(input_name))
-        return False 
-    skimmer.SetOutputFile(output_name)
-
-=======
 def run_Analyzer(skimmer, isData, output_name):
->>>>>>> sid/master
     # run and save output
     skimmer.Run()
     skimmer.Terminate()
