@@ -15,11 +15,13 @@ sname = argv[0]
 args = parse(('--silent', STORE_TRUE),
              ('-cfg', {'default':'common', 'type':str}),
              ('--skip_missing', STORE_TRUE),
+             ('--validate', STORE_TRUE),
              ('arguments', {'type':str, 'nargs':'+'}))
 
 arguments = args.arguments
 VERBOSE = not args.silent
 skip_missing = args.skip_missing
+validate = args.validate
 
 from PandaCore.Tools.Misc import *
 from PandaCore.Utils.load import *
@@ -64,7 +66,7 @@ else:
 
 # helper functions
 def hadd(inpath,outpath):
-    if type(inpath)==type('str'):
+    if type(inpath)==str:
         infiles = glob(inpath)
         if len(infiles) > 1: # if 1 file, use mv
             logger.info(sname,'hadding %s into %s'%(inpath,outpath))
@@ -73,6 +75,14 @@ def hadd(inpath,outpath):
             return True
     else:
         infiles = inpath
+    if validate:
+        bad = []
+        for i,fpath in enumerate(infiles):
+            f = root.TFile.Open(fpath)
+            if not f or f.IsZombie():
+                bad.append(i)
+        for b in bad:
+            del infiles[b]
     if len(infiles)==0:
         logger.warning(sname,'nothing hadded into '+outpath)
         return False

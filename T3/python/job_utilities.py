@@ -33,27 +33,32 @@ _users = ['snarayan', 'bmaier', 'dhsu', 'ceballos']              # MIT T3 PandaA
 stageout_protocol = None                                         # what stageout should we use?
 if _is_t3:
     stageout_protocol = 'cp' 
-elif system('which gfal-copy') == 0:
-    stageout_protocol = 'gfal'
-elif True:
-    logger.error(_sname, 
-                'Sorry, lcg is no longer supported - cannot trust T3 gridftp')
-    raise RuntimeError 
-elif system('which lcg-cp') == 0:
-    stageout_protocol = 'lcg'
 else:
-    try:
-        ret = system('wget -nv http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
-        ret = max(ret, system('tar -xvf lcg-cp.tar.gz'))
-        if ret:
-            raise RuntimeError
-        environ['PATH'] = '$PWD/lcg-cp:'+environ['PATH']
-        environ['LD_LIBRARY_PATH'] = '$PWD/lcg-cp:'+environ['LD_LIBRARY_PATH']
-        stageout_protocol = 'lcg'
-    except Exception as e:
+    # install certificates
+    system('wget -nv http://t3serv001.mit.edu/~cmsprod/tgz/certificates.tar.gz')
+    system('tar xvaf certificates.tar.gz')
+    environ['X509_CERT_DIR'] = getenv('PWD') + '/certificates/'
+    if system('which gfal-copy') == 0:
+        stageout_protocol = 'gfal'
+    elif True:
         logger.error(_sname, 
-                     'Could not install lcg-cp in absence of other protocols!')
-        raise e
+                    'Sorry, lcg is no longer supported - cannot trust T3 gridftp')
+        raise RuntimeError 
+    elif system('which lcg-cp') == 0:
+        stageout_protocol = 'lcg'
+    else:
+        try:
+            ret = system('wget -nv http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
+            ret = max(ret, system('tar -xvf lcg-cp.tar.gz'))
+            if ret:
+                raise RuntimeError
+            environ['PATH'] = '$PWD/lcg-cp:'+environ['PATH']
+            environ['LD_LIBRARY_PATH'] = '$PWD/lcg-cp:'+environ['LD_LIBRARY_PATH']
+            stageout_protocol = 'lcg'
+        except Exception as e:
+            logger.error(_sname, 
+                         'Could not install lcg-cp in absence of other protocols!')
+            raise e
 
 
 # derived from t3serv006.mit.edu:/etc/bestman2/conf/bestman2.rc
@@ -146,7 +151,7 @@ def request_data(xrd_path, first_attempt):
     xrdargs = ['xrdcopy', '--nopbar', '-f', xrd_path]
     cache = _is_t3 and _to_hdfs
     if cache:
-        input_path = local_user_path 
+        input_path = local_path.replace('paus', _user) 
         parent = '/'.join(input_path.split('/')[:-1])
         if not path.isdir(parent):
             try:
@@ -420,7 +425,7 @@ def report_done(outdir, outfilename, processed):
         for k, v in processed.iteritems():
             flock.write(v+'\n')
         flock.close()
-        stageout(outdir, outfilename, outfilename, ls=False)
+        stageout(outdir, outfilename, outfilename)
         cleanup('*.lock')
     else:
         # this really has to work, so go forever

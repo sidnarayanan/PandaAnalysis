@@ -3,30 +3,31 @@
 from glob import glob
 from os import stat,getenv,system,path
 from multiprocessing import Pool
-from PandaCore.Tools.Misc import *
+from PandaCore.Tools.script import * 
 from re import sub, match
 from sys import argv
 import argparse
 
-parser = argparse.ArgumentParser(description='make config file')
-parser.add_argument('--catalog',type=str,default='/home/cmsprod/catalog/t2mit/pandaf/012')
-parser.add_argument('--user_catalog', action='store_true')
-parser.add_argument('--mc_catalog',type=str,default=None)
-parser.add_argument('--data_catalog',type=str,default=None)
-parser.add_argument('--cfg',type=str,default='common')
-parser.add_argument('--outfile',type=str,default=None)
-parser.add_argument('--include',nargs='+',type=str,default=None)
-parser.add_argument('--exclude',nargs='+',type=str,default=None)
-parser.add_argument('--smartcache',action='store_true')
-parser.add_argument('--force',action='store_true')
-parser.add_argument('--max_files',type=int,default=-1)
-args = parser.parse_args()
+args = parse(('--catalog',{'type':str, 'default':'/home/cmsprod/catalog/t2mit/pandaf/012'}),
+             ('--user_catalog', STORE_TRUE),
+             '--mc_catalog',
+             '--data_catalog',
+             ('--cfg',{'default':'common'}),
+             '--outfile',
+             ('--include', {'nargs':'+', 'default':None}),
+             ('--exclude', {'nargs':'+', 'default':None}),
+             ('--smartcache', STORE_TRUE),
+             ('--force', STORE_TRUE),
+             ('--max_files', {'type':int, 'default':-1}))
 
 args.catalog = '/' + args.catalog.strip('/')
 if not args.mc_catalog:
     args.mc_catalog = args.catalog
 if not args.data_catalog:
     args.data_catalog = args.catalog
+if not args.outfile:
+    args.outfile = '/'.join(['/home', getenv('USER'), 'public_html'] + 
+                            getenv('PANDA_CFG').replace('http://t3serv001.mit.edu/~','').split('/')[1:])
 
 if args.cfg == 'leptonic':
     from PandaCore.Tools.process_leptonic import *
@@ -62,7 +63,7 @@ def smartcache(arguments):
     arguments = ' '.join(arguments)
     for a in [arguments]:
         cmd = ('python2.6 $(which dynamo-request) --panda %s --sample %s'%(book, a))
-        #print cmd
+        # print cmd
         system(cmd)
 
 def checkDS(nickname,include,exclude):

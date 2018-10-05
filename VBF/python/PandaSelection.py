@@ -7,15 +7,15 @@ triggers = {
     'pho':'(trigger&4)!=0',
 }
 
-metFilter='metFilter==1 && egmFilter==1'
+metFilter='metFilter==1'
 
-#presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7 && (fabs(jot1Eta)<3||fabs(jot1Eta)>3.2) && nTau==0  && jot12Mass>1500 && fabs(jot12DEta)>4.2 && fabs(jot12DPhi)<1.3'
-#presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7 && (fabs(jot1Eta)<3||fabs(jot1Eta)>3.2) && nTau==0 && jetNMBtags==0'
-#presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7 && nTau==0 && jetNMBtags==0 && jot1VBFID==1'
-presel = 'jot1Eta*jot2Eta<0 && jot1Pt>80 && jot2Pt>40 && fabs(jot1Eta)<4.7 && fabs(jot2Eta)<4.7'
-presel = tAND(presel, 'nTau==0 && jetNMBtags==0 && jot1VBFID==1 && (fabs(jot1Eta)<3 || fabs(jot2Eta)<3)')
-presel = tAND(presel, 'fabs(jot1Eta+2.82)>0.4 || fabs(jot1Phi-2.01)>0.4')
-presel = tAND(presel, 'fabs(jot2Eta+2.82)>0.4 || fabs(jot2Phi-2.01)>0.4')
+#presel = 'jotEta[0]*jotEta[1]<0 && jotPt[0]>80 && jotPt[1]>40 && fabs(jotEta[0])<4.7 && fabs(jotEta[1])<4.7 && (fabs(jotEta[0])<3||fabs(jotEta[0])>3.2) && nTau==0  && jot12Mass>1500 && fabs(jot12DEta)>4.2 && fabs(jot12DPhi)<1.3'
+#presel = 'jotEta[0]*jotEta[1]<0 && jotPt[0]>80 && jotPt[1]>40 && fabs(jotEta[0])<4.7 && fabs(jotEta[1])<4.7 && (fabs(jotEta[0])<3||fabs(jotEta[0])>3.2) && nTau==0 && jetNMBtags==0'
+#presel = 'jotEta[0]*jotEta[1]<0 && jotPt[0]>80 && jotPt[1]>40 && fabs(jotEta[0])<4.7 && fabs(jotEta[1])<4.7 && nTau==0 && jetNMBtags==0 && jot1VBFID==1'
+presel = 'jotEta[0]*jotEta[1]<0 && jotPt[0]>80 && jotPt[1]>40 && fabs(jotEta[0])<4.7 && fabs(jotEta[1])<4.7'
+presel = tAND(presel, 'nTau==0 && jetNMBtags==0 && jotVBFID[0]==1 && (fabs(jotEta[0])<3 || fabs(jotEta[1])<3)')
+presel = tAND(presel, 'fabs(jotEta[0]+2.82)>0.4 || fabs(jotPhi[0]-2.01)>0.4')
+presel = tAND(presel, 'fabs(jotEta[1]+2.82)>0.4 || fabs(jotPhi[1]-2.01)>0.4')
 cnc = 'fabs(jot12DEta)>4 && jot12Mass>1300 && fabs(jot12DPhi)<1.5'
 mjj = 'fabs(jot12DEta)>1 && fabs(jot12DPhi)<1.5'
 nminus1 = 'fabs(jot12DEta)>1'

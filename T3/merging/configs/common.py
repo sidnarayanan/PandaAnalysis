@@ -50,6 +50,7 @@ d = {
     'ZtoNuNu_njet'        : ['Z%iJetsToNuNu_ZpT%sto%s_CP5'%(n,str(x[0]),str(x[1]))
                              for x in [(150,250),(250,400),(400,'inf')] 
                              for n in [1,2] ],
+    'WJets_EWK'           : ['WJets_EWKWPlus', 'WJets_EWKWMinus'],
 
     'ZpTT'                : ['ZpTT_med-%i'%m for m in [1000,1250,1500,2000,2500,3000,3500,4000,500,750]],
     'ZpWW'                : ['ZpWW_med-%i'%m for m in [1000,1200,1400,1600,1800,2000,2500,800]],
