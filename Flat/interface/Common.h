@@ -43,6 +43,7 @@ namespace pa {
       kV, // used for non V+jets W or Z
       kH,
       kSignal,
+      kVV
   };
   
   class Analysis {

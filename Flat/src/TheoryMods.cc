@@ -575,7 +575,8 @@ void KFactorMod::do_vpt()
         analysis.processType != kZEWK &&
         analysis.processType != kW &&
         analysis.processType != kWEWK && 
-        analysis.processType != kA)
+        analysis.processType != kA && 
+        analysis.processType != kVV)
       return;
 
     // calculate the mjj 

@@ -420,7 +420,7 @@ def report_done(outdir, outfilename, processed):
         for k, v in processed.iteritems():
             flock.write(v+'\n')
         flock.close()
-        stageout(outdir, outfilename, outfilename, ls=False)
+        stageout(outdir, outfilename, outfilename)
         cleanup('*.lock')
     else:
         # this really has to work, so go forever
@@ -465,6 +465,7 @@ def classify_sample(full_path, isData):
                 (root.pa.kA      , 'GJets'), 
                 (root.pa.kTT     , ['TTJets', 'TT_', 'TTTo']), 
                 (root.pa.kH      , 'HTo'), 
+                (root.pa.kVV     , ['WW', 'WZ', 'ZZ', 'WpWp']), 
             ]
     if not isData:
         for e, pattern in _classification:

@@ -25,15 +25,19 @@ def fn(input_name, isData, full_path):
     
     logger.info(sname+'.fn','Starting to process '+input_name)
     # now we instantiate and configure the analyzer
-    skimmer = root.PandaAnalyzer()
-    skimmer.AddPresel(root.LeptonSel())
-    skimmer.AddPresel(root.TriggerSel())
-    analysis = vv(True)
-    analysis.processType = utils.classify_sample(full_path, isData)
-    skimmer.SetAnalysis(analysis)
-    skimmer.isData=isData
- 
-    return utils.run_PandaAnalyzer(skimmer, isData, input_name)
+    a = vv(True)
+    a.inpath = input_name
+    a.outpath = utils.input_to_output(input_name)
+    a.datapath = data_dir
+    a.isData = isData
+    utils.set_year(a, 2017)
+    a.processType = utils.classify_sample(full_path, isData)    
+
+    skimmer = root.pa.PandaAnalyzer(a)
+    skimmer.AddPresel(root.pa.LeptonSel())
+    skimmer.AddPresel(root.pa.TriggerSel())
+
+    return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
 
 
 if __name__ == "__main__":
