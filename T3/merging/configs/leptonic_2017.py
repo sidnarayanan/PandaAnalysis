@@ -15,7 +15,7 @@ d = {
                                        'GluGluToContinToZZTo2mu2nu_13TeV_MCFM701_pythia8',
                                                                            ],
     'WZno3l'                        : ['WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8',
-                                       #'WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8',
+                                       'WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8_v2',
                                        'WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8'],
     'WZ3l_powheg_mll1'              : ['WZTo3LNu_mllmin01_NNPDF31_TuneCP5_13TeV_powheg_pythia8'],
     'WZ3l_powheg'                   : ['WZTo3LNu_13TeV-powheg-pythia8'],
