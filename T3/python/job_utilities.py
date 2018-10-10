@@ -470,6 +470,7 @@ def classify_sample(full_path, isData):
                 (root.pa.kA      , 'GJets'), 
                 (root.pa.kTT     , ['TTJets', 'TT_', 'TTTo']), 
                 (root.pa.kH      , 'HTo'), 
+                (root.pa.kVV     , ['WW', 'WZ', 'ZZ', 'WpWp']), 
             ]
     if not isData:
         for e, pattern in _classification:
