@@ -149,7 +149,14 @@ void ConfigMod::set_outputBranches()
     gt.RemoveBranches({"fj.*"});
   }
   if (analysis.complicatedLeptons) {
-    gt.RemoveBranches({"genJet.*","puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*"});
+    std::vector<TString> keepable;
+    if (!analysis.hbb) {
+      keepable.push_back("jetNBtags");
+      keepable.push_back("jetMBtags");
+    }
+    gt.RemoveBranches({"genMuon.*","genElectron.*","genTau.*",
+                       "puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*",
+		       "nIsoJet.*","isojet*","isojetNBtags_*","nJet_.*"},keepable);
   }
   if (!analysis.varyJES)
     gt.RemoveBranches({".*JES.*"},{});

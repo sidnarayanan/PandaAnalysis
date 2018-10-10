@@ -18,17 +18,26 @@ argv = []
 import ROOT as root
 from PandaCore.Utils.load import *
 from PandaAnalysis.Flat.analysis import vv
+import PandaAnalysis.T3.job_utilities as utils
 
 Load('PandaAnalyzer')
 
-skimmer = root.PandaAnalyzer(debug_level)
 analysis = vv(True)
-skimmer.AddPresel(root.LeptonSel())
-skimmer.AddPresel(root.TriggerSel())
-skimmer.SetAnalysis(analysis)
+analysis.inpath = torun
+analysis.outpath = 'testskim.root'
+analysis.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
+analysis.isData = False
+utils.set_year(analysis, 2017)
+analysis.processType = utils.classify_sample(torun, analysis.isData)
+
+print "Process: ",analysis.processType
+
+skimmer = root.pa.PandaAnalyzer(analysis, debug_level)
+skimmer.AddPresel(root.pa.LeptonSel())
+skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.firstEvent=0
-skimmer.lastEvent=10
+skimmer.lastEvent=1000
 skimmer.isData=False
 if skimmer.isData:
     with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
@@ -44,9 +53,8 @@ weights = fin.FindObjectAny('weights')
 if not weights:
     weights = None
 
-skimmer.SetDataDir(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/')
-skimmer.Init(tree,hweights,weights)
-skimmer.SetOutputFile(output)
+#skimmer.Init(tree,hweights,weights)
+#skimmer.SetOutputFile(output)
 
 skimmer.Run()
 skimmer.Terminate()
