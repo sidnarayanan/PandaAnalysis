@@ -213,7 +213,6 @@ For a straightforward example, do `export SUBMIT_TMPL=tnp_tmpl.py`.
 
 Now, let's open up `inputs/tnp_tmpl.py` as a concrete example and look at it.
 The main function you have to worry about is `fn`.
-The rest is all fluff.
 Here is an example:
 ```python
 def fn(input_name, isData, full_path):
