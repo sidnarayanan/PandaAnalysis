@@ -4,6 +4,7 @@ import json
 import curses
 import cPickle as pickle
 
+import os 
 from re import sub
 from glob import glob
 from query import query
@@ -11,30 +12,35 @@ from requests import post
 from urllib2 import urlopen
 from itertools import chain 
 from time import time, sleep, strftime
-from os import system,getenv,getuid,path,popen
+from os import getenv,path,popen,makedirs
+import subprocess as sp 
+from shutil import rmtree
 
 from PandaCore.Tools.script import * 
 import PandaCore.Tools.job_management as jm
+
+logger = Logger('task.py')
 
 ### Global definitions ###
 
 validate_env()
 
 # environment:
-logdir=getenv('SUBMIT_LOGDIR')
-workdir=getenv('SUBMIT_WORKDIR')
-lockdir = getenv('SUBMIT_LOCKDIR')
-outdir = getenv('SUBMIT_OUTDIR')
-submit_name = getenv('SUBMIT_NAME') + '_' + getenv('SUBMIT_USER')
-cmssw_base=getenv('CMSSW_BASE')
-incfg = workdir+'/local_all.cfg'
-outcfg = workdir+'/local.cfg'
+logdir        = getenv('SUBMIT_LOGDIR')
+workdir       = getenv('SUBMIT_WORKDIR')
+lockdir       = getenv('SUBMIT_LOCKDIR')
+outdir        = getenv('SUBMIT_OUTDIR')
+submit_name   = getenv('SUBMIT_NAME') + '_' + getenv('SUBMIT_USER')
+cmssw_base    = getenv('CMSSW_BASE')
+incfg         = workdir+'/local_all.cfg'
+outcfg        = workdir+'/local.cfg'
+panda_cfg     = getenv('PANDA_CFG')
 
 args = parse(('--nfiles', {'type':int, 'default':-1}),
              ('--monitor', {'type':int, 'default':0}),
              *[(x, STORE_TRUE) for x in 
                 ['--kill', '--kill_idle', '--check', '--submit', '--build_only', 
-                 '--submit_only', '--clean_output', '--check_duplicates', 
+                 '--submit_only', '--clean_output', '--check_duplicates', '--rebuild', 
                  '--clean_duplicates', '--clean', '--force', '--silent', '--randomize']])
 
 if args.clean:
@@ -48,7 +54,7 @@ if args.monitor:
 if args.clean_duplicates:
     args.check_duplicates = True 
 if args.check_duplicates and jm.textlock:
-    logger.error('task.py', 'Duplicate checking is not yet implemented for text-locking, sorry!')
+    logger.error('Duplicate checking is not yet implemented for text-locking, sorry!')
     sys.exit(1)
 
 # for printing to screen:
@@ -80,18 +86,58 @@ def init_colors():
     curses.init_pair(colors['grey'], curses.COLOR_WHITE, curses.COLOR_WHITE)
     curses.init_pair(colors['red'], curses.COLOR_WHITE, curses.COLOR_RED)
 
-
 ### Task-specific functions ###
 
 # for submission:
-def build_snapshot(N):
-    cmd = '%s/src/PandaAnalysis/T3/bin/buildMergedInputs.sh -n %i'%(cmssw_base, N)
-    system(cmd)
+def build_snapshot(N, modify=False):
+    if not modify:
+        logger.info('Cleaning up staging areas...')
+        rmtree(workdir); makedirs(workdir)
+        rmtree(logdir); makedirs(logdir)
+    else:
+        logger.warning("Partially rebuilding work area on request...hope you know what you're doing")
+
+    logger.info('Acquiring configuration...')
+    do('wget -nv -O %s/list.cfg %s'%(workdir, panda_cfg))
+    fin = open(outcfg.replace('local.cfg', 'list.cfg'))
+    fout = open(outcfg, 'w')
+    samples = jm.convert_catalog(list(fin), as_dict=True)
+    keys = sorted(samples)
+    to_write = []
+    for k in keys:
+        to_write += samples[k].get_config(N, suffix='_%i')
+    for i,c in enumerate(to_write):
+        fout.write(c%(i, i))
+    fout.close()
+    logger.info('Submission will have %i jobs'%i)
+    do('cp -v {0}/list.cfg {0}/list_all.cfg'.format(workdir))
+    do('cp -v {0}/local.cfg {0}/local_all.cfg'.format(workdir))
+
+    logger.info('Tarring up CMSSW...')
+    cwd = os.getcwd()
+    os.chdir(cmssw_base)
+    do('tar --exclude-vcs -chzf cmssw.tgz src python biglib bin lib objs test external')
+    do('mv -v cmssw.tgz %s'%workdir)
+
+    logger.info('Creating executable...')
+    os.chdir('%s/src/PandaAnalysis/T3/inputs/'%(cmssw_base))
+    do('cp -v %s %s/skim.py'%(getenv('SUBMIT_TMPL'), workdir))
+    do('chmod 775 %s/skim.py'%(workdir))
+
+    logger.info('Finalizing work area...')
+    jm.issue_proxy()
+    do('cp -v /tmp/x509up_u%i %s/x509up'%(os.getuid(), workdir))
+    do('cp -v %s/src/PandaAnalysis/T3/inputs/exec.sh %s'%(cmssw_base, workdir))
+
+    logger.info('Taking a snapshot of work area...')
+    do('cp -rvT %s %s/workdir'%(workdir, outdir))
+
+    # input files for submission: cmssw.tgz, skim.py, x509up, local.cfg. exec.sh is the executable
 
 def submit(silent=False):
     now = int(time())
     frozen_outcfg = outcfg.replace('local','local_%i'%now)
-    system('cp %s %s'%(outcfg,frozen_outcfg)) 
+    do('cp %s %s'%(outcfg,frozen_outcfg)) 
 
     s = jm.Submission(frozen_outcfg,workdir+'/submission.pkl')
     s.execute(randomize=args.randomize)
@@ -111,7 +157,7 @@ def kill(idle=False):
                 s.kill(idle_only=idle)
             return
     else:
-        logger.warning('task.py','Trying to kill a task with no submissions!')
+        logger.warning('Trying to kill a task with no submissions!')
 
 def check_duplicates():
     url = jm.report_server + '/condor/query?task=%s'%(submit_name)
@@ -121,13 +167,13 @@ def check_duplicates():
     to_clean = []
     for f,jids in completed.iteritems():
         if len(jids) > 1:
-            logger.warning('task.py', '%s found in %s'%(f, jids))
+            logger.warning('%s found in %s'%(f, jids))
             to_clean += jids 
     if not to_clean:
-        logger.info('task.py', 'No duplicates found')
+        logger.info('No duplicates found')
     if args.clean_duplicates:
         for jid in to_clean:
-            system('rm -f %s/*%s*'%(outdir, jid))
+            do('rm -f %s/*%s*'%(outdir, jid))
             payload = {'task' : submit_name, 'job_id' : jid}
             post(jm.report_server+'/condor/clean', json=payload)
 
@@ -420,7 +466,7 @@ def check(stdscr=None):
 
 ### MAIN ###
 if not args.monitor:
-    logger.info('task.py', 'TASK = '+submit_name)
+    logger.info('TASK = '+submit_name)
 
 if args.check_duplicates:
     check_duplicates()
@@ -430,19 +476,19 @@ if args.kill or args.kill_idle:
 
 if args.clean_output:
     if jm.textlock:
-        logger.info('task.py', 'Cleaning up %s and %s'%(lockdir, outdir))
+        logger.info('Cleaning up %s and %s'%(lockdir, outdir))
         sleep(2)
-        system('rm -rf %s/* %s/* &'%(lockdir, outdir))
+        do('rm -rf %s/* %s/* &'%(lockdir, outdir))
     else:
-        logger.info('task.py', 'Cleaning up %s and deleting entries'%(outdir))
+        logger.info('Cleaning up %s and deleting entries'%(outdir))
         sleep(2)
-        system('rm -rf %s/* &'%(outdir))
+        do('rm -rf %s/* &'%(outdir))
         payload = {'task' : submit_name}
         post(jm.report_server+'/condor/clean', json=payload)
     if args.clean:
-        logger.info('task.py', 'Cleaning up %s and %s'%(logdir, workdir))
+        logger.info('Cleaning up %s and %s'%(logdir, workdir))
         sleep(2)
-        system('rm -rf %s/* %s/*'%(logdir, workdir))
+        do('rm -rf %s/* %s/*'%(logdir, workdir))
 
 if args.check:
     if args.monitor:
@@ -450,10 +496,10 @@ if args.check:
     else:
         check()
 else:
-    if args.build_only and (not path.isfile(workdir+'/submission.pkl') or not args.submit): 
+    if (args.build_only or args.rebuild) and (not path.isfile(workdir+'/submission.pkl') or not args.submit): 
         if args.nfiles < 0:
-            logger.info('task.py', 'Number of files not provided for new task => setting nfiles=25')
+            logger.info('Number of files not provided for new task => setting nfiles=25')
             args.nfiles = 25
-        build_snapshot(args.nfiles)
+        build_snapshot(args.nfiles, modify=args.rebuild)
     if args.submit_only:
         submit(silent=False)

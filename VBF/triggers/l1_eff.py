@@ -1,32 +1,19 @@
 #!/usr/bin/env python
 
-from os import system,mkdir,getenv
-from sys import argv
 from array import array
-import argparse
 from numpy import arange
 import numpy as np
+from PandaCore.Tools.script import * 
+from PandaCore.Tools.root_interface import Selector
+from math import sqrt
 
 basedir = getenv('PANDA_FLATDIR') + '/' 
 
-parser = argparse.ArgumentParser(description='plot stuff')
-parser.add_argument('--f',metavar='f',type=str)
-parser.add_argument('--outdir',metavar='outdir',type=str)
-parser.add_argument('--vbf',action='store_true')
-parser.add_argument('--spike',action='store_true')
-parser.add_argument('--finor',action='store_true')
-parser.add_argument('--iso',action='store_true')
-parser.add_argument('--dummy',action='store_true')
-args = parser.parse_args()
-
+args = parse('--f', '--outdir', ('--vbf', STORE_TRUE),
+             ('--spike', STORE_TRUE), ('--finor', STORE_TRUE),
+             ('--iso', STORE_TRUE), ('--dummy', STORE_TRUE))
 figsdir = args.outdir
-argv=[]
 
-import ROOT as root
-from PandaCore.Utils.load import Load
-from PandaCore.Tools.Misc import *
-from PandaCore.Tools.root_interface import Selector
-from math import sqrt
 Load('CanvasDrawer')
 root.gROOT.SetBatch()
 root.gStyle.SetNumberContours(999);
@@ -48,11 +35,11 @@ if args.iso:
 
 plot = root.CanvasDrawer()
 plot.SetTDRStyle()
-plot.AddPlotLabel(args.f.replace('_',' ').replace('AllEras','Run2016*'), .18, .77, False, 42, .04)
+plot.AddPlotLabel(args.f.replace('_',' ').replace('AllEras','Run2016*'), .18, .85, False, 42, .04)
 if args.vbf:
     plot.AddPlotLabel('#Delta#phi_{jj}<1.5, #Delta#eta_{jj}>1', .18, .72, False, 42, .04)
 elif args.spike:
-    plot.AddPlotLabel('|#phi-2.01|>0.4 or |#eta+2.81|>0.4', .18, .72, False, 42, .04)
+    plot.AddPlotLabel('|#phi-2.01|>0.4 or |#eta+2.81|>0.4', .18, .78, False, 42, .04)
 root.gStyle.SetPadRightMargin(0.2)
 c = root.TCanvas()
 plot.SetCanvas(c)
@@ -93,7 +80,7 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
     suffix += postfix
 
     plot.Reset()
-    plot.AddCMSLabel()
+#    plot.AddCMSLabel()
     hnum.GetXaxis().SetTitle(xtitle)
     hnum.GetYaxis().SetTitle(ytitle)
     hnum.GetZaxis().SetTitle('Number of BX-1 jets')
@@ -101,7 +88,7 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
     plot.Draw(args.outdir+'/',args.f+'_'+suffix+'_num')
 
     plot.Reset()
-    plot.AddCMSLabel()
+#    plot.AddCMSLabel()
     hden.GetXaxis().SetTitle(xtitle)
     hden.GetYaxis().SetTitle(ytitle)
     hden.GetZaxis().SetTitle('Number of jets')
@@ -109,12 +96,12 @@ def fn(hbase, branch_tmpl, xtitle, ytitle, postfix, save=False):
     plot.Draw(args.outdir+'/',args.f+'_'+suffix+'_den')
 
     plot.Reset()
-    plot.AddCMSLabel()
+#    plot.AddCMSLabel()
     hratio.SetMinimum(0)
     hratio.SetMaximum(1)
     hratio.GetXaxis().SetTitle(xtitle)
     hratio.GetYaxis().SetTitle(ytitle)
-    hratio.GetZaxis().SetTitle('L1IsoEG BX=-1 eff')
+    hratio.GetZaxis().SetTitle('#epsilon(BX_{-1} L1A)')
     hratio.Draw('colz')
     plot.Draw(args.outdir+'/',args.f+'_'+suffix+'_ratio')
     if save:
@@ -142,6 +129,6 @@ fn(hbase, ['jotNEMF[{0}]*jotPt[{0}]', 'fabs(jotEta[{0}])'], 'p_{T}^{EM} [GeV]', 
 #fn(hbase, ['jotNEMF[{0}]', 'fabs(jotEta[{0}])'], 'EM Fraction', '|#eta|', '_emfrac', False)
 #fn(hbase, ['jotNHF[{0}]', 'fabs(jotEta[{0}])'], 'Hadron Fraction', '|#eta|', '_hfrac', False)
 
-hbase = root.TH2D('h2', 'h', 20, 0, 300, 20, 0, 5)
-fn(hbase, ['jotL1Pt[{0}]', 'fabs(jotL1Eta[{0}])'], 'p_{T}^{L1} [GeV]', '|#eta_{L1}|', '_l1', False)
+#hbase = root.TH2D('h2', 'h', 20, 0, 300, 20, 0, 5)
+#fn(hbase, ['jotL1Pt[{0}]', 'fabs(jotL1Eta[{0}])'], 'p_{T}^{L1} [GeV]', '|#eta_{L1}|', '_l1', False)
 
