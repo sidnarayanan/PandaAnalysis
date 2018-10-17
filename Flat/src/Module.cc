@@ -152,7 +152,7 @@ void ConfigMod::set_outputBranches()
     std::vector<TString> keepable;
     if (!analysis.hbb) {
       keepable.push_back("jetNBtags");
-      keepable.push_back("jetMBtags");
+      keepable.push_back("jetNMBtags");
     }
     gt.RemoveBranches({"genMuon.*","genElectron.*","genTau.*",
                        "puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*",
