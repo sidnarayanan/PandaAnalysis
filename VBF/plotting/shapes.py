@@ -1,26 +1,17 @@
 #!/usr/bin/env python
 
 from os import system,getenv
-from sys import argv
-import argparse
+from PandaCore.Tools.script import * 
 
 ### SET GLOBAL VARIABLES ###
 baseDir = getenv('PANDA_FLATDIR')+'/' 
 dataDir = baseDir
 
-parser = argparse.ArgumentParser(description='plot stuff')
-parser.add_argument('--outdir',metavar='outdir',type=str,default=None)
-parser.add_argument('--cat',type=str,default='loose')
-args = parser.parse_args()
-lumi = 35800.
+args = parse('--outdir', ('--cat', {'default':'loose'}))
+lumi = 36000.
 blind=True
 region = 'signal' 
-sname = argv[0]
 
-argv=[]
-import ROOT as root
-root.gROOT.SetBatch()
-from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
 import PandaAnalysis.VBF.PandaSelection as sel
 from PandaCore.Drawers.plot_utility import *
@@ -28,9 +19,9 @@ from PandaCore.Drawers.plot_utility import *
 ### DEFINE REGIONS ###
 
 cut = sel.cuts[region]
-for pt in ['jot1Pt','jot2Pt']:
-    cut = removeCut(cut,pt)
-cut = tAND('jot1Pt>0 && jot2Pt>0', cut)
+for pt in ['jotPt[0]','jotPt[1]']:
+    cut = remove_cut(cut,pt)
+cut = tAND('jotPt[0]>0 && jotPt[1]>0', cut)
 if args.cat!='loose':
     cut = tAND(cut,getattr(sel,args.cat))
 
@@ -41,23 +32,24 @@ plot = PlotUtility()
 plot.Stack(False)
 plot.SetLumi(lumi/1000)
 plot.SetTDRStyle()
-plot.InitLegend()
-plot.AddCMSLabel()
+plot.InitLegend(0.2,0.75,0.9,0.9,3)
+# plot.AddCMSLabel()
 plot.SetNormFactor(True)
 plot.cut = cut
 plot.AddLumiLabel(True)
 plot.do_overflow = True
 plot.do_underflow = True
+plot.SetAbsMin(0.01)
 
-weight = sel.weights[region]%lumi
+weight = sel.weights[region].replace('sf_l1','1')%lumi
 plot.mc_weight = weight
 
 ### DEFINE PROCESSES ###
-zjets         = Process('Z+jets [QCD]',root.kZjets)
-wjets         = Process('W+jets [QCD]',root.kWjets)
-zjets_ewk     = Process('Z+jets [EWK]',root.kExtra3)
-wjets_ewk     = Process('W+jets [EWK]',root.kExtra2)
-vbf           = Process('VBF H(inv)',root.kSignal)
+zjets         = Process('Z+jets [QCD]',root.kZjets) # ; zjets.dashed = True
+wjets         = Process('W+jets [QCD]',root.kWjets) # ; wjets.dashed = True
+zjets_ewk     = Process('Z+jets [EW]',root.kExtra4) # ; zjets_ewk.dotted = True
+wjets_ewk     = Process('W+jets [EW]',root.kExtra5) # ; wjets_ewk.dotted = True
+vbf           = Process('qq#rightarrowqqH(inv)',root.kSignal)
 ggf           = Process('ggF H(inv)',root.kSignal2)
 
 ### ASSIGN FILES TO PROCESSES ###
@@ -68,24 +60,26 @@ wjets_ewk.add_file(baseDir+'WJets_EWK.root')
 vbf.add_file(baseDir+'vbfHinv_m125.root')
 ggf.add_file(baseDir+'ggFHinv_m125.root')
 
-processes = [zjets, wjets, zjets_ewk, wjets_ewk, ggf, vbf]
+processes = [zjets, wjets, zjets_ewk, wjets_ewk, vbf]
 
 for p in processes:
     plot.add_process(p)
 
-recoilBins = [200., 230., 260.0, 290.0, 320.0, 350.0, 390.0, 430.0, 470.0, 510.0, 550.0, 590.0, 640.0, 690.0, 740.0, 790.0, 840.0, 900.0, 960.0, 1020.0, 1090.0, 1160.0, 1250.0]
+recoilBins = np.array([200., 230., 260.0, 290.0, 320.0, 350.0, 390.0, 430.0, 470.0, 510.0, 550.0, 590.0, 640.0, 690.0, 740.0, 790.0, 840.0, 900.0, 960.0, 1020.0, 1090.0, 1160.0, 1250.0])
+recoilBins /= 1000
 nRecoilBins = len(recoilBins)-1
 
-recoil=VDistribution("pfmet",recoilBins,"PF MET [GeV]","a.u.")
+recoil=VDistribution("pfmet/1000",recoilBins,"PF MET [TeV]","Events/TeV",filename='pfmet')
 plot.add_distribution(recoil)
 
-plot.add_distribution(FDistribution('jot12Mass',0,4000,20,'m_{jj} [GeV]','a.u.'))
-plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','a.u.'))
-plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","a.u.",filename='jot12DPhi'))
-plot.add_distribution(FDistribution("jot1Eta",-5,5,20,"Jet 1 #eta","a.u."))
-plot.add_distribution(FDistribution("jot2Eta",-5,5,20,"Jet 2 #eta","a.u."))
-plot.add_distribution(FDistribution("jot1Pt",30,500,20,"Jet 1 p_{T} [GeV]","a.u."))
-plot.add_distribution(FDistribution("jot2Pt",30,500,20,"Jet 2 p_{T} [GeV]","a.u."))
+plot.add_distribution(FDistribution('jot12Mass/1000',0,5,10,'m_{jj} [TeV]','Events/bin',filename='jot12Mass'))
+plot.add_distribution(FDistribution('jot12DEta',0,8,10,'#Delta#eta_{jj}','Events/bin'))
+plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,10,"#Delta#phi_{jj}","Events/bin",filename='jot12DPhi'))
+plot.add_distribution(FDistribution("jotEta[0]",-5,5,10,"Jet 1 #eta","Events/bin"))
+plot.add_distribution(FDistribution("jotEta[1]",-5,5,10,"Jet 2 #eta","Events/bin"))
+plot.add_distribution(FDistribution("jotPt[0]",80,700,10,"Jet 1 p_{T} [GeV]","Events/bin"))
+plot.add_distribution(FDistribution("jotPt[1]",40,500,10,"Jet 2 p_{T} [GeV]","Events/bin"))
+plot.add_distribution(FDistribution("nJot-0.5",1.5,6.5,5,"N_{jet}","Events/bin",filename='nJot'))
 plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###

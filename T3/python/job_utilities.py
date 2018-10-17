@@ -5,16 +5,17 @@ import json
 import socket
 import requests
 from re import sub
-from sys import exit
 from glob import glob 
 from random import choice
+from sys import exit, argv
 from time import clock, time, sleep
 from os import system, getenv, path, environ, getpid
 
-import ROOT as root
 from PandaCore.Tools.Misc import *
 from PandaCore.Utils.load import Load
+from PandaCore.Utils.root import root 
 import PandaCore.Tools.job_config as cb
+import PandaAnalysis.Tagging.cfg_v8 as tagcfg
 
 _sname = 'T3.job_utilities'                                      # name of this module
 _data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'    # data directory
@@ -33,27 +34,32 @@ _users = ['snarayan', 'bmaier', 'dhsu', 'ceballos']              # MIT T3 PandaA
 stageout_protocol = None                                         # what stageout should we use?
 if _is_t3:
     stageout_protocol = 'cp' 
-elif system('which gfal-copy') == 0:
-    stageout_protocol = 'gfal'
-elif True:
-    logger.error(_sname, 
-                'Sorry, lcg is no longer supported - cannot trust T3 gridftp')
-    raise RuntimeError 
-elif system('which lcg-cp') == 0:
-    stageout_protocol = 'lcg'
 else:
-    try:
-        ret = system('wget -nv http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
-        ret = max(ret, system('tar -xvf lcg-cp.tar.gz'))
-        if ret:
-            raise RuntimeError
-        environ['PATH'] = '$PWD/lcg-cp:'+environ['PATH']
-        environ['LD_LIBRARY_PATH'] = '$PWD/lcg-cp:'+environ['LD_LIBRARY_PATH']
-        stageout_protocol = 'lcg'
-    except Exception as e:
+    # install certificates
+    system('wget -nv http://t3serv001.mit.edu/~cmsprod/tgz/certificates.tar.gz')
+    system('tar xvaf certificates.tar.gz')
+    environ['X509_CERT_DIR'] = getenv('PWD') + '/certificates/'
+    if system('which gfal-copy') == 0:
+        stageout_protocol = 'gfal'
+    elif True:
         logger.error(_sname, 
-                     'Could not install lcg-cp in absence of other protocols!')
-        raise e
+                    'Sorry, lcg is no longer supported - cannot trust T3 gridftp')
+        raise RuntimeError 
+    elif system('which lcg-cp') == 0:
+        stageout_protocol = 'lcg'
+    else:
+        try:
+            ret = system('wget -nv http://t3serv001.mit.edu/~snarayan/misc/lcg-cp.tar.gz')
+            ret = max(ret, system('tar -xvf lcg-cp.tar.gz'))
+            if ret:
+                raise RuntimeError
+            environ['PATH'] = '$PWD/lcg-cp:'+environ['PATH']
+            environ['LD_LIBRARY_PATH'] = '$PWD/lcg-cp:'+environ['LD_LIBRARY_PATH']
+            stageout_protocol = 'lcg'
+        except Exception as e:
+            logger.error(_sname, 
+                         'Could not install lcg-cp in absence of other protocols!')
+            raise e
 
 
 # derived from t3serv006.mit.edu:/etc/bestman2/conf/bestman2.rc
@@ -146,7 +152,7 @@ def request_data(xrd_path, first_attempt):
     xrdargs = ['xrdcopy', '--nopbar', '-f', xrd_path]
     cache = _is_t3 and _to_hdfs
     if cache:
-        input_path = local_user_path 
+        input_path = local_path.replace('paus', _user) 
         parent = '/'.join(input_path.split('/')[:-1])
         if not path.isdir(parent):
             try:
@@ -170,78 +176,6 @@ def request_data(xrd_path, first_attempt):
         logger.info(_sname+'.request_data', 'Successfully xrdcopied %s'%input_path)
         return input_path
     return None 
-
-
-'''
-# find data and bring it into the job somehow 
-#  - if local_copy and it exists locally, then:
-#    - if _remote_read, read from hadoop
-#    - else copy it locally
-#  - else xrdcopy it locally
-def copy_local(long_name):
-    full_path = long_name
-    logger.info(_sname, full_path)
-
-    copied = False
-
-    # if the file is cached locally, why not use it?
-    if 'scratch' in full_path:
-        local_path = full_path.replace('root://t3serv006.mit.edu/', '/mnt/hadoop')
-    else:
-        local_path = full_path.replace('root://xrootd.cmsaf.mit.edu/', '/mnt/hadoop/cms')
-    logger.info(_sname+'.copy_local', 'Local access is %s'%('on' if local_copy else 'off'))
-    if local_copy: 
-        exists = path.isfile(local_path)
-        exists_user = path.isfile(local_path.replace('paus', user))
-        if exists or exists_user:
-            if not exists:
-                local_path = local_path.replace('paus', user)
-            # cached files can be corrupted
-            ftest = root.TFile(local_path)
-            if bool(ftest) and not(ftest.IsZombie()):
-                logger.info(_sname+'.copy_local', 'Opting to read locally')
-                if _remote_read:
-                    return local_path
-                else:
-                    cmd = 'cp %s %s'%(local_path, input_name)
-                    logger.info(_sname+'.copy_local', cmd)
-                    ret = system(cmd)
-                    if ret:
-                        return None 
-                    copied = True
-
-    if not copied:
-        if _to_hdfs and _is_t3:
-            input_name = full_path.replace('root://xrootd.cmsaf.mit.edu/', '/mnt/hadoop/cms')
-            input_name = input_name.replace('paus', _user)
-            parent = '/'.join(input_name.split('/')[:-1])
-            if not path.isdir(parent):
-                try:
-                    logger.info(_sname+'.copy_local', 'creating parent at '+parent)
-                    os.makedirs(parent)
-                except OSError as e:
-                    logger.warning(_sname+'.copy_local', str(e))
-                    pass 
-        cmd = "xrdcopy --nopbar -f %s %s"%(full_path, input_name)
-        logger.info(_sname+'.copy_local', cmd)
-        ret = system(cmd)
-        if ret:
-            logger.error(_sname+'.copy_local', 'Failed to xrdcopy %s'%input_name)
-            return None 
-        ftest = root.TFile.Open(input_name)
-        if not(bool(ftest)) or ftest.IsZombie():
-            logger.error(_sname+'.copy_local', 'Copy succeeded but %s is corrupt'%input_name)
-            cleanup(input_name)
-            return None 
-        copied = True
-            
-    if path.isfile(input_name):
-        logger.info(_sname+'.copy_local', 'Successfully copied to %s'%(input_name))
-        return input_name
-    else:
-        logger.error(_sname+'.copy_local', 'Failed to copy %s'%input_name)
-        return None
-'''
 
 
 # wrapper around remove. be careful!
@@ -477,6 +411,26 @@ def classify_sample(full_path, isData):
                     return e
     return root.pa.kNoProcess
 
+# add top-tagging BDT
+class BDTAdder(object):
+    def __init__(self):
+        Load('TMVABranchAdder')
+        self.ba = root.TMVABranchAdder()
+        self.ba.defaultValue = -1.2
+        self.ba.presel = 'fjECFN_2_4_20>0'
+        for v in tagcfg.variables:
+            self.ba.AddVariable(v[0],v[2].replace('fj1','fj'))
+        for v in tagcfg.formulae:
+            self.ba.AddFormula(v[0],v[2].replace('fj1','fj'))
+        for s in tagcfg.spectators:
+            self.ba.AddSpectator(s[0])
+        self.ba.BookMVA('top_ecf_bdt',_data_dir+'/trainings/top_ecfbdt_v8_BDT.weights.xml')
+    def __call__(self, fname='output.root', tname='events'):
+        # now run the BDT
+        self.ba.treename = tname
+        self.ba.RunFile(fname)
+
+
 
 # read a CERT json and add it to the skimmer
 _jsons = {
@@ -533,6 +487,8 @@ def main(to_run, processed, fn):
             sleep(30)
         print_time('copy %s'%input_name)
         if input_name:
+            logger.info(_sname+'.main',
+                        'Starting to process '+input_name)
             success = fn(input_name, (to_run.dtype!='MC'), f)
             print_time('analyze %s'%input_name)
             if success:
@@ -546,3 +502,51 @@ def main(to_run, processed, fn):
         exit(1)
 
 
+
+def wrapper(fn, pre_fn=None, post_fn=None):
+    which = int(argv[1])
+    submit_id = int(argv[2])
+
+    sample_list = cb.read_sample_config('local.cfg',as_dict=False)
+    to_run = None 
+    for s in sample_list:
+        if which==s.get_id():
+            to_run = s
+            break
+    if not to_run:
+        logger.error(_sname,'Could not find a job for PROCID=%i'%(which))
+        exit(3)
+    
+    outdir = getenv('SUBMIT_OUTDIR')
+    lockdir = getenv('SUBMIT_LOCKDIR')  
+    outfilename = to_run.name+'_%i.root'%(submit_id)
+    processed = {}
+    
+    report_start(outdir,outfilename,to_run.files)
+    
+    wd = isolate()
+    if pre_fn is not None:
+        pre_fn()
+        print_time('pre_fn')
+
+    main(to_run, processed, fn)
+    
+    hadd(processed.keys())
+    print_time('hadd')
+
+    if post_fn is not None:
+        post_fn()
+        print_time('post_fn')
+
+    ret = stageout(outdir,outfilename)
+    cleanup('*.root')
+    un_isolate(wd)
+    print_time('stageout and cleanup')
+    if not ret:
+        report_done(lockdir,outfilename,processed)
+        cleanup('*.lock')
+        print_time('create lock')
+    else:
+        exit(-1*ret)
+
+    exit(0)

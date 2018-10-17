@@ -81,7 +81,7 @@ def fn(hbase, branch_tmpl, xtitle, postfix, save=False):
         hratio[label].GetXaxis().SetTitle(xtitle)
         hratio[label].SetLineWidth(3)
         if args.finor:
-            hratio[label].GetYaxis().SetTitle('FinOR BX=-1 eff')
+            hratio[label].GetYaxis().SetTitle('#epsilon(BX_{-1} L1A)')
         elif args.iso:
             hratio[label].GetYaxis().SetTitle('IsoEG30 BX=-1 eff')
         else:
@@ -96,20 +96,20 @@ def fn(hbase, branch_tmpl, xtitle, postfix, save=False):
         suffix += '_eg'
 
     plotlog.Reset()
-    plotlog.AddCMSLabel()
+#    plotlog.AddCMSLabel()
     for i,label in enumerate(trees):
         plotlog.AddHistogram(hnum[label],label,root.kData,i+1,'elp')
     plotlog.Draw(args.outdir+'/','oned_'+suffix+'_num')
 
     plotlog.Reset()
-    plotlog.AddCMSLabel()
+#    plotlog.AddCMSLabel()
     for i,label in enumerate(trees):
         plotlog.AddHistogram(hden[label],label,root.kData,i+1,'elp')
     plotlog.Draw(args.outdir+'/','oned_'+suffix+'_den')
 
     plot.Clear()
     plot.ClearLegend()
-    plot.AddCMSLabel()
+#    plot.AddCMSLabel()
     for i,label in enumerate(trees):
         plot.AddGraph(hratio[label],label,i+1,1,'lz')
     plot.Draw(args.outdir+'/','oned_'+suffix+'_ratio')
@@ -122,7 +122,7 @@ def fn(hbase, branch_tmpl, xtitle, postfix, save=False):
 
 
 hbase = root.TH1D('h0', 'h', 20, 40, 600)
-fn(hbase, 'jotPt[{0}]', 'p_{T} [GeV]', 'jotPt', True)
+fn(hbase, 'jotPt[{0}]', 'p_{T} [GeV]', 'jotPt', False)
 
 hbase = root.TH1D('h1', 'h', 20, 0, 600)
 fn(hbase, 'jotPt[{0}]*jotNEMF[{0}]', 'EM p_{T} [GeV]', 'jotEMPt')

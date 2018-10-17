@@ -7,7 +7,7 @@
 #ifndef PANDA_SELECTION
 #define PANDA_SELECTION
 
-#define __ACCPFUNC(x) [](const GeneralTree* gt) { return x; }
+#define __ACCPFUNC(x) [=](const GeneralTree* gt) { return x; }
 
 namespace pa {
   class Selection {
@@ -88,33 +88,21 @@ namespace pa {
   public:
     VqqHbbSel():
       LambdaSel(Selection::sReco, "VqqHbb", 
-          __ACCPFUNC(gt->fjPt[0][0] > 300 && gt->fjPt[0][1] > 250 && gt->fjMSD[0][0] > 30 && gt->fjMSD[0][1] > 30)) { }
+          __ACCPFUNC(gt->fjPt[0][0] > 300 && gt->fjPt[0][1] > 250 
+                     && gt->fjMSD[0][0] > 30 && gt->fjMSD[0][1] > 30)) { }
   };
 
   class FatJetSel: public LambdaSel {
   public:
-    FatJetSel():
-      LambdaSel(Selection::sReco, "FatJet", __ACCPFUNC(gt->fjPt[0][0] > 250)) { }
-  };
-
-  class FatJet450Sel: public LambdaSel {
-  public:
-    FatJet450Sel():
-      LambdaSel(Selection::sReco, "FatJet450", __ACCPFUNC(gt->fjPt[0][0] > 450)) { }
+    FatJetSel(float pt=250):
+      LambdaSel(Selection::sReco, "FatJet", __ACCPFUNC(gt->fjPt[0][0] > pt)) { }
   };
 
   class GenFatJetSel: public LambdaSel {
   public:
-    GenFatJetSel():
-      LambdaSel(Selection::sGen, "GenFatJet", __ACCPFUNC(gt->genFatJetPt > 450)) { }
+    GenFatJetSel(float pt=450):
+      LambdaSel(Selection::sGen, "GenFatJet", __ACCPFUNC(gt->genFatJetPt > pt)) { }
   };
-
-  class GenFatJet200Sel: public LambdaSel {
-  public:
-    GenFatJet200Sel():
-      LambdaSel(Selection::sGen, "GenFatJet200", __ACCPFUNC(gt->genFatJetPt > 200)) { }
-  };
-
 
   class LeptonSel: public Selection {
   public:
