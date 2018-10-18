@@ -302,6 +302,7 @@ class GeneralTree : public genericTree {
   float sf_metTrigZmm;
   float sf_metTrigVBF;
   float sf_metTrigZmmVBF;
+  float sf_l1Prefire;
   float sf_pu;
   float sf_npv;
   float sf_tt;

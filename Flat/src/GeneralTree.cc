@@ -192,6 +192,7 @@ void GeneralTree::Reset() {
   sf_metTrigZmm = 1;
   sf_metTrigVBF = 1;
   sf_metTrigZmmVBF = 1;
+  sf_l1Prefire = 1;
   sf_pu = 1;
   sf_npv = 1;
   sf_tt = 1;
@@ -625,6 +626,7 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("sf_metTrigZmm",&sf_metTrigZmm,"sf_metTrigZmm/F");
   Book("sf_metTrigVBF",&sf_metTrigVBF,"sf_metTrigVBF/F");
   Book("sf_metTrigZmmVBF",&sf_metTrigZmmVBF,"sf_metTrigZmmVBF/F");
+  Book("sf_l1Prefire",&sf_l1Prefire,"sf_l1Prefire/F");
   Book("sf_pu",&sf_pu,"sf_pu/F");
   Book("sf_npv",&sf_npv,"sf_npv/F");
   Book("sf_tt",&sf_tt,"sf_tt/F");
