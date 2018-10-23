@@ -438,6 +438,11 @@ void BJetRegMod::do_execute()
   float sumpt{0}, sumpt2{0};
   int leadingLepPdgId = 0;
   for (const auto& pf : jet.constituents) {
+    if (!pf.isValid()) {
+      // not sure why this is happening, but catch it 
+      logger.warning("BJetRegMod::do_execute",Form("Cannot access PF at idx %i out of %i", pf.idx(), event.pfCandidates.size()));
+      continue; 
+    }
     TLorentzVector v(pf->p4());
     float dr2 = DeltaR2(v.Eta(), v.Phi(), vraw.Eta(), vraw.Phi());
     float pt = pf->pt();

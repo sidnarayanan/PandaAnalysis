@@ -37,7 +37,7 @@ skimmer.AddPresel(root.pa.LeptonSel())
 skimmer.AddPresel(root.pa.TriggerSel())
 
 skimmer.firstEvent=0
-skimmer.lastEvent=1000
+skimmer.lastEvent=-1
 skimmer.isData=False
 if skimmer.isData:
     with open(getenv('CMSSW_BASE')+'/src/PandaAnalysis/data/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt') as jsonFile:
