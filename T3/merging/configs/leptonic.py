@@ -73,7 +73,7 @@ d = {
     'DYJetsToEE_POWHEG'             : ['ZToEE_NNPDF30_13TeV-powheg_M_50_120'],
     'WJets'                         : ['WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'],
     'TT'                            : ['TT_TuneCUETP8M2T4_13TeV-powheg-pythia8'],
-    'DarkPhoton_ZH_powheg_M-125'    : ['DarkPhoton_ZH_powheg_M-125'],
+    'ZH_ZToLL_HToGDarkG_M125'       : ['ZH_ZToLL_HToGDarkG_M125_13TeV_powheg_pythia8'],
     'ggZH125inv'                    : ['ggZH_HToInv_ZToLL_M125_13TeV_powheg_pythia8'],
     'qqZH110inv'                    : ['ZH_ZToMM_HToInvisible_M110_13TeV_powheg_pythia8','ZH_ZToEE_HToInvisible_M110_13TeV_powheg_pythia8'],
     'qqZH125inv'                    : ['ZH_ZToMM_HToInvisible_M125_13TeV_powheg_pythia8','ZH_ZToEE_HToInvisible_M125_13TeV_powheg_pythia8'],
