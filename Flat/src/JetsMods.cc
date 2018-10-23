@@ -432,6 +432,7 @@ void BJetRegMod::do_execute()
   for (const auto& pf : jet.constituents) {
     if (!pf.isValid()) {
       // not sure why this is happening, but catch it 
+      logger.warning("BJetRegMod::do_execute",Form("Cannot access PF at idx %i out of %i", pf.idx(), event.pfCandidates.size()));
       continue; 
     }
     TLorentzVector v(pf->p4());
