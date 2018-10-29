@@ -1,19 +1,19 @@
-#ifndef CATMODS
-#define CATMODS
+#ifndef CATOPS
+#define CATOPS
 
-#include "Module.h"
+#include "Operator.h"
 
 namespace pa {
-    class CategorizeMod : public AnalysisMod {
+    class CategorizeOp : public AnalysisOp {
       public:
-        CategorizeMod(TString name_,
+        CategorizeOp(TString name_,
                   panda::EventAnalysis& event_,
                   Config& cfg_,
                   Utils& utils_,
                   GeneralTree& gt_,
                   int level_=0) :
-          AnalysisMod(name_+"cat", event_, cfg_, utils_, gt_, level_) { }
-        virtual ~CategorizeMod() { }
+          AnalysisOp(name_+"cat", event_, cfg_, utils_, gt_, level_) { }
+        virtual ~CategorizeOp() { }
 
       protected:
         virtual void do_execute() final { 
@@ -22,15 +22,15 @@ namespace pa {
         virtual int categorize() = 0; 
     };
 
-    class VBFCatMod : public CategorizeMod {
+    class VBFCatOp : public CategorizeOp {
       public:
-        VBFCatMod(panda::EventAnalysis& event_,
+        VBFCatOp(panda::EventAnalysis& event_,
                   Config& cfg_,
                   Utils& utils_,
                   GeneralTree& gt_,
                   int level_=0) :
-          CategorizeMod("vbf", event_, cfg_, utils_, gt_, level_) { }
-        virtual ~VBFCatMod() { }
+          CategorizeOp("vbf", event_, cfg_, utils_, gt_, level_) { }
+        virtual ~VBFCatOp() { }
 
         bool on() override { return analysis.vbf; }
       protected:

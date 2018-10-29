@@ -4,7 +4,7 @@
 #include "AnalyzerUtilities.h"
 #include "GeneralTree.h"
 #include "Selection.h"
-#include "Module.h"
+#include "Operator.h"
 #include "PandaAnalysis/Flat/interface/Common.h"
 
 

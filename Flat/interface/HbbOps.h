@@ -1,19 +1,19 @@
-#ifndef HBBMODS
-#define HBBMODS
+#ifndef HBBOPS
+#define HBBOPS
 
-#include "Module.h"
+#include "Operator.h"
 #include "PandaAnalysis/Utilities/interface/KinematicFit.h"
 
 namespace pa {
-  class GenVHMod : public AnalysisMod {
+  class GenVHOp : public AnalysisOp {
   public: 
-    GenVHMod(panda::EventAnalysis& event_, 
+    GenVHOp(panda::EventAnalysis& event_, 
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) : 
-      AnalysisMod("genvh", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~GenVHMod () { }
+      AnalysisOp("genvh", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~GenVHOp () { }
 
     virtual bool on() { return !analysis.isData && analysis.vqqhbb; }
     
@@ -51,15 +51,15 @@ namespace pa {
     }
   };
 
-  class HbbMiscMod : public AnalysisMod {
+  class HbbMiscOp : public AnalysisOp {
   public: 
-    HbbMiscMod(panda::EventAnalysis& event_, 
+    HbbMiscOp(panda::EventAnalysis& event_, 
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) : 
-      AnalysisMod("hbbmisc", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~HbbMiscMod () { }
+      AnalysisOp("hbbmisc", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~HbbMiscOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb; }
     
@@ -67,20 +67,20 @@ namespace pa {
     void do_execute(); 
   };
 
-  class KinFitMod : public AnalysisMod {
+  class KinFitOp : public AnalysisOp {
   public: 
-    KinFitMod(panda::EventAnalysis& event_, 
+    KinFitOp(panda::EventAnalysis& event_, 
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) : 
-      AnalysisMod("zllhbbfit", event_, cfg_, utils_, gt_, level_) { 
+      AnalysisOp("zllhbbfit", event_, cfg_, utils_, gt_, level_) { 
       if (on()) {
         fit.reset(new kinfit::Fit(4,91));
         fit->setPrintLevel(-1); 
       }
     }
-    virtual ~KinFitMod () { }
+    virtual ~KinFitOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.zllhbb; }
     
@@ -94,15 +94,15 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
   };
 
-  class SoftActivityMod : public AnalysisMod {
+  class SoftActivityOp : public AnalysisOp {
   public: 
-    SoftActivityMod(panda::EventAnalysis& event_, 
+    SoftActivityOp(panda::EventAnalysis& event_, 
                     Config& cfg_,                 
                     Utils& utils_,                
                     GeneralTree& gt_,
                     int level_=0) :                 
-      AnalysisMod("softactivity", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~SoftActivityMod () { }
+      AnalysisOp("softactivity", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~SoftActivityOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb && !analysis.vbf && !analysis.vqqhbb && !analysis.bjetRegTraining; }
     
@@ -121,15 +121,15 @@ namespace pa {
   };
 
 
-  class GenJetNuMod : public AnalysisMod {
+  class GenJetNuOp : public AnalysisOp {
   public:
-    GenJetNuMod(panda::EventAnalysis& event_, 
+    GenJetNuOp(panda::EventAnalysis& event_, 
                  Config& cfg_,                 
                  Utils& utils_,                
                  GeneralTree& gt_,
                  int level_=0) :                 
-      AnalysisMod("genjetnu", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~GenJetNuMod () { }
+      AnalysisOp("genjetnu", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~GenJetNuOp () { }
 
     bool on() { return !analysis.isData && analysis.bjetRegTraining && analysis.hbb; }
   protected:

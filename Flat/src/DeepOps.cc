@@ -1,4 +1,4 @@
-#include "../interface/DeepMods.h"
+#include "../interface/DeepOps.h"
 
 using namespace pa;
 using namespace std;
@@ -6,7 +6,7 @@ using namespace panda;
 namespace fj = fastjet;
 namespace tf = tensorflow;
 
-void BRegBDTMod::do_readData(TString dirPath)
+void BRegBDTOp::do_readData(TString dirPath)
 {
   bjetreg_vars.reset(new float[15]);
 
@@ -50,7 +50,7 @@ void BRegBDTMod::do_readData(TString dirPath)
   bjetregReader->BookMVA("BDT method", modelPath);
 }
 
-void BRegBDTMod::do_execute()
+void BRegBDTOp::do_execute()
 {
   auto& jw = **currentJet;
   int idx = jw.cleaned_idx;
@@ -82,7 +82,7 @@ float dnn_clean(float x) {
   return fabs(x -  -99.) < 0.1 ? 0 : x; 
 }
 
-void BRegDeepMod::do_execute()
+void BRegDeepOp::do_execute()
 {
   auto& jw = **currentJet;
   int N = jw.cleaned_idx;
@@ -205,7 +205,7 @@ void BRegDeepMod::do_execute()
   //jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
 }
 
-void TFInferMod::build(TString weightpath)
+void TFInferOp::build(TString weightpath)
 {
   tf::setLogging("3");
   graph.reset(tf::loadGraphDef(weightpath.Data()));
@@ -219,7 +219,7 @@ void TFInferMod::build(TString weightpath)
                                       tf::TensorShape({1, (long long int)n_inputs})));
 }
 
-void TFInferMod::eval()
+void TFInferOp::eval()
 {
   // build the input tensor
   for (int idx = 0; idx != n_inputs; ++idx)
@@ -235,12 +235,12 @@ void TFInferMod::eval()
 }
 
 template <typename GENP>
-DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
+DeepGenOp<GENP>::DeepGenOp(panda::EventAnalysis& event_,
            Config& cfg_,
            Utils& utils_,
            GeneralTree& gt_,
            int level_) :
-  AnalysisMod("deepgen", event_, cfg_, utils_, gt_, level_)
+  AnalysisOp("deepgen", event_, cfg_, utils_, gt_, level_)
 {
   if (!on())
     return;
@@ -262,7 +262,7 @@ DeepGenMod<GENP>::DeepGenMod(panda::EventAnalysis& event_,
 }
 
 template <typename GENP>
-void DeepGenMod<GENP>::do_execute()
+void DeepGenOp<GENP>::do_execute()
 {
   gt.genFatJetPt = 0;
   gt.genFatJetNProngs = -1;
@@ -536,7 +536,7 @@ void DeepGenMod<GENP>::do_execute()
 }
 
 template <typename GENP>
-void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
+void DeepGenOp<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
 {
   float dR2 = cfg.FATJETMATCHDR2;
   float base_eta = genJetInfo.eta, base_phi = genJetInfo.phi;
@@ -623,7 +623,7 @@ void DeepGenMod<GENP>::countGenPartons(unordered_set<const GENP*>& partons)
 }
 
 template <typename GENP>
-void DeepGenMod<GENP>::incrementAux(bool close)
+void DeepGenOp<GENP>::incrementAux(bool close)
 {
   if (fAux) {
     fAux->WriteTObject(tAux.get(), "inputs", "Overwrite");
@@ -678,5 +678,5 @@ void DeepGenMod<GENP>::incrementAux(bool close)
   fOut->cd();
 }
 
-template class DeepGenMod<panda::GenParticle>;
-template class DeepGenMod<panda::UnpackedGenParticle>;
+template class DeepGenOp<panda::GenParticle>;
+template class DeepGenOp<panda::UnpackedGenParticle>;

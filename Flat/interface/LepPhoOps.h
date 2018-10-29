@@ -1,7 +1,7 @@
-#ifndef LEPPHOMODS
-#define LEPPHOMODS
+#ifndef LEPPHOOPS
+#define LEPPHOOPS
 
-#include "Module.h"
+#include "Operator.h"
 #include "AnalyzerUtilities.h"
 #include "array"
 #include "PandaAnalysis/Utilities/interface/RoccoR.h"
@@ -9,16 +9,16 @@
 
 namespace pa {
 
-  class InclusiveLeptonMod : public AnalysisMod {
+  class InclusiveLeptonOp : public AnalysisOp {
   public:
-    InclusiveLeptonMod(panda::EventAnalysis& event_,
+    InclusiveLeptonOp(panda::EventAnalysis& event_,
                        Config& cfg_,
                        Utils& utils_,
                        GeneralTree& gt_,
                        int level_=0) :
-      AnalysisMod("inclep", event_, cfg_, utils_, gt_, level_),
+      AnalysisOp("inclep", event_, cfg_, utils_, gt_, level_),
       inclusiveLeps(std::make_shared<std::vector<panda::Lepton*>>()) { }
-    virtual ~InclusiveLeptonMod () { }
+    virtual ~InclusiveLeptonOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb; }
 
@@ -34,19 +34,19 @@ namespace pa {
     std::shared_ptr<std::vector<panda::Lepton*>> inclusiveLeps;
   };
 
-  class SimpleLeptonMod : public AnalysisMod {
+  class SimpleLeptonOp : public AnalysisOp {
   public:
-    SimpleLeptonMod(panda::EventAnalysis& event_,
+    SimpleLeptonOp(panda::EventAnalysis& event_,
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) :
-      AnalysisMod("simplep", event_, cfg_, utils_, gt_, level_),
+      AnalysisOp("simplep", event_, cfg_, utils_, gt_, level_),
       looseLeps(std::v_make_shared<panda::Lepton*>()),
       matchLeps(std::v_make_shared<panda::Lepton*>()),
       lepPdgId(std::make_shared<std::array<int,4>>()),
       dilep(std::make_shared<TLorentzVector>()) { }
-    virtual ~SimpleLeptonMod () { }
+    virtual ~SimpleLeptonOp () { }
 
     virtual bool on() { return !analysis.genOnly && !analysis.complicatedLeptons; }
 
@@ -75,15 +75,15 @@ namespace pa {
 
   };
 
-  class ComplicatedLeptonMod : public SimpleLeptonMod {
+  class ComplicatedLeptonOp : public SimpleLeptonOp {
   public:
-    ComplicatedLeptonMod(panda::EventAnalysis& event_,
+    ComplicatedLeptonOp(panda::EventAnalysis& event_,
                          Config& cfg_,
                          Utils& utils_,
                          GeneralTree& gt_,
                          int level_=0) :
-      SimpleLeptonMod(event_, cfg_, utils_, gt_, level_) { name = "complep"; }
-    virtual ~ComplicatedLeptonMod () { }
+      SimpleLeptonOp(event_, cfg_, utils_, gt_, level_) { name = "complep"; }
+    virtual ~ComplicatedLeptonOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.complicatedLeptons; }
 
@@ -91,7 +91,7 @@ namespace pa {
     void do_readData(TString dirPath);
     void do_execute();
     void do_init(Registry& registry) {
-      SimpleLeptonMod::do_init(registry);
+      SimpleLeptonOp::do_init(registry);
       if (analysis.hbb) 
         pfCandsMap = registry.access<EtaPhiMap<panda::PFCand>>("pfCandsMap"); 
     }
@@ -101,17 +101,17 @@ namespace pa {
   };
 
 
-  class SimplePhotonMod : public AnalysisMod {
+  class SimplePhotonOp : public AnalysisOp {
   public:
-    SimplePhotonMod(panda::EventAnalysis& event_,
+    SimplePhotonOp(panda::EventAnalysis& event_,
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) :
-      AnalysisMod("simplepho", event_, cfg_, utils_, gt_, level_),
+      AnalysisOp("simplepho", event_, cfg_, utils_, gt_, level_),
       loosePhos(std::v_make_shared<panda::Photon*>()),
       tightPhos(std::v_make_shared<panda::Photon*>()) { }
-    virtual ~SimplePhotonMod () { }
+    virtual ~SimplePhotonOp () { }
 
     virtual bool on() { return !analysis.genOnly && !analysis.complicatedPhotons; }
 
@@ -133,21 +133,21 @@ namespace pa {
   };
 
 
-  class ComplicatedPhotonMod : public SimplePhotonMod {
+  class ComplicatedPhotonOp : public SimplePhotonOp {
   public:
-    ComplicatedPhotonMod(panda::EventAnalysis& event_,
+    ComplicatedPhotonOp(panda::EventAnalysis& event_,
                          Config& cfg_,
                          Utils& utils_,
                          GeneralTree& gt_,
                          int level_=0) :
-      SimplePhotonMod(event_, cfg_, utils_, gt_, level_) { name="comppho"; }
-    virtual ~ComplicatedPhotonMod () { }
+      SimplePhotonOp(event_, cfg_, utils_, gt_, level_) { name="comppho"; }
+    virtual ~ComplicatedPhotonOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.complicatedPhotons; }
 
   protected:
     void do_init(Registry& registry) {
-      SimplePhotonMod::do_init(registry);
+      SimplePhotonOp::do_init(registry);
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
     }
     void do_execute();
@@ -157,15 +157,15 @@ namespace pa {
   };
 
 
-  class TauMod : public AnalysisMod {
+  class TauOp : public AnalysisOp {
   public:
-    TauMod(panda::EventAnalysis& event_,
+    TauOp(panda::EventAnalysis& event_,
            Config& cfg_,
            Utils& utils_,
            GeneralTree& gt_,
            int level_=0) :
-      AnalysisMod("tau", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~TauMod () { }
+      AnalysisOp("tau", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~TauOp () { }
 
     virtual bool on() { return !analysis.genOnly; }
 
@@ -178,15 +178,15 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::Lepton*>> matchLeps{nullptr};
   };
 
-  class GenLepMod : public AnalysisMod {
+  class GenLepOp : public AnalysisOp {
   public:
-    GenLepMod(panda::EventAnalysis& event_,
+    GenLepOp(panda::EventAnalysis& event_,
               Config& cfg_,
               Utils& utils_,
               GeneralTree& gt_,
               int level_=0) :
-      AnalysisMod("genlep", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~GenLepMod () { }
+      AnalysisOp("genlep", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~GenLepOp () { }
 
     virtual bool on() { return analysis.vbf && !analysis.isData; }
 

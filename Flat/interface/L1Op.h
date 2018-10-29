@@ -1,9 +1,9 @@
-#include "Module.h"
+#include "Operator.h"
 #include "Math/LorentzVector.h"
 #include "Math/PxPyPzE4D.h"
 
-// this is treated separately from other Mods because
-// it is not a real PandaTree-based Mod
+// this is treated separately from other Ops because
+// it is not a real PandaTree-based Op
 
 namespace pa {
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double>> LorentzVector;
@@ -27,10 +27,10 @@ namespace pa {
     std::vector<int> *L1GtBx{nullptr};
   };
 
-  class L1Mod : public BaseModule<L1Tree> {
+  class L1Op : public BaseOperator<L1Tree> {
   public:
-    L1Mod(L1Tree& gt_, L1Event& event_) : BaseModule<L1Tree>("L1", gt_), event(event_) { } 
-    ~L1Mod() { } 
+    L1Op(L1Tree& gt_, L1Event& event_) : BaseOperator<L1Tree>("L1", gt_), event(event_) { } 
+    ~L1Op() { } 
     void reset() { gt.Reset(); } 
     void execute(); 
   protected:

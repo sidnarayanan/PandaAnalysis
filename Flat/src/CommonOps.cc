@@ -1,4 +1,4 @@
-#include "../interface/CommonMods.h"
+#include "../interface/CommonOps.h"
 
 using namespace pa;
 using namespace std;
@@ -29,7 +29,7 @@ void shiftMET(const RecoMet& met, TLorentzVector& v, shiftjes shift)
   v.SetPtEtaPhiM(pt, 0, phi, 0);
 }
 
-void TriggerMod::do_init(Registry& registry) 
+void TriggerOp::do_init(Registry& registry) 
 {
   vector<TString> paths; 
   if (analysis.isData || analysis.mcTriggers) {
@@ -259,7 +259,7 @@ void TriggerMod::do_init(Registry& registry)
   }
 }
 
-void TriggerMod::checkEle32()
+void TriggerOp::checkEle32()
 {
   auto& filter1Objects = event.triggerObjects.filterObjects("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter");
   auto& filter2Objects = event.triggerObjects.filterObjects("hltEGL1SingleEGOrFilter");
@@ -281,7 +281,7 @@ void TriggerMod::checkEle32()
   }
 }
 
-void TriggerMod::do_execute()
+void TriggerOp::do_execute()
 {
   for (unsigned iT = 0; iT != kNTrig; ++iT) {
     auto &th = triggerHandlers.at(iT);
@@ -294,7 +294,7 @@ void TriggerMod::do_execute()
   }
 }
 
-void GlobalMod::do_execute()
+void GlobalOp::do_execute()
 {
   if (cfg.DEBUG > 5) {
     logger.debug("PandaAnalyzer::Run::Dump","");
@@ -362,7 +362,7 @@ void GlobalMod::do_execute()
 }
 
 template <typename TREE>
-void BaseGenPMod<TREE>::do_execute()
+void BaseGenPOp<TREE>::do_execute()
 {
   if (this->event.genParticles.size() > 0) {
     merge_particles(this->event.genParticles);
@@ -371,10 +371,10 @@ void BaseGenPMod<TREE>::do_execute()
   }
 }
 
-template class BaseGenPMod<GeneralTree>;
-template class BaseGenPMod<HeavyResTree>;
+template class BaseGenPOp<GeneralTree>;
+template class BaseGenPOp<HeavyResTree>;
 
-void RecoilMod::do_execute()
+void RecoilOp::do_execute()
 {
   TLorentzVector vObj1, vObj2;
   gt.whichRecoil = 0; // -1=photon, 0=MET, 1,2=nLep
@@ -442,7 +442,7 @@ void RecoilMod::do_execute()
   }
 }
 
-void TriggerEffMod::do_execute() 
+void TriggerEffOp::do_execute() 
 {
   // trigger efficiencies
   gt.sf_metTrig = utils.getCorr(cTrigMET,gt.pfmetnomu[jes2i(shiftjes::kNominal)]);

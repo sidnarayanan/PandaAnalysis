@@ -1,28 +1,28 @@
-#ifndef FATJETSMODS
-#define FATJETSMODS
+#ifndef FATJETSOPS
+#define FATJETSOPS
 
-#include "Module.h"
-#include "JetsMods.h" // need BaseJetMod
+#include "Operator.h"
+#include "JetsOps.h" // need BaseJetOp
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 #include "PandaAnalysis/Utilities/interface/HEPTopTaggerWrapperV2.h"
 #include "fastjet/contrib/Njettiness.hh"
 
 namespace pa {
-  class FatJetReclusterMod : public AnalysisMod {
+  class FatJetReclusterOp : public AnalysisOp {
   public:
-    FatJetReclusterMod(panda::EventAnalysis& event_,
+    FatJetReclusterOp(panda::EventAnalysis& event_,
                        Config& cfg_,
                        Utils& utils_,
                        GeneralTree& gt_,
                        int level_=0) :
-      AnalysisMod("fjrecluster", event_, cfg_, utils_, gt_, level_) {
+      AnalysisOp("fjrecluster", event_, cfg_, utils_, gt_, level_) {
         if (!on())
           return;
         jetDef.reset(new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm :
                                                                fastjet::cambridge_algorithm,
                                                 analysis.ak8 ?  0.8 : 1.5));
     }
-    virtual ~FatJetReclusterMod () { }
+    virtual ~FatJetReclusterOp () { }
 
     virtual bool on() { return analysis.recluster; }
 
@@ -36,10 +36,10 @@ namespace pa {
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
   };
 
-  // this is not treated as a Mod for various reasons
+  // this is not treated as a Op for various reasons
   // the primary being that it does not need access to the tree
   // and that it would make the inheritance complicated because it is
-  // intendend to be used by multiple template instances of BaseMod
+  // intendend to be used by multiple template instances of BaseOp
   class SubRunner {
   public:
     SubRunner(bool ak8, Utils& utils_) : utils(utils_)  {
@@ -79,20 +79,20 @@ namespace pa {
     Utils& utils;
   };
 
-  class FatJetMod : public BaseJetMod {
+  class FatJetOp : public BaseJetOp {
   public:
-    FatJetMod(panda::EventAnalysis& event_,
+    FatJetOp(panda::EventAnalysis& event_,
               Config& cfg_,
               Utils& utils_,
               GeneralTree& gt_,
               int level_=0) :
-      BaseJetMod("fatjet", event_, cfg_, utils_, gt_, level_),
+      BaseJetOp("fatjet", event_, cfg_, utils_, gt_, level_),
       nMaxFJ(analysis.vqqhbb ? 2 : 1),
       fjPtrs(std::v_make_shared<panda::FatJet*>()),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
       substructure(analysis.recalcECF ? new SubRunner(analysis.ak8, utils) : nullptr) {
         recalcJER = analysis.applyJER || analysis.rerunJER; // if JER is requested, always run it
-        recluster = addSubMod<FatJetReclusterMod>();
+        recluster = addSubOp<FatJetReclusterOp>();
         jetType = "AK8PFPuppi";
       if      (analysis.year==2016) { // CSVv2 subjet b-tagging in 2016 
         csvL = 0.5426; csvM = 0.8484; 
@@ -100,7 +100,7 @@ namespace pa {
         csvL = 0.1522; csvM = 0.4941;
       }
     }
-    virtual ~FatJetMod () { }
+    virtual ~FatJetOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet; }
 
@@ -130,18 +130,18 @@ namespace pa {
     std::shared_ptr<const TLorentzVector> dilep{nullptr};
     std::unique_ptr<SubRunner> substructure{nullptr};
 
-    FatJetReclusterMod *recluster{nullptr};
+    FatJetReclusterOp *recluster{nullptr};
   };
 
-  class FatJetMatchingMod : public AnalysisMod {
+  class FatJetMatchingOp : public AnalysisOp {
   public:
-    FatJetMatchingMod(panda::EventAnalysis& event_,
+    FatJetMatchingOp(panda::EventAnalysis& event_,
                       Config& cfg_,
                       Utils& utils_,
                       GeneralTree& gt_,
                       int level_=0) :
-      AnalysisMod("fjmatching", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~FatJetMatchingMod () { }
+      AnalysisOp("fjmatching", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~FatJetMatchingOp () { }
 
     virtual bool on() { return !analysis.genOnly && analysis.fatjet && !analysis.isData; }
 
@@ -161,18 +161,18 @@ namespace pa {
     const panda::GenParticle* matchGen(double eta, double phi, double r2, int pdgid=0) const;
   };
 
-  class HRTagMod : public HRMod {
+  class HRTagOp : public HROp {
   public:
-    HRTagMod(panda::EventAnalysis& event_,
+    HRTagOp(panda::EventAnalysis& event_,
               Config& cfg_,
               Utils& utils_,
               HeavyResTree& gt_,
               int level_=0) :
-      HRMod("tag", event_, cfg_, utils_, gt_, level_),
+      HROp("tag", event_, cfg_, utils_, gt_, level_),
       fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
       substructure(new SubRunner(analysis.ak8, utils)) {
     }
-    virtual ~HRTagMod () { }
+    virtual ~HRTagOp () { }
 
     virtual bool on() { return true; }
 

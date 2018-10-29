@@ -53,64 +53,64 @@ If you would like to add any custom code to `someThing.[h,cc]`, do so between th
 Most users will use the `GeneralTree` class, which is intended for most analyses.
 
 ## Defining an analysis
-Here, I am going to talk about the structure of `PandaAnalyzer` and its modules, but there are examples of more task-specific analyses in the code. 
+Here, I am going to talk about the structure of `PandaAnalyzer` and its operators, but there are examples of more task-specific analyses in the code. 
 `PandaAnalyzer` reads in `panda` files and outputs `GeneralTree`.
 `PandaAnalyzer` is essentially a container class that links together several things:
 - An instance of `GeneralTree`
 - An `Analysis` object, defined externally, which defines the analysis, the input, the output, etc
-- `Config` and `Utils` instances, which contain, respectively, many configuration constants and useful utilities. These are initialized as a function of the aforementioned `Analysis` by `ConfigMod`
-- Many `AnalysisMod`s, which do physics tasks. These can be chained together in a tree-like structure
-- A `Registry`, which holds `shared_ptr`s to objects that should be shared between `AnalysisMods` (or really anywhere else in `PandaAnalyzer`). 
+- `Config` and `Utils` instances, which contain, respectively, many configuration constants and useful utilities. These are initialized as a function of the aforementioned `Analysis` by `ConfigOp`
+- Many `AnalysisOp`s, which do physics tasks. These can be chained together in a tree-like structure
+- A `Registry`, which holds `shared_ptr`s to objects that should be shared between `AnalysisOps` (or really anywhere else in `PandaAnalyzer`). 
 
 Here is what that looks like in a (clickable!) image:
 
 ![click me](http://t3serv001.mit.edu/~snarayan/doxy/PandaAnalysis/classpa_1_1PandaAnalyzer__coll__graph_org.svg) 
 
-### Modules
-The inheritance diagram for `Module`s looks like:
+### Operators
+The inheritance diagram for `Operator`s looks like:
 ```
-Module  # abstract class
-  \--> ConfigMod
-  \--> AnalysisMod = BaseAnalysisMod<GeneralTree> # also abstract
-          \--> ContainerMod
-          \--> GlobalMod
-          \--> BaseJetMod
-                 \--> JetMod
-                 \--> FatJetMod
-          \--> TFInferMod
-                 \--> BRegDeepMod
+Operator  # abstract class
+  \--> ConfigOp
+  \--> AnalysisOp = BaseAnalysisOp<GeneralTree> # also abstract
+          \--> ContainerOp
+          \--> GlobalOp
+          \--> BaseJetOp
+                 \--> JetOp
+                 \--> FatJetOp
+          \--> TFInferOp
+                 \--> BRegDeepOp
           ...
 ```
-Every realized subclass of `AnalysisMod` must define a `void do_execute()` function, which does the actual per-event execution.
+Every realized subclass of `AnalysisOp` must define a `void do_execute()` function, which does the actual per-event execution.
 Further virtual functions can be overridden as needed:
 - Constructor and destructor, although it is preferred to use smart pointers whereever possible, so destructor should be avoided. 
 - `void do_init(Registry& registry)`: call `registry.publish`(`publishConst`) and `registry.access`(`accessConst`) as needed to publish and and access data by name. 
 - `void do_readData(TString path)`: read any data to initialize member objects
 - `void do_reset()`: called every event before `do_execute()`
 - `void do_terminate()`: called at the end of each file
-- `bool on()`: whether the mod is on or not, typically a function of `this->analysis`. 
+- `bool on()`: whether the op is on or not, typically a function of `this->analysis`. 
 
-Each `BaseAnalysisMod` instance has a member function `addSubMod<MOD>()`, which adds a `MOD` instance to the calling mod. 
-When the calling mod's `do_init` is called, this call is cascaded down to the sub-mods.
+Each `BaseAnalysisOp` instance has a member function `addSubOp<OP>()`, which adds a `OP` instance to the calling op. 
+When the calling op's `do_init` is called, this call is cascaded down to the sub-ops.
 This is true for all `do_*` functions, EXCEPT `do_execute`. 
-Calls to `do_execute` are left for the user to define in the calling mod's `do_execute` function. 
-Note that the caller should actually call `someSubMod->execute()`, not `someSubMod->do_execute()`. 
+Calls to `do_execute` are left for the user to define in the calling op's `do_execute` function. 
+Note that the caller should actually call `someSubOp->execute()`, not `someSubOp->do_execute()`. 
 
-Here is an example of a mod definition that shows most features:
+Here is an example of an op definition that shows most features:
 ```C++
-class HbbSystemMod : public AnalysisMod {
+class HbbSystemOp : public AnalysisOp {
 public:
-  HbbSystemMod(panda::EventAnalysis& event_,
+  HbbSystemOp(panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-    AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_, level_),
+    AnalysisOp("hbbsystem", event_, cfg_, utils_, gt_, level_),
     hbbdJet(std::make_shared<JetWrapper*>(nullptr)) {
-      deepreg = addSubMod<BRegDeepMod>();
-      bdtreg = addSubMod<BRegBDTMod>();
+      deepreg = addSubOp<BRegDeepOp>();
+      bdtreg = addSubOp<BRegBDTOp>();
     }   
-  virtual ~HbbSystemMod() { } 
+  virtual ~HbbSystemOp() { } 
 
   bool on() { return analysis.hbb; }
 protected:
@@ -130,43 +130,43 @@ private:
   std::vector<JetWrapper*> btagsorted;
 
   std::shared_ptr<JetWrapper*> hbbdJet;
-  BRegDeepMod *deepreg{nullptr};
-  BRegBDTMod *bdtreg{nullptr};
+  BRegDeepOp *deepreg{nullptr};
+  BRegBDTOp *bdtreg{nullptr};
 };  
 
 ```
 
 ### Chaining together an analysis
-All `AnalysisMod`s are added to `PandaAnalyzer` in the constructor, even if your analysis does not want to run them.
-Mods are turned on and off by `AnalysisMod::on()`.
+All `AnalysisOp`s are added to `PandaAnalyzer` in the constructor, even if your analysis does not want to run them.
+Ops are turned on and off by `AnalysisOp::on()`.
 This adds a bit of memory overhead, but it's small in the grand scale of things and allows for more run-time flexibility. 
-One adds a mod by calling `ADDMOD(ModClass)`. 
-The mods are executed in the order they are added.
-Mods are called either before or after the preselections are checked (see below).
-Depending on the needs of your mod, you may want to put things in one place or another.
+One adds an op by calling `ADDMOP(OpClass)`. 
+The ops are executed in the order they are added.
+Ops are called either before or after the preselections are checked (see below).
+Depending on the needs of your op, you may want to put things in one place or another.
 Here is an example of what an analysis can look like:
 ```
-INFO    [AnalysisMod::print            ]: -> global (0)
-INFO    [AnalysisMod::print            ]: -> pre-sel (0)
-INFO    [AnalysisMod::print            ]:       -> map (1)
-INFO    [AnalysisMod::print            ]:       -> trigger (1)
-INFO    [AnalysisMod::print            ]:       -> simplep (1)
-INFO    [AnalysisMod::print            ]:       -> simplepho (1)
-INFO    [AnalysisMod::print            ]:       -> recoil (1)
-INFO    [AnalysisMod::print            ]:       -> fatjet (1)
-INFO    [AnalysisMod::print            ]:       -> jet (1)
-INFO    [AnalysisMod::print            ]:             -> jetflavor (2)
-INFO    [AnalysisMod::print            ]:             -> isojet (2)
-INFO    [AnalysisMod::print            ]:             -> bjetreg (2)
-INFO    [AnalysisMod::print            ]:             -> vbfsystem (2)
-INFO    [AnalysisMod::print            ]:             -> hbbsystem (2)
-INFO    [AnalysisMod::print            ]:                   -> bregdeep (3)
-INFO    [AnalysisMod::print            ]:       -> tau (1)
-INFO    [AnalysisMod::print            ]: -> post-sel (0)
-INFO    [AnalysisMod::print            ]:       -> hbbmisc (1)
-INFO    [AnalysisMod::print            ]:       -> inclep (1)
-INFO    [AnalysisMod::print            ]:       -> btagsf (1)
-INFO    [AnalysisMod::print            ]:       -> btagweight (1)
+INFO    [AnalysisOp::print            ]: -> global (0)
+INFO    [AnalysisOp::print            ]: -> pre-sel (0)
+INFO    [AnalysisOp::print            ]:       -> map (1)
+INFO    [AnalysisOp::print            ]:       -> trigger (1)
+INFO    [AnalysisOp::print            ]:       -> simplep (1)
+INFO    [AnalysisOp::print            ]:       -> simplepho (1)
+INFO    [AnalysisOp::print            ]:       -> recoil (1)
+INFO    [AnalysisOp::print            ]:       -> fatjet (1)
+INFO    [AnalysisOp::print            ]:       -> jet (1)
+INFO    [AnalysisOp::print            ]:             -> jetflavor (2)
+INFO    [AnalysisOp::print            ]:             -> isojet (2)
+INFO    [AnalysisOp::print            ]:             -> bjetreg (2)
+INFO    [AnalysisOp::print            ]:             -> vbfsystem (2)
+INFO    [AnalysisOp::print            ]:             -> hbbsystem (2)
+INFO    [AnalysisOp::print            ]:                   -> bregdeep (3)
+INFO    [AnalysisOp::print            ]:       -> tau (1)
+INFO    [AnalysisOp::print            ]: -> post-sel (0)
+INFO    [AnalysisOp::print            ]:       -> hbbmisc (1)
+INFO    [AnalysisOp::print            ]:       -> inclep (1)
+INFO    [AnalysisOp::print            ]:       -> btagsf (1)
+INFO    [AnalysisOp::print            ]:       -> btagweight (1)
 ```
 
 ### Pre-selections
@@ -184,7 +184,7 @@ skimmer.AddPresel(triggersel)
 ```
 Two things to note from this snippet:
 - Pre-selections are added to `PandaAnalyzer` by the `AddPresel` method
-- There are two types of pre-selection: `Selection::sReco`, which is called after a series of reconstruction-based mods, but before more computationally-intensive mods, and `Selection::sGen`, which is called at the very end and reduces disk size.
+- There are two types of pre-selection: `Selection::sReco`, which is called after a series of reconstruction-based ops, but before more computationally-intensive ops, and `Selection::sGen`, which is called at the very end and reduces disk size.
 
 ### Testing your analyzer
 

@@ -1,12 +1,12 @@
-#include "../interface/Module.h"
+#include "../interface/Operator.h"
 
 using namespace pa;
 using namespace panda;
 using namespace std;
 namespace fj = fastjet;
 
-ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
-  BaseModule("config", gt_),
+ConfigOp::ConfigOp(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
+  BaseOperator("config", gt_),
   cfg(a_, DEBUG_),
   analysis(a_),
   bl({"runNumber", "lumiNumber", "eventNumber","weight"})
@@ -75,7 +75,7 @@ ConfigMod::ConfigMod(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   set_outputBranches();
 }
 
-void ConfigMod::set_inputBranches()
+void ConfigOp::set_inputBranches()
 {
   bl.setVerbosity(0);
   TString jetname = analysis.puppiJets ? "puppi" : "chs";
@@ -124,7 +124,7 @@ void ConfigMod::set_inputBranches()
   }
 }
 
-void ConfigMod::set_outputBranches()
+void ConfigOp::set_outputBranches()
 {
   // manipulate the output tree
   if (cfg.isData) {
@@ -169,7 +169,7 @@ void ConfigMod::set_outputBranches()
     );
 }
 
-void ConfigMod::readData(TString dirPath)
+void ConfigOp::readData(TString dirPath)
 {
   dirPath += "/";
 
@@ -530,34 +530,34 @@ void ConfigMod::readData(TString dirPath)
 }
 
 template<typename T>
-void BaseAnalysisMod<T>::initialize(Registry& registry)
+void BaseAnalysisOp<T>::initialize(Registry& registry)
 {
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    logger.debug("BaseAnalysisMod::initialize", this->name);
+    logger.debug("BaseAnalysisOp::initialize", this->name);
   do_init(registry);
-  for (auto& mod : subMods)
-    mod->initialize(registry);
+  for (auto& op : subOps)
+    op->initialize(registry);
 }
 
 template<typename T>
-void BaseAnalysisMod<T>::readData(TString path)
+void BaseAnalysisOp<T>::readData(TString path)
 {
   if (!on())
     return;
   if (cfg.DEBUG > level)
-    logger.debug("BaseAnalysisMod::readData", this->name);
+    logger.debug("BaseAnalysisOp::readData", this->name);
   do_readData(path+"/");
-  for (auto& mod : subMods)
-    mod->readData(path);
+  for (auto& op : subOps)
+    op->readData(path);
 }
 
-// execute DOES NOT cascade down child modules -
-// calling subMod execution is left up to the caller
+// execute DOES NOT cascade down child operators -
+// calling subOp execution is left up to the caller
 // to allow for more flexibility
 template<typename T>
-void BaseAnalysisMod<T>::execute()
+void BaseAnalysisOp<T>::execute()
 {
   if (!on())
     return;
@@ -569,37 +569,37 @@ void BaseAnalysisMod<T>::execute()
 }
 
 template<typename T>
-void BaseAnalysisMod<T>::reset()
+void BaseAnalysisOp<T>::reset()
 {
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    logger.debug("BaseAnalysisMod::reset", this->name);
+    logger.debug("BaseAnalysisOp::reset", this->name);
   do_reset();
-  for (auto& mod : subMods)
-    mod->reset();
+  for (auto& op : subOps)
+    op->reset();
 }
 
 template<typename T>
-void BaseAnalysisMod<T>::terminate()
+void BaseAnalysisOp<T>::terminate()
 {
   if (!on())
     return;
   if (cfg.DEBUG > level+1)
-    logger.debug("BaseAnalysisMod::terminate", this->name);
+    logger.debug("BaseAnalysisOp::terminate", this->name);
   do_terminate();
-  for (auto& mod : subMods)
-    mod->terminate();
+  for (auto& op : subOps)
+    op->terminate();
 }
 
 template<typename T>
-vector<TString> BaseAnalysisMod<T>::dump()
+vector<TString> BaseAnalysisOp<T>::dump()
 {
   vector<TString> v;
   if (!on())
     return v;
   v.push_back("-> " + this->name + Form(" (%i)", level));
-  for (auto& m : subMods) {
+  for (auto& m : subOps) {
     vector<TString> vtmp = m->dump();
     for (auto& s : vtmp)
       v.push_back("      " + s);
@@ -608,12 +608,12 @@ vector<TString> BaseAnalysisMod<T>::dump()
 }
 
 template<typename T>
-void BaseAnalysisMod<T>::print()
+void BaseAnalysisOp<T>::print()
 {
   auto v = dump();
   for (auto& s : v)
-    logger.info("BaseAnalysisMod::print", s.Data());
+    logger.info("BaseAnalysisOp::print", s.Data());
 }
 
-template class BaseAnalysisMod<GeneralTree>;
-template class BaseAnalysisMod<HeavyResTree>;
+template class BaseAnalysisOp<GeneralTree>;
+template class BaseAnalysisOp<HeavyResTree>;

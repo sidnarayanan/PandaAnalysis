@@ -1,10 +1,10 @@
-#include "../interface/CatMods.h"
+#include "../interface/CatOps.h"
 #include <algorithm>
 
 using namespace pa; 
 using namespace std; 
 
-int VBFCatMod::categorize() 
+int VBFCatOp::categorize() 
 {
   if (gt.nLoosePhoton>0 || gt.nTau>0)
     return 0; 

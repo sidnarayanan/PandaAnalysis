@@ -1,18 +1,18 @@
-#ifndef THEORYMODS
-#define THEORYMODS
+#ifndef THEORYOPS
+#define THEORYOPS
 
-#include "Module.h"
+#include "Operator.h"
 
 namespace pa {
-  class GenStudyEWKMod : public AnalysisMod {
+  class GenStudyEWKOp : public AnalysisOp {
   public: 
-    GenStudyEWKMod(panda::EventAnalysis& event_, 
+    GenStudyEWKOp(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) : 
-      AnalysisMod("genstudyewk", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~GenStudyEWKMod () { }
+      AnalysisOp("genstudyewk", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~GenStudyEWKOp () { }
 
     virtual bool on() { return !analysis.isData && !analysis.genOnly && (analysis.complicatedLeptons || analysis.complicatedPhotons); }
     
@@ -33,15 +33,15 @@ namespace pa {
   };
 
 
-  class QCDUncMod : public AnalysisMod {
+  class QCDUncOp : public AnalysisOp {
   public: 
-    QCDUncMod(panda::EventAnalysis& event_, 
+    QCDUncOp(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) : 
-      AnalysisMod("qcdunc", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~QCDUncMod () { }
+      AnalysisOp("qcdunc", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~QCDUncOp () { }
 
     virtual bool on() { return !analysis.isData; }
     
@@ -50,15 +50,15 @@ namespace pa {
   };
 
 
-  class SignalGenMod : public AnalysisMod {
+  class SignalGenOp : public AnalysisOp {
   public: 
-    SignalGenMod(panda::EventAnalysis& event_, 
+    SignalGenOp(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) : 
-      AnalysisMod("signalweight", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~SignalGenMod () { }
+      AnalysisOp("signalweight", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~SignalGenOp () { }
 
     virtual bool on() { return !analysis.isData && analysis.processType==kSignal; }
     
@@ -74,15 +74,15 @@ namespace pa {
   };
 
 
-  class HFCountingMod : public AnalysisMod {
+  class HFCountingOp : public AnalysisOp {
   public: 
-    HFCountingMod(panda::EventAnalysis& event_, 
+    HFCountingOp(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) : 
-      AnalysisMod("hfcounting", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~HFCountingMod () { }
+      AnalysisOp("hfcounting", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~HFCountingOp () { }
 
     virtual bool on() { return !analysis.isData; }
     
@@ -95,15 +95,15 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
   };
 
-  class KFactorMod : public AnalysisMod {
+  class KFactorOp : public AnalysisOp {
   public: 
-    KFactorMod(panda::EventAnalysis& event_, 
+    KFactorOp(panda::EventAnalysis& event_, 
                     Config& cfg_,
                     Utils& utils_,
                     GeneralTree& gt_,
                     int level_=0) : 
-      AnalysisMod("kfactor", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~KFactorMod () { }
+      AnalysisOp("kfactor", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~KFactorOp () { }
 
     virtual bool on() { return !analysis.isData; }
     

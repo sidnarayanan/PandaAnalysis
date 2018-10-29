@@ -1,7 +1,7 @@
-#ifndef DEEPMODS
-#define DEEPMODS
+#ifndef DEEPOPS
+#define DEEPOPS
 
-#include "Module.h"
+#include "Operator.h"
 #include "set"
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 #include "fastjet/contrib/Njettiness.hh"
@@ -11,15 +11,15 @@
 
 namespace pa {
 
-  class BRegBDTMod : public AnalysisMod {
+  class BRegBDTOp : public AnalysisOp {
   public:
-    BRegBDTMod(panda::EventAnalysis& event_,
+    BRegBDTOp(panda::EventAnalysis& event_,
                 Config& cfg_,
                 Utils& utils_,
                 GeneralTree& gt_,
                 int level_=0) :
-      AnalysisMod("bregbdt", event_, cfg_, utils_, gt_, level_) { }
-    ~BRegBDTMod() { }
+      AnalysisOp("bregbdt", event_, cfg_, utils_, gt_, level_) { }
+    ~BRegBDTOp() { }
 
     virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetBDTReg; }
   protected:
@@ -35,25 +35,25 @@ namespace pa {
   };
 
 
-  class TFInferMod : public AnalysisMod {
+  class TFInferOp : public AnalysisOp {
   public:
-    TFInferMod(TString name_,
+    TFInferOp(TString name_,
                panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod(name_, event_, cfg_, utils_,  gt_, level_),
+      AnalysisOp(name_, event_, cfg_, utils_,  gt_, level_),
       t_i(1),
       p_inputs(std::v_make_shared<float>()),
       p_outputs(std::v_make_shared<float>()),
       inputs(*p_inputs),
       outputs(*p_outputs) { }
-    ~TFInferMod() { }
+    ~TFInferOp() { }
 
   protected:
     virtual void do_init(Registry& registry) {
-      // just in case you want to set these in other modules
+      // just in case you want to set these in other ops
       registry.publishConst(name+"_outputs", p_outputs);
       registry.publish(name+"_inputs", p_inputs);
     }
@@ -78,14 +78,14 @@ namespace pa {
     std::vector<float>& outputs;
   };
 
-  class BRegDeepMod : public TFInferMod {
+  class BRegDeepOp : public TFInferOp {
   public:
-    BRegDeepMod(panda::EventAnalysis& event_,
+    BRegDeepOp(panda::EventAnalysis& event_,
                 Config& cfg_,
                 Utils& utils_,
                 GeneralTree& gt_,
                 int level_=0) :
-      TFInferMod("bregdeep", event_, cfg_, utils_, gt_, level_) {
+      TFInferOp("bregdeep", event_, cfg_, utils_, gt_, level_) {
       //n_inputs = 43;
       n_inputs = 51;
       n_outputs = 3;
@@ -108,7 +108,7 @@ namespace pa {
       build(modelfile);
     }
     virtual void do_init(Registry& registry) {
-      TFInferMod::do_init(registry);
+      TFInferOp::do_init(registry);
       currentJet = registry.access<JetWrapper*>("higgsDaughterJet");
     }
     void do_execute();
@@ -117,14 +117,14 @@ namespace pa {
   };
 
   template <typename GENP>
-  class DeepGenMod : public AnalysisMod {
+  class DeepGenOp : public AnalysisOp {
   public:
-    DeepGenMod(panda::EventAnalysis& event_,
+    DeepGenOp(panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0);
-    virtual ~DeepGenMod () { }
+    virtual ~DeepGenOp () { }
 
     virtual bool on() { return !analysis.isData && analysis.deepGen; }
 
@@ -160,8 +160,8 @@ namespace pa {
     int auxCounter{0};
   };
 
-  typedef DeepGenMod<panda::GenParticle> DeepPGenMod;
-  typedef DeepGenMod<panda::UnpackedGenParticle> DeepUGenMod;
+  typedef DeepGenOp<panda::GenParticle> DeepPGenOp;
+  typedef DeepGenOp<panda::UnpackedGenParticle> DeepUGenOp;
 }
 
 

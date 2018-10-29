@@ -1,19 +1,19 @@
-#ifndef BTAGMODS
-#define BTAGMODS
+#ifndef BTAGOPS
+#define BTAGOPS
 
-#include "Module.h"
+#include "Operator.h"
 #include "AnalyzerUtilities.h"
 
 namespace pa {
-  class BTagSFMod : public AnalysisMod {
+  class BTagSFOp : public AnalysisOp {
   public:
-    BTagSFMod(panda::EventAnalysis& event_, 
+    BTagSFOp(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
               GeneralTree& gt_,
               int level_=0) :                 
-      AnalysisMod("btagsf", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~BTagSFMod () { }
+      AnalysisOp("btagsf", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~BTagSFOp () { }
 
     bool on() { return !analysis.genOnly && analysis.btagSFs && !analysis.isData; }
 
@@ -27,15 +27,15 @@ namespace pa {
     std::shared_ptr<const std::vector<JESHandler>> jesShifts{nullptr};
   };
 
-  class BTagWeightMod : public AnalysisMod {
+  class BTagWeightOp : public AnalysisOp {
   public:
-    BTagWeightMod(panda::EventAnalysis& event_, 
+    BTagWeightOp(panda::EventAnalysis& event_, 
               Config& cfg_,                 
               Utils& utils_,                
               GeneralTree& gt_,
               int level_=0) :                 
-      AnalysisMod("btagweight", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~BTagWeightMod () { }
+      AnalysisOp("btagweight", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~BTagWeightOp () { }
 
     bool on() { return !analysis.genOnly && analysis.btagWeights && !analysis.isData; }
 

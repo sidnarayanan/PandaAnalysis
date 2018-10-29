@@ -1,4 +1,4 @@
-#include "../interface/HbbMods.h"
+#include "../interface/HbbOps.h"
 #include "TVector2.h"
 
 using namespace pa;
@@ -7,7 +7,7 @@ using namespace panda;
 namespace fj = fastjet;
 
 
-void GenVHMod::do_execute()
+void GenVHOp::do_execute()
 {
   fillParticle([](int x)->bool { return x == 25; }, 
                [](int x)->bool { return x == 5; }, 
@@ -17,7 +17,7 @@ void GenVHMod::do_execute()
                gt.genVPt, gt.genVEta, gt.genVPhi, gt.genVSize);
 }
 
-void HbbMiscMod::do_execute()
+void HbbMiscOp::do_execute()
 {
   TVector2 trkmet;
   const auto& pv = event.vertices.at(0).position(); 
@@ -31,7 +31,7 @@ void HbbMiscMod::do_execute()
   gt.trkmetDZphi = trkmet.Phi();
 }
 
-void KinFitMod::do_execute()
+void KinFitOp::do_execute()
 {
   if (gt.hbbm[0] <= 0 || looseLeps->size() < 2) {
     gt.hbbm_fit = gt.hbbm_dreg[0];
@@ -64,7 +64,7 @@ void KinFitMod::do_execute()
    
 }
 
-void SoftActivityMod::do_execute() 
+void SoftActivityOp::do_execute() 
 {
   // Soft activity
   // TODO: I'm seeing a lot of sqrts replaced by pow(,2)s here. I think this can be sped up -SN
@@ -177,7 +177,7 @@ void SoftActivityMod::do_execute()
   }
 }
 
-void GenJetNuMod::do_execute()
+void GenJetNuOp::do_execute()
 {
   vector<fj::PseudoJet> finalStates;
   vector<const panda::GenParticle*> bcs;
