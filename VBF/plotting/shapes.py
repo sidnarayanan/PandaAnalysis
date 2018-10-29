@@ -39,7 +39,7 @@ plot.cut = cut
 plot.AddLumiLabel(True)
 plot.do_overflow = True
 plot.do_underflow = True
-plot.SetAbsMin(0.01)
+plot.SetAbsMin(0.0001)
 
 weight = sel.weights[region].replace('sf_l1','1')%lumi
 plot.mc_weight = weight
@@ -70,17 +70,17 @@ recoilBins /= 1000
 nRecoilBins = len(recoilBins)-1
 
 recoil=VDistribution("pfmet/1000",recoilBins,"PF MET [TeV]","Events/TeV",filename='pfmet')
-plot.add_distribution(recoil)
+#plot.add_distribution(recoil)
 
-plot.add_distribution(FDistribution('jot12Mass/1000',0,5,10,'m_{jj} [TeV]','Events/bin',filename='jot12Mass'))
-plot.add_distribution(FDistribution('jot12DEta',0,8,10,'#Delta#eta_{jj}','Events/bin'))
-plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,10,"#Delta#phi_{jj}","Events/bin",filename='jot12DPhi'))
-plot.add_distribution(FDistribution("jotEta[0]",-5,5,10,"Jet 1 #eta","Events/bin"))
-plot.add_distribution(FDistribution("jotEta[1]",-5,5,10,"Jet 2 #eta","Events/bin"))
-plot.add_distribution(FDistribution("jotPt[0]",80,700,10,"Jet 1 p_{T} [GeV]","Events/bin"))
-plot.add_distribution(FDistribution("jotPt[1]",40,500,10,"Jet 2 p_{T} [GeV]","Events/bin"))
-plot.add_distribution(FDistribution("nJot-0.5",1.5,6.5,5,"N_{jet}","Events/bin",filename='nJot'))
-plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
+plot.add_distribution(FDistribution('jot12Mass/1000',0,5,10,'m_{jj} [TeV]','Arbitrary units',filename='jot12Mass'))
+plot.add_distribution(FDistribution('jot12DEta',0,8,10,'#Delta#eta_{jj}','Arbitrary units'))
+plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,10,"#Delta#phi_{jj}","Arbitrary units",filename='jot12DPhi'))
+#plot.add_distribution(FDistribution("jotEta[0]",-5,5,10,"Jet 1 #eta","Events/bin"))
+#plot.add_distribution(FDistribution("jotEta[1]",-5,5,10,"Jet 2 #eta","Events/bin"))
+#plot.add_distribution(FDistribution("jotPt[0]",80,700,10,"Jet 1 p_{T} [GeV]","Events/bin"))
+#plot.add_distribution(FDistribution("jotPt[1]",40,500,10,"Jet 2 p_{T} [GeV]","Events/bin"))
+#plot.add_distribution(FDistribution("nJot-0.5",1.5,6.5,5,"N_{jet}","Events/bin",filename='nJot'))
+#plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###
 region = '%s/%s'%(args.cat,region)

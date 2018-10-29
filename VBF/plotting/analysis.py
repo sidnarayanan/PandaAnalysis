@@ -1,33 +1,21 @@
 #!/usr/bin/env python
 
-from os import system,getenv
-from sys import argv
-import argparse
-
-### SET GLOBAL VARIABLES ###
-baseDir = getenv('PANDA_FLATDIR')+'/' 
-dataDir = baseDir
-
-parser = argparse.ArgumentParser(description='plot stuff')
-parser.add_argument('--outdir',metavar='outdir',type=str,default=None)
-parser.add_argument('--cut',metavar='cut',type=str,default='1==1')
-parser.add_argument('--region',metavar='region',type=str,default=None)
-parser.add_argument('--cat',type=str,default='loose')
-args = parser.parse_args()
-lumi = 36000.
-blind=True
-region = args.region
-sname = argv[0]
-do_jec = True
-
-argv=[]
-import ROOT as root
-root.gROOT.SetBatch()
+from PandaCore.Tools.script import *
 from PandaCore.Tools.Misc import *
 import PandaCore.Tools.Functions
 import PandaAnalysis.VBF.PandaSelection as sel
 #import PandaAnalysis.VBF.TriggerSelection as sel
 from PandaCore.Drawers.plot_utility import *
+
+### SET GLOBAL VARIABLES ###
+baseDir = getenv('PANDA_FLATDIR')+'/' 
+dataDir = baseDir
+
+args = parse('--outdir', ('--cut', {'default':'1==1'}),
+             '--region', ('--cat', {'default':'loose'}))
+lumi = 36000.
+blind=True
+region = args.region
 
 ### DEFINE REGIONS ###
 
@@ -36,7 +24,7 @@ if args.cat!='loose':
     cut = tAND(cut,getattr(sel,args.cat))
 
 ### LOAD PLOTTING UTILITY ###
-BLIND=True
+BLIND=False
 
 plot = PlotUtility()
 plot.Stack(True)
@@ -114,8 +102,10 @@ nRecoilBins = len(recoilBins)-1
 
 if 'electron' in region:
     lep = 'e'
+    lepton = 'electron'
 else:
     lep = '#mu'
+    lepton = 'muon'
 
 ### CHOOSE DISTRIBUTIONS, LABELS ###
 if 'signal' in region:
@@ -123,16 +113,16 @@ if 'signal' in region:
     plot.add_distribution(FDistribution('dphipfmet',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
 elif 'single' in region:
     recoil=VDistribution("pfUWmag",recoilBins,"PF U(%s) [GeV]"%(lep),"Events/GeV")
-    plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
-    plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
+    plot.add_distribution(FDistribution('%sPt[0]'%lepton,0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
+    plot.add_distribution(FDistribution('%sEta[0]'%lepton,-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
 #    plot.add_distribution(FDistribution('dphipfUW',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
 elif any([x in region for x in ['dielectron','dimuon']]):
     recoil=VDistribution("pfUZmag",recoilBins,"PF U(%s%s) [GeV]"%(lep,lep),"Events/GeV")
     plot.add_distribution(FDistribution('diLepMass',60,120,20,'m_{ll} [GeV]','Events/3 GeV'))
-    plot.add_distribution(FDistribution('looseLep1Pt',0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
-    plot.add_distribution(FDistribution('looseLep1Eta',-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
-    plot.add_distribution(FDistribution('looseLep2Pt',0,1000,20,'Subleading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
-    plot.add_distribution(FDistribution('looseLep2Eta',-2.5,2.5,20,'Subleading %s #eta'%lep,'Events/bin'))
+    plot.add_distribution(FDistribution('%sPt[0]'%lepton,0,1000,20,'Leading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
+    plot.add_distribution(FDistribution('%sEta[0]'%lepton,-2.5,2.5,20,'Leading %s #eta'%lep,'Events/bin'))
+    plot.add_distribution(FDistribution('%sPt[1]'%lepton,0,1000,20,'Subleading %s p_{T} [GeV]'%lep,'Events/40 GeV'))
+    plot.add_distribution(FDistribution('%sEta[1]'%lepton,-2.5,2.5,20,'Subleading %s #eta'%lep,'Events/bin'))
 #    plot.add_distribution(FDistribution('dphipfUZ',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
 
 plot.add_distribution(recoil)
@@ -142,10 +132,10 @@ plot.add_distribution(recoil)
 plot.add_distribution(FDistribution('jot12Mass',0,4000,20,'m_{jj} [GeV]','Events/200 GeV'))
 plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','Events'))
 plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","Events",filename='jot12DPhi'))
-plot.add_distribution(FDistribution("jot1Eta",-5,5,20,"Jet 1 #eta","Events"))
-plot.add_distribution(FDistribution("jot2Eta",-5,5,20,"Jet 2 #eta","Events"))
-plot.add_distribution(FDistribution("jot1Pt",80,500,20,"Jet 1 p_{T} [GeV]","Events"))
-plot.add_distribution(FDistribution("jot2Pt",40,500,20,"Jet 2 p_{T} [GeV]","Events"))
+plot.add_distribution(FDistribution("jotEta[0]",-5,5,20,"Jet 1 #eta","Events"))
+plot.add_distribution(FDistribution("jotEta[1]",-5,5,20,"Jet 2 #eta","Events"))
+plot.add_distribution(FDistribution("jotPt[0]",80,500,20,"Jet 1 p_{T} [GeV]","Events"))
+plot.add_distribution(FDistribution("jotPt[1]",40,500,20,"Jet 2 p_{T} [GeV]","Events"))
 plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###

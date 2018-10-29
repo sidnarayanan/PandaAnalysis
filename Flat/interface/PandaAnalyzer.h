@@ -18,6 +18,7 @@
 #include "TheoryMods.h"
 #include "HbbMods.h"
 #include "DebugMods.h"
+#include "CatMods.h"
 
 
 namespace pa {

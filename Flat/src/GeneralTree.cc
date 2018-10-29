@@ -172,6 +172,7 @@ void GeneralTree::Reset() {
   filter_maxRecoil = -99;
   filter_whichRecoil = 0;
   badECALFilter = 1;
+  category = -1;
   sf_ewkV = 1;
   sf_qcdV = 1;
   sf_ewkV2j = 1;
@@ -605,6 +606,7 @@ void GeneralTree::WriteTree(TTree *t) {
   Book("filter_maxRecoil",&filter_maxRecoil,"filter_maxRecoil/F");
   Book("filter_whichRecoil",&filter_whichRecoil,"filter_whichRecoil/I");
   Book("badECALFilter",&badECALFilter,"badECALFilter/I");
+  Book("category",&category,"category/I");
   Book("sf_ewkV",&sf_ewkV,"sf_ewkV/F");
   Book("sf_qcdV",&sf_qcdV,"sf_qcdV/F");
   Book("sf_ewkV2j",&sf_ewkV2j,"sf_ewkV2j/F");

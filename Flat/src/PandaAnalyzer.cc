@@ -26,7 +26,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
 
-  // Define analyses
+  // Define analyses - user should not touch below code. 
   preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
   mods_all.emplace_back(preselmod);
   ADDMOD(MapMod);
@@ -43,6 +43,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDMOD(FatJetMod);
   ADDMOD(JetMod);
   ADDMOD(TauMod);
+  ADDMOD(VBFCatMod);
 
   postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
   mods_all.emplace_back(postselmod);

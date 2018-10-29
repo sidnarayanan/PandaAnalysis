@@ -57,6 +57,13 @@ namespace pa {
     accept_func f;
   };
 
+  class CategorySel: public LambdaSel {
+  public:
+    CategorySel(bool tightOnly=false):
+      LambdaSel(Selection::sReco, "Category",
+                __ACCPFUNC((gt->category>0) || (gt->category!=0 && !tightOnly))) { }
+  };
+
   class TriggerSel: public LambdaSel {
   public:
     TriggerSel():
@@ -68,7 +75,8 @@ namespace pa {
   class LowGenBosonPtSel: public LambdaSel {
   public:
     LowGenBosonPtSel():
-      LambdaSel(Selection::sGen, "LowGenBosonPt", __ACCPFUNC(gt->trueGenBosonPt > 50 && gt->lheHT > 100)) { }
+      LambdaSel(Selection::sGen, "LowGenBosonPt", 
+                __ACCPFUNC(gt->trueGenBosonPt > 50 && gt->lheHT > 100)) { }
   };
 
   class VBFHbbSel: public LambdaSel {

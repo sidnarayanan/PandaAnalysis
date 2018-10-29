@@ -208,21 +208,27 @@ namespace pa {
           jerV = "Spring16_25nsV10";
           eraGroups = {"BCD","EF","G","H"};
           spacer = "";
-          if (analysis.useDeepCSV) { csvL = 0.2219; csvM = 0.6324; }
-          else                     { csvL = 0.5426; csvM = 0.8484; }
+          if (analysis.useDeepCSV) { 
+            csvL = 0.2219; csvM = 0.6324; 
+          } else { 
+            csvL = 0.5426; csvM = 0.8484; 
+          }
         } else {
           jecV = "V8"; jecReco = "17Nov2017";
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
           eraGroups = {"B","C","D","E","F"};
           spacer = "_";
-          if (analysis.useDeepCSV) { csvL = 0.1522; csvM = 0.4941; }
-          else                     { csvL = 0.5803; csvM = 0.8838; }
+          if (analysis.useDeepCSV) { 
+            csvL = 0.1522; csvM = 0.4941; 
+          } else { 
+            csvL = 0.5803; csvM = 0.8838; 
+          }
         }
       }
-    virtual ~BaseJetMod () { }
-    bool csvLoose (float csv) { return csv > csvL; }
-    bool csvMed (float csv) { return csv > csvM; }
+    virtual ~BaseJetMod() { }
+    bool csvLoose(float csv) { return csv > csvL; }
+    bool csvMed(float csv) { return csv > csvM; }
   protected:
     bool recalcJER;
     virtual void do_execute() = 0;
