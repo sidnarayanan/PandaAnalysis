@@ -156,7 +156,7 @@ void ConfigOp::set_outputBranches()
     }
     gt.RemoveBranches({"genMuon.*","genElectron.*","genTau.*",
                        "puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*",
-		       "nIsoJet.*","isojet*","isojetNBtags_*","nJet_.*"},keepable);
+                       "nIsoJet.*","isojet*","isojetNBtags_*","nJet_.*"},keepable);
   }
   if (!analysis.varyJES)
     gt.RemoveBranches({".*JES.*"},{});
@@ -188,9 +188,14 @@ void ConfigOp::readData(TString dirPath)
 
   // prefiring
   if (analysis.year == 2017) {
-    utils.openCorr(cL1PreFiring,dirPath+"trigger_eff/L1prefiring_jet_2017BtoF.root","L1prefiring_jet_2017BtoF",2);
+    utils.openCorr(cL1PreFiring,
+                   dirPath+"trigger_eff/L1prefiring_jet_2017BtoF.root","L1prefiring_jet_2017BtoF",
+                   2);
   } else {
-    utils.openCorr(cL1PreFiring,dirPath+"trigger_eff/Map_Jet_L1FinOReff_bxm1_looseJet_SingleMuon_Run2016B-H.root","prefireEfficiencyMap",2);
+    utils.openCorr(cL1PreFiring,
+                   dirPath+"trigger_eff/Map_Jet_L1FinOReff_bxm1_looseJet_SingleMuon_Run2016B-H.root",
+                   "prefireEfficiencyMap",
+                   2);
   }
 
   if (analysis.complicatedLeptons) {
