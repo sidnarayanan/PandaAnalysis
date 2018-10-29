@@ -167,6 +167,7 @@ namespace pa {
     cZllHEwkCorr,   //!< Z(ll)H Ewk Corr weight  
     cZllHEwkCorrUp,   //!< Z(ll)H Ewk Corr weight Up  
     cZllHEwkCorrDown, //!< Z(ll)H Ewk Corr weight Down  
+    cL1PreFiring, //!< PreFiring weights 
     cN
   };
 
@@ -177,7 +178,11 @@ namespace pa {
    kTight   =(1<<3),
    kDxyz    =(1<<4),
    kEleMvaWP90=(1<<5),
-   kEleMvaWP80=(1<<6)
+   kEleMvaWP80=(1<<6),
+   kMvaMedium    =(1<<7),
+   kMvaTight     =(1<<8),
+   kMiniIsoMedium=(1<<9),
+   kMiniIsoTight =(1<<10)
   };
 
   enum PhoSelectionBit {

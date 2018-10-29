@@ -152,7 +152,7 @@ void ConfigOp::set_outputBranches()
     std::vector<TString> keepable;
     if (!analysis.hbb) {
       keepable.push_back("jetNBtags");
-      keepable.push_back("jetMBtags");
+      keepable.push_back("jetNMBtags");
     }
     gt.RemoveBranches({"genMuon.*","genElectron.*","genTau.*",
                        "puppiU.*","pfU.*","dphipfU.*","dphipuppi.*","jet.*",
@@ -184,6 +184,13 @@ void ConfigOp::readData(TString dirPath)
     utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
     utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
     utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
+  }
+
+  // prefiring
+  if (analysis.year == 2017) {
+    utils.openCorr(cL1PreFiring,dirPath+"trigger_eff/L1prefiring_jet_2017BtoF.root","L1prefiring_jet_2017BtoF",2);
+  } else {
+    utils.openCorr(cL1PreFiring,dirPath+"trigger_eff/Map_Jet_L1FinOReff_bxm1_looseJet_SingleMuon_Run2016B-H.root","prefireEfficiencyMap",2);
   }
 
   if (analysis.complicatedLeptons) {

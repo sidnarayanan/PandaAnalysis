@@ -233,8 +233,8 @@ void TriggerOp::do_init(Registry& registry)
     triggerHandlers[kJetHTTrig].addTriggers(paths);
 
     paths = {
-          "HLT_Mu8_TrkIsoVV",
-          "HLT_Mu17_TrkIsoVV"
+          "HLT_Mu8_TrkIsoVVL",
+          "HLT_Mu17_TrkIsoVVL"
     };
     triggerHandlers[kMuFakeTrig].addTriggers(paths);
 

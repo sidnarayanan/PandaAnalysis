@@ -24,7 +24,7 @@ Load('PandaAnalyzer')
 
 analysis = vv(True)
 analysis.inpath = torun
-analysis.outpath = 'testskim.root'
+analysis.outpath = output
 analysis.datapath = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 analysis.isData = False
 utils.set_year(analysis, 2017)
