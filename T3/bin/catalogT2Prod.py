@@ -2,7 +2,6 @@
 
 from glob import glob
 from os import stat,getenv,system,path
-from multiprocessing import Pool
 from PandaCore.Tools.script import * 
 from re import sub, match
 from sys import argv
@@ -64,7 +63,7 @@ def smartcache(arguments):
     for a in [arguments]:
         cmd = ('python2.6 $(which dynamo-request) --panda %s --sample %s'%(book, a))
         # print cmd
-        system(cmd)
+        do(cmd)
 
 def checkDS(nickname,include,exclude):
   included=False

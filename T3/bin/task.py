@@ -171,7 +171,8 @@ def check_duplicates():
         logger.info('No duplicates found')
     if args.clean_duplicates:
         for jid in to_clean:
-            do('rm -f %s/*%s*'%(outdir, jid))
+            for f in glob('%s/*%s%'%(outdir, jid)):
+                do('rm -f %s'%f)
             payload = {'task' : submit_name, 'job_id' : jid}
             post(jm.report_server+'/condor/clean', json=payload)
 
@@ -476,17 +477,17 @@ if args.clean_output:
     if jm.textlock:
         logger.info('Cleaning up %s and %s'%(lockdir, outdir))
         sleep(2)
-        do('rm -rf %s/* %s/* &'%(lockdir, outdir))
+        do('rm -rf %s %s &'%(lockdir, outdir))
     else:
         logger.info('Cleaning up %s and deleting entries'%(outdir))
         sleep(2)
-        do('rm -rf %s/* &'%(outdir))
+        do('rm -rf %s &'%(outdir))
         payload = {'task' : submit_name}
         post(jm.report_server+'/condor/clean', json=payload)
     if args.clean:
         logger.info('Cleaning up %s and %s'%(logdir, workdir))
         sleep(2)
-        do('rm -rf %s/* %s/*'%(logdir, workdir))
+        do('rm -rf %s %s'%(logdir, workdir))
 
 if args.check:
     if args.monitor:
