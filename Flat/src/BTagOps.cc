@@ -1,10 +1,10 @@
-#include "../interface/BTagMods.h"
+#include "../interface/BTagOps.h"
 
 using namespace pa;
 using namespace std;
 using namespace panda;
 
-void BTagSFMod::do_execute() 
+void BTagSFOp::do_execute() 
 {
   // now get the jet btag SFs
   vector<btagcand> btagcands;
@@ -61,7 +61,7 @@ void BTagSFMod::do_execute()
   utils.btag->evalSF(btagcands,sf_mDown,GeneralTree::bMDown,GeneralTree::bJet);
 }
 
-void BTagWeightMod::do_execute()
+void BTagWeightOp::do_execute()
 {
   auto& bcands = (*jesShifts)[0].bcand;
   if (bcands.size() < 1) 

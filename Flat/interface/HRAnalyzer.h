@@ -5,11 +5,11 @@
 #include "Analyzer.h"
 #include "HeavyResTree.h"
 #include "Selection.h"
-#include "Module.h"
+#include "Operator.h"
 #include "PandaAnalysis/Flat/interface/Common.h"
 
-#include "CommonMods.h"
-#include "FatJetsMods.h"
+#include "CommonOps.h"
+#include "FatJetsOps.h"
 
 
 namespace pa {
@@ -25,8 +25,8 @@ namespace pa {
     private:
 
         //////////////////////////////////////////////////////////////////////////////////////
-        std::unique_ptr<HRGenPMod> gen{nullptr};
-        std::unique_ptr<HRTagMod> mod{nullptr};
+        std::unique_ptr<HRGenPOp> gen{nullptr};
+        std::unique_ptr<HRTagOp> op{nullptr};
         Config cfg;
         Utils utils; 
 

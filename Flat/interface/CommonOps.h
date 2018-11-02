@@ -1,20 +1,20 @@
-#ifndef COMMONMODS
-#define COMMONMODS
+#ifndef COMMONOPS
+#define COMMONOPS
 
-#include "Module.h"
+#include "Operator.h"
 #include "AnalyzerUtilities.h"
 #include "PandaAnalysis/Utilities/interface/EtaPhiMap.h"
 
 namespace pa {
-  class MapMod : public AnalysisMod {
+  class MapOp : public AnalysisOp {
   public:
-    MapMod(panda::EventAnalysis& event_,
+    MapOp(panda::EventAnalysis& event_,
               Config& cfg_,
               Utils& utils_,
               GeneralTree& gt_,
               int level_=0) :
-      AnalysisMod("map", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~MapMod () { }
+      AnalysisOp("map", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~MapOp () { }
 
     bool on() { return analysis.complicatedLeptons; }
 
@@ -47,15 +47,15 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
   };
 
-  class RecoilMod : public AnalysisMod {
+  class RecoilOp : public AnalysisOp {
   public:
-    RecoilMod(panda::EventAnalysis& event_,
+    RecoilOp(panda::EventAnalysis& event_,
               Config& cfg_,
               Utils& utils_,
               GeneralTree& gt_,
               int level_=0) :
-      AnalysisMod("recoil", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~RecoilMod () { }
+      AnalysisOp("recoil", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~RecoilOp () { }
 
     bool on() { return !analysis.genOnly && analysis.recoil; }
 
@@ -75,16 +75,16 @@ namespace pa {
     std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
   };
 
-  class TriggerMod : public AnalysisMod {
+  class TriggerOp : public AnalysisOp {
   public:
-    TriggerMod(panda::EventAnalysis& event_,
+    TriggerOp(panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod("trigger", event_, cfg_, utils_, gt_, level_),
+      AnalysisOp("trigger", event_, cfg_, utils_, gt_, level_),
       triggerHandlers(kNTrig) { }
-    virtual ~TriggerMod () { }
+    virtual ~TriggerOp () { }
 
     bool on() { return !analysis.genOnly && (analysis.isData || analysis.mcTriggers); }
 
@@ -97,15 +97,15 @@ namespace pa {
     std::vector<TriggerHandler> triggerHandlers;
   };
 
-  class TriggerEffMod : public AnalysisMod {
+  class TriggerEffOp : public AnalysisOp {
   public:
-    TriggerEffMod(panda::EventAnalysis& event_,
+    TriggerEffOp(panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod("triggereff", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~TriggerEffMod () { }
+      AnalysisOp("triggereff", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~TriggerEffOp () { }
 
     bool on() { return !analysis.genOnly && !analysis.isData; }
 
@@ -120,20 +120,20 @@ namespace pa {
   };
 
 
-  class GlobalMod : public AnalysisMod {
+  class GlobalOp : public AnalysisOp {
   public:
-    GlobalMod(panda::EventAnalysis& event_,
+    GlobalOp(panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod("global", event_, cfg_, utils_, gt_, level_),
+      AnalysisOp("global", event_, cfg_, utils_, gt_, level_),
       jesShifts(std::v_make_shared<JESHandler>(jes2i(shiftjes::N))) {
         JESLOOP {
           (*jesShifts)[shift].shift_idx = shift;
         }
       }
-    virtual ~GlobalMod () { }
+    virtual ~GlobalOp () { }
 
   protected:
     void do_init(Registry& registry) {
@@ -150,16 +150,16 @@ namespace pa {
   };
 
   template <typename T>
-  class BaseGenPMod : public BaseAnalysisMod<T> {
+  class BaseGenPOp : public BaseAnalysisOp<T> {
   public:
-    BaseGenPMod(panda::EventAnalysis& event_,
+    BaseGenPOp(panda::EventAnalysis& event_,
                 Config& cfg_,
                 Utils& utils_,
                 T& gt_,
                 int level_=0) :
-      BaseAnalysisMod<T>("gendup", event_, cfg_, utils_, gt_, level_),
+      BaseAnalysisOp<T>("gendup", event_, cfg_, utils_, gt_, level_),
       genP(std::v_make_shared<panda::Particle*>()) { }
-    virtual ~BaseGenPMod () { }
+    virtual ~BaseGenPOp () { }
 
     bool on() { return !this->analysis.isData; }
 
@@ -205,8 +205,8 @@ namespace pa {
       }
     }
   };
-  typedef BaseGenPMod<GeneralTree> GenPMod;
-  typedef BaseGenPMod<HeavyResTree> HRGenPMod;
+  typedef BaseGenPOp<GeneralTree> GenPOp;
+  typedef BaseGenPOp<HeavyResTree> HRGenPOp;
 }
 
 #endif

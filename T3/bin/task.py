@@ -15,6 +15,7 @@ from time import time, sleep, strftime
 from os import getenv,path,popen,makedirs
 import subprocess as sp 
 from shutil import rmtree
+from itertools import chain
 
 from PandaCore.Tools.script import * 
 import PandaCore.Tools.job_management as jm
@@ -100,15 +101,12 @@ def build_snapshot(N, modify=False):
     logger.info('Acquiring configuration...')
     do('wget -nv -O %s/list.cfg %s'%(workdir, panda_cfg))
     fin = open(outcfg.replace('local.cfg', 'list.cfg'))
-    fout = open(outcfg, 'w')
     samples = jm.convert_catalog(list(fin), as_dict=True)
     keys = sorted(samples)
-    to_write = []
-    for k in keys:
-        to_write += samples[k].get_config(N, suffix='_%i')
-    for i,c in enumerate(to_write):
-        fout.write(c%(i, i))
-    fout.close()
+    to_write = [samples[k].get_config(N, suffix='_%i') for k in keys]
+    with open(outcfg, 'w') as fout:
+        for i,c in enumerate(chain.from_iterable(to_write)):
+            fout.write(c%(i, i))
     logger.info('Submission will have %i jobs'%i)
     do('cp -v {0}/list.cfg {0}/list_all.cfg'.format(workdir))
     do('cp -v {0}/local.cfg {0}/local_all.cfg'.format(workdir))

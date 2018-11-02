@@ -1,9 +1,9 @@
-#include "../interface/L1Mod.h"
+#include "../interface/L1Op.h"
 
 using namespace pa; 
 using namespace std; 
 
-void L1Mod::execute() 
+void L1Op::execute() 
 {
   gt.runNumber = event.run;
   gt.lumiNumber = event.lumi;

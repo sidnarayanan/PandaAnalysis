@@ -1,4 +1,4 @@
-#include "../interface/FatJetsMods.h"
+#include "../interface/FatJetsOps.h"
 #include "PandaAnalysis/Utilities/interface/Helicity.h"
 #include "PandaAnalysis/Utilities/interface/EnergyCorrelations.h"
 #include "fastjet/contrib/Njettiness.hh"
@@ -8,7 +8,7 @@ using namespace std;
 using namespace panda;
 using namespace fastjet;
 
-void FatJetMod::setupJES()
+void FatJetOp::setupJES()
 {
   if (!analysis.rerunJES || (scaleUnc != nullptr))
     return;
@@ -27,7 +27,7 @@ void FatJetMod::setupJES()
   }
 }
 
-void FatJetMod::do_execute()
+void FatJetOp::do_execute()
 {
   setupJES();
 
@@ -171,7 +171,7 @@ void FatJetMod::do_execute()
 }
 
 
-float FatJetMod::getMSDCorr(float puppipt, float puppieta)
+float FatJetOp::getMSDCorr(float puppipt, float puppieta)
 {
 
   float genCorr  = 1.;
@@ -190,7 +190,7 @@ float FatJetMod::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
-void FatJetReclusterMod::do_execute()
+void FatJetReclusterOp::do_execute()
 {
   if (fjPtrs->size() == 0)
     return; 
@@ -232,7 +232,7 @@ void FatJetReclusterMod::do_execute()
   }
 }
 
-const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double radius, int pdgid) const
+const GenParticle * FatJetMatchingOp::matchGen(double eta, double phi, double radius, int pdgid) const
 {
   const GenParticle* found=NULL;
   double r2 = radius*radius;
@@ -252,7 +252,7 @@ const GenParticle * FatJetMatchingMod::matchGen(double eta, double phi, double r
 }
 
 
-void FatJetMatchingMod::do_execute()
+void FatJetMatchingOp::do_execute()
 {
   if (fjPtrs->size() == 0)
     return; 
@@ -273,7 +273,7 @@ void FatJetMatchingMod::do_execute()
         break;
       default:
         // analysis.processType>=kTT means we should never get here
-        logger.error("FatJetMatchingMod::do_execute","Reached an unknown process type");
+        logger.error("FatJetMatchingOp::do_execute","Reached an unknown process type");
     }
 
     std::vector<int> targets;
@@ -528,7 +528,7 @@ void FatJetMatchingMod::do_execute()
   }
 }
 
-float HRTagMod::getMSDCorr(float puppipt, float puppieta)
+float HRTagOp::getMSDCorr(float puppipt, float puppieta)
 {
 
   float genCorr  = 1.;
@@ -546,7 +546,7 @@ float HRTagMod::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
-void HRTagMod::do_execute()
+void HRTagOp::do_execute()
 {
   // first loop through genP and find any partons worth saving
   // if this is a signal
@@ -712,7 +712,7 @@ void SubRunner::run(panda::FatJet& fj)
   }
 }
 
-void HRTagMod::fillJet(panda::FatJet& fj)
+void HRTagOp::fillJet(panda::FatJet& fj)
 {
   if (true || event.recoil.max < 175) {
     substructure->run(fj);

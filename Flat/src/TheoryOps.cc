@@ -1,4 +1,4 @@
-#include "../interface/TheoryMods.h"
+#include "../interface/TheoryOps.h"
 
 using namespace panda;
 using namespace std;
@@ -31,7 +31,7 @@ double weightEWKCorr(float pt, int type)
   return (1.0+corr);
 }
 
-void GenStudyEWKMod::do_execute()
+void GenStudyEWKOp::do_execute()
 {
   gt.genLep1Pt = 0;
   gt.genLep1Eta = -1;
@@ -418,7 +418,7 @@ void GenStudyEWKMod::do_execute()
   }
 }
 
-void QCDUncMod::do_execute()
+void QCDUncOp::do_execute()
 {
   auto &genReweight = event.genReweight;
   for (unsigned iS=0; iS!=6; ++iS) {
@@ -457,7 +457,7 @@ void QCDUncMod::do_execute()
 }
 
 
-void SignalGenMod::do_execute()
+void SignalGenOp::do_execute()
 {
   bool found=false, foundbar=false;
   TLorentzVector vMediator(0,0,0,0);
@@ -490,7 +490,7 @@ void SignalGenMod::do_execute()
   }
 }
 
-void HFCountingMod::do_execute()
+void HFCountingOp::do_execute()
 {
   // Simple B and C counting stored in nB, nHF
   for (auto* genptr : *genP) {
@@ -508,10 +508,10 @@ void HFCountingMod::do_execute()
     }
     // Count status 2 B hadrons
     // https://github.com/vhbb/cmssw/blob/vhbbHeppy80X/VHbbAnalysis/Heppy/python/VHGeneratorAnalyzer.py
-    int apdgidMod10k = apdgid % 10000;
+    int apdgidOp10k = apdgid % 10000;
     if (gen.testFlag(GenParticle::kIsDecayedLeptonHadron) && (
-        (apdgidMod10k >=  500 && apdgidMod10k <  600) ||
-        (apdgidMod10k >= 5000 && apdgidMod10k < 6000)))
+        (apdgidOp10k >=  500 && apdgidOp10k <  600) ||
+        (apdgidOp10k >= 5000 && apdgidOp10k < 6000)))
       gt.nStatus2BHadrons++;
   }
   
@@ -522,13 +522,13 @@ void HFCountingMod::do_execute()
   }
 }
 
-void KFactorMod::do_execute()
+void KFactorOp::do_execute()
 {
   do_toppt();
   do_vpt(); 
 }
 
-void KFactorMod::do_toppt()
+void KFactorOp::do_toppt()
 {
     if (analysis.processType != kTT)
       return;
@@ -569,7 +569,7 @@ void KFactorMod::do_toppt()
     }
 }
 
-void KFactorMod::do_vpt()
+void KFactorOp::do_vpt()
 {
     if (analysis.processType != kZ && 
         analysis.processType != kZEWK &&

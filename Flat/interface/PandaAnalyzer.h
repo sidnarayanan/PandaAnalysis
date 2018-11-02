@@ -5,19 +5,20 @@
 #include "Analyzer.h"
 #include "GeneralTree.h"
 #include "Selection.h"
-#include "Module.h"
+#include "Operator.h"
 #include "PandaAnalysis/Flat/interface/Common.h"
 
-#include "CommonMods.h"
-#include "BTagMods.h"
-#include "CommonMods.h"
-#include "DeepMods.h"
-#include "FatJetsMods.h"
-#include "JetsMods.h"
-#include "LepPhoMods.h"
-#include "TheoryMods.h"
-#include "HbbMods.h"
-#include "DebugMods.h"
+#include "CommonOps.h"
+#include "BTagOps.h"
+#include "CommonOps.h"
+#include "DeepOps.h"
+#include "FatJetsOps.h"
+#include "JetsOps.h"
+#include "LepPhoOps.h"
+#include "TheoryOps.h"
+#include "HbbOps.h"
+#include "DebugOps.h"
+#include "CatOps.h"
 
 
 namespace pa {
@@ -36,10 +37,10 @@ namespace pa {
         bool PassPresel(Selection::Stage stage);
 
         //////////////////////////////////////////////////////////////////////////////////////
-        std::vector<std::unique_ptr<AnalysisMod>> mods_all;
-        GlobalMod *gblmod{nullptr};
-        ContainerMod *preselmod{nullptr}, *postselmod{nullptr};
-        ConfigMod cfgmod;
+        std::vector<std::unique_ptr<AnalysisOp>> ops_all;
+        GlobalOp *gblop{nullptr};
+        ContainerOp *preselop{nullptr}, *postselop{nullptr};
+        ConfigOp cfgop;
 
         std::map<int,std::vector<LumiRange>> goodLumis;
         std::vector<std::unique_ptr<Selection>> selections;

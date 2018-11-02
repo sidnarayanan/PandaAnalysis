@@ -1,24 +1,24 @@
-#ifndef JETSMODS
-#define JETSMODS
+#ifndef JETSOPS
+#define JETSOPS
 
-#include "Module.h"
-#include "DeepMods.h"
+#include "Operator.h"
+#include "DeepOps.h"
 #include <numeric>
 
 namespace pa {
-  class HbbSystemMod : public AnalysisMod {
+  class HbbSystemOp : public AnalysisOp {
   public:
-    HbbSystemMod(panda::EventAnalysis& event_,
+    HbbSystemOp(panda::EventAnalysis& event_,
                  Config& cfg_,
                  Utils& utils_,
                  GeneralTree& gt_,
                  int level_=0) :
-      AnalysisMod("hbbsystem", event_, cfg_, utils_, gt_, level_),
+      AnalysisOp("hbbsystem", event_, cfg_, utils_, gt_, level_),
       hbbdJet(std::make_shared<JetWrapper*>(nullptr)) {
-        deepreg = addSubMod<BRegDeepMod>();
-        bdtreg = addSubMod<BRegBDTMod>();
+        deepreg = addSubOp<BRegDeepOp>();
+        bdtreg = addSubOp<BRegBDTOp>();
       }
-    virtual ~HbbSystemMod() { }
+    virtual ~HbbSystemOp() { }
 
     bool on() { return analysis.hbb; }
   protected:
@@ -38,19 +38,19 @@ namespace pa {
     std::vector<JetWrapper*> btagsorted;
 
     std::shared_ptr<JetWrapper*> hbbdJet;
-    BRegDeepMod *deepreg{nullptr};
-    BRegBDTMod *bdtreg{nullptr};
+    BRegDeepOp *deepreg{nullptr};
+    BRegBDTOp *bdtreg{nullptr};
   };
 
-  class JetFlavorMod : public AnalysisMod {
+  class JetFlavorOp : public AnalysisOp {
   public:
-    JetFlavorMod(panda::EventAnalysis& event_,
+    JetFlavorOp(panda::EventAnalysis& event_,
                  Config& cfg_,
                  Utils& utils_,
                  GeneralTree& gt_,
                  int level_=0) :
-      AnalysisMod("jetflavor", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~JetFlavorMod () {}
+      AnalysisOp("jetflavor", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~JetFlavorOp () {}
 
     bool on() { return !analysis.isData && (analysis.jetFlavorPartons || analysis.jetFlavorJets); }
   protected:
@@ -68,15 +68,15 @@ namespace pa {
     void clusteredFlavor(JetWrapper&);
   };
 
-  class IsoJetMod : public AnalysisMod {
+  class IsoJetOp : public AnalysisOp {
   public:
-    IsoJetMod(panda::EventAnalysis& event_,
+    IsoJetOp(panda::EventAnalysis& event_,
               Config& cfg_,
               Utils& utils_,
               GeneralTree& gt_,
               int level_=0) :
-      AnalysisMod("isojet", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~IsoJetMod () {}
+      AnalysisOp("isojet", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~IsoJetOp () {}
 
     bool on() { return analysis.fatjet; }
   protected:
@@ -93,15 +93,15 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::FatJet*>> fjPtrs{nullptr};
   };
 
-  class BJetRegMod : public AnalysisMod {
+  class BJetRegOp : public AnalysisOp {
   public:
-    BJetRegMod(panda::EventAnalysis& event_,
+    BJetRegOp(panda::EventAnalysis& event_,
                   Config& cfg_,
                   Utils& utils_,
                   GeneralTree& gt_,
                   int level_=0) :
-      AnalysisMod("bjetreg", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~BJetRegMod () {}
+      AnalysisOp("bjetreg", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~BJetRegOp () {}
 
     bool on() { return analysis.bjetBDTReg || analysis.bjetDeepReg || analysis.bjetRegTraining; }
   protected:
@@ -170,15 +170,15 @@ namespace pa {
     std::shared_ptr<JESHandler*> currentJES{nullptr};
   };
 
-  class VBFSystemMod : public AnalysisMod {
+  class VBFSystemOp : public AnalysisOp {
   public:
-    VBFSystemMod(panda::EventAnalysis& event_,
+    VBFSystemOp(panda::EventAnalysis& event_,
                  Config& cfg_,
                  Utils& utils_,
                  GeneralTree& gt_,
                  int level_=0) :
-      AnalysisMod("vbfsystem", event_, cfg_, utils_, gt_, level_) { }
-    virtual ~VBFSystemMod () {}
+      AnalysisOp("vbfsystem", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~VBFSystemOp () {}
 
     bool on() { return analysis.vbf; }
   protected:
@@ -192,15 +192,15 @@ namespace pa {
     std::shared_ptr<const std::vector<panda::FatJet *>> fjPtrs{nullptr};
   };
 
-  class BaseJetMod : public AnalysisMod {
+  class BaseJetOp : public AnalysisOp {
   public:
-    BaseJetMod(TString name,
+    BaseJetOp(TString name,
                panda::EventAnalysis& event_,
                Config& cfg_,
                Utils& utils_,
                GeneralTree& gt_,
                int level_=0) :
-      AnalysisMod(name, event_, cfg_, utils_, gt_, level_),
+      AnalysisOp(name, event_, cfg_, utils_, gt_, level_),
       recalcJER(false) {
         if (analysis.year == 2016) {
           jecV = "V4"; jecReco = "23Sep2016";
@@ -208,21 +208,27 @@ namespace pa {
           jerV = "Spring16_25nsV10";
           eraGroups = {"BCD","EF","G","H"};
           spacer = "";
-          if (analysis.useDeepCSV) { csvL = 0.2219; csvM = 0.6324; }
-          else                     { csvL = 0.5426; csvM = 0.8484; }
+          if (analysis.useDeepCSV) { 
+            csvL = 0.2219; csvM = 0.6324; 
+          } else { 
+            csvL = 0.5426; csvM = 0.8484; 
+          }
         } else {
           jecV = "V8"; jecReco = "17Nov2017";
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
           eraGroups = {"B","C","D","E","F"};
           spacer = "_";
-          if (analysis.useDeepCSV) { csvL = 0.1522; csvM = 0.4941; }
-          else                     { csvL = 0.5803; csvM = 0.8838; }
+          if (analysis.useDeepCSV) { 
+            csvL = 0.1522; csvM = 0.4941; 
+          } else { 
+            csvL = 0.5803; csvM = 0.8838; 
+          }
         }
       }
-    virtual ~BaseJetMod () { }
-    bool csvLoose (float csv) { return csv > csvL; }
-    bool csvMed (float csv) { return csv > csvM; }
+    virtual ~BaseJetOp() { }
+    bool csvLoose(float csv) { return csv > csvL; }
+    bool csvMed(float csv) { return csv > csvM; }
   protected:
     bool recalcJER;
     virtual void do_execute() = 0;
@@ -243,27 +249,27 @@ namespace pa {
     void setScaleUnc(TString, TString);
   };
 
-  class JetMod : public BaseJetMod {
+  class JetOp : public BaseJetOp {
   public:
-    JetMod(panda::EventAnalysis& event_,
+    JetOp(panda::EventAnalysis& event_,
            Config& cfg_,
            Utils& utils_,
            GeneralTree& gt_,
            int level_=0) :
-      BaseJetMod("jet", event_, cfg_, utils_, gt_, level_),
+      BaseJetOp("jet", event_, cfg_, utils_, gt_, level_),
       currentJet(std::make_shared<JetWrapper*>(nullptr)),
       currentJES(std::make_shared<JESHandler*>(nullptr)) {
         ak4Jets = &(event.chsAK4Jets);
 
         recalcJER = analysis.rerunJER; 
-        isojet = addSubMod<IsoJetMod>();
-        bjetreg = addSubMod<BJetRegMod>();
-        vbf = addSubMod<VBFSystemMod>();
-        hbb = addSubMod<HbbSystemMod>();
+        isojet = addSubOp<IsoJetOp>();
+        bjetreg = addSubOp<BJetRegOp>();
+        vbf = addSubOp<VBFSystemOp>();
+        hbb = addSubOp<HbbSystemOp>();
 
         jetType = "AK4PFchs";
     }
-    virtual ~JetMod () { }
+    virtual ~JetOp () { }
 
     virtual bool on() { return !analysis.genOnly; }
 
@@ -278,10 +284,10 @@ namespace pa {
     void do_execute();
 
   private:
-    IsoJetMod *isojet{nullptr};
-    BJetRegMod *bjetreg{nullptr};
-    VBFSystemMod *vbf{nullptr};
-    HbbSystemMod *hbb{nullptr};
+    IsoJetOp *isojet{nullptr};
+    BJetRegOp *bjetreg{nullptr};
+    VBFSystemOp *vbf{nullptr};
+    HbbSystemOp *hbb{nullptr};
 
     std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
 

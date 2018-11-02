@@ -8,71 +8,72 @@ using namespace panda;
 using namespace std;
 using namespace pa;
 
-#define ADDMOD(X) mods_all.back()->addSubMod<X>()
+#define ADDOP(X) ops_all.back()->addSubOp<X>()
 
 
 PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   Analyzer("PandaAnalyzer", a, debug_),
-  cfgmod(analysis, gt, DEBUG),
+  cfgop(analysis, gt, DEBUG),
   wIDs(v_make_shared<TString>())
 {
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Calling constructor");
 
-  Config& cfg = cfgmod.cfg;
-  Utils& utils = cfgmod.utils;
+  Config& cfg = cfgop.cfg;
+  Utils& utils = cfgop.utils;
 
-  gblmod = new GlobalMod(event, cfg, utils, gt);
-  mods_all.emplace_back(gblmod);
+  gblop = new GlobalOp(event, cfg, utils, gt);
+  ops_all.emplace_back(gblop);
 
-  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisMods");
+  if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Adding AnalysisOps");
 
-  // Define analyses
-  preselmod = new ContainerMod("pre-sel", event, cfg, utils, gt);
-  mods_all.emplace_back(preselmod);
-  ADDMOD(MapMod);
+  // Define analyses - user should not touch below code. 
+  preselop = new ContainerOp("pre-sel", event, cfg, utils, gt);
+  ops_all.emplace_back(preselop);
+  ADDOP(MapOp);
   if (analysis.unpackedGen)
-    ADDMOD(DeepGenMod<UnpackedGenParticle>);
+    ADDOP(DeepGenOp<UnpackedGenParticle>);
   else
-    ADDMOD(DeepGenMod<GenParticle>);
-  ADDMOD(TriggerMod);
-  ADDMOD(SimpleLeptonMod);
-  ADDMOD(ComplicatedLeptonMod);
-  ADDMOD(SimplePhotonMod);
-  ADDMOD(ComplicatedPhotonMod);
-  ADDMOD(RecoilMod);
-  ADDMOD(FatJetMod);
-  ADDMOD(JetMod);
-  ADDMOD(TauMod);
+    ADDOP(DeepGenOp<GenParticle>);
+  ADDOP(TriggerOp);
+  ADDOP(SimpleLeptonOp);
+  ADDOP(ComplicatedLeptonOp);
+  ADDOP(SimplePhotonOp);
+  ADDOP(ComplicatedPhotonOp);
+  ADDOP(RecoilOp);
+  ADDOP(FatJetOp);
+  ADDOP(JetOp);
+  ADDOP(TauOp);
+  ADDOP(VBFCatOp);
 
-  postselmod = new ContainerMod("post-sel", event, cfg, utils, gt);
-  mods_all.emplace_back(postselmod);
-  ADDMOD(GenPMod);
-  ADDMOD(JetFlavorMod); 
-  ADDMOD(HbbMiscMod);
-  ADDMOD(GenVHMod); 
-  ADDMOD(KinFitMod);
-  ADDMOD(InclusiveLeptonMod);
-  ADDMOD(SoftActivityMod);
-  ADDMOD(FatJetMatchingMod);
-  ADDMOD(BTagSFMod);
-  ADDMOD(BTagWeightMod);
-  ADDMOD(TriggerEffMod);
-  ADDMOD(GenStudyEWKMod);
-  ADDMOD(QCDUncMod);
-  ADDMOD(GenLepMod);
-  ADDMOD(GenJetNuMod);
-  ADDMOD(HFCountingMod);
-  ADDMOD(KFactorMod);
+  postselop = new ContainerOp("post-sel", event, cfg, utils, gt);
+  ops_all.emplace_back(postselop);
+  ADDOP(GenPOp);
+  ADDOP(JetFlavorOp); 
+  ADDOP(HbbMiscOp);
+  ADDOP(GenVHOp); 
+  ADDOP(KinFitOp);
+  ADDOP(InclusiveLeptonOp);
+  ADDOP(SoftActivityOp);
+  ADDOP(FatJetMatchingOp);
+  ADDOP(BTagSFOp);
+  ADDOP(BTagWeightOp);
+  ADDOP(TriggerEffOp);
+  ADDOP(GenStudyEWKOp);
+  ADDOP(QCDUncOp);
+  ADDOP(GenLepOp);
+  ADDOP(GenJetNuOp);
+  ADDOP(HFCountingOp);
+  ADDOP(KFactorOp);
 
-  for (auto& mod : mods_all)
-    mod->print();
+  for (auto& op : ops_all)
+    op->print();
 
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Reading inputs");
   // Read inputs
   getInput();
 
   event.setStatus(*tIn, {"!*"});
-  event.setAddress(*tIn, cfgmod.get_inputBranches());
+  event.setAddress(*tIn, cfgop.get_inputBranches());
 
   TH1D* hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
@@ -133,9 +134,9 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   event.rng.setSize(20);
 
   // read input data
-  cfgmod.readData(analysis.datapath);
-  for (auto& mod : mods_all)
-    mod->readData(analysis.datapath);
+  cfgop.readData(analysis.datapath);
+  for (auto& op : ops_all)
+    op->readData(analysis.datapath);
 
   if (DEBUG) logger.debug("PandaAnalyzer::PandaAnalyzer","Called constructor");
 }
@@ -216,8 +217,8 @@ bool PandaAnalyzer::PassPresel(Selection::Stage stage)
 
 void PandaAnalyzer::Reset()
 {
-  for (auto& mod : mods_all)
-    mod->reset();
+  for (auto& op : ops_all)
+    op->reset();
 
   Analyzer::Reset();
 }
@@ -226,8 +227,8 @@ void PandaAnalyzer::Reset()
 
 void PandaAnalyzer::Terminate()
 {
-  for (auto& mod : mods_all)
-    mod->terminate();
+  for (auto& op : ops_all)
+    op->terminate();
 
   Analyzer::Terminate();
 }
@@ -241,11 +242,11 @@ void PandaAnalyzer::Run()
   unsigned nZero, nEvents, iE=0;
   setupRun(nZero, nEvents); 
 
-  for (auto& mod : mods_all)
-    mod->initialize(registry);
+  for (auto& op : ops_all)
+    op->initialize(registry);
 
   ProgressReporter pr("PandaAnalyzer::Run",&iE,&nEvents,100);
-  TimeReporter& tr = cfgmod.cfg.tr;
+  TimeReporter& tr = cfgop.cfg.tr;
   tr.TriggerEvent("configuration"); 
 
   // EVENTLOOP --------------------------------------------------------------------------
@@ -256,30 +257,20 @@ void PandaAnalyzer::Run()
     event.getEntry(*tIn,iE);
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
 
-    gblmod->execute();
+    gblop->execute();
 
     if (analysis.isData && !PassGoodLumis(gt.runNumber,gt.lumiNumber))
         continue;
 
-    preselmod->execute();
+    preselop->execute();
 
     if (!PassPresel(Selection::sReco))
       continue;
 
-    postselmod->execute();
+    postselop->execute();
 
     if (!PassPresel(Selection::sGen)) // only check gen presel here
       continue;
-
-//     if (analysis.deep || analysis.hbb)
-//       FatJetPartons();
-//     if (analysis.deep) {
-//       FillPFTree();
-//       tAux->Fill();
-//       if (tAux->GetEntriesFast() == 2500)
-//         IncrementAuxFile();
-//       tr->TriggerEvent("aux fill");
-//     }
 
     gt.Fill();
 

@@ -36,11 +36,11 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
   }
   utils.softDrop.reset(new contrib::SoftDrop(sdBeta,sdZcut,radius));
 
-  gen.reset(new HRGenPMod(event, cfg, utils, gt));
-  mod.reset(new HRTagMod(event, cfg, utils, gt));
+  gen.reset(new HRGenPOp(event, cfg, utils, gt));
+  op.reset(new HRTagOp(event, cfg, utils, gt));
 
   gen->print();
-  mod->print();
+  op->print();
 
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Reading inputs");
 
@@ -85,7 +85,7 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // read input data
   gen->readData(analysis.datapath);
-  mod->readData(analysis.datapath);
+  op->readData(analysis.datapath);
 
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Called constructor");
 }
@@ -98,7 +98,7 @@ HRAnalyzer::~HRAnalyzer()
 void HRAnalyzer::Reset()
 {
   gen->reset();
-  mod->reset();
+  op->reset();
 
   Analyzer::Reset();
 }
@@ -108,7 +108,7 @@ void HRAnalyzer::Reset()
 void HRAnalyzer::Terminate()
 {
   gen->terminate();
-  mod->terminate();
+  op->terminate();
 
   Analyzer::Terminate();
 }
@@ -124,7 +124,7 @@ void HRAnalyzer::Run()
   setupRun(nZero, nEvents); 
 
   gen->initialize(registry);
-  mod->initialize(registry);
+  op->initialize(registry);
 
   ProgressReporter pr("HRAnalyzer::Run",&iE,&nEvents,100);
   TimeReporter& tr = cfg.tr;
@@ -139,7 +139,7 @@ void HRAnalyzer::Run()
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
 
     gen->execute();
-    mod->execute(); 
+    op->execute(); 
   }
 
   tr.Summary();

@@ -13,7 +13,7 @@ L1Analyzer::L1Analyzer(Analysis* a, int debug_/*=0*/) :
 {
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Calling constructor");
 
-  mod.reset(new L1Mod(gt, event));
+  op.reset(new L1Op(gt, event));
 
   if (DEBUG) logger.debug("L1Analyzer::L1Analyzer","Reading inputs");
 
@@ -53,7 +53,7 @@ L1Analyzer::~L1Analyzer()
 
 void L1Analyzer::Reset()
 {
-  mod->reset();
+  op->reset();
   Analyzer::Reset();
 }
 
@@ -86,7 +86,7 @@ void L1Analyzer::Run()
     tIn->GetEntry(iE); 
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
 
-    mod->execute(); 
+    op->execute(); 
     tr.TriggerEvent("execute L1"); 
 
     gt.Fill();

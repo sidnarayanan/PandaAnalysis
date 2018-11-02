@@ -5,7 +5,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--histfile',type=str)
-parser.add_argument('--outbranch',type=str,default='sf_l1finor')
+parser.add_argument('--outbranch',type=str,default='sf_l1')
 parser.add_argument('outfile',metavar='outfile',type=str,nargs='+',help='input file(s) to process')
 args = parser.parse_args()
 
@@ -21,8 +21,8 @@ Load('PandaCoreTools')
 hba = { 'smu' : root.H2BranchAdder(),
         'jet' : root.H2BranchAdder() }
 hfile = root.TFile.Open(args.histfile)
-ptformula = 'jot%iPt'
-etaformula = 'fabs(jot%iEta)'
+ptformula = 'jotPt[%i]'
+etaformula = 'fabs(jotEta[%i])'
 hbranch = 'sf_l1%s_jot%i'
 hsmu = hfile.Get('h_SingleMuon_spike_finor_pteta')
 hjet = hfile.Get('h_JetHT_spike_finor_pteta')
@@ -31,14 +31,14 @@ hba['jet'].setH(hjet)
 
 fba = root.FormulaBranchAdder()
 #formula = 'TMath::Max(0,TMath::Min(1,(1-{0}*((sf_l1smu_jot1*(jot1Pt<300)) + (sf_l1jet_jot1*(jot1Pt>300))))*(1-{0}*((sf_l1smu_jot1*(jot1Pt<300)) + (sf_l1jet_jot1*(jot1Pt>300))))))'
-formula = '(1-sf_l1smu_jot1)*(1-sf_l1smu_jot2)'
+formula = '(1-sf_l1smu_jot0)*(1-sf_l1smu_jot1)'
 #fba.formula = '(1-{0}_jot1)*(1-{0}_jot2)'.format(args.outbranch)
 #fba.formula = '((1-sf_l1_jot1) * (1-sf_l1_jot2))'
 
 for fpath in args.outfile:
     f = root.TFile.Open(fpath,'update')
     t = f.Get('events')
-    for i in [1,2]:
+    for i in [0,1]:
         for pd in ['smu','jet']:
             hba[pd].formulaX = ptformula%i
             hba[pd].formulaY = etaformula%i 

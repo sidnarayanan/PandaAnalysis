@@ -1,18 +1,18 @@
-#include "../interface/LepPhoMods.h"
+#include "../interface/LepPhoOps.h"
 #include "PandaAnalysis/Utilities/interface/Helicity.h"
 
 using namespace pa;
 using namespace std;
 using namespace panda;
 
-void SimpleLeptonMod::scaleFactors()
+void SimpleLeptonOp::scaleFactors()
 {
   if (analysis.isData)
     return; 
   // For the hadronic analyses, store a single branch for lepton ID,
   // isolation, and tracking, computed based on the 2 leading loose
   // leptons in the event. Cool guyz get per-leg scalefactors
-  // computed in ComplicatedLeptonMod
+  // computed in ComplicatedLeptonOp
   for (int iL=0; iL!=TMath::Min(gt.nLooseLep,2); ++iL) {
     auto* lep = (*looseLeps)[iL];
     float pt = lep->pt(), eta = lep->eta(), aeta = TMath::Abs(eta);
@@ -40,7 +40,7 @@ void SimpleLeptonMod::scaleFactors()
   }
 }
 
-void SimpleLeptonMod::do_execute() 
+void SimpleLeptonOp::do_execute() 
 {
   //electrons
   for (auto& ele : event.electrons) {
@@ -163,12 +163,12 @@ void SimpleLeptonMod::do_execute()
   scaleFactors();
 }
 
-void ComplicatedLeptonMod::do_readData(TString dirPath)
+void ComplicatedLeptonOp::do_readData(TString dirPath)
 {
   rochesterCorrection.reset(new RoccoR(Form("%s/rcdata.2016.v3", dirPath.Data())));
 }
 
-void ComplicatedLeptonMod::do_execute()
+void ComplicatedLeptonOp::do_execute()
 {
   for (auto& ele : event.electrons) {
     float pt = ele.pt(); float eta = ele.eta(); float aeta = fabs(eta);
@@ -397,14 +397,14 @@ void ComplicatedLeptonMod::do_execute()
     gt.ZBosonM   = dilep->M();
     gt.ZBosonLep1CosThetaCS = CosThetaCollinsSoper(v1,v2);
     // ZBosonLep1CosThetaStar, ZBosonLep1CosThetaStarFJ
-    // are not calculated here, we need the Z(ll)H(bb) system in JetsMods
+    // are not calculated here, we need the Z(ll)H(bb) system in JetsOps
     
   } 
 
 }
 
 
-void InclusiveLeptonMod::do_execute()
+void InclusiveLeptonOp::do_execute()
 {
   // "Inclusive very loose selection"
   // https://github.com/vhbb/cmssw/blob/vhbbHeppy80X/PhysicsTools/Heppy/python/analyzers/objects/LeptonAnalyzer.py
@@ -430,7 +430,7 @@ void InclusiveLeptonMod::do_execute()
   }
 }
 
-void SimplePhotonMod::scaleFactors()
+void SimplePhotonOp::scaleFactors()
 {
   if (analysis.isData)
     return; 
@@ -444,7 +444,7 @@ void SimplePhotonMod::scaleFactors()
   }
 }
 
-void SimplePhotonMod::do_execute()
+void SimplePhotonOp::do_execute()
 {
   for (auto& pho : event.photons) {
     if (!pho.loose || !pho.csafeVeto)
@@ -474,7 +474,7 @@ void SimplePhotonMod::do_execute()
 }
 
 
-void ComplicatedPhotonMod::do_execute()
+void ComplicatedPhotonOp::do_execute()
 {
   for (auto& pho : event.photons) {
     if (!pho.medium)
@@ -514,7 +514,7 @@ void ComplicatedPhotonMod::do_execute()
   scaleFactors();
 }
 
-bool ComplicatedPhotonMod::pfChargedPhotonMatch(const Photon& photon)
+bool ComplicatedPhotonOp::pfChargedPhotonMatch(const Photon& photon)
 {
   double matchedRelPt = -1.;
 
@@ -534,7 +534,7 @@ bool ComplicatedPhotonMod::pfChargedPhotonMatch(const Photon& photon)
   return (matchedRelPt > 0.6);
 }
 
-void TauMod::do_execute()
+void TauOp::do_execute()
 {
   for (auto& tau : event.taus) {
     if (analysis.vbf) {
@@ -556,7 +556,7 @@ void TauMod::do_execute()
   }
 }
 
-void GenLepMod::do_execute()
+void GenLepOp::do_execute()
 {
   gt.genTauPt = -1;
   gt.genElectronPt = -1;

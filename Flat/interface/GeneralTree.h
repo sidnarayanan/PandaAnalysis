@@ -282,6 +282,7 @@ class GeneralTree : public genericTree {
   float filter_maxRecoil;
   int filter_whichRecoil;
   int badECALFilter;
+  int category;
   float sf_ewkV;
   float sf_qcdV;
   float sf_ewkV2j;

@@ -4,7 +4,7 @@
 #include "AnalyzerUtilities.h"
 #include "Analyzer.h"
 #include "L1Tree.h"
-#include "L1Mod.h"
+#include "L1Op.h"
 #include "PandaAnalysis/Flat/interface/Common.h"
 
 
@@ -21,7 +21,7 @@ namespace pa {
     private:
 
         //////////////////////////////////////////////////////////////////////////////////////
-        std::unique_ptr<L1Mod> mod{nullptr};
+        std::unique_ptr<L1Op> op{nullptr};
         L1Event event;
     };
 }

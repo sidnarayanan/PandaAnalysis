@@ -1,4 +1,4 @@
-#include "../interface/JetsMods.h"
+#include "../interface/JetsOps.h"
 #include "PandaAnalysis/Utilities/interface/Helicity.h"
 #include "PandaAnalysis/Utilities/interface/NeutrinoSolver.h"
 #include "TSystem.h"
@@ -14,7 +14,7 @@ inline float centralOnly(float x, float aeta, float def = -1)
   return  aeta < 2.4 ? x : -1;
 }
 
-JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear)
+JetWrapper BaseJetOp::shiftJet(const Jet& jet, shiftjes shift, bool smear)
 {
   float pt = jet.pt();
   if (smear) {
@@ -44,7 +44,7 @@ JetWrapper BaseJetMod::shiftJet(const Jet& jet, shiftjes shift, bool smear)
 }
 
 
-void BaseJetMod::do_readData(TString dirPath)
+void BaseJetOp::do_readData(TString dirPath)
 {
   if (recalcJER) {
     jer.reset(new JERReader(dirPath+"/jec/"+jerV+"/"+jerV+"_MC_SF_"+jetType+".txt",
@@ -84,7 +84,7 @@ void BaseJetMod::do_readData(TString dirPath)
 }
 
 
-void BaseJetMod::setScaleUnc(TString tag, TString path)
+void BaseJetOp::setScaleUnc(TString tag, TString path)
 {
   scaleUncs[tag] = std::vector<std::shared_ptr<JetCorrectionUncertainty>>(jes2i(shiftjes::N),nullptr);
   JESLOOP {
@@ -98,7 +98,7 @@ void BaseJetMod::setScaleUnc(TString tag, TString path)
   }
 }
 
-void JetMod::setupJES()
+void JetOp::setupJES()
 {
   if (!analysis.rerunJES || (scaleUnc != nullptr))
     return;
@@ -120,7 +120,7 @@ void JetMod::setupJES()
 }
 
 
-void JetMod::varyJES()
+void JetOp::varyJES()
 {
   JESLOOP {
     auto& jets = (*jesShifts)[shift];
@@ -142,7 +142,7 @@ void JetMod::varyJES()
 }
 
 
-void JetMod::do_execute()
+void JetOp::do_execute()
 {
   setupJES();
 
@@ -159,17 +159,20 @@ void JetMod::do_execute()
     bool metShift = (i2jes(shift) <= shiftjes::kJESTotalDown);
     JESHandler& jets = (*jesShifts)[shift];
     (*currentJES) = &jets;
-    if(isNominal) gt.sf_l1Prefire = 1.0;
+    if (isNominal) 
+      gt.sf_l1Prefire = 1.0;
     for (auto& jw : jets.all) {
       (*currentJet) = &jw;
       auto& jet = jw.get_base();
       float aeta = abs(jet.eta());
       float pt = jw.pt;
 
-      if(isNominal) {
+      if (isNominal) {
         // prefiring weights
-        if (analysis.year == 2017) gt.sf_l1Prefire *= (1.0 -  utils.getCorr(cL1PreFiring,jet.eta(),pt));
-        else                       gt.sf_l1Prefire *= (1.0 -  utils.getCorr(cL1PreFiring,aeta,pt));
+        if (analysis.year == 2017) 
+          gt.sf_l1Prefire *= (1.0 - utils.getCorr(cL1PreFiring,jet.eta(),pt));
+        else 
+          gt.sf_l1Prefire *= (1.0 - utils.getCorr(cL1PreFiring,aeta,pt));
       }
 
       if (aeta > maxJetEta || jw.nominal->maxpt < minMinJetPt)
@@ -327,7 +330,7 @@ void JetMod::do_execute()
 }
 
 
-void JetFlavorMod::partonFlavor(JetWrapper& jw)
+void JetFlavorOp::partonFlavor(JetWrapper& jw)
 {
   auto& jet = jw.get_base();
   jw.flavor=0; jw.genpt=0;
@@ -350,7 +353,7 @@ void JetFlavorMod::partonFlavor(JetWrapper& jw)
 }
 
 
-void JetFlavorMod::clusteredFlavor(JetWrapper& jw)
+void JetFlavorOp::clusteredFlavor(JetWrapper& jw)
 {
   auto& jet = jw.get_base();
   for (auto &gen : event.ak4GenJets) {
@@ -368,7 +371,7 @@ void JetFlavorMod::clusteredFlavor(JetWrapper& jw)
 }
 
 
-void JetFlavorMod::do_execute()
+void JetFlavorOp::do_execute()
 {
   for (auto& jw : (*jesShifts)[0].all) {
     if (analysis.jetFlavorPartons)
@@ -384,7 +387,7 @@ void JetFlavorMod::do_execute()
 }
 
 
-void IsoJetMod::do_execute()
+void IsoJetOp::do_execute()
 {
   auto& jw = **currentJet;
   auto& jets = **currentJES;
@@ -403,11 +406,11 @@ void IsoJetMod::do_execute()
 }
 
 
-const vector<double> BJetRegMod::Energies::dr2_bins {
+const vector<double> BJetRegOp::Energies::dr2_bins {
   pow(0.05, 2), pow(0.1, 2), pow(0.2, 2), pow(0.3, 2), pow(0.4, 2)
 };
 
-void BJetRegMod::do_execute()
+void BJetRegOp::do_execute()
 {
   auto& jw = **currentJet;
   auto& jet = jw.get_base();
@@ -440,7 +443,7 @@ void BJetRegMod::do_execute()
   for (const auto& pf : jet.constituents) {
     if (!pf.isValid()) {
       // not sure why this is happening, but catch it 
-      logger.warning("BJetRegMod::do_execute",Form("Cannot access PF at idx %i out of %i", pf.idx(), event.pfCandidates.size()));
+      logger.warning("BJetRegOp::do_execute",Form("Cannot access PF at idx %i out of %i", pf.idx(), event.pfCandidates.size()));
       continue; 
     }
     TLorentzVector v(pf->p4());
@@ -547,7 +550,7 @@ void BJetRegMod::do_execute()
   }
 }
 
-void VBFSystemMod::do_execute()
+void VBFSystemOp::do_execute()
 {
   auto& jets = **currentJES;
 
@@ -597,7 +600,7 @@ void VBFSystemMod::do_execute()
   }
 }
 
-void HbbSystemMod::do_execute()
+void HbbSystemOp::do_execute()
 {
   auto& jets = **currentJES;
   int shift = jets.shift_idx;

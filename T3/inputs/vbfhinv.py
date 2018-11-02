@@ -24,6 +24,7 @@ def fn(input_name, isData, full_path):
 
     skimmer = root.pa.PandaAnalyzer(a)
     skimmer.AddPresel(root.pa.RecoilSel())
+    skimmer.AddPresel(root.pa.CategorySel())
 
     return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
 

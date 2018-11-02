@@ -1,5 +1,5 @@
-#ifndef MODULE
-#define MODULE
+#ifndef OPERATOR
+#define OPERATOR
 
 #include "TString.h"
 #include "vector"
@@ -110,22 +110,22 @@ namespace pa {
   };
   
   template <typename T>
-  class BaseModule {
+  class BaseOperator {
     public:
-      BaseModule(TString name_, T& gt_): name(name_), gt(gt_) {  }
-      virtual ~BaseModule() { }
-      BaseModule(const BaseModule&) = delete;
-      BaseModule& operator=(const BaseModule&) = delete; 
+      BaseOperator(TString name_, T& gt_): name(name_), gt(gt_) {  }
+      virtual ~BaseOperator() { }
+      BaseOperator(const BaseOperator&) = delete;
+      BaseOperator& operator=(const BaseOperator&) = delete; 
 
     protected:
       TString name;
       T& gt; 
   };
 
-  class ConfigMod : public BaseModule<GeneralTree> {
+  class ConfigOp : public BaseOperator<GeneralTree> {
     public:
-      ConfigMod(const Analysis& a_, GeneralTree& gt, int DEBUG_);
-      ~ConfigMod() { }
+      ConfigOp(const Analysis& a_, GeneralTree& gt, int DEBUG_);
+      ~ConfigOp() { }
 
       void readData(TString path);
       const panda::utils::BranchList get_inputBranches() const { return bl; }
@@ -143,30 +143,30 @@ namespace pa {
   };
 
   template <typename T>
-  class BaseAnalysisMod : public BaseModule<T> {
+  class BaseAnalysisOp : public BaseOperator<T> {
     public:
-      BaseAnalysisMod(TString name_,
+      BaseAnalysisOp(TString name_,
                       panda::EventAnalysis& event_,
                       Config& cfg_,
                       Utils& utils_,
                       T& gt_,
                       int level_=0) :
-        BaseModule<T>(name_, gt_),
+        BaseOperator<T>(name_, gt_),
         event(event_),
         cfg(cfg_),
         utils(utils_),
         analysis(cfg.analysis),
         level(level_) { }
-      virtual ~BaseAnalysisMod() {
+      virtual ~BaseAnalysisOp() {
         if (cfg.DEBUG > level + 2)
-          logger.debug("BaseAnalysisMod::~BaseAnalysisMod", this->name);
+          logger.debug("BaseAnalysisOp::~BaseAnalysisOp", this->name);
       }
 
       // cascading calls to protected functions
       void initialize(Registry& registry);
       void readData(TString path);
-      // execute DOES NOT cascade down child modules -
-      // calling subMod execution is left up to the caller
+      // execute DOES NOT cascade down child operators -
+      // calling subOp execution is left up to the caller
       // to allow for more flexibility
       void execute();
       void reset();
@@ -175,12 +175,12 @@ namespace pa {
 
       virtual bool on() { return true; }
 
-      template <typename MOD>
-      MOD* addSubMod() {
-        // add a sub module that takes a specific constructor signature
-        auto* mod = new MOD(event, cfg, utils, this->gt, level + 1);
-        subMods.emplace_back(mod);
-        return mod;
+      template <typename OP>
+      OP* addSubOp() {
+        // add a sub operator that takes a specific constructor signature
+        auto* op = new OP(event, cfg, utils, this->gt, level + 1);
+        subOps.emplace_back(op);
+        return op;
       }
 
     protected:
@@ -188,11 +188,11 @@ namespace pa {
       Config& cfg;
       Utils& utils;
       const Analysis& analysis;
-      std::vector<std::unique_ptr<BaseAnalysisMod>> subMods; // memory management is done by parent
+      std::vector<std::unique_ptr<BaseAnalysisOp>> subOps; // memory management is done by parent
       int level;
 
       std::vector<TString> dump();
-      // here, the module can publish and access data
+      // here, the operator can publish and access data
       virtual void do_init(Registry& registry) { }
       virtual void do_readData(TString path) { }
       // this is where the actual execution is done
@@ -201,24 +201,24 @@ namespace pa {
       virtual void do_reset() { }
       virtual void do_terminate() { }
   };
-  typedef BaseAnalysisMod<GeneralTree> AnalysisMod; 
-  typedef BaseAnalysisMod<HeavyResTree> HRMod; 
+  typedef BaseAnalysisOp<GeneralTree> AnalysisOp; 
+  typedef BaseAnalysisOp<HeavyResTree> HROp; 
 
-  // a completely empty mod
-  class ContainerMod : public AnalysisMod {
+  // a completely empty op
+  class ContainerOp : public AnalysisOp {
     public:
-      ContainerMod(TString name,
+      ContainerOp(TString name,
                    panda::EventAnalysis& event_,
                    Config& cfg_,
                    Utils& utils_,
                    GeneralTree& gt_,
                    int level_=0) :
-        AnalysisMod(name, event_, cfg_, utils_, gt_, level_) { }
-      ~ContainerMod() { }
+        AnalysisOp(name, event_, cfg_, utils_, gt_, level_) { }
+      ~ContainerOp() { }
       virtual bool on() { return true; }
     protected:
       virtual void do_execute() {
-        for (auto& m : subMods)
+        for (auto& m : subOps)
           m->execute();
       }
       virtual void do_init(Registry& registry) {
