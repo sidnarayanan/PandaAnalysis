@@ -109,6 +109,7 @@ namespace pa {
                     GeneralTree& gt_,
                     int level_=0) :
       AnalysisOp("simplepho", event_, cfg_, utils_, gt_, level_),
+      veryLoosePhos(std::v_make_shared<panda::Photon*>()),
       loosePhos(std::v_make_shared<panda::Photon*>()),
       tightPhos(std::v_make_shared<panda::Photon*>()) { }
     virtual ~SimplePhotonOp () { }
@@ -117,11 +118,13 @@ namespace pa {
 
   protected:
     virtual void do_init(Registry& registry) {
+      registry.publishConst("veryLoosePhos", veryLoosePhos);
       registry.publishConst("loosePhos", loosePhos);
       registry.publishConst("tightPhos", tightPhos);
     }
     virtual void do_execute();
     virtual void do_reset() {
+      veryLoosePhos->clear();
       loosePhos->clear();
       tightPhos->clear();
     }
@@ -129,7 +132,7 @@ namespace pa {
       return analysis.vbfhbb ?  p.tight : p.medium; 
     }
     void scaleFactors();
-    std::shared_ptr<std::vector<panda::Photon*>> loosePhos, tightPhos;
+    std::shared_ptr<std::vector<panda::Photon*>> veryLoosePhos, loosePhos, tightPhos;
   };
 
 

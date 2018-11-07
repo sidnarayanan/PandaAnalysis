@@ -191,6 +191,9 @@ void ConfigOp::readData(TString dirPath)
     utils.openCorr(cL1PreFiring,
                    dirPath+"trigger_eff/L1prefiring_jet_2017BtoF.root","L1prefiring_jet_2017BtoF",
                    2);
+    utils.openCorr(cL1PhotonPreFiring,
+                   dirPath+"trigger_eff/L1prefiring_photon_2017BtoF.root","L1prefiring_photon_2017BtoF",
+                   2);
   } else {
     utils.openCorr(cL1PreFiring,
                    dirPath+"trigger_eff/Map_Jet_L1FinOReff_bxm1_looseJet_SingleMuon_Run2016B-H.root",

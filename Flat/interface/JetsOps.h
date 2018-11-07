@@ -280,6 +280,7 @@ namespace pa {
       jesShifts = registry.access<std::vector<JESHandler>>("jesShifts");
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
+      matchVeryLoosePhos = registry.accessConst<std::vector<panda::Photon*>>("veryLoosePhos");
     }
     void do_execute();
 
@@ -293,6 +294,7 @@ namespace pa {
 
     std::shared_ptr<const std::vector<panda::Lepton*>> matchLeps{nullptr};
     std::shared_ptr<const std::vector<panda::Photon*>> matchPhos{nullptr};
+    std::shared_ptr<const std::vector<panda::Photon*>> matchVeryLoosePhos{nullptr};
 
     panda::JetCollection *ak4Jets{nullptr};
 
