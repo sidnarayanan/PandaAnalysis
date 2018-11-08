@@ -346,44 +346,42 @@ void ConfigOp::readData(TString dirPath)
                    dirPath+"moriond17/Tracking_12p9.root","htrack2",1);
   }
   // Differential Electroweak VH Corrections
-  if (analysis.hbb) {
-    utils.openCorr(cWmHEwkCorr    ,
-                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_rebin"     ,1);
-    utils.openCorr(cWmHEwkCorrUp  ,
-                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_up_rebin"  ,1);
-    utils.openCorr(cWmHEwkCorrDown,
-                   dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_down_rebin",1);
-    utils.openCorr(cWpHEwkCorr    ,
-                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_rebin"     ,1);
-    utils.openCorr(cWpHEwkCorrUp  ,
-                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_up_rebin"  ,1);
-    utils.openCorr(cWpHEwkCorrDown,
-                   dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_down_rebin",1);
-    utils.openCorr(cZnnHEwkCorr    ,
-                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_rebin"     ,1);
-    utils.openCorr(cZnnHEwkCorrUp  ,
-                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_up_rebin"  ,1);
-    utils.openCorr(cZnnHEwkCorrDown,
-                   dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_down_rebin",1);
-    utils.openCorr(cZllHEwkCorr    ,
-                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_rebin"     ,1);
-    utils.openCorr(cZllHEwkCorrUp  ,
-                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_up_rebin"  ,1);
-    utils.openCorr(cZllHEwkCorrDown,
-                   dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
-                   "SignalWeight_nloEWK_down_rebin",1);
-  }
+  utils.openCorr(cWmHEwkCorr	,
+  		 dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_rebin"	 ,1);
+  utils.openCorr(cWmHEwkCorrUp  ,
+  		 dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_up_rebin"  ,1);
+  utils.openCorr(cWmHEwkCorrDown,
+  		 dirPath+"higgs/Wm_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_down_rebin",1);
+  utils.openCorr(cWpHEwkCorr	,
+  		 dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_rebin"	 ,1);
+  utils.openCorr(cWpHEwkCorrUp  ,
+  		 dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_up_rebin"  ,1);
+  utils.openCorr(cWpHEwkCorrDown,
+  		 dirPath+"higgs/Wp_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_down_rebin",1);
+  utils.openCorr(cZnnHEwkCorr	 ,
+  		 dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_rebin"	 ,1);
+  utils.openCorr(cZnnHEwkCorrUp  ,
+  		 dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_up_rebin"  ,1);
+  utils.openCorr(cZnnHEwkCorrDown,
+  		 dirPath+"higgs/Znn_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_down_rebin",1);
+  utils.openCorr(cZllHEwkCorr	 ,
+  		 dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_rebin"	 ,1);
+  utils.openCorr(cZllHEwkCorrUp  ,
+  		 dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_up_rebin"  ,1);
+  utils.openCorr(cZllHEwkCorrDown,
+  		 dirPath+"higgs/Zll_nloEWK_weight_unnormalized.root",
+  		 "SignalWeight_nloEWK_down_rebin",1);
 
   if (analysis.hbb) {
     utils.openCorr(cJetLoosePUID,
