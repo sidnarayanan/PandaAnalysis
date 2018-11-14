@@ -221,6 +221,7 @@ vv = lambda v=False : _analysis(
         btagSFs = True,
         btagWeights = False,
         useCMVA = False,
+        useDeepCSV = True,
         complicatedLeptons = True,
         complicatedPhotons = True,
         hfCounting = True,
