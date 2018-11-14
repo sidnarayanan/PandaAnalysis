@@ -64,6 +64,15 @@ namespace pa {
                 __ACCPFUNC((gt->category>0) || (gt->category!=0 && !tightOnly))) { }
   };
 
+  class DimuonDijetSel: public LambdaSel {
+  public:
+    DimuonDijetSel():
+      LambdaSel(Selection::sReco, "DimuonDijet",
+                __ACCPFUNC(gt->nLooseMuon>1 && gt->muonPt[0]>20 && gt->muonPt[1]>10 && 
+                           gt->diLepMass>10 && gt->nJot[0]>1 && (gt->nJot[0]-gt->nJet[0])>0 && 
+                           gt->jotPt[0][1]>20)) { }
+  };
+
   class TriggerSel: public LambdaSel {
   public:
     TriggerSel():
