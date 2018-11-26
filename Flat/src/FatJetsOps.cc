@@ -258,7 +258,7 @@ void FatJetMatchingOp::do_execute()
     return; 
 
   int pdgidTarget=0;
-  if (!analysis.isData && analysis.processType>=kTT) {
+  if (!analysis.isData && analysis.processType>=kTT && analysis.processType<=kSignal) {
     switch(analysis.processType) {
       case kTop:
       case kTT:
@@ -654,9 +654,6 @@ void SubRunner::run(panda::FatJet& fj)
 {
   VPseudoJet particles = convertPFCands(fj.constituents,true,0);
 
-  fprintf(stderr, "jet pt=%f, eta=%f\n", fj.pt(), fj.eta());
-  for (const auto& p : fj.constituents)
-    fprintf(stderr, "  pf rawpt=%f, pt=%f, eta=%f, weight=%f\n", p->pt(), p->pt()*p->puppiW(), p->eta(), p->puppiW());
 
   ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
   VPseudoJet allJets(seq.inclusive_jets(0.));
@@ -751,17 +748,4 @@ void HRTagOp::fillJet(panda::FatJet& fj)
       }
     }
   } //loop ov
-  fprintf(stderr, "  ecf 0 = %f\n", fj.get_ecf(1,2,2) / pow(fj.get_ecf(1,2,1),2.00));
-  fprintf(stderr, "  ecf 1 = %f\n", fj.get_ecf(1,3,3) / fj.get_ecf(2,3,2));
-  fprintf(stderr, "  ecf 2 = %f\n", fj.get_ecf(3,3,1) / pow(fj.get_ecf(1,3,3),0.75));
-  fprintf(stderr, "  ecf 3 = %f\n", fj.get_ecf(3,3,1) / pow(fj.get_ecf(2,3,2),0.75));
-  fprintf(stderr, "  ecf 4 = %f\n", fj.get_ecf(3,3,2) / pow(fj.get_ecf(3,3,3),0.50));
-  fprintf(stderr, "  ecf 5 = %f\n", fj.get_ecf(1,4,2) / pow(fj.get_ecf(1,3,1),2.00));
-  fprintf(stderr, "  ecf 6 = %f\n", fj.get_ecf(1,4,3) / pow(fj.get_ecf(1,3,2),2.00));
-  fprintf(stderr, "  ecf 7 = %f\n", fj.get_ecf(2,4,0) / pow(fj.get_ecf(1,3,0),2.00));
-  fprintf(stderr, "  ecf 8 = %f\n", fj.get_ecf(2,4,1) / pow(fj.get_ecf(1,3,1),2.00));
-  fprintf(stderr, "  ecf 9 = %f\n", fj.get_ecf(2,4,1) / pow(fj.get_ecf(2,3,0),2.00));
-  fprintf(stderr, "  ecf 10 = %f\n", fj.get_ecf(2,4,2) / pow(fj.get_ecf(1,3,2),2.00));
-  fprintf(stderr, "  htt = %f\n", gt.clf_HTTFRec);
-  fprintf(stderr, "  tau32sd = %f\n", gt.clf_Tau32SD);
 }

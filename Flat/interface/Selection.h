@@ -141,13 +141,22 @@ namespace pa {
 
   class RecoilSel: public Selection {
   public:
-    RecoilSel(): Selection(Selection::sReco, "recoil") { }
-    float threshold{200};
+    RecoilSel(float threshold_=200): Selection(Selection::sReco, "recoil"),
+                                     threshold(threshold_) { }
   protected:
     virtual bool do_accept() const;
+    float threshold;
     bool vary_jes{true};
   };
   typedef RecoilSel MonojetSel; // backwards compatibility
+
+
+  class FJRecoilSel : public RecoilSel {
+  public:
+    FJRecoilSel(float t_=175) : RecoilSel(t_) { name = "fjrecoi"; }
+  protected:
+    virtual bool do_accept() const; 
+  };
 
 
   class MonotopSel: public RecoilSel {

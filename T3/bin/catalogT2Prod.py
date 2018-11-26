@@ -63,7 +63,7 @@ def smartcache(arguments):
     for a in [arguments]:
         cmd = ('python2.6 $(which dynamo-request) --panda %s --sample %s'%(book, a))
         # print cmd
-        do(cmd)
+        system(cmd)
 
 def checkDS(nickname,include,exclude):
   included=False

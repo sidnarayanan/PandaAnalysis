@@ -50,6 +50,12 @@ bool RecoilSel::do_accept() const
   return (bu > threshold); 
 }
 
+bool FJRecoilSel::do_accept() const
+{
+  bool base = RecoilSel::do_accept();
+  return (base && gt->fjPt[0][0]>threshold);
+}
+
 
 bool MonotopSel::do_accept() const
 {
