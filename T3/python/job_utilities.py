@@ -151,7 +151,7 @@ def request_data(xrd_path, first_attempt):
     # ok now we have to copy the data in:
     xrdargs = ['xrdcopy', '-f', xrd_path]
     if not stdout.isatty():
-        xardargs.insert(1, '--nopbar')
+        xrdargs.insert(1, '--nopbar')
     cache = _is_t3 and _to_hdfs
     if cache:
         input_path = local_path.replace('paus', _user) 

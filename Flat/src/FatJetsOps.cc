@@ -551,13 +551,14 @@ void HRTagOp::do_execute()
   // first loop through genP and find any partons worth saving
   // if this is a signal
   int i_parton = 0; 
+  float minPt = 0;
   if (analysis.processType == kTop) {
     for (auto *pptr : *genP) {
       auto& p = pToGRef(pptr);
       if (abs(p.pdgid) != 6)
         continue;
       float pt = p.pt();
-      if (pt < 300)
+      if (pt < minPt)
         continue;
       float eta = p.eta(), phi = p.phi();
       if (hasChild(p, *genP))
@@ -624,7 +625,7 @@ void HRTagOp::do_execute()
       if (abs(p.pdgid) > 5 && abs(p.pdgid) != 21)
         continue;
       float pt = p.pt();
-      if (pt < 300)
+      if (pt < minPt)
         continue;
       float eta = p.eta(), phi = p.phi();
       if (!hard(p) || hasChild(p, *genP, true))
@@ -711,9 +712,8 @@ void SubRunner::run(panda::FatJet& fj)
 
 void HRTagOp::fillJet(panda::FatJet& fj)
 {
-  if (true || event.recoil.max < 175) {
+  if (analysis.recalcECF) 
     substructure->run(fj);
-  }
 
   gt.recoil = event.recoil.max;
   gt.clf_IsMatched = 1;

@@ -142,6 +142,8 @@ void HRAnalyzer::Run()
     op->execute(); 
   }
 
+  pr.Done(); 
+
   tr.Summary();
 
   if (DEBUG) { logger.debug("HRAnalyzer::Run","Done with entry loop"); }
