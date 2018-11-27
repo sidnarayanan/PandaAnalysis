@@ -37,9 +37,11 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
   utils.softDrop.reset(new contrib::SoftDrop(sdBeta,sdZcut,radius));
 
   gen.reset(new HRGenPOp(event, cfg, utils, gt));
+  fj.reset(new FatJetReclusterOp<HeavyResTree>(event, cfg, utils, gt));
   op.reset(new HRTagOp(event, cfg, utils, gt));
 
   gen->print();
+  fj->print();
   op->print();
 
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Reading inputs");
@@ -85,6 +87,7 @@ HRAnalyzer::HRAnalyzer(Analysis* a, int debug_/*=0*/) :
 
   // read input data
   gen->readData(analysis.datapath);
+  fj->readData(analysis.datapath);
   op->readData(analysis.datapath);
 
   if (DEBUG) logger.debug("HRAnalyzer::HRAnalyzer","Called constructor");
@@ -98,6 +101,7 @@ HRAnalyzer::~HRAnalyzer()
 void HRAnalyzer::Reset()
 {
   gen->reset();
+  fj->reset();
   op->reset();
 
   Analyzer::Reset();
@@ -108,6 +112,7 @@ void HRAnalyzer::Reset()
 void HRAnalyzer::Terminate()
 {
   gen->terminate();
+  fj->terminate();
   op->terminate();
 
   Analyzer::Terminate();
@@ -124,6 +129,7 @@ void HRAnalyzer::Run()
   setupRun(nZero, nEvents); 
 
   gen->initialize(registry);
+  fj->initialize(registry);
   op->initialize(registry);
 
   ProgressReporter pr("HRAnalyzer::Run",&iE,&nEvents,100);
@@ -139,6 +145,7 @@ void HRAnalyzer::Run()
     tr.TriggerEvent(TString::Format("GetEntry %u",iE));
 
     gen->execute();
+    fj->execute();
     op->execute(); 
   }
 

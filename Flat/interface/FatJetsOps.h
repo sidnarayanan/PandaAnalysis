@@ -8,31 +8,68 @@
 #include "fastjet/contrib/Njettiness.hh"
 
 namespace pa {
-  class FatJetReclusterOp : public AnalysisOp {
+  // TODO: reclustered jets need jet energy scale fixed
+  template<typename T>
+  class FatJetReclusterOp : public BaseAnalysisOp<T> {
   public:
     FatJetReclusterOp(panda::EventAnalysis& event_,
                        Config& cfg_,
                        Utils& utils_,
-                       GeneralTree& gt_,
+                       T& gt_,
                        int level_=0) :
-      AnalysisOp("fjrecluster", event_, cfg_, utils_, gt_, level_) {
-        if (!on())
+      BaseAnalysisOp<T>("fjrecluster", event_, cfg_, utils_, gt_, level_), 
+      pfCandPtr(&(this->event.pfCandidates)),
+      fjPtrs(std::v_make_shared<panda::FatJet*>()) {
+        if (!this->analysis.reclusterFJ)
           return;
-        jetDef.reset(new fastjet::JetDefinition(analysis.ak8 ? fastjet::antikt_algorithm :
-                                                               fastjet::cambridge_algorithm,
-                                                analysis.ak8 ?  0.8 : 1.5));
+        auto algo = this->analysis.ak ? fastjet::antikt_algorithm :
+                                  fastjet::cambridge_algorithm;
+        jetDef.reset(new fastjet::JetDefinition(algo,
+                                                this->analysis.ak8 ?  0.8 : 1.5));
     }
     virtual ~FatJetReclusterOp () { }
 
-    virtual bool on() { return analysis.recluster; }
+    virtual bool on() { return true; }
 
   protected:
-    void do_init(Registry& registry) {
-      fjPtrs = registry.accessConst<std::vector<panda::FatJet*>>("fjPtrs");
+    void do_init(Registry& registry) { 
+      registry.publish("fjPtrs", fjPtrs);
     }
-    void do_execute();
+    void do_execute() {
+      if (!this->analysis.reclusterFJ) {
+        for (auto& fj : (this->analysis.ak8 ? this->event.puppiAK8Jets 
+                                            : this->event.puppiCA15Jets)) {
+          fjPtrs->push_back(&fj);
+        }
+      } else { 
+        // take the PF candidates and remake the jets accordingly 
+        VPseudoJet particles = convertPFCands(this->event.pfCandidates,
+                                              true,0.01);
+        fastjet::ClusterSequenceArea seq(particles,*jetDef,*(this->utils.areaDef));
+        VPseudoJet allJets(seq.inclusive_jets(0.));
+        for (auto& pj : allJets) {
+          auto* fj = new panda::FatJet();
+          fj->setPtEtaPhiM(pj.perp(), pj.eta(), pj.phi(), pj.m());
+          fj->constituents.setContainer(pfCandPtr);
+          for (auto& c : sorted_by_pt(pj.constituents())) {
+            if (c.user_index() >= 0) {
+              fj->constituents.addRef(&(this->event.pfCandidates.at(c.user_index())));
+            }
+          } 
+          fjPtrs->push_back(fj);
+        }
+      }
+    }
+    virtual void do_terminate() { do_reset(); }
+    virtual void do_reset() {
+      if (this->analysis.reclusterFJ)
+        for (auto* p : *fjPtrs)
+          delete p;
+      fjPtrs->clear();
+    }
   private:
-    std::shared_ptr<const std::vector<panda::FatJet*>> fjPtrs{nullptr};
+    const panda::ContainerBase* pfCandPtr{nullptr};
+    std::shared_ptr<std::vector<panda::FatJet*>> fjPtrs{nullptr};
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
   };
 
@@ -42,10 +79,10 @@ namespace pa {
   // intendend to be used by multiple template instances of BaseOp
   class SubRunner {
   public:
-    SubRunner(bool ak8, Utils& utils_) : utils(utils_)  {
+    SubRunner(bool ak, bool ak8, Utils& utils_) : utils(utils_)  {
       double radius = ak8 ? 0.8 : 1.5;
-      jetDef.reset(new fastjet::JetDefinition(ak8 ? fastjet::antikt_algorithm :
-                                                    fastjet::cambridge_algorithm,
+      jetDef.reset(new fastjet::JetDefinition(ak ? fastjet::antikt_algorithm :
+                                                   fastjet::cambridge_algorithm,
                                               radius));
       tauN.reset(new fastjet::contrib::Njettiness(fastjet::contrib::OnePass_KT_Axes(),
                                                   fastjet::contrib::NormalizedMeasure(1., radius)));
@@ -70,6 +107,7 @@ namespace pa {
     }
 
     void run(panda::FatJet& fj);
+    bool doECF = true; 
 
   private:
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
@@ -88,11 +126,8 @@ namespace pa {
               int level_=0) :
       BaseJetOp("fatjet", event_, cfg_, utils_, gt_, level_),
       nMaxFJ(analysis.vqqhbb ? 2 : 1),
-      fjPtrs(std::v_make_shared<panda::FatJet*>()),
-      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
-      substructure(analysis.recalcECF ? new SubRunner(analysis.ak8, utils) : nullptr) {
+      substructure(analysis.recalcECF ? new SubRunner(analysis.ak, analysis.ak8, utils) : nullptr) {
         recalcJER = analysis.applyJER || analysis.rerunJER; // if JER is requested, always run it
-        recluster = addSubOp<FatJetReclusterOp>();
         jetType = "AK8PFPuppi";
       if      (analysis.year==2016) { // CSVv2 subjet b-tagging in 2016 
         csvL = 0.5426; csvM = 0.8484; 
@@ -106,14 +141,11 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      registry.publishConst("fjPtrs", fjPtrs);
+      fjPtrs = registry.access<std::vector<panda::FatJet*>>("fjPtrs");
       matchLeps = registry.accessConst<std::vector<panda::Lepton*>>("matchLeps");
       looseLeps = registry.accessConst<std::vector<panda::Lepton*>>("looseLeps");
       matchPhos = registry.accessConst<std::vector<panda::Photon*>>("tightPhos");
       dilep = registry.accessConst<TLorentzVector>("dilep");
-    }
-    void do_reset() {
-      fjPtrs->clear();
     }
     void do_execute();
     float getMSDCorr(float,float);
@@ -122,7 +154,6 @@ namespace pa {
 
     const int nMaxFJ;
     std::shared_ptr<std::vector<panda::FatJet*>> fjPtrs{nullptr};
-    panda::FatJetCollection &fatjets;
 
     std::shared_ptr<const std::vector<panda::Lepton*>> matchLeps{nullptr};
     std::shared_ptr<const std::vector<panda::Lepton*>> looseLeps{nullptr};
@@ -130,7 +161,6 @@ namespace pa {
     std::shared_ptr<const TLorentzVector> dilep{nullptr};
     std::unique_ptr<SubRunner> substructure{nullptr};
 
-    FatJetReclusterOp *recluster{nullptr};
   };
 
   class FatJetMatchingOp : public AnalysisOp {
@@ -169,8 +199,8 @@ namespace pa {
               HeavyResTree& gt_,
               int level_=0) :
       HROp("tag", event_, cfg_, utils_, gt_, level_),
-      fatjets(analysis.ak8 ? event.puppiAK8Jets : event.puppiCA15Jets),
-      substructure(new SubRunner(analysis.ak8, utils)) {
+      substructure(new SubRunner(analysis.ak, analysis.ak8, utils)) {
+        substructure->doECF = analysis.recalcECF; 
     }
     virtual ~HRTagOp () { }
 
@@ -178,7 +208,9 @@ namespace pa {
 
   protected:
     void do_init(Registry& registry) {
-      genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
+      fjPtrs = registry.access<std::vector<panda::FatJet*>>("fjPtrs");
+      if (!analysis.isData)
+        genP = registry.accessConst<std::vector<panda::Particle*>>("genP");
     }
     void do_execute();
   private:
@@ -186,9 +218,10 @@ namespace pa {
     float getMSDCorr(float,float);
     void fillJet(panda::FatJet&);
     void doSubstructure(panda::FatJet& fj);
-    panda::FatJetCollection &fatjets;
+    void makeJets();
 
     std::shared_ptr<const std::vector<panda::Particle*>> genP{nullptr};
+    std::shared_ptr<std::vector<panda::FatJet*>> fjPtrs{nullptr};
     std::unique_ptr<SubRunner> substructure{nullptr};
   };
 }

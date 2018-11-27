@@ -124,7 +124,7 @@ namespace pa {
 
   class ConfigOp : public BaseOperator<GeneralTree> {
     public:
-      ConfigOp(const Analysis& a_, GeneralTree& gt, int DEBUG_);
+      ConfigOp(Analysis& a_, GeneralTree& gt, int DEBUG_);
       ~ConfigOp() { }
 
       void readData(TString path);
@@ -134,7 +134,7 @@ namespace pa {
       Utils utils;
 
     protected:
-      const Analysis& analysis;
+      Analysis& analysis;
       panda::utils::BranchList bl;
 
     private:

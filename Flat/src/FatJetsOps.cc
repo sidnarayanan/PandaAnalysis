@@ -33,7 +33,8 @@ void FatJetOp::do_execute()
 
   gt.nFatJet=0;
   int fatjet_counter=-1;
-  for (auto& fj : fatjets) {
+  for (auto* fjPtr : *fjPtrs) {
+    auto& fj = *fjPtr;
     ++fatjet_counter;
     bool doSmear = !analysis.isData && recalcJER;
     JetWrapper jwNominal = shiftJet(fj, shiftjes::kNominal, doSmear); 
@@ -64,7 +65,6 @@ void FatJetOp::do_execute()
     gt.nFatJet++;
     if (iFJ < nMaxFJ) {
       gt.nFatJetTrunc++; 
-      fjPtrs->push_back(&fj); 
       gt.fjIsClean[iFJ] = fatjet_counter==0 ? 1 : 0;
       gt.fjEta[iFJ] = eta;
       gt.fjPhi[iFJ] = phi;
@@ -166,8 +166,6 @@ void FatJetOp::do_execute()
       gt.ZBosonLep1CosThetaStarFJ = CosThetaStar((*looseLeps)[0]->p4(), (*looseLeps)[1]->p4(), ZHP4);
     }
   }
-
-  recluster->execute();
 }
 
 
@@ -190,49 +188,7 @@ float FatJetOp::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
-void FatJetReclusterOp::do_execute()
-{
-  if (fjPtrs->size() == 0)
-    return; 
-  auto* fjPtr = (*fjPtrs)[0]; 
-
-  VPseudoJet particles = convertPFCands(event.pfCandidates,analysis.puppiJets,0);
-  ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
-  VPseudoJet allJets(seq.inclusive_jets(0.));
-  PseudoJet *pj1=0;
-  double minDR2 = 999;
-  for (auto &jet : allJets) {
-    double dr2 = DeltaR2(jet.eta(),jet.phi_std(),fjPtr->eta(),fjPtr->phi());
-    if (dr2<minDR2) {
-      minDR2 = dr2;
-      pj1 = &jet;
-    }
-  }
-  if (pj1) {
-    VPseudoJet constituents = sorted_by_pt(pj1->constituents());
-
-    double eTot=0, eTrunc=0;
-    for (unsigned iC=0; iC!=constituents.size(); ++iC) {
-      double e = constituents.at(iC).E();
-      eTot += e;
-      if (iC<100)
-        eTrunc += e;
-    }
-
-
-    PseudoJet sdJet = (*utils.softDrop)(*pj1);
-    VPseudoJet sdConstituents = sorted_by_pt(sdJet.constituents());
-    eTot=0; eTrunc=0;
-    for (unsigned iC=0; iC!=sdConstituents.size(); ++iC) {
-      double e = sdConstituents.at(iC).E();
-      eTot += e;
-      if (iC<100)
-        eTrunc += e;
-    }
-  }
-}
-
-const GenParticle * FatJetMatchingOp::matchGen(double eta, double phi, double radius, int pdgid) const
+const GenParticle* FatJetMatchingOp::matchGen(double eta, double phi, double radius, int pdgid) const
 {
   const GenParticle* found=NULL;
   double r2 = radius*radius;
@@ -546,13 +502,14 @@ float HRTagOp::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
+
 void HRTagOp::do_execute()
 {
   // first loop through genP and find any partons worth saving
   // if this is a signal
   int i_parton = 0; 
   float minPt = 0;
-  if (analysis.processType == kTop) {
+  if (analysis.processType == kTop || analysis.processType == kTT) {
     for (auto *pptr : *genP) {
       auto& p = pToGRef(pptr);
       if (abs(p.pdgid) != 6)
@@ -610,10 +567,10 @@ void HRTagOp::do_execute()
                          DeltaR2(eta, phi, q0->eta(), q0->phi()),
                          DeltaR2(eta, phi, q1->eta(), q1->phi())});
       // now find a good fat jet
-      for (auto& fj : fatjets) {
-        if (DeltaR2(eta, phi, fj.eta(), fj.phi()) > 0.36)
+      for (auto* fj : *fjPtrs) {
+        if (DeltaR2(eta, phi, fj->eta(), fj->phi()) > 0.36)
           continue;
-        fillJet(fj);
+        fillJet(*fj);
         break;
       }
       gt.Fill();
@@ -639,10 +596,10 @@ void HRTagOp::do_execute()
       gt.gen_pdgid = p.pdgid;
       gt.gen_size = 0;
       // now find a good fat jet
-      for (auto& fj : fatjets) {
-        if (DeltaR2(eta, phi, fj.eta(), fj.phi()) > 0.36)
+      for (auto* fj : *fjPtrs) {
+        if (DeltaR2(eta, phi, fj->eta(), fj->phi()) > 0.36)
           continue;
-        fillJet(fj);
+        fillJet(*fj);
         break;
       }
       gt.Fill();
@@ -653,8 +610,7 @@ void HRTagOp::do_execute()
 
 void SubRunner::run(panda::FatJet& fj)
 {
-  VPseudoJet particles = convertPFCands(fj.constituents,true,0);
-
+  VPseudoJet particles = convertPFCands(fj.constituents,true,0.01);
 
   ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
   VPseudoJet allJets(seq.inclusive_jets(0.));
@@ -683,18 +639,20 @@ void SubRunner::run(panda::FatJet& fj)
   fj.tau3SD = tauN->getTau(3, sdConstituents);
 
   // get ecfs
-  unsigned nFilter = min(100, (int)sdConstituents.size());
-  VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
+  if (doECF) {
+    unsigned nFilter = min(100, (int)sdConstituents.size());
+    VPseudoJet sdConstsFiltered(sdConstituents.begin(), sdConstituents.begin() + nFilter);
 
-  ecfcalc->calculate(sdConstsFiltered);
-  for (auto iter = ecfcalc->begin(); iter != ecfcalc->end(); ++iter) {
-    int N = iter.get<pa::ECFCalculator::nP>();
-    int o = iter.get<pa::ECFCalculator::oP>();
-    int beta = iter.get<pa::ECFCalculator::bP>();
-    float ecf(iter.get<pa::ECFCalculator::ecfP>());
-    if (!fj.set_ecf(o+1,N+1,beta,ecf)) {
-      logger.error("SubRunner::run", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
-      throw std::runtime_error("");
+    ecfcalc->calculate(sdConstsFiltered);
+    for (auto iter = ecfcalc->begin(); iter != ecfcalc->end(); ++iter) {
+      int N = iter.get<pa::ECFCalculator::nP>();
+      int o = iter.get<pa::ECFCalculator::oP>();
+      int beta = iter.get<pa::ECFCalculator::bP>();
+      float ecf(iter.get<pa::ECFCalculator::ecfP>());
+      if (!fj.set_ecf(o+1,N+1,beta,ecf)) {
+        logger.error("SubRunner::run", Form("Failed to set ecf at %i %i %i\n", o+1, N+1, beta));
+        throw std::runtime_error("");
+      }
     }
   }
 
@@ -712,7 +670,7 @@ void SubRunner::run(panda::FatJet& fj)
 
 void HRTagOp::fillJet(panda::FatJet& fj)
 {
-  if (analysis.recalcECF) 
+  if (analysis.reclusterFJ) 
     substructure->run(fj);
 
   gt.recoil = event.recoil.max;

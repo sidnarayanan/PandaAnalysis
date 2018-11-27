@@ -27,7 +27,7 @@ def addbranches(fpath,additionalcut=None):
   jets = fin.Get('events')
   ba = root.H1BranchAdder()
 
-  hpt = gethisto(jets,'fjGenPt',175,1000,additionalcut)
+  hpt = gethisto(jets,'fjGenPt[0]',175,1000,additionalcut)
   ba.formulaX = 'fjGenPt[0]'
   ba.newBranchName = 'ptweight'
   ba.setH(hpt)

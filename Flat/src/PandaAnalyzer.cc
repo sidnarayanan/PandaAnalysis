@@ -40,6 +40,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDOP(SimplePhotonOp);
   ADDOP(ComplicatedPhotonOp);
   ADDOP(RecoilOp);
+  ADDOP(FatJetReclusterOp<GeneralTree>);
   ADDOP(FatJetOp);
   ADDOP(JetOp);
   ADDOP(TauOp);

@@ -18,9 +18,9 @@ class BDTAdder(object):
         self.ba.defaultValue = -1.2
         self.ba.presel = 'clf_ECFN_2_4_20>0'
         for v in utils.tagcfg.variables:
-            self.ba.AddVariable(v[0],v[2].replace('fj1','clf_'))
+            self.ba.AddVariable(v[0],v[2].replace('fj','clf_').replace('[0]',''))
         for v in utils.tagcfg.formulae:
-            self.ba.AddFormula(v[0],v[2].replace('fj1','clf_'))
+            self.ba.AddFormula(v[0],v[2].replace('fj','clf_').replace('[0]',''))
         for s in utils.tagcfg.spectators:
             self.ba.AddSpectator(s[0])
         self.ba.BookMVA('clf_top_ecf_bdt',data_dir+'/trainings/top_ecfbdt_v8_BDT.weights.xml')
@@ -30,8 +30,10 @@ class BDTAdder(object):
         self.ba.RunFile(fname)
 
 def fn(input_name, isData, full_path):
-    a = analysis('substructure') 
-    a.recalcECF = False
+    a = analysis('substructure',
+                 recalcECF=False,
+                 reclusterFJ=True,
+                 ak=False) 
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir

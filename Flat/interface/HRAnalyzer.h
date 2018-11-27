@@ -26,6 +26,7 @@ namespace pa {
 
         //////////////////////////////////////////////////////////////////////////////////////
         std::unique_ptr<HRGenPOp> gen{nullptr};
+        std::unique_ptr<FatJetReclusterOp<HeavyResTree>> fj{nullptr};
         std::unique_ptr<HRTagOp> op{nullptr};
         Config cfg;
         Utils utils; 

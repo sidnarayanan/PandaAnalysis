@@ -5,7 +5,7 @@ using namespace panda;
 using namespace std;
 namespace fj = fastjet;
 
-ConfigOp::ConfigOp(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
+ConfigOp::ConfigOp(Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   BaseOperator("config", gt_),
   cfg(a_, DEBUG_),
   analysis(a_),
@@ -18,6 +18,7 @@ ConfigOp::ConfigOp(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
   cfg.auxFilePath.ReplaceAll(".root","_aux%i.root");
 
   // configuration of objects
+  analysis.ak = analysis.ak || analysis.ak8; 
   if (analysis.ak8)
     cfg.FATJETMATCHDR2 = 0.8*0.8;
   if ((analysis.fatjet || analysis.ak8) ||

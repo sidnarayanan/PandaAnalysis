@@ -58,6 +58,7 @@ namespace pa {
     int year=2016;
     bool isData;
     
+    bool ak = false; 
     bool ak8 = false;
     bool applyJER = false; 
     bool bjetRegTraining = false;
@@ -87,6 +88,7 @@ namespace pa {
     bool puppiJets = true;
     bool recalcECF = false; 
     bool recluster = false;
+    bool reclusterFJ = false;
     bool recoil = true;
     bool rerunJER = false;
     bool rerunJES = false;
