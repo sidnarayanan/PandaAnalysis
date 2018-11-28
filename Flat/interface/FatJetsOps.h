@@ -44,7 +44,7 @@ namespace pa {
       } else { 
         // take the PF candidates and remake the jets accordingly 
         VPseudoJet particles = convertPFCands(this->event.pfCandidates,
-                                              true,0.01);
+                                              this->analysis.puppiJets,0.01);
         fastjet::ClusterSequenceArea seq(particles,*jetDef,*(this->utils.areaDef));
         VPseudoJet allJets(seq.inclusive_jets(0.));
         for (auto& pj : allJets) {
@@ -79,7 +79,10 @@ namespace pa {
   // intendend to be used by multiple template instances of BaseOp
   class SubRunner {
   public:
-    SubRunner(bool ak, bool ak8, Utils& utils_) : utils(utils_)  {
+    SubRunner(bool ak, bool ak8, bool puppi, bool ecf, Utils& utils_) : utils(utils_),
+                                                                        doECF(ecf),
+                                                                        doPuppi(puppi)
+    {
       double radius = ak8 ? 0.8 : 1.5;
       jetDef.reset(new fastjet::JetDefinition(ak ? fastjet::antikt_algorithm :
                                                    fastjet::cambridge_algorithm,
@@ -107,7 +110,6 @@ namespace pa {
     }
 
     void run(panda::FatJet& fj);
-    bool doECF = true; 
 
   private:
     std::unique_ptr<fastjet::JetDefinition> jetDef{nullptr};
@@ -115,6 +117,8 @@ namespace pa {
     std::unique_ptr<ECFCalculator>ecfcalc{nullptr};
     std::unique_ptr<httwrapper::HEPTopTaggerV2>htt{nullptr};
     Utils& utils;
+    bool doECF; 
+    bool doPuppi;
   };
 
   class FatJetOp : public BaseJetOp {
@@ -126,7 +130,9 @@ namespace pa {
               int level_=0) :
       BaseJetOp("fatjet", event_, cfg_, utils_, gt_, level_),
       nMaxFJ(analysis.vqqhbb ? 2 : 1),
-      substructure(analysis.recalcECF ? new SubRunner(analysis.ak, analysis.ak8, utils) : nullptr) {
+      substructure(analysis.recalcECF ? 
+                   new SubRunner(analysis.ak, analysis.ak8, true, analysis.puppiJets, utils) : 
+                   nullptr) {
         recalcJER = analysis.applyJER || analysis.rerunJER; // if JER is requested, always run it
         jetType = "AK8PFPuppi";
       if      (analysis.year==2016) { // CSVv2 subjet b-tagging in 2016 
@@ -199,9 +205,8 @@ namespace pa {
               HeavyResTree& gt_,
               int level_=0) :
       HROp("tag", event_, cfg_, utils_, gt_, level_),
-      substructure(new SubRunner(analysis.ak, analysis.ak8, utils)) {
-        substructure->doECF = analysis.recalcECF; 
-    }
+      substructure(new SubRunner(analysis.ak, analysis.ak8, 
+                                 analysis.recalcECF, analysis.puppiJets, utils)) { }
     virtual ~HRTagOp () { }
 
     virtual bool on() { return true; }

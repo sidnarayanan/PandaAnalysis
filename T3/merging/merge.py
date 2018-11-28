@@ -13,7 +13,7 @@ from PandaCore.Tools.script import *
 
 sname = argv[0]
 args = parse(('--silent', STORE_TRUE),
-             ('-cfg', {'default':'common', 'type':str}),
+             ('--cfg', {'default':'common', 'type':str}),
              ('--skip_missing', STORE_TRUE),
              ('--validate', STORE_TRUE),
              ('arguments', {'type':str, 'nargs':'+'}))

@@ -610,7 +610,7 @@ void HRTagOp::do_execute()
 
 void SubRunner::run(panda::FatJet& fj)
 {
-  VPseudoJet particles = convertPFCands(fj.constituents,true,0.01);
+  VPseudoJet particles = convertPFCands(fj.constituents,doPuppi,0.01);
 
   ClusterSequenceArea seq(particles,*jetDef,*(utils.areaDef));
   VPseudoJet allJets(seq.inclusive_jets(0.));
