@@ -349,7 +349,10 @@ void GenStudyEWKOp::do_execute()
       }
     }
     if (!isLastCopy) continue;
-  
+
+    // Remove Z/W bosons from Higgs decays
+    if(part.parent.isValid() && abs(part.parent->pdgid) == 25) continue;
+
     if (boson.Pt() < bosonPtMin) bosonPtMin = boson.Pt();
     if (abs(part.pdgid) == 23) {zBosons = zBosons + boson; nZBosons++;}
     if (abs(part.pdgid) == 24) {wBosons = wBosons + boson; nWBosons++; wBosonQ.push_back(part.pdgid>0); }

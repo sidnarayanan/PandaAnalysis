@@ -56,6 +56,15 @@ void TriggerOp::do_init(Registry& registry)
           "HLT_PFMETNoMu130_PFMHTNoMu130_IDTight",
           "HLT_PFMETNoMu140_PFMHTNoMu140_IDTight",
         };
+    } else if (analysis.year == 2018) { 
+        paths = {
+          "HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60",
+          "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60",
+          "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight",
+          "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight",
+          "HLT_PFMETNoMu130_PFMHTNoMu130_IDTight",
+          "HLT_PFMETNoMu140_PFMHTNoMu140_IDTight",
+        };
     }
     triggerHandlers[kMETTrig].addTriggers(paths);
 
@@ -85,6 +94,18 @@ void TriggerOp::do_init(Registry& registry)
           "HLT_Ele32_WPTight_Gsf_L1DoubleEG",
           "HLT_Photon200"
         };
+      } else if (analysis.year == 2018) {
+        paths = {
+          "HLT_Ele115_CaloIdVT_GsfTrkIdT",
+          "HLT_Ele27_WPTight_Gsf",
+          "HLT_Ele28_WPTight_Gsf",
+          "HLT_Ele32_WPTight_Gsf",
+          "HLT_Ele35_WPTight_Gsf",
+          "HLT_Ele38_WPTight_Gsf",
+          "HLT_Ele40_WPTight_Gsf"
+          "HLT_Ele32_WPTight_Gsf_L1DoubleEG",
+          "HLT_Photon200"
+        };
       }
     } else {
       if (analysis.year == 2016) {
@@ -105,6 +126,12 @@ void TriggerOp::do_init(Registry& registry)
           "HLT_Ele38_WPTight_Gsf",
           "HLT_Ele40_WPTight_Gsf"
         };
+      } else if (analysis.year == 2018) {
+        paths = {
+          "HLT_Ele35_WPTight_Gsf",
+          "HLT_Ele38_WPTight_Gsf",
+          "HLT_Ele40_WPTight_Gsf"
+        };
       }
     }
     triggerHandlers[kSingleEleTrig].addTriggers(paths);
@@ -112,6 +139,7 @@ void TriggerOp::do_init(Registry& registry)
     // single pho
     paths = {
           "HLT_Photon175",
+          "HLT_Photon200",
           "HLT_Photon165_HE10",
           "HLT_Photon36_R9Id90_HE10_IsoM",
           "HLT_Photon50_R9Id90_HE10_IsoM",
@@ -138,7 +166,13 @@ void TriggerOp::do_init(Registry& registry)
         };
       } else if (analysis.year == 2017) {
         paths = {
-          "HLT_IsoMu27"
+          "HLT_IsoMu24",      
+          "HLT_IsoMu27",
+          "HLT_IsoMu30"
+          "HLT_Mu50"
+        };
+      } else if (analysis.year == 2018) {
+        paths = {
           "HLT_IsoMu24",      
           "HLT_IsoMu27",
           "HLT_IsoMu30"
@@ -153,6 +187,11 @@ void TriggerOp::do_init(Registry& registry)
           "HLT_IsoMu24",
         };
       } else if (analysis.year == 2017) {
+        paths = {
+          "HLT_IsoMu24",
+          "HLT_IsoMu27"
+        };
+      } else if (analysis.year == 2018) {
         paths = {
           "HLT_IsoMu24",
           "HLT_IsoMu27"
@@ -176,6 +215,13 @@ void TriggerOp::do_init(Registry& registry)
         "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass3p8",
         "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass8"
       };
+    } else if (analysis.year==2018) {
+      paths = {
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8",
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8",
+        "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass3p8",
+        "HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ_Mass8"
+      };
     }
     triggerHandlers[kDoubleMuTrig].addTriggers(paths);
 
@@ -190,8 +236,18 @@ void TriggerOp::do_init(Registry& registry)
         "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
         "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
         "HLT_DiEle27_WPTightCaloOnly_L1DoubleEG",
-        "HLT_DoubleEle33_CaloIdL_MW",
         "HLT_DoubleEle25_CaloIdL_MW",
+        "HLT_DoubleEle33_CaloIdL_MW",
+        "HLT_DoublePhoton70"
+      };
+    else if (analysis.year==2018)
+      paths = {
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_DiEle27_WPTightCaloOnly_L1DoubleEG",
+        "HLT_DoubleEle25_CaloIdL_MW",
+        "HLT_DoubleEle27_CaloIdL_MW",
+        "HLT_DoubleEle33_CaloIdL_MW",
         "HLT_DoublePhoton70"
       };
     triggerHandlers[kDoubleEleTrig].addTriggers(paths);
@@ -219,6 +275,15 @@ void TriggerOp::do_init(Registry& registry)
         "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
         "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
       };
+    } else if (analysis.year==2018) {
+      paths = {
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"
+      };
     }
     triggerHandlers[kEMuTrig].addTriggers(paths);
 
@@ -239,6 +304,7 @@ void TriggerOp::do_init(Registry& registry)
     triggerHandlers[kMuFakeTrig].addTriggers(paths);
 
     paths = {
+          "HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30",
           "HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30",
           "HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30",
           "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30"

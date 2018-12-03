@@ -30,7 +30,7 @@ def fn(input_name, isData, full_path):
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
     a.isData = isData
-    utils.set_year(a, 2017)
+    utils.set_year(a, 2018)
     a.processType = utils.classify_sample(full_path, isData)    
 
     skimmer = root.pa.PandaAnalyzer(a)

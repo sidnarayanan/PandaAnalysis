@@ -14,12 +14,12 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
         if (analysis.useDeepCSV) {
           if (analysis.year==2016)
             calib.reset(new BTagCalibration("DeepCSV", (dirPath+"csv/DeepCSV_Moriond17_B_H.csv").Data()));
-          else if (analysis.year==2017)
+          else if (analysis.year==2017 || analysis.year==2018)
             calib.reset(new BTagCalibration("DeepCSV", (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data()));
         } else {
           if (analysis.year==2016)
             calib.reset(new BTagCalibration("csvv2", (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data()));
-          else if (analysis.year==2017)
+          else if (analysis.year==2017 || analysis.year==2018)
             calib.reset(new BTagCalibration("csvv2", (dirPath+"csv/CSVv2_94XSF_V2_B_F.csv").Data()));
         }
         readers[bJetL].reset(new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"}));
@@ -27,9 +27,9 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
         readers[bJetL]->load(*(calib),BTagEntry::FLAV_C,"comb");
         readers[bJetL]->load(*(calib),BTagEntry::FLAV_UDSG,"incl");
         
-        if (analysis.year==2017) 
+        if (analysis.year==2017 || analysis.year==2018) 
           sj_calib.reset(new BTagCalibration("DeepCSV",(dirPath+"csv/subjet_DeepCSV_94XSF_V2_B_F.csv").Data()));
-        else 
+        else if(analysis.year==2016)  
           sj_calib.reset(new BTagCalibration("csvv2",(dirPath+"moriond17/subjet_CSVv2_Moriond17_B_H.csv").Data()));
         readers[bSubJetL].reset(new BTagCalibrationReader(BTagEntry::OP_LOOSE,"central",{"up","down"}));
         readers[bSubJetL]->load(*(sj_calib),BTagEntry::FLAV_B,"lt");
@@ -64,14 +64,16 @@ BTagCorrs::BTagCorrs(TString dirPath, const Analysis& analysis, GeneralTree& gt_
       if (analysis.year==2016) {
         if (analysis.useCMVA) {
           reshaper_calib.reset(new BTagCalibration("cMVAv2", (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data()));
-        } else {
+        } 
+	else {
           if (analysis.useDeepCSV) 
             // Waiting for the Official 2016 SFs!!!
             reshaper_calib.reset(new BTagCalibration("DeepCSV", (dirPath+"csv/DeepCSV_94XSF_V2_B_F.csv").Data()));
           else
             reshaper_calib.reset(new BTagCalibration("csvv2", (dirPath+"moriond17/CSVv2_Moriond17_B_H.csv").Data()));
         }
-      } else if (analysis.year==2017) {
+      } 
+      else if (analysis.year==2017 || analysis.year==2018) {
         if (analysis.useCMVA) {
           logger.warning("BTagCorrs::BTagCorrs","CMVA is not supported in 2017!");
           reshaper_calib.reset(new BTagCalibration("cMVAv2", (dirPath+"moriond17/cMVAv2_Moriond17_B_H.csv").Data()));

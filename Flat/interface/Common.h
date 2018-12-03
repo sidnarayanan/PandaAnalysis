@@ -168,6 +168,7 @@ namespace pa {
     cZllHEwkCorrUp,   //!< Z(ll)H Ewk Corr weight Up  
     cZllHEwkCorrDown, //!< Z(ll)H Ewk Corr weight Down  
     cL1PreFiring, //!< PreFiring weights 
+    cL1PhotonPreFiring, //!< PhotonPreFiring weights 
     cN
   };
 
