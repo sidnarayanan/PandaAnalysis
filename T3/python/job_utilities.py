@@ -7,7 +7,7 @@ import requests
 from re import sub
 from glob import glob 
 from random import choice
-from sys import exit, argv
+from sys import exit, argv, stdout
 from time import clock, time, sleep
 from os import system, getenv, path, environ, getpid
 
@@ -149,7 +149,9 @@ def request_data(xrd_path, first_attempt):
                     return local_user_path
 
     # ok now we have to copy the data in:
-    xrdargs = ['xrdcopy', '--nopbar', '-f', xrd_path]
+    xrdargs = ['xrdcopy', '-f', xrd_path]
+    if not stdout.isatty():
+        xrdargs.insert(1, '--nopbar')
     cache = _is_t3 and _to_hdfs
     if cache:
         input_path = local_path.replace('paus', _user) 

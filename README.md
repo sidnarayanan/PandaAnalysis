@@ -140,7 +140,7 @@ private:
 All `AnalysisOp`s are added to `PandaAnalyzer` in the constructor, even if your analysis does not want to run them.
 Ops are turned on and off by `AnalysisOp::on()`.
 This adds a bit of memory overhead, but it's small in the grand scale of things and allows for more run-time flexibility. 
-One adds an op by calling `ADDMOP(OpClass)`. 
+One adds an op by calling `ADDOP(OpClass)`. 
 The ops are executed in the order they are added.
 Ops are called either before or after the preselections are checked (see below).
 Depending on the needs of your op, you may want to put things in one place or another.
@@ -198,9 +198,12 @@ You have to open up the script and modify the number of events you want to run, 
 ## Running an analysis
 The analysis framework is heavily integrated with HTCondor resources at MIT. 
 There are three running options:
-- Using only the T3 (`export SUBMIT_CONFIG=T3`). This is used by `check` and `submit` since local filesystem access is needed.
-- Using the T3 with opportunistic flocking to the T2 (`export SUBMIT_CONFIG=T2`). This is default for analysis jobs.
-- Using the entire SubMIT grid (`export SUBMIT_CONFIG=SubMIT`). This is failure-prone due to the heterogenity of the grid, but with aggressive resubmission, can be useful for CPU-intensive tasks. Instructions for this are below.
+- Using only the T3 (option `T3`). This is used by `check` and `submit` since local filesystem access is needed.
+- Using the T3 with opportunistic flocking to the T2 (option `T2`). This is default for analysis jobs.
+- Using the entire SubMIT grid (option `SubMIT`). This is failure-prone due to the heterogenity of the grid, but with aggressive resubmission, can be useful for CPU-intensive tasks. Instructions for this are below.
+By default, any available node that meets minimum requirements (memory, CVMFS access) will be used, as long as it either provides SL6 or is RHEL7 with Singularity available for SL6.
+However, Singularity is failure-prone on the T3 at the moment, so providing option `SL6` will restrict to SL6-only nodes.
+I recommend using the option `export SUBMIT_CONFIG=T2:SL6`.
 
 For what follows, I assume you're in `$CMSSW_BASE/src/PandaAnalysis/T3`.
 
@@ -216,20 +219,17 @@ The main function you have to worry about is `fn`.
 Here is an example:
 ```python
 def fn(input_name, isData, full_path):
-    logger.info(sname+'.fn','Starting to process '+input_name)
-    # now we instantiate and configure the analyzer
-    a = monotop(True)
-    a.recalcECF = True 
-    a.mcTriggers = True
+    a = vbf(True)
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
     a.isData = isData
     utils.set_year(a, 2016)
-    a.processType = utils.classify_sample(full_path, isData)    
+    a.processType = utils.classify_sample(full_path, isData)	
 
     skimmer = root.pa.PandaAnalyzer(a)
-    skimmer.AddPresel(root.pa.FatJetSel())
+    skimmer.AddPresel(root.pa.RecoilSel())
+    skimmer.AddPresel(root.pa.CategorySel())
 
     return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
 ```
@@ -265,10 +265,13 @@ export SUBMIT_TMPL="skim_merge_tmpl.py"  # name of template script in T3/inputs
 export SUBMIT_NAME="v_8024_2_0"  # name for this job
 export SUBMIT_WORKDIR="/data/t3serv014/snarayan/condor/"${SUBMIT_NAME}"/work/"  # staging area for submission
 export SUBMIT_LOGDIR="/data/t3serv014/snarayan/condor/"${SUBMIT_NAME}"/logs/"  # log directory
-export SUBMIT_LOGDIR="/data/t3serv014/snarayan/condor/"${SUBMIT_NAME}"/locks/"  # lock directory
 export SUBMIT_OUTDIR="/mnt/hadoop/scratch/snarayan/panda/"${SUBMIT_NAME}"/batch/"  # location of unmerged files
 export PANDA_FLATDIR="${HOME}/home000/store/panda/v_8024_2_0/"   # merged output
-export SUBMIT_CONFIG=T2  # allow running on T3 or T2. if $SUBMIT_CONFIG==T3, then only run on T3
+export SUBMIT_CONFIG=T2:SL6  # allow running on T3 or T2. if $SUBMIT_CONFIG==T3, then only run on T3
+export SUBMIT_REPORT=  # this needs to be defined, but I don't want to put hostnames on github. ask Sid
+export SUBMIT_HDFSCACHE=1 # allow caching missing files in your private hadoop, to be shared with other users. 
+                          # if set to 0, caching will be done to the local disk, which is faster for single-use,
+                          # but will require re-copying the input every time 
 ```
 
 `T3/inputs/$SUBMIT_TMPL` should be the skimming configuration you wish to run your files through. 

@@ -2,7 +2,6 @@
 
 from glob import glob
 from os import stat,getenv,system,path
-from multiprocessing import Pool
 from PandaCore.Tools.script import * 
 from re import sub, match
 from sys import argv

@@ -12,8 +12,6 @@ Load('PandaAnalyzer')
 data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
 def fn(input_name, isData, full_path):
-    
-    # now we instantiate and configure the analyzer
     a = vbf(True)
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)

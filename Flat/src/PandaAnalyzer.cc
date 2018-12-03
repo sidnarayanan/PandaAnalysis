@@ -278,6 +278,8 @@ void PandaAnalyzer::Run()
 
   }
 
+  pr.Done();
+
   tr.Summary();
   for (auto& s : selections)
     s->report();

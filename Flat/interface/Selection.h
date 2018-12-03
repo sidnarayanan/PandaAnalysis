@@ -64,6 +64,15 @@ namespace pa {
                 __ACCPFUNC((gt->category>0) || (gt->category!=0 && !tightOnly))) { }
   };
 
+  class DimuonDijetSel: public LambdaSel {
+  public:
+    DimuonDijetSel():
+      LambdaSel(Selection::sReco, "DimuonDijet",
+                __ACCPFUNC(gt->nLooseMuon>1 && gt->muonPt[0]>20 && gt->muonPt[1]>10 && 
+                           gt->diLepMass>10 && gt->nJot[0]>1 && (gt->nJot[0]-gt->nJet[0])>0 && 
+                           gt->jotPt[0][1]>20)) { }
+  };
+
   class TriggerSel: public LambdaSel {
   public:
     TriggerSel():
@@ -132,13 +141,22 @@ namespace pa {
 
   class RecoilSel: public Selection {
   public:
-    RecoilSel(): Selection(Selection::sReco, "recoil") { }
-    float threshold{200};
+    RecoilSel(float threshold_=200): Selection(Selection::sReco, "recoil"),
+                                     threshold(threshold_) { }
   protected:
     virtual bool do_accept() const;
+    float threshold;
     bool vary_jes{true};
   };
   typedef RecoilSel MonojetSel; // backwards compatibility
+
+
+  class FJRecoilSel : public RecoilSel {
+  public:
+    FJRecoilSel(float t_=175) : RecoilSel(t_) { name = "fjrecoi"; }
+  protected:
+    virtual bool do_accept() const; 
+  };
 
 
   class MonotopSel: public RecoilSel {
