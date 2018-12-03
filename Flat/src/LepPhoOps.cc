@@ -435,12 +435,10 @@ void SimplePhotonOp::scaleFactors()
   if (analysis.isData)
     return; 
 
-  // prefiring weights (photon weights only for 2017)
+  // prefiring weights
   gt.sf_l1Prefire = 1.0;
-  if (analysis.year == 2017) {
+  if (analysis.year == 2016 || analysis.year == 2017) {
     for (auto& pho : event.photons) {
-      if (!pho.loose)
-        continue;
       float pt = pho.pt(), eta = pho.eta();
       if (pt<20) 
         continue;

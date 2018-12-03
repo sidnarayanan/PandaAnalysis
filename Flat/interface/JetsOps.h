@@ -213,11 +213,12 @@ namespace pa {
           } else { 
             csvL = 0.5426; csvM = 0.8484; 
           }
-        } else {
-          jecV = "V8"; jecReco = "17Nov2017";
+        } 
+	else if (analysis.year == 2017 || analysis.year == 2018) {
+          jecV = "V32"; jecReco = "17Nov2017";
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
-          eraGroups = {"B","C","D","E","F"};
+          eraGroups = {"B","C","DE","F"};
           spacer = "_";
           if (analysis.useDeepCSV) { 
             csvL = 0.1522; csvM = 0.4941; 

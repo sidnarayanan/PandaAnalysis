@@ -13,7 +13,9 @@ ConfigOp::ConfigOp(const Analysis& a_, GeneralTree& gt_, int DEBUG_) :
 {
 
   cfg.isData = analysis.isData;
-  utils.eras.reset(new EraHandler(analysis.year));
+  int hackYear = analysis.year;
+  if(analysis.year == 2018 ) hackYear = 2017;
+  utils.eras.reset(new EraHandler(hackYear));
   cfg.auxFilePath = analysis.outpath;
   cfg.auxFilePath.ReplaceAll(".root","_aux%i.root");
 
@@ -180,31 +182,44 @@ void ConfigOp::readData(TString dirPath)
     utils.openCorr(cPU,dirPath+"pileup/puWeights_90x_41ifb.root","puWeights",1);
     utils.openCorr(cPUUp,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsUp",1);
     utils.openCorr(cPUDown,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsDown",1);
-  } else {
+  } 
+  else if (analysis.year == 2016) {
+    utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
+    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
+    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
+  }
+  else if (analysis.year == 2018) { // TO BE REPLACED!
     utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
     utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
     utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
   }
 
   // prefiring
-  if (analysis.year == 2017) {
-    utils.openCorr(cL1PreFiring,
-                   dirPath+"trigger_eff/L1prefiring_jet_2017BtoF.root","L1prefiring_jet_2017BtoF",
-                   2);
+  if      (analysis.year == 2017) {
     utils.openCorr(cL1PhotonPreFiring,
-                   dirPath+"trigger_eff/L1prefiring_photon_2017BtoF.root","L1prefiring_photon_2017BtoF",
+                   dirPath+"trigger_eff/L1prefiring_photonpt_2017BtoF.root",
+		   "L1prefiring_photonpt_2017BtoF",
                    2);
-  } else {
     utils.openCorr(cL1PreFiring,
-                   dirPath+"trigger_eff/Map_Jet_L1FinOReff_bxm1_looseJet_SingleMuon_Run2016B-H.root",
-                   "prefireEfficiencyMap",
+                   dirPath+"trigger_eff/L1prefiring_jetpt_2017BtoF.root",
+		   "L1prefiring_jetpt_2017BtoF",
+                   2);
+  } 
+  else if (analysis.year == 2016) {
+    utils.openCorr(cL1PhotonPreFiring,
+                   dirPath+"trigger_eff/L1prefiring_photonpt_2016BtoH.root",
+		   "L1prefiring_photonpt_2016BtoH",
+                   2);
+    utils.openCorr(cL1PreFiring,
+                   dirPath+"trigger_eff/L1prefiring_jetpt_2016BtoH.root",
+                   "L1prefiring_jetpt_2016BtoH",
                    2);
   }
 
   if (analysis.complicatedLeptons) {
     // Corrections checked out from Gui's repository on Nov 12, 2017 ~DGH
     // https://github.com/GuillelmoGomezCeballos/MitAnalysisRunII/tree/master/data/80x
-    if (analysis.year==2017) {
+    if (analysis.year==2017 || analysis.year==2018) {
       utils.openCorr(cEleVeto,
                      dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingVeto94X.root",
                      "EGamma_SF2D",2);
@@ -398,7 +413,7 @@ void ConfigOp::readData(TString dirPath)
                  "sf",1);
 
   // triggers
-  if (analysis.year==2017) {
+  if (analysis.year==2017 || analysis.year==2018) {
     utils.openCorr(cTrigDoubleEleLeg1,
                    dirPath+"leptonic/scalefactors_94x_vhdudes_2017.root",
                    "scalefactors_doubleEleTriggerLeg1",2);

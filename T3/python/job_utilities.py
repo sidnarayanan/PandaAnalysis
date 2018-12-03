@@ -436,6 +436,7 @@ class BDTAdder(object):
 _jsons = {
         2016 : '/certs/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt', 
         2017 : '/certs/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt', 
+        2018 : '/certs/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt', 
         }
 def add_json(skimmer):
     json_path = _jsons.get(_year, None)
