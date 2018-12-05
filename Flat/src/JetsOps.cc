@@ -159,20 +159,17 @@ void JetOp::do_execute()
     bool metShift = (i2jes(shift) <= shiftjes::kJESTotalDown);
     JESHandler& jets = (*jesShifts)[shift];
     (*currentJES) = &jets;
-    if (isNominal) 
-      gt.sf_l1Prefire = 1.0;
     for (auto& jw : jets.all) {
       (*currentJet) = &jw;
       auto& jet = jw.get_base();
       float aeta = abs(jet.eta());
       float pt = jw.pt;
 
-      if (isNominal) {
-        // prefiring weights
-        if (analysis.year == 2017) 
+      if (analysis.year == 2016 || analysis.year == 2017) {
+        if (isNominal && !isMatched(matchVeryLoosePhos.get(),0.16,jet.eta(),jet.phi())) {
+          // prefiring weights
           gt.sf_l1Prefire *= (1.0 - utils.getCorr(cL1PreFiring,jet.eta(),pt));
-        else 
-          gt.sf_l1Prefire *= (1.0 - utils.getCorr(cL1PreFiring,aeta,pt));
+        }
       }
 
       if (aeta > maxJetEta || jw.nominal->maxpt < minMinJetPt)
@@ -324,7 +321,6 @@ void JetOp::do_execute()
     hbb->execute();
 
   } // shift loop
-
   gt.barrelHTMiss = vBarrelJets.Pt();
 
 }

@@ -434,6 +434,19 @@ void SimplePhotonOp::scaleFactors()
 {
   if (analysis.isData)
     return; 
+
+  // prefiring weights
+  gt.sf_l1Prefire = 1.0;
+  if (analysis.year == 2016 || analysis.year == 2017) {
+    for (auto& pho : event.photons) {
+      float pt = pho.pt(), eta = pho.eta();
+      if (pt<20) 
+        continue;
+      veryLoosePhos->push_back(&pho);
+      gt.sf_l1Prefire *= (1.0 - utils.getCorr(cL1PhotonPreFiring,eta,pt));
+    }
+  }
+
   if (gt.nLoosePhoton < 1)
     return;
   float pt = gt.loosePho1Pt, eta = gt.loosePho1Eta;
