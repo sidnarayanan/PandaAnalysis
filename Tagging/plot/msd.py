@@ -14,8 +14,10 @@ cuts['ZpTT_lo'] = tAND(cuts['QCD'], 'fabs(gen_pdgid)==6 && gen_size<1.44')
 weight = 'ptweight'
 branches = ['gen_pt','clf_MSD', 'clf_M', 'clf_Tau32', 'clf_Tau32SD', weight]
 pt_bins = [200, 300, 500, 700, 1000]
-colors = [root.kBlack, root.kGray+3, root.kGray+2, root.kGray+1, root.kGray]
-#colors = [root.kRed, root.kMagenta+3, root.kViolet, root.kViolet+10, root.kBlue]
+#colors = [root.kBlack, root.kGray+3, root.kGray+2, root.kGray+1, root.kGray]
+colors = [root.TColor.GetColor(r,0,b) for r,b in zip(np.linspace(1,0,len(pt_bins)),
+                                                     np.linspace(0,1,len(pt_bins)))]
+print colors 
 #pt_bins.insert(0, 'Inclusive')
 
 plot = root.HistogramDrawer()

@@ -6,7 +6,7 @@ from PandaAnalysis.Monotop.CombinedBVetoSelection import cuts
 import numpy as np 
 import json 
 
-betas = [0.5, 1, 2, 4]
+betas = [0.5, 1., 2., 4.]
 orders = [1, 2, 3]
 Ns = [2, 3, 4]
 
@@ -71,6 +71,7 @@ for n in ecfs:
                 'label' : r.label(),
                 'lo' : np.min(vals),
                 'hi' : hi,
+                'median' : np.percentile(vals, 50),
             }
 
 with open('ranges.json','w') as fp:

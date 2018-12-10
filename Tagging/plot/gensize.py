@@ -9,9 +9,10 @@ from PandaCore.Tools.root_interface import Selector
 
 Load('CanvasDrawer')
 c = root.CanvasDrawer(800, 600)
+c.SetTDRStyle()
 c.GetCanvas().SetRightMargin(0.125)
 c.GetCanvas().SetTopMargin(0.05)
-c.GetCanvas().SetLeftMargin(0.15)
+c.GetCanvas().SetLeftMargin(0.13)
 c.GetCanvas().SetBottomMargin(0.15)
 c.cd()
 

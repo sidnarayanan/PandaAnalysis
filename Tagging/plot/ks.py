@@ -66,7 +66,9 @@ for p in params:
 
 
 c = root.CanvasDrawer(800, 600)
-c.GetCanvas().SetRightMargin(0.15)
+c.SetTDRStyle()
+c.GetCanvas().SetRightMargin(0.16)
+c.GetCanvas().SetLeftMargin(0.1)
 c.cd()
 for a in params['a']:
     for b in params['b']:
@@ -173,6 +175,3 @@ h2.SetMinimum(0)
 g1.SetMarkerStyle(20)
 #g1.Draw('p same')
 c.Draw(args.outdir, 'scanmnab')
-
-
-

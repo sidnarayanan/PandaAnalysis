@@ -9,7 +9,8 @@ triggers = {
 
 metFilter='metFilter==1'
 topTagSF = '1'
-presel = 'nFatJet==1 && fjPt[0]>250 && fabs(fjEta[0])<2.4 && 110<fjMSD[0] && fjMSD[0]<210 && 0.1<top_ecf_bdt'
+presel = 'nFatJet==1 && fjPt[0]>250 && fabs(fjEta[0])<2.4'
+#presel = 'nFatJet==1 && fjPt[0]>250 && fabs(fjEta[0])<2.4 && 110<fjMSD[0] && fjMSD[0]<210 && 0.1<top_ecf_bdt'
 
 cuts = {
     'signal'          : 'pfmet>250 && dphipfmet>0.5 && nLooseLep==0 && nLoosePhoton==0 && nTau==0 && fabs(calomet-pfmet)/pfmet<0.5 && fjMaxCSV[0]>0.54 && isojetNBtags==0', 

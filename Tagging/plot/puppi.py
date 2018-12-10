@@ -14,7 +14,7 @@ c.GetCanvas().SetLeftMargin(0.15)
 c.GetCanvas().SetBottomMargin(0.15)
 c.cd()
 
-args = parse('--outdir', '--proc')
+args = parse('--outdir', '--proc', '--field')
 
 f = {}
 f['pf'] = root.TFile.Open(flatdir + '/%s.root'%args.proc)
@@ -29,21 +29,22 @@ if is_top:
 
 for k,s in sel.iteritems():
     s.read_tree(t[k], cut=cut, 
-                branches=['npv', 'clf_MSD', 'ptweight'])
+                branches=['npv', args.field, 'ptweight'])
 
 nbins = 8
-if is_top:
+if args.field == 'clf_MSD':
     hbase = root.TH2D('','',nbins,1,40,50,0,400)
+    hbase.GetYaxis().SetTitle('m_{SD} [GeV]')
 else:
-    hbase = root.TH2D('','',nbins,1,40,50,0,400)
+    hbase = root.TH2D('','',nbins,1,40,50,0.2,1.2)
+    hbase.GetYaxis().SetTitle('#tau_{32}^{SD}')
 hbase.GetXaxis().SetTitle('N_{PV}')
-hbase.GetYaxis().SetTitle('m_{SD} [GeV]')
 hbase.GetXaxis().SetTitleOffset(1); hbase.GetXaxis().SetTitleSize(0.06)
 hbase.GetYaxis().SetTitleOffset(1); hbase.GetYaxis().SetTitleSize(0.06)
 
 def draw(key, color):
     s = sel[key]
-    h = s.draw(fields=['npv', 'clf_MSD'], hbase=hbase, weight='ptweight')
+    h = s.draw(fields=['npv', args.field], hbase=hbase, weight='ptweight')
     h.SetMarkerColor(color)
     h.SetMarkerSize(1)
     h.SetFillColorAlpha(color, 0.1)
@@ -57,7 +58,8 @@ h = {
     }
 
 
-style = 'CANDLEX(000131)'
+#style = 'VIOLINX(03000130)'
+style = 'CANDLEX(10000131)'
 #style = 'violin'
 h['pf'].Draw(style)
 c.GetLegend().AddEntry(h['pf'], 'All particles', 'lfp')
@@ -65,5 +67,5 @@ h['puppi'].Draw(style+'SAME')
 c.GetLegend().AddEntry(h['puppi'], 'PUPPI', 'lfp')
 c.GetCanvas().Update()
 
-c.Draw(args.outdir, 'npv_' + args.proc)
+c.Draw(args.outdir, 'npv_'+args.field+'_'+args.proc)
 

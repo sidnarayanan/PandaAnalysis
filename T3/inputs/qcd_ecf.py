@@ -12,7 +12,7 @@ Load('PandaAnalyzer')
 data_dir = getenv('CMSSW_BASE') + '/src/PandaAnalysis/data/'
 
 def fn(input_name, isData, full_path):
-    a = vbf(True)
+    a = monotop(True)
     a.inpath = input_name
     a.outpath = utils.input_to_output(input_name)
     a.datapath = data_dir
@@ -21,11 +21,10 @@ def fn(input_name, isData, full_path):
     a.processType = utils.classify_sample(full_path, isData)	
 
     skimmer = root.pa.PandaAnalyzer(a)
-#    skimmer.AddPresel(root.pa.RecoilSel())
-#    skimmer.AddPresel(root.pa.CategorySel())
+    skimmer.AddPresel(root.pa.RecoilSel())
 
     return utils.run_PandaAnalyzer(skimmer, isData, a.outpath)
 
 
 if __name__ == "__main__":
-    utils.wrapper(fn) 
+    utils.wrapper(fn, post_fn=utils.BDTAdder())
