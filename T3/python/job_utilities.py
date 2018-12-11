@@ -29,7 +29,7 @@ _job_id = None                                                   # identifying s
 _year = 2016                                                     # what year's data is this analysis?
 maxcopy = 3                                                      # maximum number of stagein attempts
 _to_hdfs = bool(getenv('SUBMIT_HDFSCACHE', False))               # should we cache on hdfs instead of local
-_users = ['snarayan', 'bmaier', 'dhsu', 'ceballos']              # MIT T3 PandaAnalysis users 
+_users = ['snarayan', 'bmaier', 'dhsu', 'ceballos', 'ballen']    # MIT T3 PandaAnalysis users 
 
 stageout_protocol = None                                         # what stageout should we use?
 if _is_t3:
@@ -160,6 +160,7 @@ def request_data(xrd_path, first_attempt):
             try:
                 logger.info(_sname+'.request_data', 'creating parent at '+parent)
                 os.makedirs(parent)
+                os.chmod(parent, 0777)
             except OSError as e:
                 logger.warning(_sname+'.request_data', str(e))
                 pass 
