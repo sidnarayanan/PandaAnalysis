@@ -176,6 +176,7 @@ def request_data(xrd_path, first_attempt):
             payload = {'path' : input_path, 
                        'bytes' : path.getsize(input_path)}
             r = requests.post(cb.report_server+'/condor/requestdata', json=payload)
+            os.chmod(input_path, 0777)
         logger.info(_sname+'.request_data', 'Successfully xrdcopied %s'%input_path)
         return input_path
     return None 
