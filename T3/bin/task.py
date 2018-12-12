@@ -103,6 +103,10 @@ def build_snapshot(N, modify=False):
     fin = open(outcfg.replace('local.cfg', 'list.cfg'))
     samples = jm.convert_catalog(list(fin), as_dict=True)
     keys = sorted(samples)
+    if len(keys) == 0:
+        logger.error('Configuration is empty - exiting!')
+        sys.exit(1)
+
     to_write = [samples[k].get_config(N, suffix='_%i') for k in keys]
     with open(outcfg, 'w') as fout:
         for i,c in enumerate(chain.from_iterable(to_write)):
