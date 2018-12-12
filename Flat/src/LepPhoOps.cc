@@ -325,14 +325,20 @@ void ComplicatedLeptonOp::do_execute()
     gt.muonPhi[iL]                  = mu.phi();
     gt.muonD0[iL]                   = mu.dxy;
     gt.muonDZ[iL]                   = mu.dz;
-    gt.muonSfLoose[iL]              = utils.getCorr(cMuLooseID, TMath::Abs(mu.eta()), mu.pt()) 
-                                        * utils.getCorr(cMuLooseIso, TMath::Abs(mu.eta()), 
-                                                    mu.pt());
-    gt.muonSfMedium[iL]             = utils.getCorr(cMuMediumID, TMath::Abs(mu.eta()), mu.pt());
-    gt.muonSfTight[iL]              = utils.getCorr(cMuTightID, TMath::Abs(mu.eta()), mu.pt())  
-                                        * utils.getCorr(cMuTightIso, TMath::Abs(mu.eta()), mu.pt());
-    gt.muonSfUnc[iL]                = utils.getError(cMuMediumID , TMath::Abs(mu.eta()), mu.pt());
-    gt.muonSfReco[iL]               = utils.getCorr(cMuReco, mu.eta());
+    double varXY[2] = {TMath::Abs(mu.eta()), mu.pt()};
+    if(analysis.year == 2017 || analysis.year == 2018) {
+     varXY[0] = mu.pt();
+     varXY[1] = TMath::Abs(mu.eta());
+    }
+    gt.muonSfLoose[iL]              = utils.getCorr(cMuLooseID , varXY[0], varXY[1]) *
+                                      utils.getCorr(cMuLooseIso, varXY[0], varXY[1]);
+    gt.muonSfMedium[iL]             = utils.getCorr(cMuMediumID,  varXY[0], varXY[1]) *
+                                      utils.getCorr(cMuMediumIso, varXY[0], varXY[1]);
+    gt.muonSfTight[iL]              = utils.getCorr(cMuTightID,  varXY[0], varXY[1]) *
+                                      utils.getCorr(cMuTightIso, varXY[0], varXY[1]);
+    gt.muonSfUnc[iL]                = utils.getError(cMuMediumID,  varXY[0], varXY[1]) *
+                                      utils.getError(cMuMediumIso, varXY[0], varXY[1]);
+    gt.muonSfReco[iL]               = 1.0;
     gt.muonSelBit[iL]               = muSelBit;
     gt.muonPdgId[iL]                = mu.charge*-13;
     gt.muonIsSoftMuon[iL]           = mu.soft;
@@ -398,7 +404,6 @@ void ComplicatedLeptonOp::do_execute()
     gt.ZBosonLep1CosThetaCS = CosThetaCollinsSoper(v1,v2);
     // ZBosonLep1CosThetaStar, ZBosonLep1CosThetaStarFJ
     // are not calculated here, we need the Z(ll)H(bb) system in JetsOps
-    
   } 
 
 }

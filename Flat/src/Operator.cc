@@ -176,20 +176,19 @@ void ConfigOp::readData(TString dirPath)
 {
   dirPath += "/";
 
-
   // pileup
   utils.openCorr(cNPV,dirPath+"moriond17/normalized_npv.root","data_npv_Wmn",1);
-  if (analysis.year == 2017) {
+  if      (analysis.year == 2018) {
+    utils.openCorr(cPU,dirPath+"pileup/puWeights_10x_56ifb.root","puWeights",1);
+    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_10x_56ifb.root","puWeightsUp",1);
+    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_10x_56ifb.root","puWeightsDown",1);
+  }
+  else if (analysis.year == 2017) {
     utils.openCorr(cPU,dirPath+"pileup/puWeights_90x_41ifb.root","puWeights",1);
     utils.openCorr(cPUUp,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsUp",1);
     utils.openCorr(cPUDown,dirPath+"pileup/puWeights_90x_41ifb.root","puWeightsDown",1);
   } 
   else if (analysis.year == 2016) {
-    utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
-    utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
-    utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
-  }
-  else if (analysis.year == 2018) { // TO BE REPLACED!
     utils.openCorr(cPU,dirPath+"pileup/puWeights_80x_37ifb.root","puWeights",1);
     utils.openCorr(cPUUp,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsUp",1);
     utils.openCorr(cPUDown,dirPath+"pileup/puWeights_80x_37ifb.root","puWeightsDown",1);
@@ -218,9 +217,25 @@ void ConfigOp::readData(TString dirPath)
   }
 
   if (analysis.complicatedLeptons) {
-    // Corrections checked out from Gui's repository on Nov 12, 2017 ~DGH
-    // https://github.com/GuillelmoGomezCeballos/MitAnalysisRunII/tree/master/data/80x
     if (analysis.year==2017 || analysis.year==2018) {
+      utils.openCorr(cMuLooseID,
+                     dirPath+"leptonic/scalefactors_muons_2017_id.root",
+                     "NUM_LooseID_DEN_genTracks_pt_abseta",2);
+      utils.openCorr(cMuMediumID,
+                     dirPath+"leptonic/scalefactors_muons_2017_id.root",
+                     "NUM_MediumID_DEN_genTracks_pt_abseta",2);
+      utils.openCorr(cMuTightID,
+                     dirPath+"leptonic/scalefactors_muons_2017_id.root",
+                     "NUM_TightID_DEN_genTracks_pt_abseta",2);
+      utils.openCorr(cMuLooseIso,
+                     dirPath+"leptonic/scalefactors_muons_2017_iso.root",
+                     "NUM_LooseRelIso_DEN_LooseID_pt_abseta",2);
+      utils.openCorr(cMuMediumIso,
+                     dirPath+"leptonic/scalefactors_muons_2017_iso.root",
+                     "NUM_TightRelIso_DEN_MediumID_pt_abseta",2);
+      utils.openCorr(cMuTightIso,
+                     dirPath+"leptonic/scalefactors_muons_2017_iso.root",
+                     "NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta",2);
       utils.openCorr(cEleVeto,
                      dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingVeto94X.root",
                      "EGamma_SF2D",2);
@@ -242,35 +257,13 @@ void ConfigOp::readData(TString dirPath)
       utils.openCorr(cEleReco,
                      dirPath+"leptonic/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root",
                      "EGamma_SF2D",2);
-      // NEED TO UPDATE THESE!
-      utils.openCorr(cMuLooseID,
-                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                     "scalefactors_MuonLooseId_Muon",2);
-      utils.openCorr(cMuMediumID,
-                     dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
-                     "scalefactors_Medium_Muon",2);
-      utils.openCorr(cMuTightID,
-                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                     "scalefactors_TightId_Muon",2);
-      utils.openCorr(cMuLooseIso,
-                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                     "scalefactors_Iso_MuonLooseId",2);
-      utils.openCorr(cMuMediumIso,
-                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                     "scalefactors_Iso_MuonMediumId",2);
-      utils.openCorr(cMuTightIso,
-                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
-                     "scalefactors_Iso_MuonTightId",2);
-      utils.openCorr(cMuReco,
-                     dirPath+"leptonic/Tracking_EfficienciesAndSF_BCDEFGH.root",
-                     "ratio_eff_eta3_dr030e030_corr",1);
     } else {
       utils.openCorr(cMuLooseID,
                      dirPath+"leptonic/muon_scalefactors_37ifb.root",
                      "scalefactors_MuonLooseId_Muon",2);
       utils.openCorr(cMuMediumID,
-                     dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
-                     "scalefactors_Medium_Muon",2);
+                     dirPath+"leptonic/muon_scalefactors_37ifb.root",
+                     "scalefactors_MuonMediumId_Muon",2);
       utils.openCorr(cMuTightID,
                      dirPath+"leptonic/muon_scalefactors_37ifb.root",
                      "scalefactors_TightId_Muon",2);
@@ -283,9 +276,6 @@ void ConfigOp::readData(TString dirPath)
       utils.openCorr(cMuTightIso,
                      dirPath+"leptonic/muon_scalefactors_37ifb.root",
                      "scalefactors_Iso_MuonTightId",2);
-      utils.openCorr(cMuReco,
-                     dirPath+"leptonic/Tracking_EfficienciesAndSF_BCDEFGH.root",
-                     "ratio_eff_eta3_dr030e030_corr",1);
       utils.openCorr(cEleVeto,
                      dirPath+"moriond17/scaleFactor_electron_summer16.root",
                      "scaleFactor_electron_vetoid_RooCMSShape_pu_0_100",2);
@@ -293,7 +283,7 @@ void ConfigOp::readData(TString dirPath)
                      dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                      "scalefactors_Loose_Electron",2);
       utils.openCorr(cEleMedium,
-                     dirPath+"leptonic/scalefactors_80x_dylan_37ifb.root",
+                     dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
                      "scalefactors_Medium_Electron",2);
       utils.openCorr(cEleTight,
                      dirPath+"leptonic/scalefactors_80x_egpog_37ifb.root",
@@ -316,20 +306,6 @@ void ConfigOp::readData(TString dirPath)
       utils.openCorr(cEleReco,
                      dirPath+"moriond17/scaleFactor_electron_reco_summer16.root",
                      "scaleFactor_electron_reco_RooCMSShape_pu_0_100",2);
-      utils.openCorr(cMuLooseID,
-                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                     "scalefactors_MuonLooseId_Muon",2);
-      utils.openCorr(cMuLooseIso,
-                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                     "scalefactors_Iso_MuonLooseId",2);
-      utils.openCorr(cMuTightID,
-                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                     "scalefactors_TightId_Muon",2);
-      utils.openCorr(cMuTightIso,
-                     dirPath+"moriond17/muon_scalefactors_37ifb.root",
-                     "scalefactors_Iso_MuonTightId",2);
-      utils.openCorr(cMuReco,
-                     dirPath+"moriond17/Tracking_12p9.root","htrack2",1);
     }
     // EWK corrections 
     utils.openCorr(cWZEwkCorr,
