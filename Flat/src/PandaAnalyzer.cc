@@ -78,9 +78,9 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   TH1D* hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
   hDTotalMCWeight->SetDirectory(0);
   TH1D* hDNPUWeight = nullptr; {
-    TH1D* hbase = static_cast<TH1D*>(fIn->Get("hNPVReco"));
+    TH1D* hbase = static_cast<TH1D*>(fIn->Get("hNPVTrue"));
     if (hbase == nullptr)
-      hbase = static_cast<TH1D*>(fIn->Get("hNPVTrue"));
+      hbase = static_cast<TH1D*>(fIn->Get("hNPVReco"));
     if (hbase != nullptr) {
       hDNPUWeight = static_cast<TH1D*>(hbase->Clone("hDNPUWeight"));
       hDNPUWeight->SetDirectory(0);
