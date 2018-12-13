@@ -446,6 +446,8 @@ def add_json(skimmer):
     json_path = _jsons.get(_year, None)
     if not json_path:
         logger.error("T3.job_utilities.add_json", "Unknown key = "+str(_year))
+    else:
+        logger.info("T3.job_utilities.add_json", json_path)
     json_path = _data_dir + json_path
     with open(json_path) as jsonFile:
         payload = json.load(jsonFile)

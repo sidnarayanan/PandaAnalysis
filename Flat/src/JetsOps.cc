@@ -75,7 +75,6 @@ void BaseJetOp::do_readData(TString dirPath)
     scales["data"+e].reset(new FactorizedJetCorrector(params));
   }
 
-
   basePath = dirPath+"/jec/"+jecVFull+"/"+campaign+"_";
   setScaleUnc("MC", (basePath+jecVFull+"_MC_UncertaintySources_"+jetType+".txt").Data());
   for (auto e : eraGroups) {

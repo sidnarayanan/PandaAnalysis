@@ -184,31 +184,6 @@ wlnhbb = lambda v=False : _analysis(
         jetFlavorJets = True,
         mcTriggers = True,
     )
-wlnhbb2017 = lambda v=False : _analysis(
-        name = 'wlnhbb',
-        verbose = v,
-        ak8 = True,
-        hbb = True,
-        monoh = False,
-        recoil = True,
-        fatjet = True,
-        btagSFs = True,
-        btagWeights = True,
-        useCMVA = False,
-        useDeepCSV = True,
-        complicatedLeptons = True,
-        hfCounting = True,
-        recluster = False,
-        bjetRegTraining = False,
-        bjetBDTReg = True,
-        bjetDeepReg = True,
-        varyJES = True,
-        rerunJES = True,
-        rerunJER = True,
-        jetFlavorPartons = False,
-        jetFlavorJets = True,
-        mcTriggers = True,
-    )
 
 vv = lambda v=False : _analysis(
         name = 'vv',
