@@ -28,9 +28,9 @@
 
     ],
     "features": [
-        "hbbm_dreg", "abs(jotEta[hbbjtidx[1]]-jotEta[hbbjtidx[0]])",
+        "hbbm_dreg", "pfmet", "dphipfmet", "abs(jotEta[hbbjtidx[1]]-jotEta[hbbjtidx[0]])",
         "jotPt[hbbjtidx[1]]", "jotPt[hbbjtidx[0]]", "jotCSV[hbbjtidx[1]]", "jotCSV[hbbjtidx[0]]",
-        "fabs(SignedDeltaPhi(jotPhi[hbbjtidx[0]],jotPhi[hbbjtidx[1]]))", 
+        "fabs(SignedDeltaPhi(hbbphi,pfmetphi))", "fabs(SignedDeltaPhi(jotPhi[hbbjtidx[0]],jotPhi[hbbjtidx[1]]))", 
         "DeltaR2(jotEta[hbbjtidx[0]],jotPhi[hbbjtidx[0]],jotEta[hbbjtidx[1]],jotPhi[hbbjtidx[1]])",
         "nJot", "nSoft5", "adjetCMVA", "adjetPt"
             ],
