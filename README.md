@@ -62,9 +62,9 @@ Here, I am going to talk about the structure of `PandaAnalyzer` and its operator
 - Many `AnalysisOp`s, which do physics tasks. These can be chained together in a tree-like structure
 - A `Registry`, which holds `shared_ptr`s to objects that should be shared between `AnalysisOps` (or really anywhere else in `PandaAnalyzer`). 
 
-Here is what that looks like in a (clickable!) image:
+Here is what that looks like in an image:
 
-![click me](http://t3serv001.mit.edu/~snarayan/doxy/PandaAnalysis/classpa_1_1PandaAnalyzer__coll__graph_org.svg) 
+![](http://t3serv001.mit.edu/~snarayan/doxy/Panda/classpa_1_1PandaAnalyzer__coll__graph_org.svg) 
 
 ### Operators
 The inheritance diagram for `Operator`s looks like:
