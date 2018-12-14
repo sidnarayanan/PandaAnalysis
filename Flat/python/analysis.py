@@ -175,7 +175,7 @@ wlnhbb = lambda v=False : _analysis(
         hfCounting = True,
         recluster = False,
         bjetRegTraining = False,
-        bjetBDTReg = True,
+        bjetBDTReg = False,
         bjetDeepReg = True,
         varyJES = True,
         rerunJES = True,

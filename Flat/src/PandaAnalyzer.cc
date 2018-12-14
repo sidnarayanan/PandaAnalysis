@@ -65,6 +65,7 @@ PandaAnalyzer::PandaAnalyzer(Analysis* a, int debug_/*=0*/) :
   ADDOP(GenJetNuOp);
   ADDOP(HFCountingOp);
   ADDOP(KFactorOp);
+  ADDOP(ZvvHClassOp);
 
   for (auto& op : ops_all)
     op->print();

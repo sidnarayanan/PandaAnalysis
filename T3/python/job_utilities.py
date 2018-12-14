@@ -28,7 +28,7 @@ _user = getenv('SUBMIT_USER')                                    # user running 
 _job_id = None                                                   # identifying string for this job
 _year = 2016                                                     # what year's data is this analysis?
 maxcopy = 3                                                      # maximum number of stagein attempts
-_to_hdfs = bool(getenv('SUBMIT_HDFSCACHE', False))               # should we cache on hdfs instead of local
+_to_hdfs = bool(int(getenv('SUBMIT_HDFSCACHE', False)))          # should we cache on hdfs instead of local
 _users = ['snarayan', 'bmaier', 'dhsu', 'ceballos', 'ballen']    # MIT T3 PandaAnalysis users 
 
 stageout_protocol = None                                         # what stageout should we use?

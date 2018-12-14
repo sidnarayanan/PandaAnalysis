@@ -398,6 +398,9 @@ class GeneralTree : public genericTree {
   float jotDeepBReg[2];
   float jotDeepBRegWidth[2];
   float jotDeepBRegSampled[2];
+  float adjetPt;
+  float adjetCMVA;
+  float zvvhClass;
   float jotPt[43][20];
   float jotEta[20];
   float jotPhi[20];

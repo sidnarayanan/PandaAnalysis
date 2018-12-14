@@ -6,77 +6,6 @@ using namespace panda;
 namespace fj = fastjet;
 namespace tf = tensorflow;
 
-void BRegBDTOp::do_readData(TString dirPath)
-{
-  bjetreg_vars.reset(new float[15]);
-
-  bjetregReader.reset(new TMVA::Reader("!Color:!Silent"));
-  bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 0]) );
-  bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 1]) );
-  bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
-                              &(bjetreg_vars[ 2]) );
-  bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 3]) );
-  bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 4]) );
-  bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 5]) );
-  bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 6]) );
-  bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 7]) );
-  bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 8]) );
-  bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
-                             &(bjetreg_vars[ 9]) );
-  bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
-                             &(bjetreg_vars[10]) );
-  bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
-                             &(bjetreg_vars[11]) );
-  bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
-                             &(bjetreg_vars[12]) );
-  bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
-                             &(bjetreg_vars[13]) );
-  bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
-                             &(bjetreg_vars[14]) );
-
-  TString modelPath = dirPath + "/trainings/bjetregression.weights.xml";
-  downloadData(
-    "http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",
-    modelPath.Data()
-  );
-  bjetregReader->BookMVA("BDT method", modelPath);
-}
-
-void BRegBDTOp::do_execute()
-{
-  auto& jw = **currentJet;
-  int idx = jw.cleaned_idx;
-
-  TLorentzVector v = jw.p4();
-
-  // Shifted values for the jet energies to perform the b-jet regression
-  bjetreg_vars[0] = jw.pt; // shifted pT
-  bjetreg_vars[1] = gt.jotEta[idx];
-  bjetreg_vars[2] = gt.jotTrk1Pt[idx];
-  bjetreg_vars[3] = gt.jotLep1Pt[idx];
-  bjetreg_vars[4] = gt.jotEMF[idx];
-  bjetreg_vars[5] = gt.jotHF[idx];
-  bjetreg_vars[6] = gt.jotLep1DeltaR[idx];
-  bjetreg_vars[7] = gt.jotLep1PtRel[idx];
-  bjetreg_vars[8] = gt.jotVtxPt[idx];
-  bjetreg_vars[9] = gt.jotVtxMass[idx];
-  bjetreg_vars[10]= gt.jotVtx3DVal[idx];
-  bjetreg_vars[11]= gt.jotVtx3DErr[idx];
-  bjetreg_vars[12]= gt.jotVtxNtrk[idx];
-  bjetreg_vars[13]= v.Et();
-  bjetreg_vars[14]= v.Mt();
-
-  jw.breg = (bjetregReader->EvaluateRegression("BDT method"))[0];
-  jw.bregwidth = 0;
-}
 
 float dnn_clean(float x) { 
   return fabs(x -  -99.) < 0.1 ? 0 : x; 
@@ -86,53 +15,6 @@ void BRegDeepOp::do_execute()
 {
   auto& jw = **currentJet;
   int N = jw.cleaned_idx;
-
-  /*
-  inputs[ 0] = gt.jotRawPt[N];
-  inputs[ 1] = gt.jotEta[N];
-  inputs[ 2] = gt.rho;
-  inputs[ 3] = gt.jotRawMt[N];
-  inputs[ 4] = gt.jotTrk1Pt[N];
-  inputs[ 5] = gt.jotLep1PtRelRaw[N];
-  inputs[ 6] = gt.jotLep1DeltaR[N];
-  inputs[ 7] = gt.jotNHF[N];
-  inputs[ 8] = gt.jotNEF[N];
-  inputs[ 9] = max(gt.jotVtxPt[N], (float)0);
-  inputs[10] = gt.jotVtxMass[N];
-  inputs[11] = gt.jotVtx3DVal[N];
-  inputs[12] = gt.jotVtxNtrk[N];
-  inputs[13] = gt.jotVtx3DErr[N];
-  inputs[14] = gt.jotNPt03[N];
-  inputs[15] = gt.jotEMRing[0][N];
-  inputs[16] = gt.jotEMRing[1][N];
-  inputs[17] = gt.jotEMRing[2][N];
-  inputs[18] = gt.jotEMRing[3][N];
-  inputs[19] = gt.jotEMRing[4][N];
-  inputs[20] = gt.jotNeRing[0][N];
-  inputs[21] = gt.jotNeRing[1][N];
-  inputs[22] = gt.jotNeRing[2][N];
-  inputs[23] = gt.jotNeRing[3][N];
-  inputs[24] = gt.jotNeRing[4][N];
-  inputs[25] = gt.jotChRing[0][N];
-  inputs[26] = gt.jotChRing[1][N];
-  inputs[27] = gt.jotChRing[2][N];
-  inputs[28] = gt.jotChRing[3][N];
-  inputs[29] = gt.jotChRing[4][N];
-  inputs[30] = gt.jotMuRing[0][N];
-  inputs[31] = gt.jotMuRing[1][N];
-  inputs[32] = gt.jotMuRing[2][N];
-  inputs[33] = gt.jotMuRing[3][N];
-  inputs[34] = gt.jotMuRing[4][N];
-  inputs[35] = gt.jotCHF[N];
-  inputs[36] = gt.jotCEF[N];
-  inputs[37] = gt.jotLep1PtRelRawInv[N];
-  inputs[38] = gt.jotLep1IsEle[N];
-  inputs[39] = gt.jotLep1IsMu[N];
-  inputs[40] = gt.jotLep1IsOther[N];
-  inputs[41] = gt.jotRawM[N];
-  inputs[42] = gt.jotPtD[N];
-  */
-
 
   // defined in SMH/breg/inputs.cfg
   inputs[ 0] = gt.jotRawPt[N];
@@ -192,17 +74,33 @@ void BRegDeepOp::do_execute()
 
   eval();
 
-
   jw.breg = outputs[0];
   jw.bregwidth = 0.5 * (outputs[2] - outputs[1]);
-  
-  // from /afs/cern.ch/user/n/nchernya/public/breg_training/2017_updated_newJEC/config_2017_updated.json 
-  // float y_std = 0.28492164611816406, y_mean = 1.0596693754196167;
-  // jw.breg = (y_std * jw.breg) + y_mean;
-  // jw.bregwidth *= y_std; 
+}
 
-  //  jw.breg = outputs[0]*0.39077115058898926+1.0610932111740112;
-  //jw.bregwidth = 0.5*(outputs[2]-outputs[1])*0.39077115058898926;
+void ZvvHClassOp::do_execute()
+{
+  // defined in SMH/evt/root.json
+  inputs[ 0] = gt.hbbm_dreg[0];
+  inputs[ 1] = abs(gt.jotEta[gt.hbbjtidx[0][1]]-gt.jotEta[gt.hbbjtidx[0][0]]);
+  inputs[ 2] = gt.jotPt[0][gt.hbbjtidx[0][1]];
+  inputs[ 3] = gt.jotPt[0][gt.hbbjtidx[0][0]];
+  inputs[ 4] = gt.jotCSV[gt.hbbjtidx[0][1]];
+  inputs[ 5] = gt.jotCSV[gt.hbbjtidx[0][0]];
+  inputs[ 6] = fabs(SignedDeltaPhi(gt.jotPhi[gt.hbbjtidx[0][0]],
+                                   gt.jotPhi[gt.hbbjtidx[0][1]]));
+  inputs[ 7] = DeltaR2(gt.jotEta[gt.hbbjtidx[0][0]],
+                       gt.jotPhi[gt.hbbjtidx[0][0]],
+                       gt.jotEta[gt.hbbjtidx[0][1]],
+                       gt.jotPhi[gt.hbbjtidx[0][1]]);
+  inputs[ 8] = gt.nJot[0];
+  inputs[ 9] = gt.nSoft5;
+  inputs[10] = gt.adjetCMVA;
+  inputs[11] = gt.adjetPt;
+
+  eval();
+
+  gt.zvvhClass = outputs[0];
 }
 
 void TFInferOp::build(TString weightpath)
@@ -229,7 +127,10 @@ void TFInferOp::eval()
   vector<tf::Tensor> t_o;
   tf::run(sess.get(), t_i, outputNames, &t_o);
   for (int idx = 0; idx != n_outputs; ++idx) {
-    outputs[idx] = t_o[0].matrix<float>()(0,idx);
+    if (transpose)
+      outputs[idx] = t_o[0].matrix<float>()(idx,0);
+    else
+      outputs[idx] = t_o[0].matrix<float>()(0,idx);
     //outputs[idx] = t_o[idx].tensor<float,2>()(0,0);
   }
 }
@@ -680,3 +581,75 @@ void DeepGenOp<GENP>::incrementAux(bool close)
 
 template class DeepGenOp<panda::GenParticle>;
 template class DeepGenOp<panda::UnpackedGenParticle>;
+
+void BRegBDTOp::do_readData(TString dirPath)
+{
+  bjetreg_vars.reset(new float[15]);
+
+  bjetregReader.reset(new TMVA::Reader("!Color:!Silent"));
+  bjetregReader->AddVariable("jetPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 0]) );
+  bjetregReader->AddVariable("jetEta[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 1]) );
+  bjetregReader->AddVariable("jetLeadingTrkPt[hbbjtidx[0]]",
+                              &(bjetreg_vars[ 2]) );
+  bjetregReader->AddVariable("jetLeadingLepPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 3]) );
+  bjetregReader->AddVariable("jetEMFrac[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 4]) );
+  bjetregReader->AddVariable("jetHadFrac[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 5]) );
+  bjetregReader->AddVariable("jetLeadingLepDeltaR[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 6]) );
+  bjetregReader->AddVariable("jetLeadingLepPtRel[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 7]) );
+  bjetregReader->AddVariable("jetvtxPt[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 8]) );
+  bjetregReader->AddVariable("jetvtxMass[hbbjtidx[0]]",
+                             &(bjetreg_vars[ 9]) );
+  bjetregReader->AddVariable("jetvtx3Dval[hbbjtidx[0]]",
+                             &(bjetreg_vars[10]) );
+  bjetregReader->AddVariable("jetvtx3Derr[hbbjtidx[0]]",
+                             &(bjetreg_vars[11]) );
+  bjetregReader->AddVariable("jetvtxNtrk[hbbjtidx[0]]",
+                             &(bjetreg_vars[12]) );
+  bjetregReader->AddVariable("evalEt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                             &(bjetreg_vars[13]) );
+  bjetregReader->AddVariable("evalMt(jetPt[hbbjtidx[0]],jetEta[hbbjtidx[0]],jetPhi[hbbjtidx[0]],jetE[hbbjtidx[0]])",
+                             &(bjetreg_vars[14]) );
+
+  TString modelPath = dirPath + "/trainings/bjetregression.weights.xml";
+  downloadData(
+    "http://t3serv001.mit.edu/~dhsu/pandadata/trainings/bjet_regression_v1_fromBenedikt.weights.xml",
+    modelPath.Data()
+  );
+  bjetregReader->BookMVA("BDT method", modelPath);
+}
+
+void BRegBDTOp::do_execute()
+{
+  auto& jw = **currentJet;
+  int idx = jw.cleaned_idx;
+
+  TLorentzVector v = jw.p4();
+
+  // Shifted values for the jet energies to perform the b-jet regression
+  bjetreg_vars[0] = jw.pt; // shifted pT
+  bjetreg_vars[1] = gt.jotEta[idx];
+  bjetreg_vars[2] = gt.jotTrk1Pt[idx];
+  bjetreg_vars[3] = gt.jotLep1Pt[idx];
+  bjetreg_vars[4] = gt.jotEMF[idx];
+  bjetreg_vars[5] = gt.jotHF[idx];
+  bjetreg_vars[6] = gt.jotLep1DeltaR[idx];
+  bjetreg_vars[7] = gt.jotLep1PtRel[idx];
+  bjetreg_vars[8] = gt.jotVtxPt[idx];
+  bjetreg_vars[9] = gt.jotVtxMass[idx];
+  bjetreg_vars[10]= gt.jotVtx3DVal[idx];
+  bjetreg_vars[11]= gt.jotVtx3DErr[idx];
+  bjetreg_vars[12]= gt.jotVtxNtrk[idx];
+  bjetreg_vars[13]= v.Et();
+  bjetreg_vars[14]= v.Mt();
+
+  jw.breg = (bjetregReader->EvaluateRegression("BDT method"))[0];
+  jw.bregwidth = 0;
+}

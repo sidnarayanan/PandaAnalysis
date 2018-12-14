@@ -172,7 +172,7 @@ void GeneralTree::Reset() {
   filter_maxRecoil = -99;
   filter_whichRecoil = 0;
   badECALFilter = 1;
-  category = -1;
+  category = 0;
   sf_ewkV = 1;
   sf_qcdV = 1;
   sf_ewkV2j = 1;
@@ -238,6 +238,9 @@ void GeneralTree::Reset() {
   genVPhi = -99;
   genVSize = -99;
   nJotMax = 0;
+  adjetPt = -1;
+  adjetCMVA = -2;
+  zvvhClass = -1;
   barrelJet1Pt = -99;
   barrelJet1Eta = -99;
   barrelHT = 0;
@@ -471,6 +474,27 @@ void GeneralTree::Reset() {
     fjsjCSV[iA] = -99;
     fjsjQGL[iA] = -99;
   }
+  for (int iS=0; iS!=43; ++iS) {
+    nJet[iS] = 0;
+    nJot[iS] = 0;
+    nIsoJet[iS] = 0;
+    jetNBtags[iS] = 0;
+    jetNMBtags[iS] = 0;
+    isojetNBtags[iS] = 0;
+    isojetNMBtags[iS] = 0;
+    hbbpt[iS] = -99;
+    hbbeta[iS] = -99;
+    hbbphi[iS] = -99;
+    hbbm[iS] = -99;
+    hbbm_reg[iS] = -99;
+    hbbpt_reg[iS] = -99;
+    hbbm_dreg[iS] = -99;
+    hbbpt_dreg[iS] = -99;
+    hbbm_qreg[iS] = -99;
+    hbbpt_qreg[iS] = -99;
+    hbbCosThetaJJ[iS] = -99;
+    hbbCosThetaCSJ1[iS] = -99;
+  }
   for (int iS=0; iS!=3; ++iS) {
     pfmet[iS] = -99;
     pfmetphi[iS] = -99;
@@ -514,32 +538,6 @@ void GeneralTree::Reset() {
     topMassLep1Met[iS] = -99;
     topWBosonCosThetaCS[iS] = -99;
   }
-  for (int iS=0; iS!=43; ++iS) {
-    nJet[iS] = 0;
-    nJot[iS] = 0;
-    nIsoJet[iS] = 0;
-    jetNBtags[iS] = 0;
-    jetNMBtags[iS] = 0;
-    isojetNBtags[iS] = 0;
-    isojetNMBtags[iS] = 0;
-    hbbpt[iS] = -99;
-    hbbeta[iS] = -99;
-    hbbphi[iS] = -99;
-    hbbm[iS] = -99;
-    hbbm_reg[iS] = -99;
-    hbbpt_reg[iS] = -99;
-    hbbm_dreg[iS] = -99;
-    hbbpt_dreg[iS] = -99;
-    hbbm_qreg[iS] = -99;
-    hbbpt_qreg[iS] = -99;
-    hbbCosThetaJJ[iS] = -99;
-    hbbCosThetaCSJ1[iS] = -99;
-  }
-  for (int iS=0; iS!=43; ++iS) {
-    for (int iA=0; iA!=20; ++iA) {
-      jotPt[iS][iA] = -99;
-    }
-  }
   for (int iS=0; iS!=5; ++iS) {
     for (int iA=0; iA!=20; ++iA) {
       jotEMRing[iS][iA] = -99;
@@ -567,6 +565,11 @@ void GeneralTree::Reset() {
       fjPt[iS][iA] = -99;
       fjM[iS][iA] = -99;
       hbbjtidx[iS][iA] = 0;
+    }
+  }
+  for (int iS=0; iS!=43; ++iS) {
+    for (int iA=0; iA!=20; ++iA) {
+      jotPt[iS][iA] = -99;
     }
   }
 }
@@ -1604,6 +1607,9 @@ void GeneralTree::WriteTree(TTree *t) {
     Book("jotDeepBReg",jotDeepBReg,"jotDeepBReg["+TString("2")+"]/F");
     Book("jotDeepBRegWidth",jotDeepBRegWidth,"jotDeepBRegWidth["+TString("2")+"]/F");
     Book("jotDeepBRegSampled",jotDeepBRegSampled,"jotDeepBRegSampled["+TString("2")+"]/F");
+    Book("adjetPt",&adjetPt,"adjetPt/F");
+    Book("adjetCMVA",&adjetCMVA,"adjetCMVA/F");
+    Book("zvvhClass",&zvvhClass,"zvvhClass/F");
     Book("jotSmear",jotSmear,"jotSmear["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotM",jotM,"jotM["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");
     Book("jotCMVA",jotCMVA,"jotCMVA["+TString((is_monohiggs||is_hbb)?"nJotMax":"2")+"]/F");

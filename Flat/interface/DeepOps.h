@@ -11,30 +11,6 @@
 
 namespace pa {
 
-  class BRegBDTOp : public AnalysisOp {
-  public:
-    BRegBDTOp(panda::EventAnalysis& event_,
-                Config& cfg_,
-                Utils& utils_,
-                GeneralTree& gt_,
-                int level_=0) :
-      AnalysisOp("bregbdt", event_, cfg_, utils_, gt_, level_) { }
-    ~BRegBDTOp() { }
-
-    virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetBDTReg; }
-  protected:
-    void do_readData(TString dirPath);
-    virtual void do_init(Registry& registry) {
-      currentJet = registry.access<JetWrapper*>("higgsDaughterJet");
-    }
-    void do_execute();
-  private:
-    std::shared_ptr<JetWrapper*> currentJet{nullptr};
-    std::unique_ptr<TMVA::Reader> bjetregReader;
-    std::unique_ptr<float[]> bjetreg_vars; 
-  };
-
-
   class TFInferOp : public AnalysisOp {
   public:
     TFInferOp(TString name_,
@@ -44,11 +20,12 @@ namespace pa {
                GeneralTree& gt_,
                int level_=0) :
       AnalysisOp(name_, event_, cfg_, utils_,  gt_, level_),
-      t_i(1),
       p_inputs(std::v_make_shared<float>()),
       p_outputs(std::v_make_shared<float>()),
       inputs(*p_inputs),
-      outputs(*p_outputs) { }
+      outputs(*p_outputs),
+      transpose(false),
+      t_i(1)    { }
     ~TFInferOp() { }
 
   protected:
@@ -67,16 +44,20 @@ namespace pa {
     virtual void build(TString weightpath) final;
     virtual void eval() final;
 
-    std::unique_ptr<tensorflow::GraphDef> graph{nullptr}; 
-    std::unique_ptr<tensorflow::Session> sess{nullptr};
-    tensorflow::NamedTensorList t_i;
     TString inputName{0};
     std::vector<std::string> outputNames;
     int n_inputs{0}, n_outputs{0};
     std::shared_ptr<std::vector<float>> p_inputs, p_outputs; // keep this around for publication
     std::vector<float>& inputs;
     std::vector<float>& outputs;
+    bool transpose;
+
+  private:
+    std::unique_ptr<tensorflow::GraphDef> graph{nullptr}; 
+    std::unique_ptr<tensorflow::Session> sess{nullptr};
+    tensorflow::NamedTensorList t_i;
   };
+
 
   class BRegDeepOp : public TFInferOp {
   public:
@@ -100,7 +81,7 @@ namespace pa {
     virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetDeepReg; }
   protected:
     void do_readData(TString dirPath) {
-      TString modelfile = dirPath+"/trainings/graph.pb";
+      TString modelfile = dirPath+"/trainings/breg_graph.pb";
       //downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg/v2/quantiles/graph.pb",
       //downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/breg_training_2017_updated.pb",
       downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/sidbreg_v0/graph.pb",
@@ -114,6 +95,39 @@ namespace pa {
     void do_execute();
   private:
     std::shared_ptr<JetWrapper*> currentJet{nullptr};
+  };
+
+  /* if someone wants to implement inferences for other VH classifiers,
+   * please do not just copy-paste the code for this op. we should create 
+   * a base classifier op and subclass it for each channel
+   */
+  class ZvvHClassOp : public TFInferOp {
+  public:
+    ZvvHClassOp(panda::EventAnalysis& event_,
+                Config& cfg_,
+                Utils& utils_,
+                GeneralTree& gt_,
+                int level_=0) :
+      TFInferOp("zvvhclass", event_, cfg_, utils_, gt_, level_) {
+      n_inputs = 12;
+      n_outputs = 1;
+      inputName = "input";
+      outputNames = {"output/Softmax"};
+      transpose = true; 
+    }
+
+    virtual bool on() { return !analysis.genOnly && analysis.hbb; }
+  protected:
+    void do_readData(TString dirPath) {
+      TString modelfile = dirPath+"/trainings/zh_graph.pb";
+      downloadData("http://t3serv001.mit.edu/~snarayan/pandadata/trainings/sidzh_v2/graph.pb",
+                   modelfile, true);
+      build(modelfile);
+    }
+    virtual void do_init(Registry& registry) {
+      TFInferOp::do_init(registry);
+    }
+    void do_execute();
   };
 
   template <typename GENP>
@@ -162,6 +176,31 @@ namespace pa {
 
   typedef DeepGenOp<panda::GenParticle> DeepPGenOp;
   typedef DeepGenOp<panda::UnpackedGenParticle> DeepUGenOp;
+
+
+  class BRegBDTOp : public AnalysisOp {
+  public:
+    BRegBDTOp(panda::EventAnalysis& event_,
+                Config& cfg_,
+                Utils& utils_,
+                GeneralTree& gt_,
+                int level_=0) :
+      AnalysisOp("bregbdt", event_, cfg_, utils_, gt_, level_) { }
+    ~BRegBDTOp() { }
+
+    virtual bool on() { return !analysis.genOnly && analysis.hbb && analysis.bjetBDTReg; }
+  protected:
+    void do_readData(TString dirPath);
+    virtual void do_init(Registry& registry) {
+      currentJet = registry.access<JetWrapper*>("higgsDaughterJet");
+    }
+    void do_execute();
+  private:
+    std::shared_ptr<JetWrapper*> currentJet{nullptr};
+    std::unique_ptr<TMVA::Reader> bjetregReader;
+    std::unique_ptr<float[]> bjetreg_vars; 
+  };
+
 }
 
 

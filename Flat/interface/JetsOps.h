@@ -6,6 +6,27 @@
 #include <numeric>
 
 namespace pa {
+
+  class AdJetOp : public AnalysisOp {
+  public:
+    AdJetOp(panda::EventAnalysis& event_,
+	    Config& cfg_,
+	    Utils& utils_,
+	    GeneralTree& gt_,
+	    int level_=0) :
+      AnalysisOp("adjet", event_, cfg_, utils_, gt_, level_) { }
+    virtual ~AdJetOp() { }
+    bool on() { return analysis.hbb; }
+  protected:
+    void do_init(Registry& registry) {
+      currentJES = registry.access<JESHandler*>("currentJES");
+    }
+    void do_execute(); 
+  private:
+    std::shared_ptr<JESHandler*> currentJES{nullptr};
+  };
+
+
   class HbbSystemOp : public AnalysisOp {
   public:
     HbbSystemOp(panda::EventAnalysis& event_,
@@ -263,12 +284,13 @@ namespace pa {
       currentJet(std::make_shared<JetWrapper*>(nullptr)),
       currentJES(std::make_shared<JESHandler*>(nullptr)) {
         ak4Jets = &(event.chsAK4Jets);
-
         recalcJER = analysis.rerunJER; 
+
         isojet = addSubOp<IsoJetOp>();
         bjetreg = addSubOp<BJetRegOp>();
         vbf = addSubOp<VBFSystemOp>();
         hbb = addSubOp<HbbSystemOp>();
+	adjet = addSubOp<AdJetOp>();
 
         jetType = "AK4PFchs";
     }
@@ -292,6 +314,7 @@ namespace pa {
     BJetRegOp *bjetreg{nullptr};
     VBFSystemOp *vbf{nullptr};
     HbbSystemOp *hbb{nullptr};
+    AdJetOp *adjet{nullptr};
 
     std::shared_ptr<std::vector<JESHandler>> jesShifts{nullptr};
 
