@@ -46,7 +46,7 @@ void KinFitOp::do_execute()
                         gt.jotEta[idx],
                         gt.jotPhi[idx],
                         gt.jotM[idx]);
-    hbb[i] *= gt.jotDeepBReg[i];
+    hbb[i] *= gt.jotDeepBReg[gt.hbbjtidx[0][i]];
     res -= hbb[i];
     res -= (*looseLeps)[i]->p4(); 
   } 
@@ -54,8 +54,8 @@ void KinFitOp::do_execute()
 
   fit->setParticle(0, (*looseLeps)[0]->p4(), 0.01);
   fit->setParticle(1, (*looseLeps)[1]->p4(), 0.01);
-  fit->setParticle(2, hbb[0], gt.jotDeepBRegWidth[0]);
-  fit->setParticle(3, hbb[1], gt.jotDeepBRegWidth[1]);
+  fit->setParticle(2, hbb[0], gt.jotDeepBRegWidth[gt.hbbjtidx[0][0]]);
+  fit->setParticle(3, hbb[1], gt.jotDeepBRegWidth[gt.hbbjtidx[0][1]]);
   // fit->setParticle(4, res, res.Pt()/8); // 8 GeV res at 0 MET
 
   fit->run();

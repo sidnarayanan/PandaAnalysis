@@ -642,35 +642,25 @@ void HbbSystemOp::do_execute()
 
       if (shift == jes2i(shiftjes::kNominal)) {
         deepreg->execute();
-        gt.jotDeepBReg[i] = hbbdJetRef.breg;
-        gt.jotDeepBRegWidth[i] = hbbdJetRef.bregwidth;
-        gt.jotDeepBRegSampled[i] = (event.rng.normal() * hbbdJetRef.bregwidth)  + hbbdJetRef.breg;
+        gt.jotDeepBReg[gt.hbbjtidx[shift][i]] = hbbdJetRef.breg;
+        gt.jotDeepBRegWidth[gt.hbbjtidx[shift][i]] = hbbdJetRef.bregwidth;
+        gt.jotDeepBRegSampled[gt.hbbjtidx[shift][i]] = (event.rng.normal() * hbbdJetRef.bregwidth)  + hbbdJetRef.breg;
       }
       auto scale_fn = [&](float x) { return 1 + (gt.jotPt[shift][idx] / hbbdJetRef.base->pt()) * (x - 1); };
       hbbd_dcorr[i].SetPtEtaPhiM(
-            gt.jotPt[shift][idx] * scale_fn(gt.jotDeepBReg[i]),
+            gt.jotPt[shift][idx] * scale_fn(gt.jotDeepBReg[gt.hbbjtidx[shift][i]]),
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]
           );
       hbbd_qcorr[i].SetPtEtaPhiM(
-            gt.jotPt[shift][idx] * scale_fn(gt.jotDeepBRegSampled[i]),
+            gt.jotPt[shift][idx] * scale_fn(gt.jotDeepBRegSampled[gt.hbbjtidx[shift][i]]),
             gt.jotEta[idx],
             gt.jotPhi[idx],
             gt.jotM[idx]
           );
 
       // Shifted values for the jet energies to perform the b-jet regression
-      if (shift == jes2i(shiftjes::kNominal)) {
-        bdtreg->execute();
-        gt.jotBReg[i] = hbbdJetRef.breg;
-      }
-      hbbd_corr[i].SetPtEtaPhiM(
-            gt.jotBReg[i] * gt.jotPt[shift][idx],
-            gt.jotEta[idx],
-            gt.jotPhi[idx],
-            gt.jotM[idx]
-          );
     }
 
     TLorentzVector hbbsystem_corr = hbbd_corr[0] + hbbd_corr[1];
@@ -742,6 +732,7 @@ void HbbSystemOp::do_execute()
     TLorentzVector ZHP4 = (*dilep) + HP4;
     gt.ZBosonLep1CosThetaStar = CosThetaStar(looseLeps->at(0)->p4(), looseLeps->at(1)->p4(), ZHP4);
   }
+
 }
 
 void AdJetOp::do_execute()

@@ -236,12 +236,10 @@ namespace pa {
           }
         } 
 	else if (analysis.year == 2017 || analysis.year == 2018) {
-          jecV = "V8"; jecReco = "17Nov2017";
-          //jecV = "V32"; jecReco = "17Nov2017"; // missing V32 for now
+          jecV = "V32"; jecReco = "17Nov2017"; 
           campaign = "Fall17";
           jerV = "Fall17_25nsV1";
-          eraGroups = {"B","C","D","E","F"};
-          // eraGroups = {"B","C","DE","F"}; // missing V32 for now
+          eraGroups = {"B","C","DE","F"}; 
           spacer = "_";
           if (analysis.useDeepCSV) { 
             csvL = 0.1522; csvM = 0.4941; 

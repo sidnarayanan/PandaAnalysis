@@ -21,6 +21,7 @@ args = parse(('--submission', {'type':int, 'nargs':'+', 'default':None}),
              ('--dump', STORE_TRUE),
              ('--nodone', STORE_TRUE))
 logdirpath = '$SUBMIT_LOGDIR/' if args.submission is None else '$SUBMIT_LOGDIR/[%s]_'%(''.join(map(str,args.submission)))
+dumpdirpath = getenv('SUBMIT_LOGDIR')+'/logs_dump/'
 
 def sub(x, y, z):
     return rsub(y, z, x)
@@ -84,8 +85,8 @@ for i,c in enumerate(correlations):
         print '   ',msg
 
 if args.dump:
-    system('mkdir -p logs_dump')
-    system('rm -f logs_dump/*')
+    do('rm -rf %s'%dumpdirpath)
+    do('mkdir -p %s'%dumpdirpath)
 
 done = set([])
 cmd = r'grep -i "report_done.*Response \[200\]"  %s*err'%logdirpath
@@ -123,7 +124,7 @@ for i,c in enumerate(correlations):
         except ZeroDivisionError:
             print 'Failure class %2i failed on %3i jobs, but number of files is unknown'%(i, len(aggregates[list(c)[0]])) 
     if args.dump:
-        with open('logs_dump/class_%i.log'%i, 'w') as fdump:
+        with open('%s/%i.log'%(dumpdirpath,i), 'w') as fdump:
             fdump.write('Error summary:\n')
             for msg in c:
                 fdump.write('\t' + msg + '\n')

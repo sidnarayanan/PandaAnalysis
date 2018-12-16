@@ -14,7 +14,7 @@ ConfigOp::ConfigOp(Analysis& a_, GeneralTree& gt_, int DEBUG_) :
 
   cfg.isData = analysis.isData;
   int hackYear = analysis.year;
-  if(analysis.year == 2018 ) hackYear = 2017;
+  if (analysis.year == 2018 ) hackYear = 2017;
   utils.eras.reset(new EraHandler(hackYear));
   cfg.auxFilePath = analysis.outpath;
   cfg.auxFilePath.ReplaceAll(".root","_aux%i.root");
