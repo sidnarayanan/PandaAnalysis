@@ -100,3 +100,8 @@ void HeavyResTree::WriteTree(TTree *t) {
   Book("clf_IsMatched",&clf_IsMatched,"clf_IsMatched/I");
   Book("clf_HTTFRec",&clf_HTTFRec,"clf_HTTFRec/F");
 }
+void HeavyResTree::ReadTree(TTree *t) {
+  treePtr = t;
+// STARTCUSTOM READ
+// ENDCUSTOM
+}

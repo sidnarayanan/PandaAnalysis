@@ -40,13 +40,13 @@ if args.cat!='loose':
 plot = PlotUtility()
 plot.Stack(True)
 plot.Ratio(True)
-plot.FixRatio(0.3)
+plot.FixRatio(0.4)
 plot.SetTDRStyle("vbf")
-plot.InitLegend()
+plot.InitLegend(0.4)
 plot.DrawMCErrors(False)
-plot.AddCMSLabel()
+#plot.AddCMSLabel()
 plot.cut = cut
-plot.AddLumiLabel(True)
+plot.AddSqrtSLabel()
 plot.do_overflow = True
 plot.do_underflow = True
 
@@ -57,10 +57,10 @@ else:
 plot.mc_weight = '1' # weight
 
 ### DEFINE PROCESSES ###
-vbf           = Process('VBF H(inv)',root.kData)
-vbfl1           = Process('VBF H(inv) #times #varepsilon_{L1}^{JetHT}',root.kExtra1)
+vbf           = Process('Without trigger effects',root.kExtra1)
+vbfl1           = Process('With trigger inefficiencies',root.kData)
 vbfl1.dashed = True
-vbfl1.additional_weight = 'sf_l1'
+vbfl1.additional_weight = 'sf_l1finor*sf_metTrigVBF'
 
 ### ASSIGN FILES TO PROCESSES ###
 for p in [vbf,vbfl1]:
@@ -76,20 +76,20 @@ else:
     lep = '#mu'
 
 ### CHOOSE DISTRIBUTIONS, LABELS ###
-recoil=VDistribution("pfmet",recoilBins,"PF MET [GeV]","Events/GeV")
-plot.add_distribution(FDistribution('dphipfmet',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
-plot.add_distribution(recoil)
+#recoil=VDistribution("pfmet",recoilBins,"PF MET [GeV]","Events/GeV")
+#plot.add_distribution(FDistribution('dphipfmet',0.5,3.2,20,'min #Delta#phi(U,jets)','Events'))
+#plot.add_distribution(recoil)
 
 #plot.add_distribution(FDistribution('barrelHT',0,1000,20,'Barrel H_{T} [GeV]','Events/50 GeV'))
 #plot.add_distribution(FDistribution('barrelJet1Pt',0,1000,20,'Barrel jet 1 p_{T} [GeV]','Events/50 GeV'))
-plot.add_distribution(FDistribution('jot12Mass',0,4000,10,'m_{jj} [GeV]','Events/400 GeV'))
-plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','Events'))
-plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","Events",filename='jot12DPhi'))
-plot.add_distribution(FDistribution("jot1Eta",-5,5,20,"Jet 1 #eta","Events"))
-plot.add_distribution(FDistribution("jot2Eta",-5,5,20,"Jet 2 #eta","Events"))
-plot.add_distribution(FDistribution("jot1Pt",80,500,20,"Jet 1 p_{T} [GeV]","Events"))
-plot.add_distribution(FDistribution("jot2Pt",40,500,20,"Jet 2 p_{T} [GeV]","Events"))
-plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
+plot.add_distribution(FDistribution('jot12Mass',200,4200,15,'m_{jj} [GeV]','Events/bin'))
+#plot.add_distribution(FDistribution('jot12DEta',0,10,20,'#Delta#eta(j_{1},j_{2})','Events'))
+#plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,20,"#Delta #phi leading jets","Events",filename='jot12DPhi'))
+#plot.add_distribution(FDistribution("jot1Eta",-5,5,20,"Jet 1 #eta","Events"))
+#plot.add_distribution(FDistribution("jot2Eta",-5,5,20,"Jet 2 #eta","Events"))
+#plot.add_distribution(FDistribution("jot1Pt",80,500,20,"Jet 1 p_{T} [GeV]","Events"))
+#plot.add_distribution(FDistribution("jot2Pt",40,500,20,"Jet 2 p_{T} [GeV]","Events"))
+#plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###
 region = '%s/%s'%(args.cat,region)

@@ -19,11 +19,11 @@ from PandaCore.Drawers.plot_utility import *
 ### DEFINE REGIONS ###
 
 cut = sel.cuts[region]
-for pt in ['jotPt[0]','jotPt[1]']:
-    cut = remove_cut(cut,pt)
-cut = tAND('jotPt[0]>0 && jotPt[1]>0', cut)
+cut = cut.replace('jotPt[0]>80 && jotPt[1]>40', 'jotPt[0]>0 && jotPt[1]>0')
 if args.cat!='loose':
     cut = tAND(cut,getattr(sel,args.cat))
+cut = 'pfmet>250 && dphipfmet>0.5 && jotEta[0]*jotEta[1]<0 '
+#cut = 'jotPt[0]>80 && jotPt[1]>40'
 
 ### LOAD PLOTTING UTILITY ###
 BLIND=True
@@ -31,17 +31,21 @@ BLIND=True
 plot = PlotUtility()
 plot.Stack(False)
 plot.SetLumi(lumi/1000)
+plot.DrawMCErrors(True)
 plot.SetTDRStyle()
-plot.InitLegend(0.2,0.75,0.9,0.9,3)
+#plot.InitLegend(0.2,0.75,0.9,0.9,3)
 # plot.AddCMSLabel()
 plot.SetNormFactor(True)
 plot.cut = cut
+print cut 
 plot.AddLumiLabel(True)
-plot.do_overflow = True
-plot.do_underflow = True
+plot.do_overflow = False 
+plot.do_underflow = False
 plot.SetAbsMin(0.0001)
 
-weight = sel.weights[region].replace('sf_l1','1')%lumi
+#weight = sel.weights[region].replace('sf_l1','1')%lumi
+#weight = 'normalizedWeight'
+weight = '1'
 plot.mc_weight = weight
 
 ### DEFINE PROCESSES ###
@@ -57,10 +61,11 @@ zjets.add_file(baseDir+'ZtoNuNu.root')
 zjets_ewk.add_file(baseDir+'ZtoNuNu_EWK.root')
 wjets.add_file(baseDir+'WJets.root')
 wjets_ewk.add_file(baseDir+'WJets_EWK.root')
-vbf.add_file(baseDir+'vbfHinv_m125.root')
-ggf.add_file(baseDir+'ggFHinv_m125.root')
+vbf.add_file(baseDir+'vbfHinv_mAll.root')
+ggf.add_file(baseDir+'ggFHinv_mAll.root')
 
-processes = [zjets, wjets, zjets_ewk, wjets_ewk, vbf]
+processes = [ggf, vbf]
+#processes = [zjets, wjets, zjets_ewk, wjets_ewk, vbf]
 
 for p in processes:
     plot.add_process(p)
@@ -72,14 +77,16 @@ nRecoilBins = len(recoilBins)-1
 recoil=VDistribution("pfmet/1000",recoilBins,"PF MET [TeV]","Events/TeV",filename='pfmet')
 #plot.add_distribution(recoil)
 
-plot.add_distribution(FDistribution('jot12Mass/1000',0,5,10,'m_{jj} [TeV]','Arbitrary units',filename='jot12Mass'))
-plot.add_distribution(FDistribution('jot12DEta',0,8,10,'#Delta#eta_{jj}','Arbitrary units'))
-plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,10,"#Delta#phi_{jj}","Arbitrary units",filename='jot12DPhi'))
-#plot.add_distribution(FDistribution("jotEta[0]",-5,5,10,"Jet 1 #eta","Events/bin"))
-#plot.add_distribution(FDistribution("jotEta[1]",-5,5,10,"Jet 2 #eta","Events/bin"))
-#plot.add_distribution(FDistribution("jotPt[0]",80,700,10,"Jet 1 p_{T} [GeV]","Events/bin"))
-#plot.add_distribution(FDistribution("jotPt[1]",40,500,10,"Jet 2 p_{T} [GeV]","Events/bin"))
-#plot.add_distribution(FDistribution("nJot-0.5",1.5,6.5,5,"N_{jet}","Events/bin",filename='nJot'))
+plot.add_distribution(FDistribution('jot12Mass/1000',0,5,15,'m_{jj} [TeV]','Arbitrary units',filename='jot12Mass'))
+plot.add_distribution(FDistribution('jot12DEta',0,8,15,'#Delta#eta_{jj}','Arbitrary units'))
+plot.add_distribution(FDistribution("fabs(jot12DPhi)",0,3.142,15,"#Delta#phi_{jj}","Arbitrary units",filename='jot12DPhi'))
+plot.add_distribution(FDistribution("fabs(jotEta[0])",0,5,15,"Jet 1 |#eta|","Arbitrary units"))
+plot.add_distribution(FDistribution("fabs(jotEta[1])",0,5,15,"Jet 2 |#eta|","Arbitrary units"))
+plot.add_distribution(FDistribution("jotPt[0]",0,700,15,"Jet 1 p_{T} [GeV]","Arbitrary units"))
+plot.add_distribution(FDistribution("jotPt[1]",0,500,15,"Jet 2 p_{T} [GeV]","Arbitrary units"))
+plot.add_distribution(FDistribution("jotE[0]",0,2000,15,"Jet 1 E [GeV]","Arbitrary units"))
+plot.add_distribution(FDistribution("jotE[1]",0,2000,15,"Jet 2 E [GeV]","Arbitrary units"))
+#plot.add_distribution(FDistribution("nJot-0.5",1.5,6.5,5,"N_{jet}","Arbitrary units",filename='nJot'))
 #plot.add_distribution(FDistribution("1",0,2,1,"dummy","dummy"))
 
 ### DRAW AND CATALOGUE ###

@@ -18,6 +18,7 @@ class treeClassTmpl : public genericTree {
     treeClassTmpl();
     ~treeClassTmpl();
     void WriteTree(TTree* t);
+    void ReadTree(TTree* t);
     void Fill() { treePtr->Fill(); }
     void Reset();
     void SetAuxTree(TTree*); 

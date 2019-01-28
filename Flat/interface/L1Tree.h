@@ -20,6 +20,7 @@ class L1Tree : public genericTree {
     L1Tree();
     ~L1Tree();
     void WriteTree(TTree* t);
+    void ReadTree(TTree* t);
     void Fill() { treePtr->Fill(); }
     void Reset();    void SetAuxTree(TTree*);
 // STARTCUSTOM PUBLIC

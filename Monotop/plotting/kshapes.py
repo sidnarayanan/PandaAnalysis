@@ -14,7 +14,7 @@ plot.InitLegend()
 # plot.Logy(True)
 
 s = Selector()
-f = root.TFile.Open(baseDir + '/ZtoNuNu.root')
+f = root.TFile.Open(baseDir + '/GJets.root')
 t = f.Get('events')
 s.read_tree(t, 
             branches=['trueGenBosonPt', 
@@ -38,6 +38,6 @@ hlo.GetYaxis().SetTitle('k')
 
 plot.AddHistogram(hlo, '')
 plot.AddHistogram(hqcd, 'k_{QCD}')
-plot.AddHistogram(hewk, 'k_{QCD}#timesk_{EWK}')
+plot.AddHistogram(hewk, 'k_{QCD} #times k_{EWK}')
 
-plot.Draw(args.outdir+'/', 'zcorr_ptv')
+plot.Draw(args.outdir+'/', 'acorr_ptv')

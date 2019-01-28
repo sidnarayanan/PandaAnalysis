@@ -77,6 +77,7 @@ class GeneralTree : public genericTree {
     GeneralTree();
     ~GeneralTree();
     void WriteTree(TTree* t);
+    void ReadTree(TTree* t);
     void Fill() { treePtr->Fill(); }
     void Reset();    void SetAuxTree(TTree*);
 // STARTCUSTOM PUBLIC
@@ -401,6 +402,8 @@ class GeneralTree : public genericTree {
   float adjetCMVA;
   float zvvhClass;
   float jotPt[43][20];
+  float jotE[20];
+  float jotRawPt[20];
   float jotEta[20];
   float jotPhi[20];
   float jotCSV[20];
@@ -445,7 +448,6 @@ class GeneralTree : public genericTree {
   float jotGenM[20];
   int jotNPt03[20];
   float jotPtD[20];
-  float jotRawPt[20];
   float jotRawMt[20];
   float jotRawEt[20];
   float jotRawM[20];

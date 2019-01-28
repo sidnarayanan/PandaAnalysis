@@ -257,6 +257,7 @@ void JetOp::do_execute()
             if (!analysis.hbb && jet.matchedGenJet.isValid())
               gt.jotGenPt[njet] = jet.matchedGenJet->pt(); 
             gt.jotSmear[njet] = jw.pt / jet.pt(); // smeared / nominal
+            gt.jotE[njet] = jet.e();
             gt.jotEta[njet] = jet.eta();
             gt.jotPhi[njet] = jet.phi();
             gt.jotM[njet] = jet.m();
@@ -265,6 +266,7 @@ void JetOp::do_execute()
             gt.jotCMVA[njet] = cmva;
             gt.jotVBFID[njet] = (aeta < 2.4) ? (jet.monojet ? 1 : 0) : 1;
             gt.jotIso[njet] = jw.iso ? 1 : 0; 
+            gt.jotRawPt[njet] = jet.rawPt;
 
             bjetreg->execute();
           }
@@ -427,7 +429,6 @@ void BJetRegOp::do_execute()
   gt.jotNEF[N] = jet.nef;
   gt.jotCHF[N] = jet.chf;
   gt.jotNHF[N] = jet.nhf;
-  gt.jotRawPt[N] = vraw.Pt();
   gt.jotRawMt[N] = vraw.Mt();
   gt.jotRawEt[N] = vraw.Et();
   gt.jotRawM[N] = vraw.M();

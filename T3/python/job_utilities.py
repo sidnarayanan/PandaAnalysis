@@ -171,6 +171,8 @@ def request_data(xrd_path, first_attempt):
     if ret:
         logger.error(_sname+'.request_data', 'Failed to xrdcopy %s'%input_path)
         return None 
+    if cache: # give it a few seconds
+        sleep(20)
     if _validate_file(input_path):
         if cache:
             payload = {'path' : input_path, 

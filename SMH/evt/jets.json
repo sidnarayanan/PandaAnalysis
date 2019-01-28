@@ -1,0 +1,38 @@
+{
+    "base": "/data/t3home000/hbb/zhnn/v12/sr/train/",
+    "samples": [
+        {
+            "name": "VH",
+            "samples": ["ggZvvHbb_mH125", "ggZllHbb_mH125", "ZvvHbb_mH125", "ZllHbb_mH125", "WmLNuHbb_mH125", "WpLNuHbb_mH125"]
+        },
+        {
+            "name": "Diboson",
+            "samples": ["Diboson_ww_CP5","Diboson_wz_CP5","Diboson_zz_CP5"]
+        },
+        {
+            "name": "SingleTop",
+            "samples": ["SingleTop_tT_CP5","SingleTop_tTbar_CP5","SingleTop_tW_CP5","SingleTop_tbarW_CP5"]
+        },
+        {
+            "name": "TT",
+            "samples": ["TTTo2L2Nu_CP5","TTToHadronic_CP5","TTToSemiLeptonic_CP5"]
+        },
+        {
+            "name": "WJets",
+            "samples": ["WJets_ht100to200_CP5","WJets_ht1200to2500_CP5","WJets_ht200to400_CP5","WJets_ht2500toinf_CP5","WJets_ht400to600_CP5","WJets_ht600to800_CP5","WJets_ht800to1200_CP5"]
+        },
+        {
+            "name": "ZtoNuNu",
+            "samples": ["ZtoNuNu_ht100to200", "ZtoNuNu_ht1200to2500", "ZtoNuNu_ht200to400", "ZtoNuNu_ht2500toinf", "ZtoNuNu_ht400to600", "ZtoNuNu_ht600to800", "ZtoNuNu_ht800to1200"]
+        }
+
+    ],
+    "features": [
+        "jotPt", "jotEta", "jotPhi", "jotM", "jotCSV"  
+            ],
+    "more_features": [
+        "hbbjtidx", "jotBReg"
+        ],
+    "weight": "normalizedWeight * sf_metTrig * sf_pu * sf_qcdV * sf_ewkV * sf_vh * sf_csvWeight_Cent",
+    "cut": "1==1"
+}

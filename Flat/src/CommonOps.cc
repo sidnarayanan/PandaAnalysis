@@ -1,4 +1,5 @@
 #include "../interface/CommonOps.h"
+#include "../interface/JetGraphTree.h"
 
 using namespace pa;
 using namespace std;
@@ -438,6 +439,7 @@ void BaseGenPOp<TREE>::do_execute()
 }
 
 template class BaseGenPOp<GeneralTree>;
+template class BaseGenPOp<JetGraphTree>;
 template class BaseGenPOp<HeavyResTree>;
 
 void RecoilOp::do_execute()

@@ -18,6 +18,7 @@ class HeavyResTree : public genericTree {
     HeavyResTree();
     ~HeavyResTree();
     void WriteTree(TTree* t);
+    void ReadTree(TTree* t);
     void Fill() { treePtr->Fill(); }
     void Reset();
 // STARTCUSTOM PUBLIC

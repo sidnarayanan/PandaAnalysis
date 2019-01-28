@@ -27,3 +27,8 @@ void treeClassTmpl::WriteTree(TTree *t) {
 // STARTCUSTOM WRITE
 // ENDCUSTOM
 }
+void treeClassTmpl::ReadTree(TTree *t) {
+  treePtr = t;
+// STARTCUSTOM READ
+// ENDCUSTOM
+}

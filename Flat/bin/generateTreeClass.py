@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 from sys import argv,exit
-from os import system, path
+from os import path
 from re import sub, match
 import argparse
 import copy
 
+from PandaCore.Tools.script import *
+
 parser = argparse.ArgumentParser(description='build object from configuration')
 parser.add_argument('--cfg',type=str)
+parser.add_argument('--clean',action='store_true')
 args = parser.parse_args()
 
 
@@ -207,6 +210,38 @@ class Branch(object):
                     )
                 final_s.append(s)
         return final_s
+    def write_read(self):
+        final_s = []
+        if self.shift:
+            if self.array:
+                for i,e in enumerate(self.shift.expr):
+                    s = 'Bind("{n}{v}",{n}[{i}]);'.format(
+                            n=self.name,
+                            v=e,
+                            i=i,
+                        )
+                    final_s.append(s)
+            else:
+                for i,e in enumerate(self.shift.expr):
+                    s = 'Bind("{n}{v}",&({n}[{i}]));'.format(
+                            n=self.name,
+                            v=e,
+                            i=i,
+                        )
+                    final_s.append(s)
+        else:
+            if self.array:
+                s = 'Bind("{n}",{n});'.format(
+                        n=self.name,
+                    )
+                final_s.append(s)
+            else:
+                s = 'Bind("{n}",&{n});'.format(
+                        n=self.name,
+                    )
+                final_s.append(s)
+        return final_s
+
 
 def extract_custom(lines):
     custom = {}
@@ -231,18 +266,18 @@ if __name__ == '__main__':
     cfg_path = args.cfg
     header_path = cfg_path.replace('config','interface').replace('.cfg','.h')
     src_path = cfg_path.replace('config','src').replace('.cfg','.cc')
-    if not path.isfile(header_path):
+    if not path.isfile(header_path) or args.clean:
         tmpl_path = '/'.join(header_path.split('/')[:-2])
         tmpl_path += ('bin/treeClassTmpl.h' if len(tmpl_path) == 0 else '/bin/treeClassTmpl.h')
-        system('cp -v %s %s'%(tmpl_path, header_path))
-    if not path.isfile(src_path):
+        do('cp -v %s %s'%(tmpl_path, header_path))
+    if not path.isfile(src_path) or args.clean:
         tmpl_path = '/'.join(src_path.split('/')[:-2])
         tmpl_path += ('bin/treeClassTmpl.cc' if len(tmpl_path) == 0 else '/bin/treeClassTmpl.cc')
-        system('cp -v %s %s'%(tmpl_path, src_path))
+        do('cp -v %s %s'%(tmpl_path, src_path))
     class_name = cfg_path.split('/')[-1].replace('.cfg','')
 
     for p in [header_path, src_path]:
-        system('cp -v {0} {0}.bkp'.format(p))
+        do('cp -v {0} {0}.bkp'.format(p))
 
     # first let's parse the cfg file 
     fcfg = open(cfg_path)
@@ -288,6 +323,7 @@ if __name__ == '__main__':
             '    {n}();',
             '    ~{n}();',
             '    void WriteTree(TTree* t);',
+            '    void ReadTree(TTree* t);',
             '    void Fill() {{ treePtr->Fill(); }}',
             '    void Reset();'
             '    void SetAuxTree(TTree*);'
@@ -392,6 +428,23 @@ if __name__ == '__main__':
         for i,c in enumerate(cond):
             src_out.append('  ' + ('  ' * (len(cond) - i - 1)) + '}')
     src_out.append('}')
+
+    src_out.append('void {n}::ReadTree(TTree *t) {{'.format(n=class_name))
+    src_out.append('  treePtr = t;')
+    src_out.extend(get_custom(custom, 'READ'))
+    for b in branches:
+        if not b.filled:
+            src_out.extend(['  ' + x for x in b.write_read()])
+    for cond,bs in by_filled.iteritems():
+        for i,c in enumerate(cond):
+            src_out.append('  ' + ('  ' * i) + 'if (%s) {'%str(c))
+        for b in bs:
+            src_out.extend(['    ' + ('  ' * i) + x for x in  b.write_read()])
+        for i,c in enumerate(cond):
+            src_out.append('  ' + ('  ' * (len(cond) - i - 1)) + '}')
+    src_out.append('}')
+
+
     with open(src_path,'w') as fout:
         fout.write('\n'.join(src_out))
 

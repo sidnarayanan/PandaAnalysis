@@ -25,7 +25,8 @@ plot = root.HistogramDrawer()
 #plot.Ratio(True)
 #plot.FixRatio(0.4)
 plot.SetTDRStyle()
-plot.InitLegend(.7, .3, .9, .9, 1)
+plot.InitLegend(.4, .7, .9, .9, 2)
+#plot.InitLegend(.7, .3, .9, .9, 1)
 plot.DrawMCErrors(True)
 #plot.Logy()
 #plot.SetAbsMin(5e-3)
@@ -64,13 +65,28 @@ def draw(field, xlabel, proc):
     plot.Reset()
 
 
-draw('clf_M', 'Jet m [GeV]', 'QCD')
-draw('clf_M', 'Jet m [GeV]', 'ZpTT_lo')
-draw('clf_MSD', 'Jet m_{SD} [GeV]', 'QCD')
-draw('clf_MSD', 'Jet m_{SD} [GeV]', 'ZpTT_lo')
+#draw('clf_M', 'Jet m [GeV]', 'QCD')
+#draw('clf_M', 'Jet m [GeV]', 'ZpTT_lo')
+#draw('clf_MSD', 'Jet m_{SD} [GeV]', 'QCD')
+#draw('clf_MSD', 'Jet m_{SD} [GeV]', 'ZpTT_lo')
+#
+#hbase = root.TH1D('','',50,0,1)
+#draw('clf_Tau32', '#tau_{32}', 'QCD')
+#draw('clf_Tau32', '#tau_{32}', 'ZpTT_lo')
+#draw('clf_Tau32SD', '#tau_{32}^{SD}', 'QCD')
+#draw('clf_Tau32SD', '#tau_{32}^{SD}', 'ZpTT_lo')
 
-hbase = root.TH1D('','',50,0,1)
-draw('clf_Tau32', '#tau_{32}', 'QCD')
-draw('clf_Tau32', '#tau_{32}', 'ZpTT_lo')
-draw('clf_Tau32SD', '#tau_{32}^{SD}', 'QCD')
-draw('clf_Tau32SD', '#tau_{32}^{SD}', 'ZpTT_lo')
+hbase = root.TH1D('','',50,50,450)
+def compare(proc):
+    s = sel[proc]
+    for field, label, color in [('clf_M', 'Mass', colors[-1]),
+                                ('clf_MSD', 'SD Mass', colors[0])]:
+        h = s.draw(fields=field, weight=weight, hbase=hbase)
+        h.Scale(1./h.Integral())
+        h.GetXaxis().SetTitle('Jet mass [GeV]')
+        plot.AddHistogram(h, label, 5, color)
+    plot.Draw(args.outdir+'/', 'compare_'+proc)
+    plot.Reset()
+
+
+compare('ZpTT_lo')

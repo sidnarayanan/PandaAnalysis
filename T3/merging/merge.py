@@ -13,6 +13,7 @@ from PandaCore.Tools.script import *
 
 sname = argv[0]
 args = parse(('--silent', STORE_TRUE),
+             ('--force', STORE_TRUE),
              ('--cfg', {'default':'common', 'type':str}),
              ('--skip_missing', STORE_TRUE),
              ('--validate', STORE_TRUE),
@@ -20,6 +21,7 @@ args = parse(('--silent', STORE_TRUE),
 
 arguments = args.arguments
 VERBOSE = not args.silent
+force = args.force
 skip_missing = args.skip_missing
 validate = args.validate
 
@@ -190,7 +192,7 @@ def merge(shortnames,mergedname):
 args = {}
 
 for pd in arguments:
-    if pd in cfg.d:
+    if not force and pd in cfg.d:
         args[pd] = cfg.d[pd]
     else:
         args[pd] = [pd]

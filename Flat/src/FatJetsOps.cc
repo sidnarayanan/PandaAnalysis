@@ -188,7 +188,11 @@ float FatJetOp::getMSDCorr(float puppipt, float puppieta)
   return totalWeight;
 }
 
-const GenParticle* FatJetMatchingOp::matchGen(double eta, double phi, double radius, int pdgid) const
+template class TmplFatJetMatchingOp<GeneralTree>;
+template class TmplFatJetMatchingOp<JetGraphTree>;
+
+template <typename T>
+const GenParticle* TmplFatJetMatchingOp<T>::matchGen(double eta, double phi, double radius, int pdgid) const
 {
   const GenParticle* found=NULL;
   double r2 = radius*radius;
@@ -207,15 +211,12 @@ const GenParticle* FatJetMatchingOp::matchGen(double eta, double phi, double rad
   return found;
 }
 
-
-void FatJetMatchingOp::do_execute()
+template <typename T>
+int TmplFatJetMatchingOp<T>::getGenObjs() 
 {
-  if (fjPtrs->size() == 0)
-    return; 
-
   int pdgidTarget=0;
-  if (!analysis.isData && analysis.processType>=kTT && analysis.processType<=kSignal) {
-    switch(analysis.processType) {
+  if (!this->analysis.isData && this->analysis.processType>=kTT && this->analysis.processType<=kSignal) {
+    switch(this->analysis.processType) {
       case kTop:
       case kTT:
       case kSignal:
@@ -229,7 +230,7 @@ void FatJetMatchingOp::do_execute()
         break;
       default:
         // analysis.processType>=kTT means we should never get here
-        logger.error("FatJetMatchingOp::do_execute","Reached an unknown process type");
+        logger.error("TmplFatJetMatchingOp::do_execute","Reached an unknown process type");
     }
 
     std::vector<int> targets;
@@ -258,7 +259,7 @@ void FatJetMatchingOp::do_execute()
         continue;
 
       // (a) check it is a hadronic decay and if so, (b) calculate the size
-      if (analysis.processType==kTop||analysis.processType==kTT) {
+      if (this->analysis.processType==kTop||this->analysis.processType==kTT) {
 
         // first look for a W whose parent is the top at iG, or a W further down the chain
         const GenParticle* lastW(0);
@@ -353,134 +354,261 @@ void FatJetMatchingOp::do_execute()
 
     } // loop over targets
   } // process is interesting
+  return pdgidTarget;
+}
 
-  int iFJ = -1; 
-  for (auto* fj : *fjPtrs) {
-    ++iFJ; 
-    // first see if jet is matched
-    auto* matched = matchGen(fj->eta(),fj->phi(),1.5,pdgidTarget);
-    if (matched!=nullptr) {
-      gt.fjIsMatched[iFJ] = 1;
-      gt.fjGenPt[iFJ] = matched->pt();
-      gt.fjGenSize[iFJ] = genObjects[matched];
-    } else {
-      gt.fjIsMatched[iFJ] = 0;
-    }
-    if (pdgidTarget==6) { // matched to top; try for W
-      auto* matchedW = matchGen(fj->eta(),fj->phi(),1.5,24);
-      if (matchedW!=nullptr) {
-        gt.fjIsWMatched[iFJ] = 1;
-        gt.fjGenWPt[iFJ] = matchedW->pt();
-        gt.fjGenWSize[iFJ] = genObjects[matchedW];
+namespace pa {
+  template <>
+  void FatJetMatchingOp::do_execute()
+  {
+    if (fjPtrs->size() == 0)
+      return; 
+
+    int pdgidTarget = getGenObjs();
+
+    int iFJ = -1; 
+    for (auto* fj : *fjPtrs) {
+      ++iFJ; 
+      // first see if jet is matched
+      auto* matched = matchGen(fj->eta(),fj->phi(),1.5,pdgidTarget);
+      if (matched!=nullptr) {
+        gt.fjIsMatched[iFJ] = 1;
+        gt.fjGenPt[iFJ] = matched->pt();
+        gt.fjGenSize[iFJ] = genObjects[matched];
       } else {
-        gt.fjIsWMatched[iFJ] = 0;
+        gt.fjIsMatched[iFJ] = 0;
       }
-    }
-
-    bool found_b_from_g=false;
-    int bs_inside_cone=0;
-    int has_gluon_splitting=0;
-    const GenParticle* first_b_mo(0);
-    // now get the highest pT gen particle inside the jet cone
-    for (auto* genptr : *genP) {
-      auto& gen = pToGRef(genptr);
-      float pt = gen.pt();
-      int pdgid = gen.pdgid;
-      if (pt>(gt.fjHighestPtGenPt[iFJ])
-          && DeltaR2(gen.eta(),gen.phi(),fj->eta(),fj->phi())<cfg.FATJETMATCHDR2) {
-        gt.fjHighestPtGenPt[iFJ] = pt;
-        gt.fjHighestPtGen[iFJ] = pdgid;
+      if (pdgidTarget==6) { // matched to top; try for W
+        auto* matchedW = matchGen(fj->eta(),fj->phi(),1.5,24);
+        if (matchedW!=nullptr) {
+          gt.fjIsWMatched[iFJ] = 1;
+          gt.fjGenWPt[iFJ] = matchedW->pt();
+          gt.fjGenWSize[iFJ] = genObjects[matchedW];
+        } else {
+          gt.fjIsWMatched[iFJ] = 0;
+        }
       }
 
-      if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
-        continue;
+      bool found_b_from_g=false;
+      int bs_inside_cone=0;
+      int has_gluon_splitting=0;
+      const GenParticle* first_b_mo(0);
+      // now get the highest pT gen particle inside the jet cone
+      for (auto* genptr : *genP) {
+        auto& gen = pToGRef(genptr);
+        float pt = gen.pt();
+        int pdgid = gen.pdgid;
+        if (pt>(gt.fjHighestPtGenPt[iFJ])
+            && DeltaR2(gen.eta(),gen.phi(),fj->eta(),fj->phi())<this->cfg.FATJETMATCHDR2) {
+          gt.fjHighestPtGenPt[iFJ] = pt;
+          gt.fjHighestPtGen[iFJ] = pdgid;
+        }
 
-      //count bs and cs
-      int apdgid = abs(pdgid);
-      if (apdgid!=5 && apdgid!=4)
-        continue;
+        if (gen.parent.isValid() && gen.parent->pdgid==gen.pdgid)
+          continue;
 
-      if (DeltaR2(gen.eta(),gen.phi(),fj->eta(),fj->phi())<cfg.FATJETMATCHDR2) {
-        gt.fjNHF[iFJ]++;
-        if (apdgid==5) {
-          if (gen.parent.isValid() && gen.parent->pdgid==21 && gen.parent->pt()>20) {
-            if (!found_b_from_g) {
-              found_b_from_g=true;
-              first_b_mo=gen.parent.get();
-              bs_inside_cone+=1;
-            } else if (gen.parent.get()==first_b_mo) {
-              bs_inside_cone+=1;
-              has_gluon_splitting=1;
+        //count bs and cs
+        int apdgid = abs(pdgid);
+        if (apdgid!=5 && apdgid!=4)
+          continue;
+
+        if (DeltaR2(gen.eta(),gen.phi(),fj->eta(),fj->phi())<this->cfg.FATJETMATCHDR2) {
+          gt.fjNHF[iFJ]++;
+          if (apdgid==5) {
+            if (gen.parent.isValid() && gen.parent->pdgid==21 && gen.parent->pt()>20) {
+              if (!found_b_from_g) {
+                found_b_from_g=true;
+                first_b_mo=gen.parent.get();
+                bs_inside_cone+=1;
+              } else if (gen.parent.get()==first_b_mo) {
+                bs_inside_cone+=1;
+                has_gluon_splitting=1;
+              } else {
+                bs_inside_cone+=1;
+              }
             } else {
               bs_inside_cone+=1;
             }
+          }
+        }
+      }
+
+      gt.fjNbs[iFJ]=bs_inside_cone;
+      gt.fjgbb[iFJ]=has_gluon_splitting;
+
+      if (analysis.btagSFs && iFJ == 0) {
+        // now get the subjet btag SFs
+        vector<btagcand> sj_btagcands;
+        vector<double> sj_sf_cent, sj_sf_bUp, sj_sf_bDown, sj_sf_mUp, sj_sf_mDown;
+        int nSJ = fj->subjets.size();
+        for (int iSJ=0; iSJ!=nSJ; ++iSJ) {
+          auto& subjet = fj->subjets.objAt(iSJ);
+          int flavor=0;
+          for (auto* genptr : *genP) {
+            auto& gen = pToGRef(genptr);
+            int apdgid = abs(gen.pdgid);
+            if (apdgid==0 || (apdgid>5 && apdgid!=21)) // light quark or gluon
+              continue;
+            double dr2 = DeltaR2(subjet.eta(),subjet.phi(),gen.eta(),gen.phi());
+            if (dr2<0.09) {
+              if (apdgid==4 || apdgid==5) {
+                flavor=apdgid;
+                break;
+              } else {
+                flavor=0;
+              }
+            }
+          } // finding the subjet flavor
+
+          float pt = subjet.pt();
+          float btagUncFactor = 1;
+          float eta = subjet.eta();
+          double eff(1),sf(1),sfUp(1),sfDown(1);
+          if (flavor==5) {
+            eff = this->utils.getCorr(cCSVBL, pt, fabs(eta));
+          } else if (flavor==4) {
+            eff = this->utils.getCorr(cCSVCL, pt, fabs(eta));
           } else {
-            bs_inside_cone+=1;
+            eff = this->utils.getCorr(cCSVLL, pt, fabs(eta));
           }
+          if (analysis.hbb)
+            this->utils.btag->calcSF(bSubJetM,flavor,eta,pt,eff,btagUncFactor,sf,sfUp,sfDown);
+          else
+            this->utils.btag->calcSF(bSubJetL,flavor,eta,pt,eff,btagUncFactor,sf,sfUp,sfDown);
+          sj_btagcands.push_back(btagcand(iSJ,flavor,eff,sf,sfUp,sfDown));
+          sj_sf_cent.push_back(sf);
+          if (flavor>0) {
+            sj_sf_bUp.push_back(sfUp); sj_sf_bDown.push_back(sfDown);
+            sj_sf_mUp.push_back(sf); sj_sf_mDown.push_back(sf);
+          } else {
+            sj_sf_bUp.push_back(sf); sj_sf_bDown.push_back(sf);
+            sj_sf_mUp.push_back(sfUp); sj_sf_mDown.push_back(sfDown);
+          }
+
+        } // loop over subjets
+        this->utils.btag->evalSF(sj_btagcands,sj_sf_cent,GeneralTree::bCent,GeneralTree::bSubJet,true);
+        this->utils.btag->evalSF(sj_btagcands,sj_sf_bUp,GeneralTree::bBUp,GeneralTree::bSubJet,true);
+        this->utils.btag->evalSF(sj_btagcands,sj_sf_bDown,GeneralTree::bBDown,GeneralTree::bSubJet,true);
+        this->utils.btag->evalSF(sj_btagcands,sj_sf_mUp,GeneralTree::bMUp,GeneralTree::bSubJet,true);
+        this->utils.btag->evalSF(sj_btagcands,sj_sf_mDown,GeneralTree::bMDown,GeneralTree::bSubJet,true);
+      }
+
+    }
+  }
+
+  template <>
+  void JetGraphOp::do_execute()
+  {
+    if (fjPtrs->size() == 0)
+      return; 
+
+    int pdgidTarget = getGenObjs();
+
+    int iFJ = -1; 
+    for (auto* fj : *fjPtrs) {
+      ++iFJ; 
+
+      if (fj->pt() < 400)
+        continue;
+
+      gt.Reset();
+      gt.eventNumber = event.eventNumber;
+      gt.runNumber = event.runNumber;
+      gt.lumiNumber = event.lumiNumber;
+      gt.jetIdx = iFJ;
+
+      // first see if jet is matched
+      if (pdgidTarget != 0) {
+        auto* matched = matchGen(fj->eta(),fj->phi(),1.5,pdgidTarget);
+        if (matched == nullptr || 
+            genObjects[matched] > 0.64) 
+          continue;
+      }
+
+      gt.jetPdgId = abs(pdgidTarget);
+      gt.jetTau32 = clean(fj->tau3SD / fj->tau2SD);
+      gt.jetTau21 = clean(fj->tau2SD / fj->tau1SD);
+      gt.jetMSD = fj->mSD;
+      gt.jetPt = fj->pt();
+      gt.jetEta = fj->eta();
+      gt.jetPhi = fj->phi();
+      gt.jetM = fj->m();
+
+      auto particles = convertPFCands(fj->constituents,true,0.001);
+      int nP = (int)particles.size();
+      vector<PseudoJet> particlesTrunc;
+      particlesTrunc.reserve(nP);
+      std::copy(particles.begin(), particles.begin()+nP,
+                std::back_inserter(particlesTrunc));
+
+      ClusterSequence seq(particlesTrunc,*jetDef);
+      auto allJets = seq.inclusive_jets(0.);
+      if (allJets.size() == 0) {
+        logger.warning("JetGraphOp",
+                       TString::Format("Could not convert jet of pt=%.3f GeV and with %i PFs",
+                                       fj->pt(), fj->constituents.size()));
+        continue;
+      }
+      
+      auto& history = seq.history();
+      auto& jets = seq.jets();
+      std::map<const PseudoJet*,int> jetIdx;
+      for (auto& jet : jets) {
+        if (jet.perp() > 0.01) {
+          int idx = jetIdx.size();
+          if (idx >= NNODE)
+            break;
+          jetIdx[&jet] = idx;
+          gt.nodePt[idx] = jet.perp();
+          gt.nodeEta[idx] = jet.eta();
+          gt.nodePhi[idx] = jet.phi();
+          gt.nodeE[idx] = jet.e();
         }
       }
-    }
+      if (cfg.DEBUG>level+1) {
+        logger.debug("JetGraphOp", 
+                     TString::Format("Graph has %lu (%lu) nodes and %lu history steps", 
+                                     jetIdx.size(), jets.size(), history.size()));
+        logger.debug("JetGraphOp", 
+                     TString::Format("Jet has pt %.3f and %i PFs", 
+                                     fj->pt(), fj->constituents.size()));
+      }
 
-    gt.fjNbs[iFJ]=bs_inside_cone;
-    gt.fjgbb[iFJ]=has_gluon_splitting;
+      auto getIdx = [&](int i) { 
+        if (i < 0)
+          return -1;
+        auto* addr = &(jets.at(i));
+        if (jetIdx.find(addr) == jetIdx.end())
+          return -1;
+        int ret = jetIdx[addr];
+        return (ret < NNODE) ? ret : -1;
+      };
 
-    if (analysis.btagSFs && iFJ == 0) {
-      // now get the subjet btag SFs
-      vector<btagcand> sj_btagcands;
-      vector<double> sj_sf_cent, sj_sf_bUp, sj_sf_bDown, sj_sf_mUp, sj_sf_mDown;
-      int nSJ = fj->subjets.size();
-      for (int iSJ=0; iSJ!=nSJ; ++iSJ) {
-        auto& subjet = fj->subjets.objAt(iSJ);
-        int flavor=0;
-        for (auto* genptr : *genP) {
-          auto& gen = pToGRef(genptr);
-          int apdgid = abs(gen.pdgid);
-          if (apdgid==0 || (apdgid>5 && apdgid!=21)) // light quark or gluon
-            continue;
-          double dr2 = DeltaR2(subjet.eta(),subjet.phi(),gen.eta(),gen.phi());
-          if (dr2<0.09) {
-            if (apdgid==4 || apdgid==5) {
-              flavor=apdgid;
-              break;
-            } else {
-              flavor=0;
-            }
-          }
-        } // finding the subjet flavor
+      for (auto& h : history) {
+        int jetpIdx = h.jetp_index;
+        jetpIdx = getIdx(jetpIdx);
+        if (jetpIdx < 0)
+          continue;
 
-        float pt = subjet.pt();
-        float btagUncFactor = 1;
-        float eta = subjet.eta();
-        double eff(1),sf(1),sfUp(1),sfDown(1);
-        if (flavor==5) {
-          eff = utils.getCorr(cCSVBL, pt, fabs(eta));
-        } else if (flavor==4) {
-          eff = utils.getCorr(cCSVCL, pt, fabs(eta));
+        gt.nodeIsRoot[jetpIdx] = (h.child < 0) ? 1 : 0;
+
+        if (h.parent1 >= 0) {
+          gt.nodeIsFinal[jetpIdx] = 0;
+          auto& hp1 = history.at(h.parent1);
+          int hp1Idx = getIdx(hp1.jetp_index);
+          if (hp1Idx >= 0)
+            gt.adj[jetpIdx][hp1Idx] = 1;
+          auto& hp2 = history.at(h.parent2);
+          int hp2Idx = getIdx(hp2.jetp_index);
+          if (hp2Idx >= 0)
+            gt.adj[jetpIdx][hp2Idx] = 1;
         } else {
-          eff = utils.getCorr(cCSVLL, pt, fabs(eta));
+          gt.nodeIsFinal[jetpIdx] = 1;
         }
-        if (analysis.hbb)
-          utils.btag->calcSF(bSubJetM,flavor,eta,pt,eff,btagUncFactor,sf,sfUp,sfDown);
-        else
-          utils.btag->calcSF(bSubJetL,flavor,eta,pt,eff,btagUncFactor,sf,sfUp,sfDown);
-        sj_btagcands.push_back(btagcand(iSJ,flavor,eff,sf,sfUp,sfDown));
-        sj_sf_cent.push_back(sf);
-        if (flavor>0) {
-          sj_sf_bUp.push_back(sfUp); sj_sf_bDown.push_back(sfDown);
-          sj_sf_mUp.push_back(sf); sj_sf_mDown.push_back(sf);
-        } else {
-          sj_sf_bUp.push_back(sf); sj_sf_bDown.push_back(sf);
-          sj_sf_mUp.push_back(sfUp); sj_sf_mDown.push_back(sfDown);
-        }
+      }
 
-      } // loop over subjets
-      utils.btag->evalSF(sj_btagcands,sj_sf_cent,GeneralTree::bCent,GeneralTree::bSubJet,true);
-      utils.btag->evalSF(sj_btagcands,sj_sf_bUp,GeneralTree::bBUp,GeneralTree::bSubJet,true);
-      utils.btag->evalSF(sj_btagcands,sj_sf_bDown,GeneralTree::bBDown,GeneralTree::bSubJet,true);
-      utils.btag->evalSF(sj_btagcands,sj_sf_mUp,GeneralTree::bMUp,GeneralTree::bSubJet,true);
-      utils.btag->evalSF(sj_btagcands,sj_sf_mDown,GeneralTree::bMDown,GeneralTree::bSubJet,true);
+      gt.Fill();
     }
-
   }
 }
 

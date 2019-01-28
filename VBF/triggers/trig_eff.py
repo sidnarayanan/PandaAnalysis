@@ -78,6 +78,7 @@ for k,v in ratios_to_plot.iteritems():
 #    h_ratio.Divide(h_inc)
     h_ratio.GetXaxis().SetTitle(v[1])
     h_ratio.GetYaxis().SetTitle('Efficiency')
+    h_ratio.GetYaxis().SetTitleOffset(1.4)
     if hh_ratio.GetMinimum() < 0.5:
       h_ratio.SetMaximum(1.4)
       h_ratio.SetMinimum(0)

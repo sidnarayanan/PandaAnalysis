@@ -19,7 +19,7 @@ bool
 genericTree::Book(TString bname, void *address, TString leaf)
 {
 
-  if (!treePtr)
+  if (treePtr == nullptr)
     return false;
 
   bool mustKeep = false; // if there's an override
@@ -38,6 +38,31 @@ genericTree::Book(TString bname, void *address, TString leaf)
   }
 
   treePtr->Branch(bname,address,leaf);
+  return true;
+
+}
+
+bool genericTree::Bind(TString bname, void *address)
+{
+  if (treePtr == nullptr)
+    return false;
+
+  bool mustKeep = false; // if there's an override
+  for (auto &r : r_keeppable) {
+    if (bname.Contains(r)) {
+      mustKeep = true;
+      break;
+    }
+  }
+
+  if (!mustKeep) {
+    for (auto &r : r_droppable) {
+      if (bname.Contains(r)) 
+        return false;
+    }
+  }
+
+  treePtr->SetBranchAddress(bname,address);
   return true;
 
 }

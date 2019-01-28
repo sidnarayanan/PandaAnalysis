@@ -18,8 +18,9 @@ class genericTree {
     genericTree(const genericTree&) = delete; 
     genericTree& operator=(const genericTree&) = delete; 
     virtual ~genericTree() {}
-    TTree *treePtr{0};
+    TTree *treePtr{nullptr};
     virtual void WriteTree(TTree *t)=0;
+    virtual void ReadTree(TTree* t)=0;
     virtual void RemoveBranches(std::vector<TString> droppable,
                                 std::vector<TString> keeppable={}) final;
     virtual void SetAuxTree(TTree *t) {}
@@ -29,10 +30,11 @@ class genericTree {
     }
   protected: 
     virtual bool Book(TString bname, void *address, TString leafs) final;
+    virtual bool Bind(TString bname, void *address) final;
 
   private:
     std::vector<TRegexp> r_droppable, r_keeppable;
-    TTree *auxTree{0};
+    TTree *auxTree{nullptr};
 };
 
 #endif

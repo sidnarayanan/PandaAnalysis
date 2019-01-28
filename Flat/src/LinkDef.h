@@ -8,6 +8,9 @@
 #include "PandaAnalysis/Flat/interface/genericTree.h"
 #include "PandaAnalysis/Flat/interface/Selection.h"
 #include "PandaAnalysis/Flat/interface/L1Analyzer.h"
+#include "PandaAnalysis/Flat/interface/JetGraphTree.h"
+#include "PandaAnalysis/Flat/interface/JGAnalyzer.h"
+#include "PandaAnalysis/Flat/interface/CTAnalyzer.h"
 
 
 #ifdef __CLING__
@@ -60,5 +63,8 @@
 #pragma link C++ class pa::ParticleGridder;
 #pragma link C++ class pa::JetTree;
 #pragma link C++ class pa::L1Analyzer; 
+#pragma link C++ class pa::JetGraphTree;
+#pragma link C++ class pa::JGAnalyzer;
+#pragma link C++ class pa::CTAnalyzer;
 
 #endif

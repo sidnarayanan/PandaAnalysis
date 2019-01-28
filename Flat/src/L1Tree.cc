@@ -91,3 +91,8 @@ void L1Tree::WriteTree(TTree *t) {
   Book("l1EGPhi",l1EGPhi,"l1EGPhi["+TString("4")+"]/F");
   Book("l1EGIso",l1EGIso,"l1EGIso["+TString("4")+"]/F");
 }
+void L1Tree::ReadTree(TTree *t) {
+  treePtr = t;
+// STARTCUSTOM READ
+// ENDCUSTOM
+}

@@ -40,7 +40,7 @@ if args.iso:
 plot = root.GraphAsymmErrDrawer()
 plot.SetLineWidth(3)
 plot.SetTDRStyle()
-plot.InitLegend(.6,.65,.88,.9)
+plot.InitLegend(.2,.65,.48,.9)
 
 plotlog = root.HistogramDrawer()
 plotlog.SetTDRStyle()

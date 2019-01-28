@@ -22,7 +22,7 @@ namespace pa {
     virtual ~BaseSelection() { }
     
     virtual void report() const final { 
-      logger.debug("Selection::" + name, Form("Accepted %i/%i events", nPassed, nTotal)); 
+      logger.info("Selection::" + name, Form("Accepted %i/%i events", nPassed, nTotal)); 
     }
     virtual void set_gt(const T* gt_) final { gt = gt_; }
     // if called at a different stage, just return true

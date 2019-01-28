@@ -139,3 +139,8 @@ void TagTree::WriteTree(TTree *t) {
     Book("fj1IsClean",&fj1IsClean,"fj1IsClean/I");
 }
 
+void TagTree::ReadTree(TTree *t) {
+  treePtr = t;
+// STARTCUSTOM READ
+// ENDCUSTOM
+}
