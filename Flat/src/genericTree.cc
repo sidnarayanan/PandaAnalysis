@@ -37,7 +37,7 @@ genericTree::Book(TString bname, void *address, TString leaf)
     }
   }
 
-  treePtr->Branch(bname,address,leaf);
+  treePtr->Branch(bname, address, leaf);
   return true;
 
 }
@@ -62,7 +62,8 @@ bool genericTree::Bind(TString bname, void *address)
     }
   }
 
-  treePtr->SetBranchAddress(bname,address);
+  turnOnBranches(treePtr, bname);
+  treePtr->SetBranchAddress(bname, address);
   return true;
 
 }

@@ -9,6 +9,7 @@
 #include "TString.h"
 #include "TRegexp.h"
 #include <vector>
+#include "PandaCore/Tools/interface/TreeTools.h"
 
 #define NGENMAX 100
 
@@ -26,7 +27,8 @@ class genericTree {
     virtual void SetAuxTree(TTree *t) {}
     virtual void Reset() { }
     virtual void SetBranchStatus(const char *bname, bool status, UInt_t *ret=0) final { 
-      treePtr->SetBranchStatus(bname,status,ret); 
+      if (treePtr != nullptr) 
+        treePtr->SetBranchStatus(bname,status,ret); 
     }
   protected: 
     virtual bool Book(TString bname, void *address, TString leafs) final;

@@ -93,6 +93,36 @@ void L1Tree::WriteTree(TTree *t) {
 }
 void L1Tree::ReadTree(TTree *t) {
   treePtr = t;
+  treePtr->SetBranchStatus("*",0);
 // STARTCUSTOM READ
 // ENDCUSTOM
+  Bind("runNumber",&runNumber);
+  Bind("lumiNumber",&lumiNumber);
+  Bind("eventNumber",&eventNumber);
+  Bind("met",&met);
+  Bind("metphi",&metphi);
+  Bind("mindphi",&mindphi);
+  Bind("filter",&filter);
+  Bind("nJot",&nJot);
+  Bind("nJotEC",&nJotEC);
+  Bind("jotPt",jotPt);
+  Bind("jotEta",jotEta);
+  Bind("jotPhi",jotPhi);
+  Bind("jotE",jotE);
+  Bind("jotNEMF",jotNEMF);
+  Bind("jotNHF",jotNHF);
+  Bind("jotL1EGBX",jotL1EGBX);
+  Bind("jotL1EGIso",jotL1EGIso);
+  Bind("jotL1Pt",jotL1Pt);
+  Bind("jotL1Eta",jotL1Eta);
+  Bind("jotL1Phi",jotL1Phi);
+  Bind("jot12Mass",&jot12Mass);
+  Bind("jot12DEta",&jot12DEta);
+  Bind("jot12DPhi",&jot12DPhi);
+  Bind("finor",finor);
+  Bind("l1EGPt",l1EGPt);
+  Bind("l1EGBX",l1EGBX);
+  Bind("l1EGEta",l1EGEta);
+  Bind("l1EGPhi",l1EGPhi);
+  Bind("l1EGIso",l1EGIso);
 }

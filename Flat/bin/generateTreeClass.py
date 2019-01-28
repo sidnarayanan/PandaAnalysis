@@ -325,7 +325,7 @@ if __name__ == '__main__':
             '    void WriteTree(TTree* t);',
             '    void ReadTree(TTree* t);',
             '    void Fill() {{ treePtr->Fill(); }}',
-            '    void Reset();'
+            '    void Reset();',
             '    void SetAuxTree(TTree*);'
         ])).format(n=class_name))
     header_out.extend(get_custom(custom, 'PUBLIC'))
@@ -429,8 +429,9 @@ if __name__ == '__main__':
             src_out.append('  ' + ('  ' * (len(cond) - i - 1)) + '}')
     src_out.append('}')
 
-    src_out.append('void {n}::ReadTree(TTree *t) {{'.format(n=class_name))
-    src_out.append('  treePtr = t;')
+    src_out.extend(['void {n}::ReadTree(TTree *t) {{'.format(n=class_name),
+                    '  treePtr = t;',
+                    '  treePtr->SetBranchStatus("*",0);'])
     src_out.extend(get_custom(custom, 'READ'))
     for b in branches:
         if not b.filled:

@@ -73,6 +73,25 @@ void JetGraphTree::WriteTree(TTree *t) {
 }
 void JetGraphTree::ReadTree(TTree *t) {
   treePtr = t;
+  treePtr->SetBranchStatus("*",0);
 // STARTCUSTOM READ
 // ENDCUSTOM
+  Bind("runNumber",&runNumber);
+  Bind("lumiNumber",&lumiNumber);
+  Bind("eventNumber",&eventNumber);
+  Bind("jetIdx",&jetIdx);
+  Bind("jetTau32",&jetTau32);
+  Bind("jetTau21",&jetTau21);
+  Bind("jetMSD",&jetMSD);
+  Bind("jetPt",&jetPt);
+  Bind("jetEta",&jetEta);
+  Bind("jetPhi",&jetPhi);
+  Bind("jetM",&jetM);
+  Bind("jetPdgId",&jetPdgId);
+  Bind("nodePt",nodePt);
+  Bind("nodeEta",nodeEta);
+  Bind("nodePhi",nodePhi);
+  Bind("nodeE",nodeE);
+  Bind("nodeIsFinal",nodeIsFinal);
+  Bind("nodeIsRoot",nodeIsRoot);
 }

@@ -102,6 +102,34 @@ void HeavyResTree::WriteTree(TTree *t) {
 }
 void HeavyResTree::ReadTree(TTree *t) {
   treePtr = t;
+  treePtr->SetBranchStatus("*",0);
 // STARTCUSTOM READ
 // ENDCUSTOM
+  Bind("recoil",&recoil);
+  Bind("runNumber",&runNumber);
+  Bind("lumiNumber",&lumiNumber);
+  Bind("i_evt",&i_evt);
+  Bind("i_parton",&i_parton);
+  Bind("npv",&npv);
+  Bind("rho",&rho);
+  Bind("mcWeight",&mcWeight);
+  Bind("sampleType",&sampleType);
+  Bind("gen_pt",&gen_pt);
+  Bind("gen_eta",&gen_eta);
+  Bind("gen_phi",&gen_phi);
+  Bind("gen_size",&gen_size);
+  Bind("gen_pdgid",&gen_pdgid);
+  Bind("clf_Tau32",&clf_Tau32);
+  Bind("clf_Tau21",&clf_Tau21);
+  Bind("clf_Tau32SD",&clf_Tau32SD);
+  Bind("clf_Tau21SD",&clf_Tau21SD);
+  Bind("clf_MSD",&clf_MSD);
+  Bind("clf_MSD_corr",&clf_MSD_corr);
+  Bind("clf_Pt",&clf_Pt);
+  Bind("clf_Phi",&clf_Phi);
+  Bind("clf_Eta",&clf_Eta);
+  Bind("clf_M",&clf_M);
+  Bind("clf_MaxCSV",&clf_MaxCSV);
+  Bind("clf_IsMatched",&clf_IsMatched);
+  Bind("clf_HTTFRec",&clf_HTTFRec);
 }

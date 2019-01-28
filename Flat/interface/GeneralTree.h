@@ -79,7 +79,8 @@ class GeneralTree : public genericTree {
     void WriteTree(TTree* t);
     void ReadTree(TTree* t);
     void Fill() { treePtr->Fill(); }
-    void Reset();    void SetAuxTree(TTree*);
+    void Reset();
+    void SetAuxTree(TTree*);
 // STARTCUSTOM PUBLIC
     const std::vector<double>& get_betas() const { return betas; }
     const std::vector<int>& get_ibetas() const { return ibetas; }
