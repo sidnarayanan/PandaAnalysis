@@ -113,7 +113,7 @@ void GrappleAnalyzer::Run()
 void GrappleOp::incrementAux(bool close)
 {
   if (fAux) {
-    fAux->WriteTObject(tAux.get(), "inputs", "Overwrite");
+    fAux->WriteTObject(tAux, "inputs", "Overwrite");
     TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter);
     fAux->Close();
   }
@@ -121,8 +121,8 @@ void GrappleOp::incrementAux(bool close)
     return;
 
   TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter++);
+  tAux = new TTree("inputs", "inputs");
   fAux.reset(TFile::Open(path.Data(), "RECREATE"));
-  tAux.reset(new TTree("inputs","inputs"));
 
   genJetInfo.particles.resize(cfg.NMAXPF);
   for (int i = 0; i != cfg.NMAXPF; ++i) {
@@ -193,6 +193,6 @@ void GrappleOp::do_execute()
   }
 
   tAux->Fill();
-  if (tAux->GetEntries() == 2500)
+  if (tAux->GetEntries() == 10000)
     incrementAux(false);
 }
