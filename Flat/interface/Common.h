@@ -18,6 +18,7 @@
 #include "GeneralTree.h"
 #include "HeavyResTree.h"
 #include "L1Tree.h" 
+#include "EventTree.h"
 #include "PandaTree/Objects/interface/EventAnalysis.h"
 #include "PandaCore/Tools/interface/Common.h"
 #include "PandaCore/Tools/interface/DataTools.h"

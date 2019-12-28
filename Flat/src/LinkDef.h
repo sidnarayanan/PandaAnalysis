@@ -11,6 +11,7 @@
 #include "PandaAnalysis/Flat/interface/JetGraphTree.h"
 #include "PandaAnalysis/Flat/interface/JGAnalyzer.h"
 #include "PandaAnalysis/Flat/interface/CTAnalyzer.h"
+#include "PandaAnalysis/Flat/interface/GrappleAnalyzer.h"
 
 
 #ifdef __CLING__
@@ -65,6 +66,8 @@
 #pragma link C++ class pa::L1Analyzer; 
 #pragma link C++ class JetGraphTree;
 #pragma link C++ class pa::JGAnalyzer;
+#pragma link C++ class EventTree;
+#pragma link C++ class pa::GrappleAnalyzer;
 #pragma link C++ class pa::CTAnalyzer;
 
 #endif

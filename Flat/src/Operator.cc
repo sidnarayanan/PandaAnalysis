@@ -1,5 +1,6 @@
 #include "../interface/Operator.h"
 #include "../interface/JetGraphTree.h"
+#include "../interface/EventTree.h"
 
 using namespace pa;
 using namespace panda;
@@ -624,3 +625,4 @@ void BaseAnalysisOp<T>::print()
 template class BaseAnalysisOp<GeneralTree>;
 template class BaseAnalysisOp<HeavyResTree>;
 template class BaseAnalysisOp<JetGraphTree>;
+template class BaseAnalysisOp<EventTree>;

@@ -203,6 +203,7 @@ namespace pa {
   };
   typedef BaseAnalysisOp<GeneralTree> AnalysisOp; 
   typedef BaseAnalysisOp<HeavyResTree> HROp; 
+  typedef BaseAnalysisOp<EventTree> EventOp;
 
   // a completely empty op
   class ContainerOp : public AnalysisOp {

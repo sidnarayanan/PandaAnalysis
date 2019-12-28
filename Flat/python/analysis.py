@@ -34,6 +34,11 @@ def analysis(name, verbose=True, **kwargs):
 
 
 # predefined!
+empty = lambda v=False : _analysis(
+            name = 'empty',
+            verbose = v,
+    )
+
 monotop = lambda v=False : _analysis(
         name = 'monotop',
         verbose = v,
