@@ -38,7 +38,7 @@ namespace pa {
 
         GenJetInfo genJetInfo;
 
-        std::unique_ptr<TFile>fAux{nullptr};
+        TFile* fAux{nullptr};
         TTree* tAux{nullptr}; // don't ask why this is a bare pointer, I don't understand
                               // root memory management either.
         int auxCounter{0};

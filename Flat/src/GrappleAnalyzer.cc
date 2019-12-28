@@ -121,8 +121,8 @@ void GrappleOp::incrementAux(bool close)
     return;
 
   TString path = TString::Format(cfg.auxFilePath.Data(),auxCounter++);
+  fAux = new TFile(path.Data(), "RECREATE");
   tAux = new TTree("inputs", "inputs");
-  fAux.reset(TFile::Open(path.Data(), "RECREATE"));
 
   genJetInfo.particles.resize(cfg.NMAXPF);
   for (int i = 0; i != cfg.NMAXPF; ++i) {
