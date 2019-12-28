@@ -21,6 +21,7 @@ GrappleAnalyzer::GrappleAnalyzer(Analysis* a, int debug_/*=0*/) :
   op->print();
 
   cfg.NGENPROPS = 7;
+  cfg.NMAXPF = 2000;
   cfg.auxFilePath = analysis.outpath;
   cfg.auxFilePath.ReplaceAll(".root", "_aux%i.root");
 
