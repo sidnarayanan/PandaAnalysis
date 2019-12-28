@@ -169,7 +169,9 @@ void GrappleOp::do_execute()
     //   else:
     //     vertexID = -1
     int vertexID = -1;
-    if (cand.q() != 0) {
+    if (cand.q() != 0 && cand.vertex.isValid()) {
+        vertexID = vertexToID[cand.vertex.get()];
+    } else {
       for (auto& p : event.genParticles) {
         if (!p.finalState)
           continue;
@@ -178,11 +180,7 @@ void GrappleOp::do_execute()
           break;
         }
       }   
-    } else {
-      if (cand.vertex.isValid()) {
-        vertexID = vertexToID[cand.vertex.get()];
-      }
-    }
+    } 
     auto& entry = genJetInfo.particles[i_particle];
     entry[0] = pt;
     entry[1] = eta;
