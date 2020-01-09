@@ -149,12 +149,21 @@ void GrappleOp::do_execute()
     vertexToID[&vtx] = vertexToID.size();
   }
 
+  auto sortedPFs = vector<const PFCand*>();
+  for (auto& cand : event.pfCandidates)
+    sortedPFs.push_back(&cand);
+  sort(sortedPFs.begin(), sortedPFs.end(),
+       [](const PFCand* x, const PFCand* y) -> bool {
+          return x->pt() > y->pt();
+        }); 
+
   int i_particle = -1;
-  for (auto& cand : event.pfCandidates) {
+  for (auto* candPtr : sortedPFs) {
     i_particle++;
     if (i_particle == cfg.NMAXPF)
       break;
 
+    auto& cand = *candPtr;
     float pt = cand.pt();
     float eta = cand.eta();
     float phi = cand.phi();
@@ -175,7 +184,7 @@ void GrappleOp::do_execute()
       for (auto& p : event.genParticles) {
         if (!p.finalState)
           continue;
-        if (DeltaR2(eta, phi, p.eta(), p.phi()) < 0.0025) {
+        if (DeltaR2(eta, phi, p.eta(), p.phi()) < 0.0064) {
           vertexID = 0;
           break;
         }

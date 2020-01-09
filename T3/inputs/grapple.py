@@ -47,7 +47,7 @@ def post_fn():
     y = k[:,:,4] == 0
     # print(y.astype(int).min())
     # print('y',y[evt, :nmax])
-    x = k[:,:,:5]
+    x = k[:,:,:6]
     # print('pt',x[evt, :nmax, 0])
     # print('x',x[evt, :nmax, 4])
     x[:,:,4][(q == 0)] = -1 # if it's a neutral particle, mask the vertex ID
