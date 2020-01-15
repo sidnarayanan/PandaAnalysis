@@ -32,7 +32,8 @@ GrappleAnalyzer::GrappleAnalyzer(Analysis* a, int debug_/*=0*/) :
   event.setStatus(*tIn, {"!*"});
   utils::BranchList bl;
   bl += {"runNumber", "lumiNumber", "eventNumber", "rho",
-         "npv", "genParticles", "mcWeight", "pfCandidates", "vertices"}; 
+         "npv", "genParticles", "mcWeight", "pfCandidates", "vertices",
+         "genMet"}; 
   event.setAddress(*tIn, bl);
 
   TH1D* hDTotalMCWeight = static_cast<TH1D*>(static_cast<TH1D*>(fIn->Get("hSumW"))->Clone("hDTotalMCWeight"));
@@ -131,6 +132,7 @@ void GrappleOp::incrementAux(bool close)
   }
 
   tAux->Branch("eventNumber",&(gt.eventNumber),"eventNumber/l");
+  tAux->Branch("genMET", &(genJetInfo.pt), "genMET/f"); 
   tAux->Branch("npv", &(gt.npv), "npv/I");
   tAux->Branch("kinematics",&(genJetInfo.particles));
 
@@ -143,6 +145,7 @@ void GrappleOp::do_execute()
 
   gt.eventNumber = event.eventNumber;
   gt.npv = event.npv;
+  genJetInfo.pt = event.genMet.pt;
 
   std::map<const RecoVertex*, int> vertexToID;
   for (auto& vtx : event.vertices) {
