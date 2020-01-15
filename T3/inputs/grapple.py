@@ -53,7 +53,8 @@ def post_fn():
     x[:,:,4][(q == 0)] = -1 # if it's a neutral particle, mask the vertex ID
     # print('x',x[evt, :nmax, 4])
     p = k[:,:,-1]
-    np.savez('output.npz', x=x, y=y, q=q, p=p)
+    m = arr['genMET']
+    np.savez('output.npz', x=x, y=y, q=q, p=p, m=m)
     do('mv -v output.npz output.root')
 
 if __name__ == "__main__":
